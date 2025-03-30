@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom base styles */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply font-sans text-gray-900 antialiased;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Force navbar to be visible with proper styling on specific pages */
+  body.force-navbar-visible nav {
+    @apply bg-white shadow-soft-xl !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  /* Force text in navbar to be visible on white background */
+  body.force-navbar-visible nav a,
+  body.force-navbar-visible nav button,
+  body.force-navbar-visible nav span {
+    @apply text-gray-800 !important;
+  }
+
+  /* Keep hover states working properly */
+  body.force-navbar-visible nav a:hover,
+  body.force-navbar-visible nav button:hover {
+    @apply text-primary-500 !important;
+  }
+
+  h1 {
+    @apply font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight;
+  }
+
+  h2 {
+    @apply font-display text-3xl md:text-4xl font-bold tracking-tight;
+  }
+
+  h3 {
+    @apply font-display text-2xl md:text-3xl font-semibold tracking-tight;
+  }
+
+  p {
+    @apply leading-relaxed;
+  }
+
+  :root {
+    --primary: #2A4365;
+    /* Deep spiritual blue */
+    --secondary: #C05621;
+    /* Warm terracotta */
+    --accent: #4A5568;
+    /* Neutral gray */
+  }
+
+  a,
+  button {
+    @apply transition-colors duration-300;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg font-medium transition-all duration-300;
+  }
+
+  .btn-primary {
+    @apply bg-primary-500 text-white hover:bg-primary-600 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary-500 text-white hover:bg-secondary-600 focus:ring-2 focus:ring-secondary-500 focus:ring-offset-2;
+  }
+}

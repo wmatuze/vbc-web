@@ -1,0 +1,31 @@
+[
+  {
+    "id": 1,
+    "title": "Morning Devotion",
+    "description": "Start your day with spiritual nourishment",
+    "audioUrl": "/audio/morning-devotion.mp3",
+    "duration": "15:00"
+  },
+  {
+    "id": 2,
+    "title": "Evening Reflection",
+    "description": "End your day with gratitude",
+    "audioUrl": "/audio/evening-reflection.mp3",
+    "duration": "10:30"
+  }
+,
+    {
+        "id": 3,
+        "title": "Midday Meditation",
+        "description": "Take a break and find your center",
+        "audioUrl": "/audio/midday-meditation.mp3",
+        "duration": "20:00"
+    },
+    {
+        "id": 4,
+        "title": "Weekly Recap",
+        "description": "Review the week's highlights",
+        "audioUrl": "/audio/weekly-recap.mp3",
+        "duration": "30:00"
+    }
+]

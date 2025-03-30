@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Membership Renewal Form</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { padding: 10px 15px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+        #result { margin-top: 20px; padding: 10px; border: 1px solid #ddd; min-height: 100px; }
+    </style>
+</head>
+<body>
+    <h1>Test Membership Renewal Form</h1>
+    <form id="renewalForm">
+        <div class="form-group">
+            <label for="fullName">Full Name:</label>
+            <input type="text" id="fullName" name="fullName" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+            <label for="phone">Phone:</label>
+            <input type="tel" id="phone" name="phone" required>
+        </div>
+        <div class="form-group">
+            <label for="birthday">Birthday:</label>
+            <input type="date" id="birthday" name="birthday" required>
+        </div>
+        <div class="form-group">
+            <label for="memberSince">Member Since:</label>
+            <select id="memberSince" name="memberSince" required>
+                <option value="">Select Year</option>
+                <script>
+                    const currentYear = new Date().getFullYear();
+                    for (let year = currentYear; year >= currentYear - 25; year--) {
+                        document.write(`<option value="${year}">${year}</option>`);
+                    }
+                </script>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="agreeToTerms" name="agreeToTerms" required>
+                I agree to the terms
+            </label>
+        </div>
+        <button type="submit">Submit</button>
+    </form>
+    
+    <div id="result">
+        <h3>Response:</h3>
+        <pre id="responseData"></pre>
+    </div>
+
+    <script>
+        document.getElementById('renewalForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                fullName: document.getElementById('fullName').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                birthday: document.getElementById('birthday').value,
+                memberSince: document.getElementById('memberSince').value,
+                ministryInvolvement: '',
+                addressChange: false,
+                newAddress: '',
+                agreeToTerms: document.getElementById('agreeToTerms').checked
+            };
+            
+            const resultDiv = document.getElementById('responseData');
+            resultDiv.innerHTML = 'Submitting...';
+            
+            try {
+                console.log('Submitting form data:', formData);
+                
+                const response = await fetch('http://localhost:3000/api/membership/renew', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    mode: 'cors',
+                    body: JSON.stringify(formData)
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                const contentType = response.headers.get('content-type');
+                console.log('Content type:', contentType);
+                
+                if (contentType && contentType.includes('application/json')) {
+                    const data = await response.json();
+                    console.log('Response data:', data);
+                    resultDiv.innerHTML = JSON.stringify(data, null, 2);
+                } else {
+                    const text = await response.text();
+                    console.log('Response text:', text);
+                    resultDiv.innerHTML = text || '(empty response)';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `Error: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,41 @@
+vlc-web/
+│── node_modules/
+│── public/
+│   ├── audio/
+│   ├── data/
+│   ├── images/
+│   ├── assets/
+│   │   ├── media/
+│── src/
+│   ├── assets/
+│   ├── components/
+│   │   ├── Home/
+│   │   │   ├── CallToAction.jsx
+│   │   │   ├── HeroSection.jsx
+│   │   │   ├── Ministries.jsx
+│   │   │   ├── Sermons.jsx
+│   ├── layouts/
+│   │   ├── Footer.jsx
+│   │   ├── Navbar.jsx
+│   │   ├── ErrorBoundary.jsx
+│   │   ├── JoinGroupModal.jsx
+│   │   ├── Timeline.jsx
+│   ├── pages/
+│   │   ├── AboutUs.jsx
+│   │   ├── CellGroups.jsx
+│   │   ├── FoundationClasses.jsx
+│   │   ├── Gallery.jsx
+│   │   ├── Media.jsx
+│   │   ├── Membership.jsx
+│   │   ├── Missions.jsx
+│   │   ├── NotFound.jsx
+│   │   ├── OurStory.jsx
+│   │   ├── Podcasts.jsx
+│   │   ├── Renew.jsx
+│   │   ├── Resources.jsx
+│   │   ├── Sermons.jsx
+│   │   ├── Videos.jsx
+│   ├── App.css
+│   ├── App.jsx
+│   ├── index.jsx
+│   ├── main.jsx

@@ -1,0 +1,8 @@
+Installation:
+https://drive.google.com/file/d/1vMg7RLuNQgmbgMg5lFbhC_0lTnlbiVUg/view?usp=sharing
+
+Starting and stopping the server:
+https://drive.google.com/file/d/1vNgVGR5kDhtxG_xtoJvI1fN31ZHJkOx7/view?usp=sharing
+
+Overview of the PG Admin interface:
+https://drive.google.com/file/d/1CWmBW7FrN5ju8DZy_J5IQYSACrQwNGPD/view?usp=sharing

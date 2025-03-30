@@ -1,0 +1,427 @@
+// apps/website/src/pages/Ministries/PraiseMinistry.jsx
+import React, { useState, useEffect } from "react";
+import { getEvents } from "../../services/api";
+import EventCard from "../../components/ChurchCalendar/EventsCard";
+import PlaceHolderbanner from "../../assets/ministry-banners/ph.png"; //Using placeholder banner, you can replace with a Praise Ministry specific banner
+import FallbackImage from "../../assets/fallback-image.png"; // Import fallback image
+
+const PraiseMinistry = () => {
+  const [praiseMinistryEvents, setPraiseMinistryEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch events from API
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoading(true);
+        const data = await getEvents();
+        // Filter events for Praise Ministry
+        const filteredEvents = data.filter(
+          (event) => event?.ministry === "Praise Ministry"
+        );
+        setPraiseMinistryEvents(filteredEvents);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching events:", err);
+        setError("Failed to load events. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* **Hero Section** */}
+      <section
+        className="bg-blue-700 rounded-b-lg relative"
+        style={{
+          backgroundImage: `url(${PlaceHolderbanner})`, // Replace PlaceHolderbanner with your Praise Ministry banner image
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <div className="container mx-auto px-4 relative z-10 h-screen flex flex-col justify-center">
+          <h1 className="text-4xl lg:text-5xl font-bold text-white text-center mb-4">
+            Praise Ministry
+          </h1>
+          <p className="text-lg text-white text-center">
+            Our Praise Ministry is dedicated to leading our congregation in
+            worship and creating an atmosphere where everyone can encounter
+            God's presence... (rest of your "About Us" intro paragraph)
+          </p>
+        </div>
+        <div className="absolute inset-0 bg-black/50 rounded-b-lg"></div>
+      </section>
+
+      {/* **About Us Section** - Redesigned with card-like appearance */}
+      <section className="py-16">
+        <div className="container mx-auto px-4 max-w-5xl">
+          <div className="bg-white rounded-xl shadow-lg p-8 transform -mt-20 relative z-20">
+            <div className="flex items-center mb-8">
+              <div className="w-2 h-12 bg-blue-600 rounded-full mr-4"></div>
+              <h2 className="text-3xl font-bold text-gray-800">
+                About Praise Ministry
+              </h2>
+            </div>
+
+            <p className="text-gray-700 text-lg mb-8 leading-relaxed">
+              Our Praise Ministry is passionate about creating dynamic worship
+              experiences that inspire and uplift the church. We believe that
+              worship is a vital part of our relationship with God, and through
+              music, song, and creative arts, we strive to lead people into His
+              presence. Whether you are a musician, vocalist, or have a passion
+              for worship, we invite you to join us in making a joyful noise to
+              the Lord. We practice weekly and lead worship during Sunday
+              services and special events. Contact our ministry leader, [Praise
+              Ministry Leader Name], at [email protected] to learn more about
+              how you can get involved.
+            </p>
+
+            {/* **Activities with icons** */}
+            <h3 className="text-2xl font-semibold mb-6 text-gray-800 border-b pb-2 border-gray-200">
+              Activities
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+              <div className="flex items-start">
+                <div className="bg-blue-100 p-3 rounded-lg mr-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-blue-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 9l6-6m0 0l6 6m-6-6v12"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-800">
+                    Weekly Rehearsals
+                  </h4>
+                  <p className="text-gray-600">Thursdays, 6:30 PM</p>
+                </div>
+              </div>
+
+              <div className="flex items-start">
+                <div className="bg-blue-100 p-3 rounded-lg mr-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-blue-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-800">
+                    Sunday Worship Leadership
+                  </h4>
+                  <p className="text-gray-600">Every Sunday morning</p>
+                </div>
+              </div>
+
+              <div className="flex items-start">
+                <div className="bg-blue-100 p-3 rounded-lg mr-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-blue-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-800">
+                    Special Music Events
+                  </h4>
+                  <p className="text-gray-600">
+                    Seasonal concerts and performances
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start">
+                <div className="bg-blue-100 p-3 rounded-lg mr-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-blue-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-800">
+                    Worship Workshops
+                  </h4>
+                  <p className="text-gray-600">
+                    Training and skill development
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* **Ministry Leaders Section with profile cards** */}
+            <h3 className="text-2xl font-semibold mb-6 text-gray-800 border-b pb-2 border-gray-200">
+              Ministry Leaders
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-gray-50 rounded-lg p-6 border border-gray-100 shadow-sm">
+                <div className="flex items-center">
+                  <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center text-blue-600 font-bold text-xl mr-4">
+                    PL
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-800">
+                      Mr Praise Leader
+                    </h4>
+                    <p className="text-gray-600">Praise Ministry Leader</p>
+                    <p className="text-blue-600 text-sm mt-1">
+                      [email protected]
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-6 border border-gray-100 shadow-sm">
+                <div className="flex items-center">
+                  <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center text-blue-600 font-bold text-xl mr-4">
+                    AL
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-800">
+                      Mr Assist Leader
+                    </h4>
+                    <p className="text-gray-600">Assistant Leader</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* **Events Section** - Redesigned with subtle background pattern */}
+      <section className="py-16 bg-gray-50 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: "radial-gradient(#3b82f6 1px, transparent 1px)", // Blue color for Praise Ministry
+              backgroundSize: "20px 20px",
+            }}
+          ></div>
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10 max-w-6xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-800 relative inline-block">
+              <span className="relative z-10">
+                Upcoming Praise Ministry Events
+              </span>
+              <span className="absolute bottom-0 left-0 w-full h-3 bg-blue-200 -z-10 rounded"></span>
+            </h2>
+          </div>
+
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-xl text-gray-600">{error}</p>
+              <button
+                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                onClick={() => window.location.reload()}
+              >
+                Retry
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {praiseMinistryEvents.length > 0 ? (
+                praiseMinistryEvents.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    className="rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300"
+                  />
+                ))
+              ) : (
+                <div className="col-span-3 py-16 text-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-16 w-16 mx-auto text-gray-300 mb-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <p className="text-xl text-gray-500 mb-2">
+                    No upcoming events for Praise Ministry
+                  </p>
+                  <p className="text-gray-400">
+                    Check back later for new events
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* **Get Involved Section** - Redesigned with action-oriented layout */}
+      <section className="py-16 bg-gradient-to-b from-white to-gray-100 rounded-t-3xl">
+        <div className="container mx-auto px-4 max-w-5xl">
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="bg-blue-600 py-4 px-8">
+              <h2 className="text-3xl font-bold text-white text-center">
+                Get Involved with Praise Ministry!
+              </h2>
+            </div>
+
+            <div className="p-8">
+              <p className="text-gray-700 text-lg mb-8 text-center">
+                Are you gifted in music or have a passion for leading worship?
+                Here's how to get involved:
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="border border-gray-200 rounded-lg p-6 text-center hover:shadow-md transition-shadow">
+                  <div className="bg-blue-100 w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-8 w-8 text-blue-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 9l6-6m0 0l6 6m-6-6v12"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="font-semibold text-gray-800 mb-2">
+                    Attend Rehearsals
+                  </h3>
+                  <p className="text-gray-600">
+                    Thursdays at 6:30 PM in the Sanctuary
+                  </p>
+                </div>
+
+                <div className="border border-gray-200 rounded-lg p-6 text-center hover:shadow-md transition-shadow">
+                  <div className="bg-blue-100 w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-8 w-8 text-blue-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="font-semibold text-gray-800 mb-2">
+                    Join a Worship Team
+                  </h3>
+                  <p className="text-gray-600">
+                    Vocals, instruments, tech team
+                  </p>
+                </div>
+
+                <div className="border border-gray-200 rounded-lg p-6 text-center hover:shadow-md transition-shadow">
+                  <div className="bg-blue-100 w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-8 w-8 text-blue-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="font-semibold text-gray-800 mb-2">
+                    Contact Us
+                  </h3>
+                  <p className="text-gray-600">Email: [email protected]</p>
+                </div>
+              </div>
+
+              <div className="text-center">
+                <button className="px-8 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg inline-flex items-center">
+                  <span>Get Involved Today</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 ml-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 8l4 4m0 0l-4 4m4-4H3"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+export default PraiseMinistry;

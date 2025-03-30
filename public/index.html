@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>JSON Server Static File Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Test Media API</h2>
+        <button id="testMedia">Fetch Media Items</button>
+        <div id="mediaResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Direct Image Access Test</h2>
+        <div id="imageTests"></div>
+    </div>
+
+    <script>
+        // Test 1: Fetch media items from the API
+        document.getElementById('testMedia').addEventListener('click', function() {
+            const resultDiv = document.getElementById('mediaResult');
+            resultDiv.innerHTML = 'Loading...';
+            
+            fetch('/media')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Server returned ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    resultDiv.innerHTML = `<p>Successfully fetched ${data.length} media items</p>`;
+                    
+                    // Display JSON data
+                    const pre = document.createElement('pre');
+                    pre.textContent = JSON.stringify(data, null, 2);
+                    resultDiv.appendChild(pre);
+                    
+                    // Create image test elements
+                    const uploadedImages = data.filter(item => item.path && item.path.includes('/uploads/'));
+                    const imageTestsDiv = document.getElementById('imageTests');
+                    
+                    if (uploadedImages.length > 0) {
+                        imageTestsDiv.innerHTML = '<p>Testing direct access to uploaded images:</p>';
+                        uploadedImages.forEach(item => {
+                            const container = document.createElement('div');
+                            container.style.marginBottom = '20px';
+                            container.style.padding = '10px';
+                            container.style.border = '1px solid #ddd';
+                            
+                            const title = document.createElement('h3');
+                            title.textContent = item.title || item.filename || 'Untitled';
+                            
+                            const path = document.createElement('p');
+                            path.textContent = `Path: ${item.path}`;
+                            
+                            const img = document.createElement('img');
+                            img.src = item.path;
+                            img.alt = item.title || item.filename || 'Media item';
+                            img.style.maxWidth = '100%';
+                            img.style.maxHeight = '200px';
+                            img.onerror = function() {
+                                this.style.display = 'none';
+                                const error = document.createElement('div');
+                                error.textContent = `⚠️ Failed to load image from path: ${item.path}`;
+                                error.style.color = 'red';
+                                container.appendChild(error);
+                            };
+                            
+                            container.appendChild(title);
+                            container.appendChild(path);
+                            container.appendChild(img);
+                            imageTestsDiv.appendChild(container);
+                        });
+                    } else {
+                        imageTestsDiv.innerHTML = '<p>No uploaded images found in the media data</p>';
+                    }
+                })
+                .catch(error => {
+                    resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+                });
+        });
+    </script>
+</body>
+</html>

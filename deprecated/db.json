@@ -1,0 +1,440 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "password": "church_admin_2025",
+      "hashedPassword": "a5b3b03c70a7f0e9ec15de0e15b69f2c1b8e56d6da77a0afa798be9c7ee43b13",
+      "role": "admin",
+      "name": "Church Administrator"
+    },
+    {
+      "id": 2,
+      "username": "pastor",
+      "password": "pastor_2025",
+      "hashedPassword": "6a0f32df03ae9c6903e4d902395e43a26a9ae6c55b9f15fc49e8e40d9b22ac11",
+      "role": "editor",
+      "name": "Church Pastor"
+    }
+  ],
+  "sermons": [
+    {
+      "id": 1,
+      "title": "Governed To Govern",
+      "speaker": "Bishop Cyrus Simwanza",
+      "date": "2022-10-08",
+      "videoId": "l7fzlle9g84",
+      "duration": "1:05:38",
+      "imageUrl": "/assets/sermons/default-sermon.jpg"
+    },
+    {
+      "id": 2,
+      "title": "The Law of Life and Death",
+      "speaker": "Bishop Cyrus Simwanza",
+      "date": "2023-10-10",
+      "videoId": "8nOKvkVN5dI",
+      "duration": "1:15:06",
+      "imageUrl": "/assets/sermons/default-sermon.jpg"
+    },
+    {
+      "id": 3,
+      "title": "The Secret Place",
+      "speaker": "Rev. Gertrude Simwanza",
+      "date": "2025-01-07",
+      "videoId": "VgTVfZ3O-7A",
+      "duration": "50:00",
+      "imageUrl": "/assets/sermons/default-sermon.jpg"
+    },
+    {
+      "id": 4,
+      "title": "Seek Ye First",
+      "speaker": "Apostle Holy Mike",
+      "date": "2024-04-26",
+      "videoId": "IHtSWe7s1t8",
+      "duration": "57:09",
+      "imageUrl": "/assets/sermons/default-sermon.jpg"
+    }
+  ],
+  "events": [
+    {
+      "id": 1,
+      "title": "Youth Sunday",
+      "date": "2025-03-30",
+      "time": "10:30 AM",
+      "description": "A service led by the youth to inspire and empower the next generation.",
+      "imageUrl": "/uploads/1742511654749-393137570.jpg",
+      "ministry": "Youth Ministry"
+    },
+    {
+      "id": 2,
+      "title": "Red Night (Good Friday Night of Worship)",
+      "date": "2025-04-18",
+      "time": "7:00 PM",
+      "description": "A powerful night of worship and reflection on Good Friday.",
+      "imageUrl": "/uploads/1742516034032-829541019.jpg",
+      "ministry": "Praise Ministry"
+    },
+    {
+      "id": 3,
+      "title": "Father's Sunday",
+      "date": "2025-06-15",
+      "time": "10:30 PM",
+      "description": "A special Sunday dedicated to celebrating Fathers in the church.",
+      "imageUrl": "/uploads/1742522267260-404243236.jpg",
+      "ministry": "Men's Ministry"
+    },
+    {
+      "id": 4,
+      "title": "General Church Event",
+      "date": "May 1, 2025",
+      "time": "6:00 PM",
+      "description": "A general event for the whole church community.",
+      "imageUrl": "http://localhost:3000/uploads/1743079796558-546727658.jpg",
+      "ministry": "General"
+    },
+    {
+      "id": 5,
+      "title": "Women's Sunday",
+      "date": "2025-03-09",
+      "time": "9:00 AM",
+      "description": "A special Sunday dedicated to celebrating women in the church.",
+      "imageUrl": "/uploads/1742523093171-933280710.jpg",
+      "ministry": "Women's Ministry"
+    }
+  ],
+  "leaders": [
+    {
+      "id": "bishop-cyrus",
+      "name": "Bishop Cyrus Simwanza",
+      "title": "Senior Pastor",
+      "imageUrl": "/uploads/1743078100133-761294660.jpg",
+      "bio": "With over 20 years of ministry experience, Bishop Cyrus leads our congregation with a heart for community transformation. His passionate teaching bridges biblical wisdom with contemporary life challenges, inspiring members to live out their faith authentically.",
+      "email": "pastor.john@victorybc.org",
+      "ministryFocus": [
+        "Discipleship",
+        "Community Outreach",
+        "Spiritual Growth"
+      ],
+      "socialMedia": {
+        "facebook": "https://facebook.com/bishopname",
+        "twitter": "https://twitter.com/bishopname"
+      },
+      "order": 1
+    },
+    {
+      "id": "pst-chris",
+      "name": "Pastor Chris Chipasha",
+      "title": "Worship Director",
+      "imageUrl": "/assets/leadership/placeholder.jpg",
+      "bio": "A gifted musician and worship leader, Pastor creates transformative worship experiences that draw people closer to God. His vision is to cultivate a culture of genuine worship that transcends musical performance.",
+      "email": "worship@victorybc.org",
+      "ministryFocus": [
+        "Worship Arts",
+        "Music Ministry",
+        "Creative Expressions"
+      ],
+      "order": 2
+    },
+    {
+      "id": "rev-jaylo",
+      "name": "Rev Jayne Walamba",
+      "title": "Youth Pastor",
+      "imageUrl": "/assets/leadership/placeholder.jpg",
+      "bio": "Passionate about empowering the next generation, Rev Jayne leads our youth and young adult ministries with energy and purpose. She designs relevant programs that help young people navigate faith in a complex world.",
+      "email": "youth@victorybc.org",
+      "ministryFocus": [
+        "Youth Discipleship",
+        "Leadership Development",
+        "Campus Ministry"
+      ],
+      "order": 3
+    },
+    {
+      "name": "Getrude Simwanza",
+      "title": "Assistant Pastor",
+      "imageUrl": "",
+      "bio": "ilpem ipumsj djdjdssnd ddksn",
+      "email": "getrudesimwaza@vbc.info",
+      "phone": "260957382902",
+      "ministryFocus": [
+        "woman"
+      ],
+      "socialMedia": {
+        "facebook": "",
+        "twitter": "",
+        "instagram": "",
+        "linkedin": ""
+      },
+      "education": [],
+      "experience": [],
+      "order": 3,
+      "status": "active",
+      "department": "Children",
+      "startDate": "",
+      "responsibilities": [],
+      "achievements": [],
+      "speakingTopics": [],
+      "availability": {
+        "office": "",
+        "meetings": "",
+        "counseling": ""
+      },
+      "profileVideo": "",
+      "publications": [],
+      "certifications": [],
+      "id": 1742752294355
+    },
+    {
+      "name": "Watutemwa Matuze",
+      "title": "Deacon",
+      "imageUrl": "/uploads/1743078244613-35908627.jpg",
+      "bio": "hjk rew asdj vcx asd wer gfd wer wer fds ytr vc asd wer ytr gfd xcv sdf re sdf vc sdfg tre yt",
+      "email": "watu.matuze@gmail.com",
+      "phone": "+260957182071",
+      "ministryFocus": [],
+      "socialMedia": {
+        "facebook": "",
+        "twitter": "",
+        "instagram": "",
+        "linkedin": ""
+      },
+      "education": [],
+      "experience": [],
+      "order": 4,
+      "status": "active",
+      "department": "Media",
+      "startDate": "",
+      "responsibilities": [],
+      "achievements": [],
+      "speakingTopics": [],
+      "availability": {
+        "office": "",
+        "meetings": "",
+        "counseling": ""
+      },
+      "profileVideo": "",
+      "publications": [],
+      "certifications": [],
+      "id": 1743078291413
+    },
+    {
+      "name": "Tshaka Toussaint",
+      "title": "Secretary",
+      "imageUrl": "/uploads/1743078618840-486484136.jpg",
+      "bio": "hjk wer x bnmgh dfghj xcvbn dfghj qertyu asdfgh zxcvb sdfgh sdfgh",
+      "email": "tshaka.toussaint@gmail.com",
+      "phone": "+260976072699",
+      "ministryFocus": [],
+      "socialMedia": {
+        "facebook": "",
+        "twitter": "",
+        "instagram": "",
+        "linkedin": ""
+      },
+      "education": [],
+      "experience": [],
+      "order": 5,
+      "status": "active",
+      "department": "admin",
+      "startDate": "",
+      "responsibilities": [],
+      "achievements": [],
+      "speakingTopics": [],
+      "availability": {
+        "office": "",
+        "meetings": "",
+        "counseling": ""
+      },
+      "profileVideo": "",
+      "publications": [],
+      "certifications": [],
+      "id": 1743078638003
+    }
+  ],
+  "cellGroups": [
+    {
+      "id": 1,
+      "name": "Kitwe Central",
+      "location": "Kitwe",
+      "leader": "John Banda",
+      "contact": "john.banda@example.com",
+      "meetingDay": "Tuesday",
+      "meetingTime": "18:30",
+      "capacity": "15-20 people",
+      "description": "A welcoming group focused on Bible study and prayer for all ages",
+      "tags": [
+        "All Ages",
+        "Bible Study",
+        "Prayer"
+      ],
+      "coordinates": {
+        "lat": -12.8,
+        "lng": 28.2
+      },
+      "imageUrl": "/assets/cell-groups/cell-group-1.jpg"
+    },
+    {
+      "id": 2,
+      "name": "Riverside Cell",
+      "location": "Riverside",
+      "leader": "Mary Mwansa",
+      "contact": "mary.mwansa@example.com",
+      "meetingDay": "Wednesday",
+      "meetingTime": "19:00",
+      "capacity": "10-15 people",
+      "description": "Young adults focused on practical application of faith in daily life",
+      "tags": [
+        "Young Adults",
+        "Discipleship"
+      ],
+      "coordinates": {
+        "lat": -12.85,
+        "lng": 28.25
+      },
+      "imageUrl": "/assets/cell-groups/cell-group-2.jpg"
+    },
+    {
+      "id": 3,
+      "name": "Parklands Cell",
+      "location": "Parklands",
+      "leader": "James Phiri",
+      "contact": "james.phiri@example.com",
+      "meetingDay": "Friday",
+      "meetingTime": "18:00",
+      "capacity": "15-25 people",
+      "description": "Family-oriented group with activities for children and adults",
+      "tags": [
+        "Families",
+        "Fellowship",
+        "Children"
+      ],
+      "coordinates": {
+        "lat": -12.78,
+        "lng": 28.22
+      },
+      "imageUrl": "/assets/cell-groups/cell-group-3.jpg"
+    },
+    {
+      "id": 4,
+      "name": "University Campus Group",
+      "location": "CBU Campus",
+      "leader": "Esther Lungu",
+      "contact": "esther.lungu@example.com",
+      "meetingDay": "Monday",
+      "meetingTime": "16:00",
+      "capacity": "20-30 people",
+      "description": "Student-led group providing support and fellowship for university students",
+      "tags": [
+        "Students",
+        "Young Adults"
+      ],
+      "coordinates": {
+        "lat": -12.82,
+        "lng": 28.24
+      },
+      "imageUrl": "/assets/cell-groups/cell-group-4.jpg"
+    },
+    {
+      "name": "Nkana East",
+      "location": "Nkana",
+      "leader": "James Banda",
+      "contact": "jamesbanda@gmail.com",
+      "meetingDay": "Sunday",
+      "meetingTime": "18:30",
+      "capacity": "10-15",
+      "description": "lom ipsum",
+      "tags": [],
+      "coordinates": {
+        "lat": 0,
+        "lng": 0
+      },
+      "imageUrl": "",
+      "id": 1742638197409
+    },
+    {
+      "name": "Ndeke Village",
+      "location": "Ndeke",
+      "leader": "John Phiri",
+      "contact": "johnphiri@gmail.com",
+      "meetingDay": "Tuesday",
+      "meetingTime": "18:00",
+      "capacity": "20-30",
+      "description": "...ahajajjajja jshddi ahsju ajsu",
+      "tags": [],
+      "coordinates": {
+        "lat": 0,
+        "lng": 0
+      },
+      "imageUrl": "",
+      "id": 1742638543587
+    }
+  ],
+  "media": [
+    {
+      "id": 1742511654827,
+      "filename": "1742511654749-393137570.jpg",
+      "originalName": "youth-sunday.jpg",
+      "path": "/uploads/1742511654749-393137570.jpg",
+      "type": "image/jpeg",
+      "size": 3685422,
+      "title": "youth-sunday",
+      "category": "event",
+      "uploadDate": "2025-03-20T23:00:54.827Z"
+    },
+    {
+      "id": 1742516034047,
+      "filename": "1742516034032-829541019.jpg",
+      "originalName": "red-night.jpg",
+      "path": "/uploads/1742516034032-829541019.jpg",
+      "type": "image/jpeg",
+      "size": 2293794,
+      "title": "red-night",
+      "category": "event",
+      "uploadDate": "2025-03-21T00:13:54.047Z"
+    },
+    {
+      "id": 1742522267321,
+      "filename": "1742522267260-404243236.jpg",
+      "originalName": "fathers-sunday.jpg",
+      "path": "/uploads/1742522267260-404243236.jpg",
+      "type": "image/jpeg",
+      "size": 1358234,
+      "title": "fathers-sunday",
+      "category": "event",
+      "uploadDate": "2025-03-21T01:57:47.321Z"
+    },
+    {
+      "id": 1742523093240,
+      "filename": "1742523093171-933280710.jpg",
+      "originalName": "womens-sunday.jpg",
+      "path": "/uploads/1742523093171-933280710.jpg",
+      "type": "image/jpeg",
+      "size": 2326370,
+      "title": "womens-sunday",
+      "category": "event",
+      "uploadDate": "2025-03-21T02:11:33.240Z"
+    },
+    {
+      "id": 1742752360294,
+      "filename": "1742752360254-569713971.jpg",
+      "originalName": "bishop-main.jpg",
+      "path": "/uploads/1742752360254-569713971.jpg",
+      "type": "image/jpeg",
+      "size": 1759806,
+      "title": "bishop-main",
+      "category": "general",
+      "uploadDate": "2025-03-23T17:52:40.294Z"
+    },
+    {
+      "id": 1743080226251,
+      "filename": "1743080226246-22250140.jpg",
+      "originalName": "172850230_2766897956906759_8785491375893269822_n.jpg",
+      "path": "/uploads/1743080226246-22250140.jpg",
+      "type": "image/jpeg",
+      "size": 102778,
+      "title": "172850230_2766897956906759_8785491375893269822_n",
+      "category": "general",
+      "uploadDate": "2025-03-27T12:57:06.251Z"
+    }
+  ]
+}
