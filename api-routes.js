@@ -105,6 +105,128 @@ router.get("/events/:id", async (req, res) => {
   }
 });
 
+// Create a new event
+router.post("/events", authMiddleware, async (req, res) => {
+  try {
+    console.log("Received event creation request:", req.body);
+
+    // Create a new event from the request body
+    const eventData = {
+      ...req.body,
+      // Ensure dates are properly converted to Date objects
+      startDate: req.body.startDate ? new Date(req.body.startDate) : new Date(),
+      endDate: req.body.endDate ? new Date(req.body.endDate) : new Date(),
+      // Set default values if not provided
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // If imageUrl is provided but no image object, use the imageUrl
+    if (req.body.imageUrl && !req.body.image) {
+      eventData.imageUrl = req.body.imageUrl;
+    }
+
+    // Create and save the new event
+    const event = new models.Event(eventData);
+    const savedEvent = await event.save();
+
+    // Format for response
+    const formattedEvent = formatResponse(savedEvent);
+
+    console.log("Successfully created event:", formattedEvent.title);
+
+    res.status(201).json(formattedEvent);
+  } catch (error) {
+    console.error("Error creating event:", error);
+    res.status(500).json({ error: "Failed to create event" });
+  }
+});
+
+// Update an event
+router.put("/events/:id", authMiddleware, async (req, res) => {
+  try {
+    console.log(`Updating event with ID: ${req.params.id}`);
+    console.log("Update data:", req.body);
+
+    // Prepare update data
+    const updateData = { ...req.body, updatedAt: new Date() };
+
+    // Convert date strings to Date objects if present
+    if (updateData.startDate) {
+      updateData.startDate = new Date(updateData.startDate);
+    }
+    if (updateData.endDate) {
+      updateData.endDate = new Date(updateData.endDate);
+    }
+
+    // Handle image properly
+    if (updateData.image) {
+      // If image is an object with an id, use the id as a reference
+      if (typeof updateData.image === "object" && updateData.image.id) {
+        updateData.image = updateData.image.id;
+        console.log("Using image reference ID:", updateData.image);
+      } else if (
+        typeof updateData.image === "string" &&
+        updateData.image.match(/^[0-9a-fA-F]{24}$/)
+      ) {
+        // If image is already a valid MongoDB ID string, keep it
+        console.log("Using existing image ID:", updateData.image);
+      } else {
+        // If it's not a valid reference, remove it to avoid errors
+        console.log("Invalid image reference, removing from update");
+        delete updateData.image;
+      }
+    } else if (updateData.imageUrl && !updateData.image) {
+      // If only imageUrl is provided, keep it for backward compatibility
+      console.log("Using imageUrl:", updateData.imageUrl);
+    }
+
+    // Remove MongoDB-specific fields that might cause issues
+    delete updateData._id;
+    delete updateData.__v;
+    delete updateData.createdAt;
+
+    console.log("Final update data:", updateData);
+
+    const event = await models.Event.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true }
+    ).populate("image");
+
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    // Format for response
+    const formattedEvent = formatResponse(event);
+    console.log("Successfully updated event:", formattedEvent.title);
+
+    res.json(formattedEvent);
+  } catch (error) {
+    console.error("Error updating event:", error);
+    res.status(500).json({ error: "Failed to update event" });
+  }
+});
+
+// Delete an event
+router.delete("/events/:id", authMiddleware, async (req, res) => {
+  try {
+    console.log(`Deleting event with ID: ${req.params.id}`);
+
+    const event = await models.Event.findByIdAndDelete(req.params.id);
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    console.log("Successfully deleted event:", event.title);
+    res.json({ message: "Event deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting event:", error);
+    res.status(500).json({ error: "Failed to delete event" });
+  }
+});
+
 // Get all leaders
 router.get("/leaders", async (req, res) => {
   try {
@@ -213,15 +335,17 @@ router.get("/sermons", async (req, res) => {
 // Get a single sermon by ID
 router.get("/sermons/:id", async (req, res) => {
   try {
-    const sermon = await models.Sermon.findById(req.params.id).populate("image");
-    
+    const sermon = await models.Sermon.findById(req.params.id).populate(
+      "image"
+    );
+
     if (!sermon) {
       return res.status(404).json({ error: "Sermon not found" });
     }
 
     // Format sermon for frontend compatibility
     const formattedSermon = formatResponse(sermon);
-    
+
     res.json(formattedSermon);
   } catch (error) {
     console.error("Error fetching sermon:", error);
@@ -241,7 +365,7 @@ router.post("/sermons", authMiddleware, async (req, res) => {
       date: req.body.date ? new Date(req.body.date) : new Date(),
       // Set default values if not provided
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     // If imageUrl is provided but no image object, use the imageUrl
@@ -333,11 +457,17 @@ router.post("/membership/renew", async (req, res) => {
     console.log("Received membership renewal submission:", req.body);
 
     // Basic validation
-    if (!req.body.fullName || !req.body.email || !req.body.phone || !req.body.birthday || !req.body.memberSince) {
+    if (
+      !req.body.fullName ||
+      !req.body.email ||
+      !req.body.phone ||
+      !req.body.birthday ||
+      !req.body.memberSince
+    ) {
       console.error("Invalid renewal submission - missing required fields");
       return res.status(400).json({
         success: false,
-        error: "Missing required fields. Please fill out all required fields."
+        error: "Missing required fields. Please fill out all required fields.",
       });
     }
 
@@ -374,13 +504,16 @@ router.post("/membership/renew", async (req, res) => {
       data: formattedRenewal,
     };
 
-    console.log("Sending success response:", JSON.stringify(response).substring(0, 100) + "...");
+    console.log(
+      "Sending success response:",
+      JSON.stringify(response).substring(0, 100) + "..."
+    );
     res.status(201).json(response);
   } catch (error) {
     console.error("Error processing membership renewal:", error);
     res.status(500).json({
       success: false,
-      error: "Failed to submit membership renewal. Please try again later."
+      error: "Failed to submit membership renewal. Please try again later.",
     });
   }
 });
@@ -407,35 +540,36 @@ router.put("/membership/renewals/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    
+
     console.log(`Updating membership renewal ${id} status to: ${status}`);
-    
+
     // Validate status value
-    if (!status || !['pending', 'approved', 'declined'].includes(status)) {
-      return res.status(400).json({ 
-        success: false, 
-        error: "Invalid status value. Must be 'pending', 'approved', or 'declined'." 
+    if (!status || !["pending", "approved", "declined"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error:
+          "Invalid status value. Must be 'pending', 'approved', or 'declined'.",
       });
     }
-    
+
     const renewal = await models.MemberRenewal.findByIdAndUpdate(
       id,
       { status, updatedAt: new Date() },
       { new: true }
     );
-    
+
     if (!renewal) {
-      return res.status(404).json({ 
-        success: false, 
-        error: "Membership renewal not found" 
+      return res.status(404).json({
+        success: false,
+        error: "Membership renewal not found",
       });
     }
-    
+
     // Format for response
     const formattedRenewal = formatResponse(renewal);
-    
+
     // If approved, send a notification email to the member
-    if (status === 'approved') {
+    if (status === "approved") {
       try {
         await emailService.sendMembershipApprovalEmail(renewal);
         console.log("Membership approval email sent successfully");
@@ -444,17 +578,17 @@ router.put("/membership/renewals/:id", authMiddleware, async (req, res) => {
         // Continue with success response even if email fails
       }
     }
-    
+
     res.json({
       success: true,
       message: `Membership renewal ${status}`,
-      data: formattedRenewal
+      data: formattedRenewal,
     });
   } catch (error) {
     console.error("Error updating membership renewal:", error);
-    res.status(500).json({ 
-      success: false, 
-      error: "Failed to update membership renewal status" 
+    res.status(500).json({
+      success: false,
+      error: "Failed to update membership renewal status",
     });
   }
 });
