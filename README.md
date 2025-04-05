@@ -1,6 +1,6 @@
-# Victory Baptist Church CMS
+# Victory Bible Church CMS
 
-A custom Content Management System (CMS) for Victory Baptist Church website.
+A custom Content Management System (CMS) for Victory Bible Church website.
 
 ## System Requirements
 
