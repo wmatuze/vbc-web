@@ -11,11 +11,32 @@ const EventCard = ({ event, highlight, compact = false }) => {
     if (!event?.imageUrl && !event?.image) return FallbackImage;
     
     if (event.imageUrl) {
+      // Add console log to debug image URL
+      console.log('Event image URL:', event.imageUrl);
+      
       // Handle API uploaded images
-      return event.imageUrl.startsWith('http') 
-        ? event.imageUrl 
-        : `${API_URL}${event.imageUrl}`;
+      if (event.imageUrl.startsWith('http')) {
+        return event.imageUrl;
+      } else if (event.imageUrl.startsWith('/')) {
+        return `${API_URL}${event.imageUrl}`;
+      } else {
+        // For relative paths without leading slash
+        return `${API_URL}/${event.imageUrl}`;
+      }
     } else if (event.image) {
+      console.log('Event image object:', event.image);
+      
+      // Handle image object
+      if (typeof event.image === 'object') {
+        if (event.image.path) {
+          return event.image.path.startsWith('/') 
+            ? `${API_URL}${event.image.path}`
+            : `${API_URL}/${event.image.path}`;
+        } else if (event.image.filename) {
+          return `${API_URL}/uploads/${event.image.filename}`;
+        }
+      }
+      
       // Handle imported local images from the assets folder
       return event.image;
     }
