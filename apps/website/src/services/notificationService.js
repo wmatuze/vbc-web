@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { getApiUrl } from './config';
+import axios from "axios";
+import { getApiUrl, getAuthToken } from "./config";
 
 /**
  * Notification service to handle sending messages to users
@@ -12,33 +12,33 @@ class NotificationService {
    */
   static async sendMembershipApprovalNotification(member) {
     try {
-      const token = localStorage.getItem('authToken');
-      
+      const token = getAuthToken();
+
       const response = await axios.post(
         `${getApiUrl()}/api/notifications/send`,
         {
-          type: 'membership_renewal_approved',
+          type: "membership_renewal_approved",
           recipient: {
             email: member.email,
             phone: member.phone,
-            name: member.fullName
+            name: member.fullName,
           },
           data: {
             memberSince: member.memberSince,
-            renewalDate: member.renewalDate
-          }
+            renewalDate: member.renewalDate,
+          },
         },
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
-      
+
       return response.data;
     } catch (error) {
-      console.error('Failed to send membership approval notification:', error);
+      console.error("Failed to send membership approval notification:", error);
       throw error;
     }
   }
@@ -50,39 +50,39 @@ class NotificationService {
    */
   static async sendClassScheduleNotification(enrollee) {
     try {
-      const token = localStorage.getItem('authToken');
-      
+      const token = getAuthToken();
+
       const response = await axios.post(
         `${getApiUrl()}/api/notifications/send`,
         {
-          type: 'foundation_class_approved',
+          type: "foundation_class_approved",
           recipient: {
             email: enrollee.email,
             phone: enrollee.phone,
-            name: enrollee.fullName
+            name: enrollee.fullName,
           },
           data: {
             preferredSession: enrollee.preferredSession,
             // You might want to fetch the actual schedule data from the server
             // or include it in the enrollee object
             schedule: {
-              location: 'Room 201',
+              location: "Room 201",
               startDate: enrollee.preferredSession,
-              time: '9:00 AM - 10:30 AM'
-            }
-          }
+              time: "9:00 AM - 10:30 AM",
+            },
+          },
         },
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
-      
+
       return response.data;
     } catch (error) {
-      console.error('Failed to send class schedule notification:', error);
+      console.error("Failed to send class schedule notification:", error);
       throw error;
     }
   }
@@ -94,32 +94,32 @@ class NotificationService {
    */
   static async sendClassCompletionNotification(enrollee) {
     try {
-      const token = localStorage.getItem('authToken');
-      
+      const token = getAuthToken();
+
       const response = await axios.post(
         `${getApiUrl()}/api/notifications/send`,
         {
-          type: 'foundation_class_completed',
+          type: "foundation_class_completed",
           recipient: {
             email: enrollee.email,
             phone: enrollee.phone,
-            name: enrollee.fullName
+            name: enrollee.fullName,
           },
           data: {
-            completionDate: new Date().toISOString()
-          }
+            completionDate: new Date().toISOString(),
+          },
         },
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
-      
+
       return response.data;
     } catch (error) {
-      console.error('Failed to send class completion notification:', error);
+      console.error("Failed to send class completion notification:", error);
       throw error;
     }
   }
@@ -130,34 +130,34 @@ class NotificationService {
    * @param {String} reason - Optional reason for declining
    * @returns {Promise} - Promise that resolves when notification is sent
    */
-  static async sendMembershipDeclinedNotification(member, reason = '') {
+  static async sendMembershipDeclinedNotification(member, reason = "") {
     try {
-      const token = localStorage.getItem('authToken');
-      
+      const token = getAuthToken();
+
       const response = await axios.post(
         `${getApiUrl()}/api/notifications/send`,
         {
-          type: 'membership_renewal_declined',
+          type: "membership_renewal_declined",
           recipient: {
             email: member.email,
             phone: member.phone,
-            name: member.fullName
+            name: member.fullName,
           },
           data: {
-            reason: reason
-          }
+            reason: reason,
+          },
         },
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
-      
+
       return response.data;
     } catch (error) {
-      console.error('Failed to send membership declined notification:', error);
+      console.error("Failed to send membership declined notification:", error);
       throw error;
     }
   }
@@ -168,37 +168,37 @@ class NotificationService {
    * @param {String} reason - Optional reason for cancellation
    * @returns {Promise} - Promise that resolves when notification is sent
    */
-  static async sendClassCancellationNotification(enrollee, reason = '') {
+  static async sendClassCancellationNotification(enrollee, reason = "") {
     try {
-      const token = localStorage.getItem('authToken');
-      
+      const token = getAuthToken();
+
       const response = await axios.post(
         `${getApiUrl()}/api/notifications/send`,
         {
-          type: 'foundation_class_cancelled',
+          type: "foundation_class_cancelled",
           recipient: {
             email: enrollee.email,
             phone: enrollee.phone,
-            name: enrollee.fullName
+            name: enrollee.fullName,
           },
           data: {
-            reason: reason
-          }
+            reason: reason,
+          },
         },
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
-      
+
       return response.data;
     } catch (error) {
-      console.error('Failed to send class cancellation notification:', error);
+      console.error("Failed to send class cancellation notification:", error);
       throw error;
     }
   }
 }
 
-export default NotificationService; 
+export default NotificationService;

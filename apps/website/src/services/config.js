@@ -4,7 +4,7 @@
  */
 export const getApiUrl = () => {
   // Use environment variable if available, or fallback to localhost
-  return process.env.REACT_APP_API_URL || 'http://localhost:3000';
+  return import.meta.env.VITE_API_URL || "http://localhost:3000";
 };
 
 /**
@@ -12,7 +12,16 @@ export const getApiUrl = () => {
  * @returns {String|null} The auth token or null if not available
  */
 export const getAuthToken = () => {
-  return localStorage.getItem('authToken');
+  const auth = localStorage.getItem("auth");
+  if (!auth) return null;
+
+  try {
+    const authData = JSON.parse(auth);
+    return authData.token;
+  } catch (e) {
+    console.error("Error parsing auth data:", e);
+    return null;
+  }
 };
 
 /**
@@ -23,15 +32,15 @@ export const getAuthToken = () => {
 export const getAuthHeaders = (includeContentType = true) => {
   const headers = {};
   const token = getAuthToken();
-  
+
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers["Authorization"] = `Bearer ${token}`;
   }
-  
+
   if (includeContentType) {
-    headers['Content-Type'] = 'application/json';
+    headers["Content-Type"] = "application/json";
   }
-  
+
   return headers;
 };
 
@@ -40,16 +49,16 @@ export const getAuthHeaders = (includeContentType = true) => {
  */
 export const config = {
   apiUrl: getApiUrl(),
-  
+
   // Default pagination settings
   pagination: {
     defaultPageSize: 10,
-    pageSizeOptions: [5, 10, 20, 50, 100]
+    pageSizeOptions: [5, 10, 20, 50, 100],
   },
-  
+
   // Timeout settings (in milliseconds)
   timeouts: {
     apiRequest: 30000, // 30 seconds
-    userSession: 3600000 // 1 hour
-  }
-}; 
+    userSession: 3600000, // 1 hour
+  },
+};

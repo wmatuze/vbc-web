@@ -13,5 +13,12 @@ export default defineConfig({
     headers: {
       "Cross-Origin-Opener-Policy": "same-origin",
     },
+    proxy: {
+      "/api": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
 });

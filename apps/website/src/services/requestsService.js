@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { getApiUrl, getAuthHeaders } from './config';
+import axios from "axios";
+import { getApiUrl, getAuthHeaders } from "./config";
 
 /**
  * Requests Service for handling API requests related to membership and foundation classes
@@ -14,26 +14,28 @@ class RequestsService {
       baseURL: getApiUrl(),
       timeout: 30000,
     });
-    
+
     // Add response interceptor for error handling
     instance.interceptors.response.use(
-      response => response,
-      error => {
+      (response) => response,
+      (error) => {
         // Handle 401 unauthorized errors - could trigger logout
         if (error.response && error.response.status === 401) {
-          console.error('Authentication error - user might need to log in again');
+          console.error(
+            "Authentication error - user might need to log in again"
+          );
           // Could redirect to login or dispatch an action to logout
         }
-        
+
         return Promise.reject(error);
       }
     );
-    
+
     return instance;
   }
-  
+
   /* MEMBERSHIP RENEWALS API */
-  
+
   /**
    * Fetch all membership renewals
    * @returns {Promise} Promise that resolves to array of renewals
@@ -41,17 +43,17 @@ class RequestsService {
   static async getMembershipRenewals() {
     try {
       const axios = this.getAxiosInstance();
-      const response = await axios.get('/api/membership/renewals', {
-        headers: getAuthHeaders()
+      const response = await axios.get("/api/membership/renewals", {
+        headers: getAuthHeaders(),
       });
-      
+
       return response.data;
     } catch (error) {
-      console.error('Failed to fetch membership renewals:', error);
+      console.error("Failed to fetch membership renewals:", error);
       throw error;
     }
   }
-  
+
   /**
    * Update the status of a membership renewal
    * @param {String} id - The renewal ID
@@ -66,14 +68,14 @@ class RequestsService {
         { status },
         { headers: getAuthHeaders() }
       );
-      
+
       return response.data;
     } catch (error) {
       console.error(`Failed to update renewal status to ${status}:`, error);
       throw error;
     }
   }
-  
+
   /**
    * Get a single membership renewal by ID
    * @param {String} id - The renewal ID
@@ -83,18 +85,18 @@ class RequestsService {
     try {
       const axios = this.getAxiosInstance();
       const response = await axios.get(`/api/membership/renewals/${id}`, {
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
       });
-      
+
       return response.data;
     } catch (error) {
-      console.error('Failed to fetch membership renewal:', error);
+      console.error("Failed to fetch membership renewal:", error);
       throw error;
     }
   }
-  
+
   /* FOUNDATION CLASS REGISTRATION API */
-  
+
   /**
    * Fetch all foundation class registrations
    * @returns {Promise} Promise that resolves to array of registrations
@@ -102,17 +104,20 @@ class RequestsService {
   static async getFoundationClassRegistrations() {
     try {
       const axios = this.getAxiosInstance();
-      const response = await axios.get('/api/foundation-classes/registrations', {
-        headers: getAuthHeaders()
-      });
-      
+      const response = await axios.get(
+        "/api/foundation-classes/registrations",
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+
       return response.data;
     } catch (error) {
-      console.error('Failed to fetch foundation class registrations:', error);
+      console.error("Failed to fetch foundation class registrations:", error);
       throw error;
     }
   }
-  
+
   /**
    * Update the status of a foundation class registration
    * @param {String} id - The registration ID
@@ -127,14 +132,17 @@ class RequestsService {
         { status },
         { headers: getAuthHeaders() }
       );
-      
+
       return response.data;
     } catch (error) {
-      console.error(`Failed to update foundation class status to ${status}:`, error);
+      console.error(
+        `Failed to update foundation class status to ${status}:`,
+        error
+      );
       throw error;
     }
   }
-  
+
   /**
    * Get a single foundation class registration by ID
    * @param {String} id - The registration ID
@@ -143,19 +151,22 @@ class RequestsService {
   static async getFoundationClassRegistration(id) {
     try {
       const axios = this.getAxiosInstance();
-      const response = await axios.get(`/api/foundation-classes/registrations/${id}`, {
-        headers: getAuthHeaders()
-      });
-      
+      const response = await axios.get(
+        `/api/foundation-classes/registrations/${id}`,
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+
       return response.data;
     } catch (error) {
-      console.error('Failed to fetch foundation class registration:', error);
+      console.error("Failed to fetch foundation class registration:", error);
       throw error;
     }
   }
-  
+
   /* EXPORT FUNCTIONALITY */
-  
+
   /**
    * Export approved members list as CSV
    * @returns {Promise} Promise that resolves to CSV content
@@ -163,14 +174,14 @@ class RequestsService {
   static async exportApprovedMembers() {
     try {
       const axios = this.getAxiosInstance();
-      const response = await axios.get('/api/export/members/approved', {
+      const response = await axios.get("/api/export/members/approved", {
         headers: getAuthHeaders(),
-        responseType: 'blob' // Important for file downloading
+        responseType: "blob", // Important for file downloading
       });
-      
+
       return response.data;
     } catch (error) {
-      console.error('Failed to export approved members:', error);
+      console.error("Failed to export approved members:", error);
       throw error;
     }
   }
@@ -182,17 +193,59 @@ class RequestsService {
   static async exportFoundationClassGraduates() {
     try {
       const axios = this.getAxiosInstance();
-      const response = await axios.get('/api/export/foundation-classes/completed', {
-        headers: getAuthHeaders(),
-        responseType: 'blob' // Important for file downloading
-      });
-      
+      const response = await axios.get(
+        "/api/export/foundation-classes/completed",
+        {
+          headers: getAuthHeaders(),
+          responseType: "blob", // Important for file downloading
+        }
+      );
+
       return response.data;
     } catch (error) {
-      console.error('Failed to export foundation class graduates:', error);
+      console.error("Failed to export foundation class graduates:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a membership renewal
+   * @param {String} id - The ID of the membership renewal to delete
+   * @returns {Promise} - Promise that resolves with the API response
+   */
+  static async deleteMembershipRenewal(id) {
+    try {
+      const response = await this.getAxiosInstance().delete(
+        `/api/membership/renewals/${id}`,
+        { headers: getAuthHeaders() }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to delete membership renewal ${id}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a foundation class registration
+   * @param {String} id - The ID of the foundation class registration to delete
+   * @returns {Promise} - Promise that resolves with the API response
+   */
+  static async deleteFoundationClassRegistration(id) {
+    try {
+      const response = await this.getAxiosInstance().delete(
+        `/api/foundation-classes/registrations/${id}`,
+        { headers: getAuthHeaders() }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        `Failed to delete foundation class registration ${id}:`,
+        error
+      );
       throw error;
     }
   }
 }
 
-export default RequestsService; 
+export default RequestsService;

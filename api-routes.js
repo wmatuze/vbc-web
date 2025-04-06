@@ -3,14 +3,14 @@ const router = express.Router();
 const models = require("./models");
 const emailService = require("./utils/emailService");
 const { authMiddleware } = require("./auth-middleware");
-const notificationRoutes = require('./routes/notificationRoutes');
-const exportRoutes = require('./routes/exportRoutes');
+const notificationRoutes = require("./routes/notificationRoutes");
+const exportRoutes = require("./routes/exportRoutes");
 
 // Mount notification routes
-router.use('/notifications', notificationRoutes);
+router.use("/notifications", notificationRoutes);
 
 // Mount export routes
-router.use('/export', exportRoutes);
+router.use("/export", exportRoutes);
 
 // Helper function to format MongoDB data for frontend compatibility
 const formatResponse = (data) => {
@@ -601,6 +601,34 @@ router.put("/membership/renewals/:id", authMiddleware, async (req, res) => {
   }
 });
 
+// Delete a membership renewal (admin access only)
+router.delete("/membership/renewals/:id", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`Deleting membership renewal ${id}`);
+
+    const renewal = await models.MemberRenewal.findByIdAndDelete(id);
+
+    if (!renewal) {
+      return res.status(404).json({
+        success: false,
+        error: "Membership renewal not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Membership renewal deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting membership renewal:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to delete membership renewal",
+    });
+  }
+});
+
 // FOUNDATION CLASSES ROUTES
 
 // Submit foundation classes registration
@@ -667,6 +695,111 @@ router.get(
     } catch (error) {
       console.error("Error fetching foundation classes registrations:", error);
       res.status(500).json({ error: "Failed to fetch registrations" });
+    }
+  }
+);
+
+// Update a foundation class registration status (admin access only)
+router.put(
+  "/foundation-classes/registrations/:id",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      console.log(
+        `Updating foundation class registration ${id} status to: ${status}`
+      );
+
+      // Validate status value
+      if (
+        !status ||
+        !["registered", "attending", "completed", "cancelled"].includes(status)
+      ) {
+        return res.status(400).json({
+          success: false,
+          error:
+            "Invalid status value. Must be 'registered', 'attending', 'completed', or 'cancelled'.",
+        });
+      }
+
+      const registration =
+        await models.FoundationClassRegistration.findByIdAndUpdate(
+          id,
+          { status, updatedAt: new Date() },
+          { new: true }
+        );
+
+      if (!registration) {
+        return res.status(404).json({
+          success: false,
+          error: "Foundation class registration not found",
+        });
+      }
+
+      // Format for response
+      const formattedRegistration = formatResponse(registration);
+
+      // Send notification based on status change
+      try {
+        if (status === "completed") {
+          // Use the foundation class completion email for new members
+          await emailService.sendFoundationClassCompletionEmail(registration);
+          console.log("Sent foundation class completion email to new member");
+        }
+      } catch (emailErr) {
+        console.error("Error sending status update email:", emailErr);
+        // Continue with success response even if email fails
+      }
+
+      res.json({
+        success: true,
+        message: `Foundation class registration status updated to ${status}`,
+        data: formattedRegistration,
+      });
+    } catch (error) {
+      console.error(
+        "Error updating foundation class registration status:",
+        error
+      );
+      res.status(500).json({
+        success: false,
+        error: "Failed to update registration status. Please try again.",
+      });
+    }
+  }
+);
+
+// Delete a foundation class registration (admin access only)
+router.delete(
+  "/foundation-classes/registrations/:id",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      console.log(`Deleting foundation class registration ${id}`);
+
+      const registration =
+        await models.FoundationClassRegistration.findByIdAndDelete(id);
+
+      if (!registration) {
+        return res.status(404).json({
+          success: false,
+          error: "Foundation class registration not found",
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "Foundation class registration deleted successfully",
+      });
+    } catch (error) {
+      console.error("Error deleting foundation class registration:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to delete foundation class registration",
+      });
     }
   }
 );

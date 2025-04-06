@@ -38,7 +38,7 @@ const HeroSection = forwardRef((props, ref) => {
           return new Date(a.startDate || a.date) - new Date(b.startDate || b.date);
         });
         
-        setUpcomingEvents(upcomingOnly.slice(0, 3));
+        setUpcomingEvents(upcomingOnly.slice(0, 4));
         setError(null);
       } catch (err) {
         console.error("Error fetching events:", err);
@@ -71,6 +71,15 @@ const HeroSection = forwardRef((props, ref) => {
             startDate: new Date(Date.now() + 86400000 * 7),
             time: "6:30 PM",
             location: "Fellowship Hall",
+            imageUrl: "/assets/events/default-event.jpg"
+          },
+          {
+            id: "static4",
+            title: "Youth Fellowship",
+            date: new Date(Date.now() + 86400000 * 6), // 6 days from now
+            startDate: new Date(Date.now() + 86400000 * 6),
+            time: "5:00 PM",
+            location: "Youth Center",
             imageUrl: "/assets/events/default-event.jpg"
           }
         ];
@@ -283,7 +292,7 @@ const HeroSection = forwardRef((props, ref) => {
                   </button>
                 </div>
               ) : upcomingEvents.length > 0 ? (
-                <div className="space-y-3 mb-4 max-h-96 overflow-y-auto pr-1">
+                <div className="space-y-3 mb-4 pr-1">
                   {upcomingEvents.map((event) => (
                     <EventCard key={event.id} event={event} highlight compact />
                   ))}
