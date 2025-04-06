@@ -3,6 +3,14 @@ const router = express.Router();
 const models = require("./models");
 const emailService = require("./utils/emailService");
 const { authMiddleware } = require("./auth-middleware");
+const notificationRoutes = require('./routes/notificationRoutes');
+const exportRoutes = require('./routes/exportRoutes');
+
+// Mount notification routes
+router.use('/notifications', notificationRoutes);
+
+// Mount export routes
+router.use('/export', exportRoutes);
 
 // Helper function to format MongoDB data for frontend compatibility
 const formatResponse = (data) => {

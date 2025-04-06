@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { HelmetProvider } from "react-helmet-async"; // Import HelmetProvider
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Navbar from "./components/Layout/Navbar";
 import HeroSection from "./components/Home/HeroSection";
 import Ministries from "./components/Home/Ministries";
@@ -198,6 +200,18 @@ function App() {
       <ErrorBoundary>
         <BrowserRouter>
           <AppContent />
+          <ToastContainer 
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
+          />
         </BrowserRouter>
       </ErrorBoundary>
     </HelmetProvider>

@@ -8,7 +8,7 @@ import CellGroupManager from '../components/admin/CellGroupManager';
 import MediaManager from '../components/admin/MediaManager';
 import DashboardContent from '../components/admin/DashboardContent';
 import SettingsContent from '../components/admin/SettingsContent';
-import MembershipRenewalManager from '../components/admin/MembershipRenewalManager';
+import RequestsManager from '../components/admin/RequestsManager';
 import {
   HomeIcon,
   VideoCameraIcon,
@@ -528,10 +528,10 @@ const Admin = () => {
               {activeTab === 'events' && <EventManager darkMode={darkMode} />}
               {activeTab === 'leaders' && <LeaderManager darkMode={darkMode} />}
               {activeTab === 'cellGroups' && <CellGroupManager darkMode={darkMode} />}
-              {activeTab === 'members' && <MembershipRenewalManager darkMode={darkMode} />}
               {activeTab === 'media' && <MediaManager darkMode={darkMode} />}
               {activeTab === 'dashboard' && <DashboardContent darkMode={darkMode} />}
-              {activeTab === 'settings' && <SettingsContent darkMode={darkMode} />}
+              {activeTab === 'settings' && <SettingsContent darkMode={darkMode} setDarkMode={setDarkMode} />}
+              {activeTab === 'members' && <RequestsManager />}
             </div>
             
             {/* Footer */}
