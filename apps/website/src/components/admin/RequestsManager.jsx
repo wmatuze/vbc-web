@@ -13,7 +13,7 @@ import {
   AcademicCapIcon,
   IdentificationIcon,
 } from '@heroicons/react/24/outline';
-import ApiService from '../../services/apiService';
+import RequestsService from '../../services/requestsService';
 import NotificationService from '../../services/notificationService';
 import { toast } from 'react-toastify';
 
@@ -50,7 +50,7 @@ const RequestsManager = () => {
     try {
       setLoading(true);
       
-      const data = await ApiService.getMembershipRenewals();
+      const data = await RequestsService.getMembershipRenewals();
       setRenewals(data);
       setError(null);
     } catch (err) {
@@ -67,7 +67,7 @@ const RequestsManager = () => {
     try {
       setLoading(true);
       
-      const data = await ApiService.getFoundationClassRegistrations();
+      const data = await RequestsService.getFoundationClassRegistrations();
       setEnrollments(data);
       setError(null);
     } catch (err) {
@@ -83,7 +83,7 @@ const RequestsManager = () => {
   const handleRenewalStatusChange = async (id, newStatus) => {
     try {
       // Update the status on the server
-      await ApiService.updateMembershipRenewalStatus(id, newStatus);
+      await RequestsService.updateMembershipRenewalStatus(id, newStatus);
       
       // Update the local state to reflect the change
       setRenewals(renewals.map(renewal => 
@@ -109,7 +109,7 @@ const RequestsManager = () => {
   const handleEnrollmentStatusChange = async (id, newStatus) => {
     try {
       // Update the status on the server
-      await ApiService.updateFoundationClassStatus(id, newStatus);
+      await RequestsService.updateFoundationClassStatus(id, newStatus);
       
       // Update the local state to reflect the change
       setEnrollments(enrollments.map(enrollment => 
@@ -227,7 +227,7 @@ const RequestsManager = () => {
       }
       
       // Get the data from API
-      const blob = await ApiService.exportApprovedMembers();
+      const blob = await RequestsService.exportApprovedMembers();
       
       // Create download link
       const url = window.URL.createObjectURL(blob);
@@ -261,7 +261,7 @@ const RequestsManager = () => {
       }
       
       // Get the data from API
-      const blob = await ApiService.exportFoundationClassGraduates();
+      const blob = await RequestsService.exportFoundationClassGraduates();
       
       // Create download link
       const url = window.URL.createObjectURL(blob);

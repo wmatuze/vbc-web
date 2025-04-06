@@ -2,9 +2,9 @@ import axios from 'axios';
 import { getApiUrl, getAuthHeaders } from './config';
 
 /**
- * API Service for handling requests related to membership and foundation classes
+ * Requests Service for handling API requests related to membership and foundation classes
  */
-class ApiService {
+class RequestsService {
   /**
    * Create an axios instance with default config
    * @returns {Object} Configured axios instance
@@ -195,4 +195,4 @@ class ApiService {
   }
 }
 
-export default ApiService; 
+export default RequestsService; 
