@@ -1,5 +1,6 @@
 // apps/website/src/pages/Ministries/PraiseMinistry.jsx
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { getEvents } from "../../services/api";
 import EventCard from "../../components/ChurchCalendar/EventsCard";
 import PlaceHolderbanner from "../../assets/ministry-banners/ph.png"; //Using placeholder banner, you can replace with a Praise Ministry specific banner
@@ -9,6 +10,7 @@ const PraiseMinistry = () => {
   const [praiseMinistryEvents, setPraiseMinistryEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   // Fetch events from API
   useEffect(() => {
@@ -32,6 +34,58 @@ const PraiseMinistry = () => {
 
     fetchEvents();
   }, []);
+
+  useEffect(() => {
+    // Simulate loading all images
+    const timer = setTimeout(() => setIsImageLoaded(true), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Sample testimonials data
+  const testimonials = [
+    {
+      id: 1,
+      name: "James Wilson",
+      quote: "Being part of the Praise Ministry has deepened my worship experience and allowed me to use my musical gifts to serve the Lord.",
+      role: "Guitarist, member since 2018"
+    },
+    {
+      id: 2,
+      name: "Maria Rodriguez",
+      quote: "I've grown so much as a worship leader through the mentoring and training provided by our ministry. The team feels like family.",
+      role: "Vocalist, member since 2019"
+    },
+    {
+      id: 3,
+      name: "Thomas Greene",
+      quote: "Working with the tech team has been such a blessing. It's amazing how our behind-the-scenes work helps create a seamless worship experience.",
+      role: "Sound Engineer, member since 2020"
+    }
+  ];
+
+  // FAQ data
+  const faqs = [
+    {
+      id: 1,
+      question: "What musical experience do I need to join the Praise Ministry?",
+      answer: "While some musical background is helpful, we welcome people of all skill levels. More important than technical ability is a heart for worship and a willingness to grow and learn."
+    },
+    {
+      id: 2,
+      question: "What positions are available in the Praise Ministry?",
+      answer: "We have opportunities for vocalists, instrumentalists (guitar, keyboard, drums, bass, etc.), sound technicians, visual/projection team members, and more."
+    },
+    {
+      id: 3,
+      question: "How often does the team rehearse?",
+      answer: "We have weekly rehearsals on Thursday evenings from 6:30-8:30 PM. Additionally, worship teams arrive early on Sunday mornings for a final run-through before the service."
+    },
+    {
+      id: 4,
+      question: "Is there an audition process to join the worship team?",
+      answer: "Yes, we do have a simple audition process, but it's designed to help us understand your skills and place you appropriately, not to exclude people. Contact us to schedule an informal audition with our worship leader."
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -231,7 +285,7 @@ const PraiseMinistry = () => {
         </div>
       </section>
 
-      {/* **Events Section** - Redesigned with subtle background pattern */}
+      {/* **Testimonials Section** - New addition */}
       <section className="py-16 bg-gray-50 relative overflow-hidden">
         <div className="absolute inset-0 opacity-5">
           <div
@@ -247,62 +301,75 @@ const PraiseMinistry = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800 relative inline-block">
               <span className="relative z-10">
-                Upcoming Praise Ministry Events
+                Worship Team Testimonials
               </span>
               <span className="absolute bottom-0 left-0 w-full h-3 bg-blue-200 -z-10 rounded"></span>
             </h2>
           </div>
 
-          {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-          ) : error ? (
-            <div className="text-center py-12">
-              <p className="text-xl text-gray-600">{error}</p>
-              <button
-                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                onClick={() => window.location.reload()}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial) => (
+              <motion.div
+                key={testimonial.id}
+                className="bg-white p-6 rounded-lg shadow-md border border-gray-100"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: testimonial.id * 0.1 }}
               >
-                Retry
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {praiseMinistryEvents.length > 0 ? (
-                praiseMinistryEvents.map((event) => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
-                    className="rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300"
-                  />
-                ))
-              ) : (
-                <div className="col-span-3 py-16 text-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-16 w-16 mx-auto text-gray-300 mb-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
+                <div className="mb-4">
+                  <svg className="h-8 w-8 text-blue-400 mb-4" fill="currentColor" viewBox="0 0 32 32">
+                    <path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.8 3.456-8.256 9.12-8.256 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z" />
                   </svg>
-                  <p className="text-xl text-gray-500 mb-2">
-                    No upcoming events for Praise Ministry
-                  </p>
-                  <p className="text-gray-400">
-                    Check back later for new events
-                  </p>
+                  <p className="text-gray-600 italic mb-4">{testimonial.quote}</p>
+                  <div className="flex items-center">
+                    <div className="bg-blue-100 w-10 h-10 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm mr-3">
+                      {testimonial.name.split(' ').map(n => n[0]).join('')}
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-800">{testimonial.name}</h4>
+                      <p className="text-gray-500 text-sm">{testimonial.role}</p>
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
-          )}
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* **FAQ Section** - New addition */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4 max-w-5xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-800 relative inline-block">
+              <span className="relative z-10">
+                Frequently Asked Questions
+              </span>
+              <span className="absolute bottom-0 left-0 w-full h-3 bg-blue-200 -z-10 rounded"></span>
+            </h2>
+          </div>
+
+          <div className="space-y-6">
+            {faqs.map((faq) => (
+              <motion.div
+                key={faq.id}
+                className="bg-gray-50 rounded-lg p-6 border border-gray-100 shadow-sm"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: faq.id * 0.1 }}
+              >
+                <h3 className="font-semibold text-lg text-gray-800 mb-2 flex items-center">
+                  <div className="bg-blue-100 w-8 h-8 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm mr-3">
+                    Q
+                  </div>
+                  {faq.question}
+                </h3>
+                <div className="pl-11">
+                  <p className="text-gray-600">{faq.answer}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 

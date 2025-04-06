@@ -1,14 +1,70 @@
 // apps/website/src/pages/Ministries/CouplesMinistry.jsx
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import events from "../../assets/data/events";
 import EventCard from "../../components/ChurchCalendar/EventsCard";
 import PlaceHolderbanner from "../../assets/ministry-banners/ph.png"; //Using placeholder banner, you can replace with a Couples Ministry specific banner
 
 const CouplesMinistry = () => {
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+
+  useEffect(() => {
+    // Simulate loading all images
+    const timer = setTimeout(() => setIsImageLoaded(true), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Filter events for Couples Ministry
   const couplesMinistryEvents = events.filter(
     (event) => event.ministry === "Couples Ministry"
   );
+
+  // Sample testimonials data
+  const testimonials = [
+    {
+      id: 1,
+      name: "David & Sarah Johnson",
+      quote: "The Couples Ministry has transformed our marriage. We've learned to communicate better and grow closer to God together.",
+      role: "Members since 2019"
+    },
+    {
+      id: 2,
+      name: "Michael & Jennifer Wilson",
+      quote: "The fellowship with other couples has been such a blessing. It's encouraging to know we're not alone in our journey.",
+      role: "Members since 2020"
+    },
+    {
+      id: 3,
+      name: "Robert & Lisa Thompson",
+      quote: "The marriage enrichment workshops gave us practical tools to strengthen our relationship. We're so grateful for this ministry!",
+      role: "Members since 2018"
+    }
+  ];
+
+  // FAQ data
+  const faqs = [
+    {
+      id: 1,
+      question: "Who can join the Couples Ministry?",
+      answer: "Our Couples Ministry welcomes all married couples, engaged couples, and couples in committed relationships who want to grow together in their faith and strengthen their relationship."
+    },
+    {
+      id: 2,
+      question: "When and where do you meet for monthly workshops?",
+      answer: "Our monthly marriage enrichment workshops are typically held on the second Friday of each month from 7:00-9:00 PM in the Fellowship Hall. Check our calendar for specific dates and topics."
+    },
+    {
+      id: 3,
+      question: "Do you offer childcare during your events?",
+      answer: "Yes, we provide childcare for most of our couple events. Please let us know in advance if you'll need childcare so we can ensure we have adequate staff."
+    },
+    {
+      id: 4,
+      question: "How can we get involved in the Marriage Mentoring Program?",
+      answer: "You can either sign up to receive mentoring or volunteer to become mentors yourselves (if you've been married for at least 5 years). Contact our ministry leaders at [email protected] to learn more."
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* **Hero Section** */}
@@ -218,7 +274,7 @@ const CouplesMinistry = () => {
         </div>
       </section>
 
-      {/* **Events Section** - Redesigned with subtle background pattern */}
+      {/* **Testimonials Section** - New addition */}
       <section className="py-16 bg-gray-50 relative overflow-hidden">
         <div className="absolute inset-0 opacity-5">
           <div
@@ -234,45 +290,74 @@ const CouplesMinistry = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800 relative inline-block">
               <span className="relative z-10">
-                Upcoming Couples Ministry Events
+                Couples' Testimonials
               </span>
               <span className="absolute bottom-0 left-0 w-full h-3 bg-orange-200 -z-10 rounded"></span>
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {couplesMinistryEvents.length > 0 ? (
-              couplesMinistryEvents.map((event) => (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  className="rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300"
-                />
-              ))
-            ) : (
-              <div className="col-span-3 py-16 text-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-16 w-16 mx-auto text-gray-300 mb-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                <p className="text-gray-500 text-lg">
-                  No upcoming events for Couples Ministry.
-                </p>
-                <p className="text-gray-400 mt-2">
-                  Check back soon for new events!
-                </p>
-              </div>
-            )}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial) => (
+              <motion.div
+                key={testimonial.id}
+                className="bg-white p-6 rounded-lg shadow-md border border-gray-100"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: testimonial.id * 0.1 }}
+              >
+                <div className="mb-4">
+                  <svg className="h-8 w-8 text-orange-400 mb-4" fill="currentColor" viewBox="0 0 32 32">
+                    <path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.8 3.456-8.256 9.12-8.256 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z" />
+                  </svg>
+                  <p className="text-gray-600 italic mb-4">{testimonial.quote}</p>
+                  <div className="flex items-center">
+                    <div className="bg-orange-100 w-10 h-10 rounded-full flex items-center justify-center text-orange-600 font-bold text-sm mr-3">
+                      {testimonial.name.split(' ')[0][0] + testimonial.name.split(' ')[2][0]}
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-800">{testimonial.name}</h4>
+                      <p className="text-gray-500 text-sm">{testimonial.role}</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* **FAQ Section** - New addition */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4 max-w-5xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-800 relative inline-block">
+              <span className="relative z-10">
+                Frequently Asked Questions
+              </span>
+              <span className="absolute bottom-0 left-0 w-full h-3 bg-orange-200 -z-10 rounded"></span>
+            </h2>
+          </div>
+
+          <div className="space-y-6">
+            {faqs.map((faq) => (
+              <motion.div
+                key={faq.id}
+                className="bg-gray-50 rounded-lg p-6 border border-gray-100 shadow-sm"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: faq.id * 0.1 }}
+              >
+                <h3 className="font-semibold text-lg text-gray-800 mb-2 flex items-center">
+                  <div className="bg-orange-100 w-8 h-8 rounded-full flex items-center justify-center text-orange-600 font-bold text-sm mr-3">
+                    Q
+                  </div>
+                  {faq.question}
+                </h3>
+                <div className="pl-11">
+                  <p className="text-gray-600">{faq.answer}</p>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -290,7 +375,7 @@ const CouplesMinistry = () => {
             <div className="p-8">
               <p className="text-gray-700 text-lg mb-8 text-center">
                 Ready to invest in your relationship and connect with other
-                couples? Here’s how to get involved:
+                couples? Here's how to get involved:
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

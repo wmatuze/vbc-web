@@ -54,38 +54,85 @@ const postData = async (endpoint, data) => {
 
 // Generic update function
 const updateData = async (endpoint, id, data) => {
+  console.log(`Updating ${endpoint}/${id} with data:`, data);
+  
   try {
-    const response = await fetch(`${API_URL}/${endpoint}/${id}`, {
+    // Remove MongoDB-specific fields that might cause issues
+    const cleanData = { ...data };
+    delete cleanData._id;
+    delete cleanData.__v;
+    delete cleanData.createdAt;
+    delete cleanData.updatedAt;
+    
+    // Create URL with the format that worked in your curl test
+    const apiUrl = `${API_URL}/${endpoint}/${id}`;
+    console.log(`Making API PUT request to: ${apiUrl}`);
+    
+    const response = await fetch(apiUrl, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         ...getAuthHeaders()
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(cleanData),
     });
+    
+    console.log(`Update response status: ${response.status}`);
+    
     if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+      let errorMessage;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || `API error: ${response.status}`;
+      } catch (e) {
+        errorMessage = `API error: ${response.status}`;
+      }
+      console.error(`Error response:`, errorMessage);
+      throw new Error(errorMessage);
     }
-    return await response.json();
+    
+    const responseData = await response.json();
+    console.log(`Updated successfully:`, responseData);
+    return responseData;
   } catch (error) {
-    console.error(`Error updating ${endpoint}/${id}:`, error);
+    console.error(`Error updating:`, error);
     throw error;
   }
 };
 
 // Generic delete function
 const deleteData = async (endpoint, id) => {
+  console.log(`Deleting ${endpoint}/${id}`);
+  
   try {
-    const response = await fetch(`${API_URL}/${endpoint}/${id}`, {
+    // Create URL with format that worked in curl test
+    const apiUrl = `${API_URL}/${endpoint}/${id}`;
+    console.log(`Making API DELETE request to: ${apiUrl}`);
+    
+    const response = await fetch(apiUrl, {
       method: 'DELETE',
       headers: getAuthHeaders()
     });
+    
+    console.log(`Delete response status: ${response.status}`);
+    
     if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+      let errorMessage;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || `API error: ${response.status}`;
+      } catch (e) {
+        errorMessage = `API error: ${response.status}`;
+      }
+      console.error(`Error response:`, errorMessage);
+      throw new Error(errorMessage);
     }
-    return await response.json();
+    
+    const responseData = await response.json();
+    console.log(`Deleted successfully`);
+    return responseData;
   } catch (error) {
-    console.error(`Error deleting ${endpoint}/${id}:`, error);
+    console.error(`Error deleting:`, error);
     throw error;
   }
 };
@@ -216,8 +263,37 @@ export const createEvent = (event) => {
   console.log('Creating event with data:', JSON.stringify(event, null, 2));
   return postData('api/events', event);
 };
-export const updateEvent = (id, event) => updateData('api/events', id, event);
-export const deleteEvent = (id) => deleteData('api/events', id);
+export const updateEvent = (id, event) => {
+  // If id is an object (like a full event), extract the ID
+  const eventId = typeof id === 'object' ? (id._id || id.id) : id;
+  
+  if (!eventId) {
+    console.error('Missing event ID for update');
+    throw new Error('Cannot update: Invalid event ID');
+  }
+  
+  // Clean the data before sending
+  const cleanEvent = { ...event };
+  delete cleanEvent._id;
+  delete cleanEvent.__v;
+  delete cleanEvent.createdAt;
+  delete cleanEvent.updatedAt;
+  
+  console.log(`Updating event with ID: ${eventId}`);
+  return updateData('api/events', eventId, cleanEvent);
+};
+export const deleteEvent = (id) => {
+  // If id is an object (like a full event), extract the ID
+  const eventId = typeof id === 'object' ? (id._id || id.id) : id;
+  
+  if (!eventId) {
+    console.error('Missing event ID for deletion');
+    throw new Error('Cannot delete: Invalid event ID');
+  }
+  
+  console.log(`Deleting event with ID: ${eventId}`);
+  return deleteData('api/events', eventId);
+};
 
 export const getLeaders = () => fetchData('api/leaders');
 export const getLeaderById = (id) => fetchData(`api/leaders/${id}`);

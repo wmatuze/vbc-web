@@ -1,14 +1,69 @@
 // apps/website/src/pages/Ministries/WomensMinistry.jsx
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import events from "../../assets/data/events";
 import EventCard from "../../components/ChurchCalendar/EventsCard";
 import PlaceHolderbanner from "../../assets/ministry-banners/ph.png"; //Using placeholder banner, you can replace with a Women's Ministry specific banner
 
 const WomensMinistry = () => {
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+
+  useEffect(() => {
+    // Simulate loading all images
+    const timer = setTimeout(() => setIsImageLoaded(true), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Filter events for women's Ministry
   const womensMinistryEvents = events.filter(
     (event) => event.ministry === "Women's Ministry"
   );
+
+  // Sample testimonials data
+  const testimonials = [
+    {
+      id: 1,
+      name: "Sarah Johnson",
+      quote: "The Women's Ministry has been a source of strength and encouragement for me during challenging times.",
+      role: "Member since 2019"
+    },
+    {
+      id: 2,
+      name: "Emily Davis",
+      quote: "I've formed deep friendships through our Bible studies that have helped me grow in my faith journey.",
+      role: "Member since 2017"
+    },
+    {
+      id: 3,
+      name: "Michelle Thompson",
+      quote: "The annual retreat changed my life! I found healing, hope and a renewed passion for God's word.",
+      role: "Member since 2020"
+    }
+  ];
+
+  // FAQ data
+  const faqs = [
+    {
+      id: 1,
+      question: "When and where do the Women's Bible Studies meet?",
+      answer: "We offer two Bible study times to accommodate different schedules: Wednesday mornings at 10:00 AM and Wednesday evenings at 7:00 PM, both in the church fellowship hall."
+    },
+    {
+      id: 2,
+      question: "Do I need to bring anything to the Bible studies?",
+      answer: "Just bring your Bible and a heart ready to learn! Study materials are provided, though you may want to bring a notebook and pen for taking notes."
+    },
+    {
+      id: 3,
+      question: "Is childcare available during women's events?",
+      answer: "Yes, we provide childcare for most of our events, including our Wednesday morning Bible studies. Please let us know in advance if you'll need childcare."
+    },
+    {
+      id: 4,
+      question: "How can I volunteer with the Women's Ministry?",
+      answer: "We have many opportunities to serve! Please contact our ministry leader at [email protected] to discuss your interests and how you can get involved."
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -209,7 +264,7 @@ const WomensMinistry = () => {
         </div>
       </section>
 
-      {/* **Events Section** - Redesigned with subtle background pattern */}
+      {/* **Testimonials Section** - New addition */}
       <section className="py-16 bg-gray-50 relative overflow-hidden">
         <div className="absolute inset-0 opacity-5">
           <div
@@ -225,45 +280,74 @@ const WomensMinistry = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800 relative inline-block">
               <span className="relative z-10">
-                Upcoming Women's Ministry Events
+                Member Testimonials
               </span>
               <span className="absolute bottom-0 left-0 w-full h-3 bg-purple-200 -z-10 rounded"></span>
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {womensMinistryEvents.length > 0 ? (
-              womensMinistryEvents.map((event) => (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  className="rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300"
-                />
-              ))
-            ) : (
-              <div className="col-span-3 py-16 text-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-16 w-16 mx-auto text-gray-300 mb-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                <p className="text-gray-500 text-lg">
-                  No upcoming events for Women's Ministry.
-                </p>
-                <p className="text-gray-400 mt-2">
-                  Check back soon for new events!
-                </p>
-              </div>
-            )}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial) => (
+              <motion.div
+                key={testimonial.id}
+                className="bg-white p-6 rounded-lg shadow-md border border-gray-100"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: testimonial.id * 0.1 }}
+              >
+                <div className="mb-4">
+                  <svg className="h-8 w-8 text-purple-400 mb-4" fill="currentColor" viewBox="0 0 32 32">
+                    <path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.8 3.456-8.256 9.12-8.256 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z" />
+                  </svg>
+                  <p className="text-gray-600 italic mb-4">{testimonial.quote}</p>
+                  <div className="flex items-center">
+                    <div className="bg-purple-100 w-10 h-10 rounded-full flex items-center justify-center text-purple-600 font-bold text-sm mr-3">
+                      {testimonial.name.split(' ').map(n => n[0]).join('')}
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-800">{testimonial.name}</h4>
+                      <p className="text-gray-500 text-sm">{testimonial.role}</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* **FAQ Section** - New addition */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4 max-w-5xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-800 relative inline-block">
+              <span className="relative z-10">
+                Frequently Asked Questions
+              </span>
+              <span className="absolute bottom-0 left-0 w-full h-3 bg-purple-200 -z-10 rounded"></span>
+            </h2>
+          </div>
+
+          <div className="space-y-6">
+            {faqs.map((faq) => (
+              <motion.div
+                key={faq.id}
+                className="bg-gray-50 rounded-lg p-6 border border-gray-100 shadow-sm"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: faq.id * 0.1 }}
+              >
+                <h3 className="font-semibold text-lg text-gray-800 mb-2 flex items-center">
+                  <div className="bg-purple-100 w-8 h-8 rounded-full flex items-center justify-center text-purple-600 font-bold text-sm mr-3">
+                    Q
+                  </div>
+                  {faq.question}
+                </h3>
+                <div className="pl-11">
+                  <p className="text-gray-600">{faq.answer}</p>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -281,7 +365,7 @@ const WomensMinistry = () => {
             <div className="p-8">
               <p className="text-gray-700 text-lg mb-8 text-center">
                 Looking for a place to connect with other women and grow in your
-                faith? Here’s how to get involved:
+                faith? Here's how to get involved:
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
