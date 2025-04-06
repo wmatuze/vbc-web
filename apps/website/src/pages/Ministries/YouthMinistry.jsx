@@ -12,6 +12,7 @@ import litNationLogo from "../../assets/images/litnationlogo.png"; // Add your L
 const YouthMinistry = () => {
   const [activeTab, setActiveTab] = useState("main");
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   // Image gallery for youth activities
   const galleryImages = [
@@ -41,22 +42,79 @@ const YouthMinistry = () => {
     return () => clearInterval(timer);
   }, [galleryImages.length]);
 
+  useEffect(() => {
+    // Simulate loading all images
+    const timer = setTimeout(() => setIsImageLoaded(true), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Filter events for Youth Ministry
   const youthMinistryEvents = events.filter(
     (event) =>
       event.ministry === "Youth Ministry" || event.ministry === "CBU Fellowship"
   );
 
+  // Sample testimonials data
+  const testimonials = [
+    {
+      id: 1,
+      name: "Alex Johnson",
+      quote: "Lit Nation is my second family. The friends I've made and the spiritual growth I've experienced have changed my life.",
+      role: "Member since 2021, Age 17"
+    },
+    {
+      id: 2,
+      name: "Sophia Williams",
+      quote: "I love how our youth group makes the Bible relevant to our everyday lives. The leaders really understand what we're going through.",
+      role: "Member since 2022, Age 16"
+    },
+    {
+      id: 3,
+      name: "Nathan Thompson",
+      quote: "The worship sessions and retreats have helped me build a personal relationship with God. I've never felt more connected to my faith.",
+      role: "Member since 2020, Age 19"
+    }
+  ];
+
+  // FAQ data
+  const faqs = [
+    {
+      id: 1,
+      question: "What ages does Lit Nation Youth Ministry serve?",
+      answer: "Lit Nation welcomes youth ages 13-25. We have separate programs tailored for middle school students (13-14), high school students (15-18), and young adults (19-25)."
+    },
+    {
+      id: 2,
+      question: "When and where do you meet?",
+      answer: "We meet every Friday at 6:30PM in the Main Sanctuary for our main youth service. We also have Sunday youth classes at 9:30AM and small discipleship groups on Wednesdays at 4:00PM."
+    },
+    {
+      id: 3,
+      question: "Do I need to be a member of the church to attend?",
+      answer: "Not at all! Everyone is welcome at Lit Nation. Many of our youth attend regularly but aren't formal church members. We encourage you to come as you are!"
+    },
+    {
+      id: 4,
+      question: "What can I expect at a typical Friday night service?",
+      answer: "Our Friday night services include dynamic worship, relevant teaching, interactive activities or games, small group discussions, and time to hang out and build friendships. First-time visitors are welcomed but never put on the spot."
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Dynamic Hero Section with Lit Nation Branding */}
       <section className="relative h-[80vh] overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
+        <motion.div
+          className={`absolute inset-0 bg-cover bg-center ${
+            !isImageLoaded ? "animate-pulse bg-gray-200" : ""
+          }`}
           style={{
             backgroundImage: `url(${PlaceHolderbanner})`,
-            filter: "brightness(0.6)",
+            filter: isImageLoaded ? "brightness(0.6)" : "none",
           }}
+          initial={{ scale: 1.1 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 10, repeat: Infinity, repeatType: "reverse" }}
         />
 
         <div className="absolute inset-0 bg-gradient-to-r from-green-900/80 to-purple-900/70"></div>
@@ -73,10 +131,12 @@ const YouthMinistry = () => {
                 src={litNationLogo}
                 alt="Lit Nation Youth Ministry"
                 className="h-24 md:h-32"
+                onLoad={() => setIsImageLoaded(true)}
                 onError={(e) => {
                   e.target.onerror = null;
                   e.target.src =
                     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2310B981'/%3E%3Ctext x='50' y='50' font-family='Arial' font-size='20' text-anchor='middle' fill='white' dominant-baseline='middle'%3ELIT NATION%3C/text%3E%3C/svg%3E";
+                  setIsImageLoaded(true);
                 }}
               />
             </div>
@@ -90,18 +150,22 @@ const YouthMinistry = () => {
             </p>
 
             <div className="flex flex-wrap justify-center gap-4 mt-8">
-              <a
+              <motion.a
                 href="#join-us"
                 className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-full transform hover:scale-105 transition-all shadow-lg"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 Join Us
-              </a>
-              <a
+              </motion.a>
+              <motion.a
                 href="#cbu-fellowship"
                 className="px-8 py-3 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-full transform hover:scale-105 transition-all shadow-lg"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 CBU Fellowship
-              </a>
+              </motion.a>
             </div>
           </motion.div>
         </div>
@@ -290,38 +354,66 @@ const YouthMinistry = () => {
                 </div>
               </div>
 
-              {/* Testimonials */}
-              <div>
+              {/* Testimonials Section */}
+              <div className="mb-10">
                 <h3 className="text-2xl font-semibold mb-6 text-gray-800 border-b pb-2 border-gray-200">
                   What Youth Are Saying
                 </h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {[
-                    {
-                      quote:
-                        "Lit Nation isn't just a youth group, it's my second family. I've grown so much in my faith here.",
-                      name: "Sarah K.",
-                      age: "17",
-                    },
-                    {
-                      quote:
-                        "The leaders actually care about us and what we're going through. They make the Bible relevant to our lives.",
-                      name: "David M.",
-                      age: "16",
-                    },
-                  ].map((testimonial, i) => (
-                    <div key={i} className="bg-gray-50 p-6 rounded-xl relative">
-                      <div className="absolute -top-3 -left-3 text-4xl text-green-500">
-                        "
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {testimonials.map((testimonial) => (
+                    <motion.div
+                      key={testimonial.id}
+                      className="bg-white p-6 rounded-lg shadow-md border border-gray-100"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: testimonial.id * 0.1 }}
+                    >
+                      <div className="mb-4">
+                        <svg className="h-8 w-8 text-green-400 mb-4" fill="currentColor" viewBox="0 0 32 32">
+                          <path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.8 3.456-8.256 9.12-8.256 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z" />
+                        </svg>
+                        <p className="text-gray-600 italic mb-4">{testimonial.quote}</p>
+                        <div className="flex items-center">
+                          <div className="bg-green-100 w-10 h-10 rounded-full flex items-center justify-center text-green-600 font-bold text-sm mr-3">
+                            {testimonial.name.split(' ').map(n => n[0]).join('')}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-800">{testimonial.name}</h4>
+                            <p className="text-gray-500 text-sm">{testimonial.role}</p>
+                          </div>
+                        </div>
                       </div>
-                      <p className="italic text-gray-700 mb-4 pt-3">
-                        {testimonial.quote}
-                      </p>
-                      <div className="font-medium text-right">
-                        — {testimonial.name}, {testimonial.age}
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              {/* FAQ Section */}
+              <div>
+                <h3 className="text-2xl font-semibold mb-6 text-gray-800 border-b pb-2 border-gray-200">
+                  Frequently Asked Questions
+                </h3>
+
+                <div className="space-y-6">
+                  {faqs.map((faq) => (
+                    <motion.div
+                      key={faq.id}
+                      className="bg-gray-50 rounded-lg p-6 border border-gray-100 shadow-sm"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: faq.id * 0.1 }}
+                    >
+                      <h3 className="font-semibold text-lg text-gray-800 mb-2 flex items-center">
+                        <div className="bg-green-100 w-8 h-8 rounded-full flex items-center justify-center text-green-600 font-bold text-sm mr-3">
+                          Q
+                        </div>
+                        {faq.question}
+                      </h3>
+                      <div className="pl-11">
+                        <p className="text-gray-600">{faq.answer}</p>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
@@ -534,38 +626,50 @@ const YouthMinistry = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {[
                     {
+                      id: 1,
                       quote:
                         "Finding this church while at CBU has been life-changing. I've grown spiritually and made lifelong friends.",
                       name: "James C.",
                       program: "Computer Science",
                     },
                     {
+                      id: 2,
                       quote:
                         "The CBU Fellowship helped me stay grounded during the stress of exams and coursework. It's been my anchor.",
                       name: "Mercy N.",
                       program: "Engineering",
                     },
                     {
+                      id: 3,
                       quote:
                         "I appreciate the mentorship program that connected me with professionals in my field who share my faith.",
                       name: "Thomas M.",
                       program: "Business Administration",
                     },
                   ].map((testimonial, i) => (
-                    <div key={i} className="bg-gray-50 p-6 rounded-xl relative">
-                      <div className="absolute -top-3 -left-3 text-4xl text-purple-500">
-                        "
+                    <motion.div
+                      key={i}
+                      className="bg-white p-6 rounded-lg shadow-md border border-gray-100"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: testimonial.id * 0.1 }}
+                    >
+                      <div className="mb-4">
+                        <svg className="h-8 w-8 text-purple-400 mb-4" fill="currentColor" viewBox="0 0 32 32">
+                          <path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.8 3.456-8.256 9.12-8.256 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z" />
+                        </svg>
+                        <p className="text-gray-600 italic mb-4">{testimonial.quote}</p>
+                        <div className="flex items-center">
+                          <div className="bg-purple-100 w-10 h-10 rounded-full flex items-center justify-center text-purple-600 font-bold text-sm mr-3">
+                            {testimonial.name.split(' ').map(n => n[0]).join('')}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-800">{testimonial.name}</h4>
+                            <p className="text-purple-600 text-sm">{testimonial.program}</p>
+                          </div>
+                        </div>
                       </div>
-                      <p className="italic text-gray-700 mb-4 pt-3">
-                        {testimonial.quote}
-                      </p>
-                      <div className="font-medium text-right">
-                        — {testimonial.name},{" "}
-                        <span className="text-purple-600">
-                          {testimonial.program}
-                        </span>
-                      </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
@@ -768,43 +872,60 @@ const YouthMinistry = () => {
                 </h2>
               </div>
 
-              {youthMinistryEvents.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {youthMinistryEvents.map((event) => (
-                    <EventCard
-                      key={event.id}
-                      event={event}
-                      className="hover:shadow-xl transition-shadow duration-300"
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="py-16 text-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-16 w-16 mx-auto text-yellow-300 mb-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <p className="text-gray-500 text-xl">
-                    No upcoming events for Youth Ministry.
-                  </p>
-                  <p className="text-gray-400 mt-2">
-                    Check back soon for new events!
-                  </p>
-                </div>
-              )}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                {youthMinistryEvents.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {youthMinistryEvents.map((event, index) => (
+                      <motion.div
+                        key={event.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        <EventCard
+                          event={event}
+                          className="hover:shadow-xl transition-shadow duration-300"
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-16 text-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-16 w-16 mx-auto text-yellow-300 mb-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                    <p className="text-gray-500 text-xl">
+                      No upcoming events for Youth Ministry.
+                    </p>
+                    <p className="text-gray-400 mt-2">
+                      Check back soon for new events!
+                    </p>
+                  </div>
+                )}
+              </motion.div>
 
               {/* Add Annual Calendar */}
-              <div className="mt-12 bg-yellow-50 p-6 rounded-xl border border-yellow-100">
+              <motion.div 
+                className="mt-12 bg-yellow-50 p-6 rounded-xl border border-yellow-100"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
                 <h3 className="text-2xl font-semibold mb-4 text-gray-800">
                   Annual Youth Calendar
                 </h3>
@@ -847,9 +968,12 @@ const YouthMinistry = () => {
                       date: "Dec 17",
                     },
                   ].map((item, i) => (
-                    <div
+                    <motion.div
                       key={i}
                       className="flex items-center p-3 bg-white rounded-lg shadow-sm"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 + (i * 0.1) }}
                     >
                       <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mr-4">
                         <span className="font-bold text-yellow-700">
@@ -860,10 +984,10 @@ const YouthMinistry = () => {
                         <h4 className="font-medium">{item.event}</h4>
                         <p className="text-sm text-gray-600">{item.date}</p>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         )}
@@ -879,12 +1003,17 @@ const YouthMinistry = () => {
                 </h2>
               </div>
 
-              <p className="text-gray-700 text-lg mb-10 leading-relaxed">
+              <motion.p 
+                className="text-gray-700 text-lg mb-10 leading-relaxed"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
                 Meet the dedicated team that serves and guides our youth
                 ministry with passion, wisdom, and love. Our leaders are
                 committed to creating a safe and nurturing environment where
                 young people can grow in their faith.
-              </p>
+              </motion.p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
                 {[
@@ -908,9 +1037,12 @@ const YouthMinistry = () => {
                       "https://source.unsplash.com/random/300x300/?teacher",
                   },
                 ].map((leader, i) => (
-                  <div
+                  <motion.div
                     key={i}
                     className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.2 }}
                   >
                     <div className="h-64 overflow-hidden">
                       <img
@@ -928,12 +1060,17 @@ const YouthMinistry = () => {
                       </p>
                       <p className="text-gray-600">{leader.bio}</p>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
 
               {/* Get Involved */}
-              <div className="bg-red-50 p-8 rounded-xl border border-red-100">
+              <motion.div 
+                className="bg-red-50 p-8 rounded-xl border border-red-100"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 }}
+              >
                 <h3 className="text-2xl font-semibold mb-4 text-gray-800">
                   Get Involved
                 </h3>
@@ -945,20 +1082,24 @@ const YouthMinistry = () => {
                 </p>
 
                 <div className="flex flex-wrap gap-4">
-                  <a
+                  <motion.a
                     href="#volunteer"
                     className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                   >
                     Volunteer Application
-                  </a>
-                  <a
+                  </motion.a>
+                  <motion.a
                     href="mailto:youth@church.org"
                     className="px-6 py-3 bg-white hover:bg-gray-100 text-red-600 font-bold rounded-lg border border-red-200 transition-colors"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                   >
                     Contact Youth Pastor
-                  </a>
+                  </motion.a>
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         )}
@@ -970,15 +1111,30 @@ const YouthMinistry = () => {
         className="py-16 bg-gradient-to-b from-green-900 to-green-800 text-white"
       >
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold mb-6">
+          <motion.h2 
+            className="text-4xl font-bold mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
             Join Lit Nation This Friday!
-          </h2>
-          <p className="text-xl max-w-3xl mx-auto mb-10">
+          </motion.h2>
+          <motion.p 
+            className="text-xl max-w-3xl mx-auto mb-10"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
             Experience worship, fun, and friendship in a community that helps
             you grow in your faith. All youth are welcome - bring a friend!
-          </p>
+          </motion.p>
 
-          <div className="bg-white/10 backdrop-blur-sm p-8 rounded-xl inline-block">
+          <motion.div 
+            className="bg-white/10 backdrop-blur-sm p-8 rounded-xl inline-block"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
               <div>
                 <h3 className="font-bold text-xl mb-2 flex items-center">
@@ -1049,7 +1205,37 @@ const YouthMinistry = () => {
                 <p>Ages 13-25 Welcome</p>
               </div>
             </div>
-          </div>
+            
+            <motion.div 
+              className="mt-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+            >
+              <motion.a
+                href="#contact"
+                className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-full inline-flex items-center shadow-lg"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <span>Contact Us For More Info</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 ml-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                  />
+                </svg>
+              </motion.a>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
     </div>
