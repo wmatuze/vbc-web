@@ -36,11 +36,18 @@ const Support = ({ darkMode }) => {
     setSubmitError("");
 
     try {
-      // Send the support request to our API endpoint
-      // Using the relative URL which will be proxied by Vite
-      const response = await axios.post("/api/support", formData);
+      console.log(
+        "Submitting support request to http://localhost:3000/api/support"
+      );
+      console.log("Form data:", formData);
 
-      console.log("Support request submitted:", response.data);
+      // Send the support request directly to the API endpoint
+      const response = await axios.post(
+        "http://localhost:3000/api/support",
+        formData
+      );
+
+      console.log("Support request submitted successfully:", response.data);
 
       setIsSubmitting(false);
       setSubmitSuccess(true);
@@ -60,6 +67,15 @@ const Support = ({ darkMode }) => {
       }, 5000);
     } catch (error) {
       console.error("Error submitting support request:", error);
+      console.error(
+        "Error details:",
+        error.response?.data || "No response data"
+      );
+      console.error(
+        "Error status:",
+        error.response?.status || "No status code"
+      );
+
       setIsSubmitting(false);
       setSubmitError(
         error.response?.data?.error ||
