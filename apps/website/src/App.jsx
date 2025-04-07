@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { HelmetProvider } from "react-helmet-async"; // Import HelmetProvider
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Navbar from "./components/Layout/Navbar";
 import HeroSection from "./components/Home/HeroSection";
 import Ministries from "./components/Home/Ministries";
@@ -36,6 +36,8 @@ import PraiseMinistry from "./pages/Ministries/PraiseMinistry";
 import CouplesMinistry from "./pages/Ministries/CouplesMinistry";
 import ContactUs from "./pages/ContactUs";
 import Admin from "./pages/Admin"; // Import Admin component
+import AdminGuide from "./pages/admin/AdminGuide"; // Import Admin Guide page
+import Support from "./pages/admin/Support"; // Import Support page
 import TestMedia from "./pages/TestMedia"; // Import our test page
 
 // ✅ Import the ChurchCalendar component
@@ -44,34 +46,29 @@ import ChurchCalendar from "./components/ChurchCalendar/ChurchCalendar";
 // Move these components inside the Router context
 const ScrollToTop = () => {
   const { pathname } = useLocation();
-  
+
   useEffect(() => {
     window.scrollTo({
       top: 0,
-      behavior: 'smooth'
+      behavior: "smooth",
     });
   }, [pathname]);
-  
+
   return null;
 };
 
 const NavbarWrapper = ({ heroRef, isNavHidden }) => {
   const location = useLocation();
-  const isAdminPage = location.pathname.startsWith('/admin');
-  const isSermonsPage = location.pathname.includes('/sermons');
-  
+  const isAdminPage = location.pathname.startsWith("/admin");
+  const isSermonsPage = location.pathname.includes("/sermons");
+
   return (
-    <Navbar 
-      isHidden={isNavHidden} 
-      forceOpaque={isAdminPage || isSermonsPage}
-    />
+    <Navbar isHidden={isNavHidden} forceOpaque={isAdminPage || isSermonsPage} />
   );
 };
 
 const PageWrapper = ({ children, noPadding }) => (
-  <div className={noPadding ? '' : 'pt-20 pb-16'}>
-    {children}
-  </div>
+  <div className={noPadding ? "" : "pt-20 pb-16"}>{children}</div>
 );
 
 // Create a new AppContent component that uses Router-dependent hooks
@@ -90,7 +87,7 @@ const AppContent = () => {
   useEffect(() => {
     const handleScroll = () => {
       // Only apply this effect on pages with hero sections (noPadding pages)
-      if (location.pathname === '/' || !location.pathname.includes('admin')) {
+      if (location.pathname === "/" || !location.pathname.includes("admin")) {
         // Use a different scroll threshold for non-homepage routes
         const scrollPosition = window.scrollY;
         setIsNavHidden(scrollPosition > 100);
@@ -105,20 +102,20 @@ const AppContent = () => {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <ScrollToTop />
       <NavbarWrapper isNavHidden={isNavHidden} heroRef={heroRef} />
-      
+
       <main className="flex-grow relative">
         <div
           className={`
             fixed inset-0 bg-white z-50 pointer-events-none
             transition-opacity duration-300
-            ${isPageLoading ? 'opacity-100' : 'opacity-0'}
+            ${isPageLoading ? "opacity-100" : "opacity-0"}
           `}
         />
-        
+
         <div
           className={`
             transition-opacity duration-300 ease-in-out
-            ${isPageLoading ? 'opacity-0' : 'opacity-100'}
+            ${isPageLoading ? "opacity-0" : "opacity-100"}
           `}
         >
           <Routes>
@@ -137,59 +134,272 @@ const AppContent = () => {
             />
 
             {/* AboutUs */}
-            <Route path="/about" element={<PageWrapper noPadding><AboutUs /></PageWrapper>} />
-            <Route path="/about/our-story" element={<PageWrapper noPadding><OurStory /></PageWrapper>} />
-            <Route path="/about/leadership-team" element={<PageWrapper noPadding><Leadership /></PageWrapper>} />
-            <Route path="/about/vision-mission" element={<PageWrapper noPadding><VisionMission /></PageWrapper>} />
-            <Route path="/about/what-we-believe" element={<PageWrapper noPadding><WhatWeBelieve /></PageWrapper>} />
+            <Route
+              path="/about"
+              element={
+                <PageWrapper noPadding>
+                  <AboutUs />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="/about/our-story"
+              element={
+                <PageWrapper noPadding>
+                  <OurStory />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="/about/leadership-team"
+              element={
+                <PageWrapper noPadding>
+                  <Leadership />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="/about/vision-mission"
+              element={
+                <PageWrapper noPadding>
+                  <VisionMission />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="/about/what-we-believe"
+              element={
+                <PageWrapper noPadding>
+                  <WhatWeBelieve />
+                </PageWrapper>
+              }
+            />
 
             {/* Membership */}
-            <Route path="/membership" element={<PageWrapper noPadding><Membership /></PageWrapper>} />
-            <Route path="/renew" element={<PageWrapper noPadding><Renew /></PageWrapper>} />
-            <Route path="/foundation-classes" element={<PageWrapper noPadding><FoundationClasses /></PageWrapper>} />
+            <Route
+              path="/membership"
+              element={
+                <PageWrapper noPadding>
+                  <Membership />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="/renew"
+              element={
+                <PageWrapper noPadding>
+                  <Renew />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="/foundation-classes"
+              element={
+                <PageWrapper noPadding>
+                  <FoundationClasses />
+                </PageWrapper>
+              }
+            />
 
             {/* Cell Groups */}
-            <Route path="/cell-groups" element={<PageWrapper noPadding><CellGroups /></PageWrapper>} />
+            <Route
+              path="/cell-groups"
+              element={
+                <PageWrapper noPadding>
+                  <CellGroups />
+                </PageWrapper>
+              }
+            />
 
             {/* Media Pages */}
-            <Route path="/media" element={<PageWrapper noPadding><Media /></PageWrapper>} />
-            <Route path="/media/sermons" element={<PageWrapper noPadding><Sermons /></PageWrapper>} />
-            <Route path="/media/videos" element={<PageWrapper><Videos /></PageWrapper>} />
-            <Route path="/media/podcasts" element={<PageWrapper><Podcasts /></PageWrapper>} />
-            <Route path="/media/gallery" element={<PageWrapper><Gallery /></PageWrapper>} />
-            <Route path="/media/resources" element={<PageWrapper><Resources /></PageWrapper>} />
-            <Route path="/media/test" element={<PageWrapper><TestMedia /></PageWrapper>} />
+            <Route
+              path="/media"
+              element={
+                <PageWrapper noPadding>
+                  <Media />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="/media/sermons"
+              element={
+                <PageWrapper noPadding>
+                  <Sermons />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="/media/videos"
+              element={
+                <PageWrapper>
+                  <Videos />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="/media/podcasts"
+              element={
+                <PageWrapper>
+                  <Podcasts />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="/media/gallery"
+              element={
+                <PageWrapper>
+                  <Gallery />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="/media/resources"
+              element={
+                <PageWrapper>
+                  <Resources />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="/media/test"
+              element={
+                <PageWrapper>
+                  <TestMedia />
+                </PageWrapper>
+              }
+            />
 
             {/* Ministries Pages */}
-            <Route path="/ministries/mens" element={<PageWrapper noPadding><MensMinistry /></PageWrapper>} />
-            <Route path="/ministries/womens" element={<PageWrapper noPadding><WomensMinistry /></PageWrapper>} />
-            <Route path="/ministries/youths" element={<PageWrapper noPadding><YouthMinistry /></PageWrapper>} />
-            <Route path="/ministries/children" element={<PageWrapper noPadding><ChildrensMinistry /></PageWrapper>} />
-            <Route path="/ministries/praise" element={<PageWrapper noPadding><PraiseMinistry /></PageWrapper>} />
-            <Route path="/ministries/couples" element={<PageWrapper noPadding><CouplesMinistry /></PageWrapper>} />
+            <Route
+              path="/ministries/mens"
+              element={
+                <PageWrapper noPadding>
+                  <MensMinistry />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="/ministries/womens"
+              element={
+                <PageWrapper noPadding>
+                  <WomensMinistry />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="/ministries/youths"
+              element={
+                <PageWrapper noPadding>
+                  <YouthMinistry />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="/ministries/children"
+              element={
+                <PageWrapper noPadding>
+                  <ChildrensMinistry />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="/ministries/praise"
+              element={
+                <PageWrapper noPadding>
+                  <PraiseMinistry />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="/ministries/couples"
+              element={
+                <PageWrapper noPadding>
+                  <CouplesMinistry />
+                </PageWrapper>
+              }
+            />
 
             {/* Missions Page */}
-            <Route path="/missions" element={<PageWrapper noPadding><Missions /></PageWrapper>} />
+            <Route
+              path="/missions"
+              element={
+                <PageWrapper noPadding>
+                  <Missions />
+                </PageWrapper>
+              }
+            />
 
             {/* Church Events */}
-            <Route path="/events" element={<PageWrapper noPadding><ChurchCalendar /></PageWrapper>} />
+            <Route
+              path="/events"
+              element={
+                <PageWrapper noPadding>
+                  <ChurchCalendar />
+                </PageWrapper>
+              }
+            />
 
             {/* Contact Us */}
-            <Route path="/contact" element={<PageWrapper noPadding><ContactUs /></PageWrapper>} />
+            <Route
+              path="/contact"
+              element={
+                <PageWrapper noPadding>
+                  <ContactUs />
+                </PageWrapper>
+              }
+            />
 
-            {/* Admin Dashboard */}
-            <Route path="/admin" element={<PageWrapper><Admin /></PageWrapper>} />
+            {/* Admin Dashboard and related pages */}
+            <Route
+              path="/admin"
+              element={
+                <PageWrapper>
+                  <Admin />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="/admin/help"
+              element={
+                <PageWrapper>
+                  <AdminGuide darkMode={false} />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="/admin/support"
+              element={
+                <PageWrapper>
+                  <Support darkMode={false} />
+                </PageWrapper>
+              }
+            />
 
             {/* Sermons Debug */}
-            <Route path="/sermons-debug" element={<PageWrapper><SermonsDebug /></PageWrapper>} />
+            <Route
+              path="/sermons-debug"
+              element={
+                <PageWrapper>
+                  <SermonsDebug />
+                </PageWrapper>
+              }
+            />
 
             {/* 404 Error Page */}
-            <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
+            <Route
+              path="*"
+              element={
+                <PageWrapper>
+                  <NotFound />
+                </PageWrapper>
+              }
+            />
           </Routes>
         </div>
       </main>
 
-      <Footer />
+      {/* Only show the main footer on non-admin pages */}
+      {!location.pathname.includes("/admin") && <Footer />}
     </div>
   );
 };
@@ -200,7 +410,7 @@ function App() {
       <ErrorBoundary>
         <BrowserRouter>
           <AppContent />
-          <ToastContainer 
+          <ToastContainer
             position="top-right"
             autoClose={3000}
             hideProgressBar={false}
