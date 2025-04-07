@@ -37,7 +37,11 @@ const Support = ({ darkMode }) => {
 
     try {
       // Send the support request to our API endpoint
-      const response = await axios.post("/api/support", formData);
+      // Use the full URL to the API server
+      const response = await axios.post(
+        "http://localhost:3000/api/support",
+        formData
+      );
 
       console.log("Support request submitted:", response.data);
 
