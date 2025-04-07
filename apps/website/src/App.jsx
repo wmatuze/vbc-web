@@ -38,6 +38,7 @@ import ContactUs from "./pages/ContactUs";
 import Admin from "./pages/Admin"; // Import Admin component
 import AdminGuide from "./pages/admin/AdminGuide"; // Import Admin Guide page
 import Support from "./pages/admin/Support"; // Import Support page
+import ProtectedRoute from "./components/auth/ProtectedRoute"; // Import ProtectedRoute component
 import TestMedia from "./pages/TestMedia"; // Import our test page
 
 // ✅ Import the ChurchCalendar component
@@ -361,17 +362,21 @@ const AppContent = () => {
             <Route
               path="/admin/help"
               element={
-                <PageWrapper>
-                  <AdminGuide darkMode={false} />
-                </PageWrapper>
+                <ProtectedRoute>
+                  <PageWrapper>
+                    <AdminGuide darkMode={false} />
+                  </PageWrapper>
+                </ProtectedRoute>
               }
             />
             <Route
               path="/admin/support"
               element={
-                <PageWrapper>
-                  <Support darkMode={false} />
-                </PageWrapper>
+                <ProtectedRoute>
+                  <PageWrapper>
+                    <Support darkMode={false} />
+                  </PageWrapper>
+                </ProtectedRoute>
               }
             />
 
