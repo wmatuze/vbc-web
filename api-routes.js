@@ -12,6 +12,73 @@ router.use("/notifications", notificationRoutes);
 // Mount export routes
 router.use("/export", exportRoutes);
 
+// Support request endpoint
+router.post("/support", async (req, res) => {
+  try {
+    const { name, email, subject, message, priority } = req.body;
+
+    if (!name || !email || !subject || !message) {
+      return res.status(400).json({
+        success: false,
+        error: "Please provide all required fields",
+      });
+    }
+
+    // Create email content
+    const emailContent = {
+      to: "watu.matuze@hotmail.com",
+      subject: `Support Request: ${subject} (${priority} priority)`,
+      text: `
+Support Request from Admin Portal
+
+From: ${name} (${email})
+Priority: ${priority}
+
+Message:
+${message}
+
+---
+This message was sent from the Victory Bible Church CMS Support Form.
+      `,
+      html: `
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+  <div style="background-color: #4f46e5; color: white; padding: 20px; text-align: center;">
+    <h1>Support Request from Admin Portal</h1>
+  </div>
+  <div style="padding: 20px; border: 1px solid #e5e7eb; border-top: none;">
+    <p><strong>From:</strong> ${name} (${email})</p>
+    <p><strong>Priority:</strong> <span style="color: ${priority === "urgent" ? "#dc2626" : priority === "high" ? "#ea580c" : priority === "medium" ? "#0284c7" : "#059669"};">${priority}</span></p>
+    <p><strong>Subject:</strong> ${subject}</p>
+
+    <div style="background-color: #f9fafb; padding: 15px; border-radius: 5px; margin: 15px 0;">
+      <p><strong>Message:</strong></p>
+      <p>${message.replace(/\n/g, "<br>")}</p>
+    </div>
+
+    <p style="font-size: 12px; color: #6b7280; margin-top: 30px; padding-top: 10px; border-top: 1px solid #e5e7eb;">
+      This message was sent from the Victory Bible Church CMS Support Form.
+    </p>
+  </div>
+</div>
+      `,
+    };
+
+    // Send the email
+    await emailService.sendEmail(emailContent);
+
+    res.status(200).json({
+      success: true,
+      message: "Support request sent successfully",
+    });
+  } catch (error) {
+    console.error("Error sending support request:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to send support request",
+    });
+  }
+});
+
 // Helper function to format MongoDB data for frontend compatibility
 const formatResponse = (data) => {
   // If data is an array, map over each item

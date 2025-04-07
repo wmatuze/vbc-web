@@ -7,6 +7,7 @@ import {
   ChatBubbleLeftRightIcon,
 } from "@heroicons/react/24/outline";
 import AdminFooter from "../../components/admin/AdminFooter";
+import axios from "axios";
 
 const Support = ({ darkMode }) => {
   const navigate = useNavigate();
@@ -29,18 +30,17 @@ const Support = ({ darkMode }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitError("");
 
-    // Simulate API call
-    setTimeout(() => {
-      // In a real implementation, you would send this to your backend
-      console.log(
-        "Support request submitted to watu.matuze@hotmail.com:",
-        formData
-      );
+    try {
+      // Send the support request to our API endpoint
+      const response = await axios.post("/api/support", formData);
+
+      console.log("Support request submitted:", response.data);
+
       setIsSubmitting(false);
       setSubmitSuccess(true);
 
@@ -57,7 +57,14 @@ const Support = ({ darkMode }) => {
       setTimeout(() => {
         setSubmitSuccess(false);
       }, 5000);
-    }, 1500);
+    } catch (error) {
+      console.error("Error submitting support request:", error);
+      setIsSubmitting(false);
+      setSubmitError(
+        error.response?.data?.error ||
+          "Failed to send support request. Please try again later."
+      );
+    }
   };
 
   return (
@@ -186,6 +193,16 @@ const Support = ({ darkMode }) => {
                 Submit a Support Request
               </h2>
 
+              <div
+                className={`mb-6 p-4 rounded-lg ${darkMode ? "bg-blue-900/30 border border-blue-800 text-blue-300" : "bg-blue-50 border border-blue-200 text-blue-700"}`}
+              >
+                <p className="text-sm">
+                  <strong>Note:</strong> Support requests submitted through this
+                  form will be sent directly to Watu Matuze
+                  (watu.matuze@hotmail.com).
+                </p>
+              </div>
+
               {submitSuccess && (
                 <div
                   className={`mb-6 p-4 rounded-lg ${
@@ -194,9 +211,9 @@ const Support = ({ darkMode }) => {
                       : "bg-green-50 border border-green-200 text-green-800"
                   }`}
                 >
-                  Your support request has been submitted successfully to Watu
-                  Matuze (watu.matuze@hotmail.com). We'll get back to you as
-                  soon as possible.
+                  Your support request has been sent successfully to Watu Matuze
+                  (watu.matuze@hotmail.com). We'll get back to you as soon as
+                  possible.
                 </div>
               )}
 
@@ -340,6 +357,9 @@ const Support = ({ darkMode }) => {
                     onChange={handleChange}
                     required
                     rows="5"
+                    data-gramm="false"
+                    data-gramm_editor="false"
+                    data-enable-grammarly="false"
                     className={`w-full px-3 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
                       darkMode
                         ? "bg-gray-700 border-gray-600 text-white"
