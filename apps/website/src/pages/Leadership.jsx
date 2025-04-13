@@ -17,7 +17,7 @@ import placeholderImage from "../assets/leadership/placeholder.jpg";
 // Fallback images map
 const fallbackImages = {
   "bishop-cyrus": bishMain,
-  default: placeholderImage
+  default: placeholderImage,
 };
 
 const Leadership = () => {
@@ -35,21 +35,25 @@ const Leadership = () => {
         setIsLoading(true);
         const data = await getLeaders();
         console.log("Leadership - API leaders data:", data);
-        
+
         // Process leaders to ensure email is properly extracted from contact object
-        const processedLeaders = data.map(leader => ({
+        const processedLeaders = data.map((leader) => ({
           ...leader,
           // Extract email from contact object if present
-          email: leader.contact?.email || leader.email || 'info@victorybc.org'
+          email: leader.contact?.email || leader.email || "info@victorybc.org",
         }));
-        
+
         // Sort leaders by order property
-        const sortedLeaders = processedLeaders.sort((a, b) => (a.order || 99) - (b.order || 99));
+        const sortedLeaders = processedLeaders.sort(
+          (a, b) => (a.order || 99) - (b.order || 99)
+        );
         setLeaders(sortedLeaders);
         setError("");
       } catch (err) {
         console.error("Error fetching leaders:", err);
-        setError("Failed to load leadership information. Please try again later.");
+        setError(
+          "Failed to load leadership information. Please try again later."
+        );
       } finally {
         // Add a small delay to ensure smooth loading transition
         setTimeout(() => setIsLoading(false), 300);
@@ -63,18 +67,18 @@ const Leadership = () => {
   const getImageUrl = (leader) => {
     // If leader has an image object with path, use that
     if (leader.image?.path) {
-      return leader.image.path.startsWith('http')
+      return leader.image.path.startsWith("http")
         ? leader.image.path
         : `${config.API_URL}${leader.image.path}`;
     }
-    
+
     // If leader has an imageUrl, use that
     if (leader.imageUrl) {
-      return leader.imageUrl.startsWith('http') 
-        ? leader.imageUrl 
+      return leader.imageUrl.startsWith("http")
+        ? leader.imageUrl
         : `${config.API_URL}${leader.imageUrl}`;
     }
-    
+
     // Fall back to our static images if available
     return fallbackImages[leader.id] || fallbackImages.default;
   };
@@ -130,23 +134,27 @@ const Leadership = () => {
     const tier2 = []; // Five-fold ministry pastors
     const tier3 = []; // Other church leaders
 
-    leadersList.forEach(leader => {
-      const title = leader.title?.toLowerCase() || '';
-      
+    leadersList.forEach((leader) => {
+      const title = leader.title?.toLowerCase() || "";
+
       // Tier 1: Senior and Assistant Pastors
-      if (title.includes('senior pastor') || 
-          title.includes('bishop') || 
-          title.includes('assistant pastor') || 
-          title === 'lead pastor') {
+      if (
+        title.includes("senior pastor") ||
+        title.includes("bishop") ||
+        title.includes("assistant pastor") ||
+        title === "lead pastor"
+      ) {
         tier1.push(leader);
       }
       // Tier 2: Five-fold ministry pastors
-      else if (title.includes('pastor') || 
-               title.includes('apostle') || 
-               title.includes('evangelist') || 
-               title.includes('prophet') || 
-               title.includes('teacher') ||
-               title.includes('director')) {
+      else if (
+        title.includes("pastor") ||
+        title.includes("apostle") ||
+        title.includes("evangelist") ||
+        title.includes("prophet") ||
+        title.includes("teacher") ||
+        title.includes("director")
+      ) {
         tier2.push(leader);
       }
       // Tier 3: All other leaders
@@ -159,7 +167,11 @@ const Leadership = () => {
   };
 
   // Categorize leaders into tiers (do this once)
-  const { tier1: categorizedTier1, tier2: categorizedTier2, tier3: categorizedTier3 } = categorizeLeaders(leaders);
+  const {
+    tier1: categorizedTier1,
+    tier2: categorizedTier2,
+    tier3: categorizedTier3,
+  } = categorizeLeaders(leaders);
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -289,59 +301,60 @@ const Leadership = () => {
             {/* Tier 1: Senior and Assistant Pastors (First Row) */}
             {categorizedTier1.length > 0 && (
               <div className="space-y-6">
-                <h3 className="text-2xl font-bold text-center text-yellow-600 mb-8">
+                <h3 className="text-2xl font-bold text-center text-yellow-600 mb-6">
                   Senior Leadership
                 </h3>
-                <div className="grid sm:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6 rounded-full"></div>
+                <div className="grid sm:grid-cols-2 gap-8 md:gap-10 max-w-4xl mx-auto">
                   {categorizedTier1.map((leader, index) => (
                     <article
                       key={leader.id || index}
-                      className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 focus-within:ring-2 focus-within:ring-yellow-500 overflow-hidden flex flex-col h-full"
+                      className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 focus-within:ring-2 focus-within:ring-yellow-500 overflow-hidden flex flex-col h-full group"
                     >
-                      <div className="relative aspect-[4/3] overflow-hidden">
+                      <div className="relative aspect-[4/5] overflow-hidden">
                         <LazyLoadImage
                           src={getImageUrl(leader)}
                           alt={`Portrait of ${leader.name}`}
                           effect="blur"
-                          className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 filter group-hover:brightness-110"
                           wrapperClassName="w-full h-full"
                           onError={(e) => {
                             e.target.src = fallbackImages.default;
                           }}
                         />
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                          <h3 className="text-xl md:text-2xl font-bold text-white">
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-4">
+                          <h3 className="text-xl md:text-2xl font-extrabold text-white">
                             {leader.name}
                           </h3>
-                          <p className="text-md md:text-lg text-yellow-300 font-medium">
+                          <p className="text-sm md:text-base text-yellow-300 font-light tracking-wide">
                             {leader.title}
                           </p>
                         </div>
                       </div>
-                      <div className="p-5 md:p-6 flex-grow flex flex-col">
-                        <p className="text-gray-700 dark:text-gray-300 mb-4 line-clamp-3 flex-grow">
+                      <div className="p-4 flex-grow flex flex-col">
+                        <p className="text-gray-600 dark:text-gray-300 mb-3 line-clamp-2 flex-grow text-sm leading-relaxed">
                           {leader.bio}
                         </p>
-                        <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-200 dark:border-gray-700">
                           <a
                             href={`mailto:${leader.email}`}
-                            className="flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 hover:underline transition-colors"
+                            className="flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 hover:underline transition-colors text-sm"
                             onClick={(e) => e.stopPropagation()}
                             aria-label={`Email ${leader.name}`}
                           >
                             <EnvelopeIcon
-                              className="h-5 w-5 mr-2"
+                              className="h-4 w-4 mr-1.5"
                               aria-hidden="true"
                             />
                             Contact
                           </a>
                           <button
                             onClick={() => handleLeaderSelect(leader)}
-                            className="flex items-center bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-3 py-1.5 rounded-full hover:bg-yellow-200 dark:hover:bg-yellow-900/50 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            className="flex items-center bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-2.5 py-1 text-sm rounded-full hover:bg-yellow-200 dark:hover:bg-yellow-900/50 transition-all focus:outline-none focus:ring-2 focus:ring-yellow-500 hover:shadow-md"
                             aria-label={`View details about ${leader.name}`}
                           >
                             <UserCircleIcon
-                              className="h-5 w-5 mr-1.5"
+                              className="h-4 w-4 mr-1.5"
                               aria-hidden="true"
                             />
                             Profile
@@ -357,59 +370,60 @@ const Leadership = () => {
             {/* Tier 2: Five-fold Ministry Pastors (Second Row) */}
             {categorizedTier2.length > 0 && (
               <div className="space-y-6">
-                <h3 className="text-2xl font-bold text-center text-yellow-600 mb-8">
+                <h3 className="text-2xl font-bold text-center text-yellow-600 mb-6">
                   Ministry Pastors
                 </h3>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6 rounded-full"></div>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
                   {categorizedTier2.map((leader, index) => (
                     <article
                       key={leader.id || index}
-                      className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 focus-within:ring-2 focus-within:ring-yellow-500 overflow-hidden flex flex-col h-full"
+                      className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 focus-within:ring-2 focus-within:ring-yellow-500 overflow-hidden flex flex-col h-full group"
                     >
-                      <div className="relative aspect-[4/3] overflow-hidden">
+                      <div className="relative aspect-[4/5] overflow-hidden">
                         <LazyLoadImage
                           src={getImageUrl(leader)}
                           alt={`Portrait of ${leader.name}`}
                           effect="blur"
-                          className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 filter group-hover:brightness-110"
                           wrapperClassName="w-full h-full"
                           onError={(e) => {
                             e.target.src = fallbackImages.default;
                           }}
                         />
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                          <h3 className="text-xl md:text-2xl font-bold text-white">
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-4">
+                          <h3 className="text-xl md:text-2xl font-extrabold text-white">
                             {leader.name}
                           </h3>
-                          <p className="text-md md:text-lg text-yellow-300 font-medium">
+                          <p className="text-sm md:text-base text-yellow-300 font-light tracking-wide">
                             {leader.title}
                           </p>
                         </div>
                       </div>
-                      <div className="p-5 md:p-6 flex-grow flex flex-col">
-                        <p className="text-gray-700 dark:text-gray-300 mb-4 line-clamp-3 flex-grow">
+                      <div className="p-4 flex-grow flex flex-col">
+                        <p className="text-gray-600 dark:text-gray-300 mb-3 line-clamp-2 flex-grow text-sm leading-relaxed">
                           {leader.bio}
                         </p>
-                        <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-200 dark:border-gray-700">
                           <a
                             href={`mailto:${leader.email}`}
-                            className="flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 hover:underline transition-colors"
+                            className="flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 hover:underline transition-colors text-sm"
                             onClick={(e) => e.stopPropagation()}
                             aria-label={`Email ${leader.name}`}
                           >
                             <EnvelopeIcon
-                              className="h-5 w-5 mr-2"
+                              className="h-4 w-4 mr-1.5"
                               aria-hidden="true"
                             />
                             Contact
                           </a>
                           <button
                             onClick={() => handleLeaderSelect(leader)}
-                            className="flex items-center bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-3 py-1.5 rounded-full hover:bg-yellow-200 dark:hover:bg-yellow-900/50 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            className="flex items-center bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-2.5 py-1 text-sm rounded-full hover:bg-yellow-200 dark:hover:bg-yellow-900/50 transition-all focus:outline-none focus:ring-2 focus:ring-yellow-500 hover:shadow-md"
                             aria-label={`View details about ${leader.name}`}
                           >
                             <UserCircleIcon
-                              className="h-5 w-5 mr-1.5"
+                              className="h-4 w-4 mr-1.5"
                               aria-hidden="true"
                             />
                             Profile
@@ -425,59 +439,60 @@ const Leadership = () => {
             {/* Tier 3: Other Church Leaders (Third Row) */}
             {categorizedTier3.length > 0 && (
               <div className="space-y-6">
-                <h3 className="text-2xl font-bold text-center text-yellow-600 mb-8">
+                <h3 className="text-2xl font-bold text-center text-yellow-600 mb-6">
                   Church Leadership
                 </h3>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                <div className="w-24 h-1 bg-yellow-400 mx-auto mb-6 rounded-full"></div>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
                   {categorizedTier3.map((leader, index) => (
                     <article
                       key={leader.id || index}
-                      className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 focus-within:ring-2 focus-within:ring-yellow-500 overflow-hidden flex flex-col h-full"
+                      className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 focus-within:ring-2 focus-within:ring-yellow-500 overflow-hidden flex flex-col h-full group"
                     >
-                      <div className="relative aspect-[4/3] overflow-hidden">
+                      <div className="relative aspect-[4/5] overflow-hidden">
                         <LazyLoadImage
                           src={getImageUrl(leader)}
                           alt={`Portrait of ${leader.name}`}
                           effect="blur"
-                          className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 filter group-hover:brightness-110"
                           wrapperClassName="w-full h-full"
                           onError={(e) => {
                             e.target.src = fallbackImages.default;
                           }}
                         />
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                          <h3 className="text-xl md:text-2xl font-bold text-white">
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-4">
+                          <h3 className="text-xl md:text-2xl font-extrabold text-white">
                             {leader.name}
                           </h3>
-                          <p className="text-md md:text-lg text-yellow-300 font-medium">
+                          <p className="text-sm md:text-base text-yellow-300 font-light tracking-wide">
                             {leader.title}
                           </p>
                         </div>
                       </div>
-                      <div className="p-5 md:p-6 flex-grow flex flex-col">
-                        <p className="text-gray-700 dark:text-gray-300 mb-4 line-clamp-3 flex-grow">
+                      <div className="p-4 flex-grow flex flex-col">
+                        <p className="text-gray-600 dark:text-gray-300 mb-3 line-clamp-2 flex-grow text-sm leading-relaxed">
                           {leader.bio}
                         </p>
-                        <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-200 dark:border-gray-700">
                           <a
                             href={`mailto:${leader.email}`}
-                            className="flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 hover:underline transition-colors"
+                            className="flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 hover:underline transition-colors text-sm"
                             onClick={(e) => e.stopPropagation()}
                             aria-label={`Email ${leader.name}`}
                           >
                             <EnvelopeIcon
-                              className="h-5 w-5 mr-2"
+                              className="h-4 w-4 mr-1.5"
                               aria-hidden="true"
                             />
                             Contact
                           </a>
                           <button
                             onClick={() => handleLeaderSelect(leader)}
-                            className="flex items-center bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-3 py-1.5 rounded-full hover:bg-yellow-200 dark:hover:bg-yellow-900/50 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            className="flex items-center bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-2.5 py-1 text-sm rounded-full hover:bg-yellow-200 dark:hover:bg-yellow-900/50 transition-all focus:outline-none focus:ring-2 focus:ring-yellow-500 hover:shadow-md"
                             aria-label={`View details about ${leader.name}`}
                           >
                             <UserCircleIcon
-                              className="h-5 w-5 mr-1.5"
+                              className="h-4 w-4 mr-1.5"
                               aria-hidden="true"
                             />
                             Profile
@@ -496,7 +511,7 @@ const Leadership = () => {
       {/* Improved Accessible Modal */}
       {selectedLeader && (
         <div
-          className="fixed inset-0 bg-black/70 dark:bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity animate-fadeIn"
+          className="fixed inset-0 bg-black/70 dark:bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-md transition-opacity animate-fadeIn"
           onClick={closeModal}
           role="dialog"
           aria-modal="true"
@@ -504,7 +519,7 @@ const Leadership = () => {
         >
           <div
             ref={modalRef}
-            className="bg-white dark:bg-gray-800 rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden animate-scaleIn"
+            className="bg-white dark:bg-gray-800 rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden animate-scaleIn border border-gray-100 dark:border-gray-700"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="grid md:grid-cols-5 relative">
@@ -512,7 +527,7 @@ const Leadership = () => {
                 <img
                   src={getImageUrl(selectedLeader)}
                   alt={`Portrait of ${selectedLeader.name}`}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-700 hover:scale-105 filter hover:brightness-110"
                   onError={(e) => {
                     e.target.src = fallbackImages.default;
                   }}
@@ -528,14 +543,14 @@ const Leadership = () => {
                 </button>
                 <h2
                   id="modal-title"
-                  className="text-3xl md:text-4xl font-bold text-yellow-600 dark:text-yellow-500 mb-2"
+                  className="text-3xl md:text-4xl font-extrabold text-yellow-600 dark:text-yellow-500 mb-2"
                 >
                   {selectedLeader.name}
                 </h2>
-                <h3 className="text-xl text-gray-600 dark:text-gray-400 mb-5 font-medium">
+                <h3 className="text-xl text-gray-600 dark:text-gray-400 mb-5 font-light tracking-wide">
                   {selectedLeader.title}
                 </h3>
-                <p className="text-gray-700 dark:text-gray-300 mb-6 leading-relaxed">
+                <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed text-base">
                   {selectedLeader.bio}
                 </p>
 
@@ -543,14 +558,14 @@ const Leadership = () => {
                 {selectedLeader.ministryFocus &&
                   selectedLeader.ministryFocus.length > 0 && (
                     <div className="mb-6">
-                      <h4 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-2">
+                      <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">
                         Ministry Focus
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {selectedLeader.ministryFocus.map((focus, idx) => (
                           <span
                             key={idx}
-                            className="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full text-sm"
+                            className="px-3 py-1.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full text-xs font-medium tracking-wide shadow-sm"
                           >
                             {focus}
                           </span>
@@ -562,7 +577,7 @@ const Leadership = () => {
                 <div className="flex items-center space-x-4">
                   <a
                     href={`mailto:${selectedLeader.email}`}
-                    className="flex items-center bg-blue-50 dark:bg-blue-900/30 px-4 py-2 rounded-full text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                    className="flex items-center bg-blue-50 dark:bg-blue-900/30 px-4 py-2 rounded-full text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all hover:shadow-md font-medium"
                   >
                     <EnvelopeIcon className="h-5 w-5 mr-2" aria-hidden="true" />
                     {selectedLeader.email}
