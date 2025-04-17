@@ -1,107 +1,109 @@
-import { useState, useEffect } from 'react';
-import { getCellGroups, createCellGroup, updateCellGroup, deleteCellGroup } from '../../services/api';
+import { useState, useEffect } from "react";
+import {
+  createCellGroup,
+  updateCellGroup,
+  deleteCellGroup,
+} from "../../services/api";
+import { useCellGroupsQuery } from "../../hooks/useCellGroupsQuery";
 
 const CellGroupManager = () => {
-  const [cellGroups, setCellGroups] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Use React Query for fetching cell groups
+  const {
+    data: cellGroups = [],
+    isLoading: cellGroupsLoading,
+    error: cellGroupsError,
+    refetch: refetchCellGroups,
+  } = useCellGroupsQuery();
+
+  // Local state for operations other than fetching
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [formMode, setFormMode] = useState('add'); // 'add' or 'edit'
+  const [formMode, setFormMode] = useState("add"); // 'add' or 'edit'
   const [currentGroup, setCurrentGroup] = useState({
-    name: '',
-    location: '',
-    leader: '',
-    contact: '',
-    meetingDay: '',
-    meetingTime: '',
-    capacity: '',
-    description: '',
+    name: "",
+    location: "",
+    leader: "",
+    contact: "",
+    meetingDay: "",
+    meetingTime: "",
+    capacity: "",
+    description: "",
     tags: [],
     coordinates: { lat: 0, lng: 0 },
-    imageUrl: ''
+    imageUrl: "",
   });
 
+  // Display any query errors
   useEffect(() => {
-    fetchCellGroups();
-  }, []);
-
-  const fetchCellGroups = async () => {
-    try {
-      setLoading(true);
-      const data = await getCellGroups();
-      setCellGroups(data);
-      setError(null);
-    } catch (err) {
-      console.error('Error fetching cell groups:', err);
-      setError('Failed to load cell groups. Please try again.');
-    } finally {
-      setLoading(false);
+    if (cellGroupsError) {
+      setError("Failed to load cell groups. Please try again.");
     }
-  };
+  }, [cellGroupsError]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
-    if (name === 'tags') {
+
+    if (name === "tags") {
       // Handle array values for tags
-      setCurrentGroup(prev => ({
+      setCurrentGroup((prev) => ({
         ...prev,
-        tags: value.split(',').map(item => item.trim())
+        tags: value.split(",").map((item) => item.trim()),
       }));
-    } else if (name === 'lat' || name === 'lng') {
+    } else if (name === "lat" || name === "lng") {
       // Handle nested coordinates
-      setCurrentGroup(prev => ({
+      setCurrentGroup((prev) => ({
         ...prev,
         coordinates: {
           ...prev.coordinates,
-          [name]: parseFloat(value) || 0
-        }
+          [name]: parseFloat(value) || 0,
+        },
       }));
     } else {
       // Handle regular fields
-      setCurrentGroup(prev => ({ ...prev, [name]: value }));
+      setCurrentGroup((prev) => ({ ...prev, [name]: value }));
     }
   };
 
   const resetForm = () => {
     setCurrentGroup({
-      name: '',
-      location: '',
-      leader: '',
-      contact: '',
-      meetingDay: '',
-      meetingTime: '',
-      capacity: '',
-      description: '',
+      name: "",
+      location: "",
+      leader: "",
+      contact: "",
+      meetingDay: "",
+      meetingTime: "",
+      capacity: "",
+      description: "",
       tags: [],
       coordinates: { lat: 0, lng: 0 },
-      imageUrl: ''
+      imageUrl: "",
     });
-    setFormMode('add');
+    setFormMode("add");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       setLoading(true);
-      
-      if (formMode === 'add') {
+
+      if (formMode === "add") {
         // For new groups, we need to create a new ID
         const newGroup = {
           ...currentGroup,
-          id: Date.now() // Simple way to generate a unique ID
+          id: Date.now(), // Simple way to generate a unique ID
         };
         await createCellGroup(newGroup);
       } else {
         // For editing, we keep the existing ID
         await updateCellGroup(currentGroup.id, currentGroup);
       }
-      
-      await fetchCellGroups();
+
+      await refetchCellGroups();
       resetForm();
     } catch (err) {
-      console.error('Error saving cell group:', err);
-      setError('Failed to save cell group. Please try again.');
+      console.error("Error saving cell group:", err);
+      setError("Failed to save cell group. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -111,20 +113,20 @@ const CellGroupManager = () => {
     // Convert tags array to string for editing
     setCurrentGroup({
       ...group,
-      tags: group.tags ? group.tags.join(', ') : ''
+      tags: group.tags ? group.tags.join(", ") : "",
     });
-    setFormMode('edit');
+    setFormMode("edit");
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this cell group?')) {
+    if (window.confirm("Are you sure you want to delete this cell group?")) {
       try {
         setLoading(true);
         await deleteCellGroup(id);
-        await fetchCellGroups();
+        await refetchCellGroups();
       } catch (err) {
-        console.error('Error deleting cell group:', err);
-        setError('Failed to delete cell group. Please try again.');
+        console.error("Error deleting cell group:", err);
+        setError("Failed to delete cell group. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -132,29 +134,33 @@ const CellGroupManager = () => {
   };
 
   // Get all unique locations and meeting days for dropdowns
-  const allLocations = [...new Set(cellGroups.map(group => group.location).filter(Boolean))];
-  const allMeetingDays = [...new Set(cellGroups.map(group => group.meetingDay).filter(Boolean))];
+  const allLocations = [
+    ...new Set(cellGroups.map((group) => group.location).filter(Boolean)),
+  ];
+  const allMeetingDays = [
+    ...new Set(cellGroups.map((group) => group.meetingDay).filter(Boolean)),
+  ];
 
-  if (loading && cellGroups.length === 0) {
+  if (cellGroupsLoading && cellGroups.length === 0) {
     return <div className="text-center py-4">Loading...</div>;
   }
 
   return (
     <div>
       <h2 className="text-xl font-semibold mb-4">Manage Cell Groups</h2>
-      
+
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
-      
+
       {/* Form for adding/editing cell groups */}
       <form onSubmit={handleSubmit} className="mb-8 bg-gray-50 p-4 rounded-lg">
         <h3 className="text-lg font-medium mb-4">
-          {formMode === 'add' ? 'Add New Cell Group' : 'Edit Cell Group'}
+          {formMode === "add" ? "Add New Cell Group" : "Edit Cell Group"}
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -169,7 +175,7 @@ const CellGroupManager = () => {
               required
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Location
@@ -184,12 +190,12 @@ const CellGroupManager = () => {
               required
             />
             <datalist id="locationOptions">
-              {allLocations.map(location => (
+              {allLocations.map((location) => (
                 <option key={location} value={location} />
               ))}
             </datalist>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Leader Name
@@ -203,7 +209,7 @@ const CellGroupManager = () => {
               required
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Contact Email
@@ -217,7 +223,7 @@ const CellGroupManager = () => {
               required
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Meeting Day
@@ -232,13 +238,20 @@ const CellGroupManager = () => {
               required
             />
             <datalist id="meetingDayOptions">
-              {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-                .map(day => (
-                  <option key={day} value={day} />
-                ))}
+              {[
+                "Sunday",
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+              ].map((day) => (
+                <option key={day} value={day} />
+              ))}
             </datalist>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Meeting Time
@@ -253,7 +266,7 @@ const CellGroupManager = () => {
               required
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Capacity
@@ -267,7 +280,7 @@ const CellGroupManager = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Image URL
@@ -281,7 +294,7 @@ const CellGroupManager = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
             />
           </div>
-          
+
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Description
@@ -295,7 +308,7 @@ const CellGroupManager = () => {
               required
             ></textarea>
           </div>
-          
+
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Tags
@@ -303,9 +316,11 @@ const CellGroupManager = () => {
             <input
               type="text"
               name="tags"
-              value={typeof currentGroup.tags === 'string' 
-                ? currentGroup.tags 
-                : currentGroup.tags.join(', ')}
+              value={
+                typeof currentGroup.tags === "string"
+                  ? currentGroup.tags
+                  : currentGroup.tags.join(", ")
+              }
               onChange={handleInputChange}
               placeholder="e.g. Young Adults, Bible Study, Prayer"
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -314,7 +329,7 @@ const CellGroupManager = () => {
               Separate multiple tags with commas
             </p>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Latitude
@@ -328,7 +343,7 @@ const CellGroupManager = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Longitude
@@ -343,17 +358,17 @@ const CellGroupManager = () => {
             />
           </div>
         </div>
-        
+
         <div className="flex items-center">
           <button
             type="submit"
             className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
             disabled={loading}
           >
-            {loading ? 'Saving...' : 'Save Cell Group'}
+            {loading ? "Saving..." : "Save Cell Group"}
           </button>
-          
-          {formMode === 'edit' && (
+
+          {formMode === "edit" && (
             <button
               type="button"
               onClick={resetForm}
@@ -368,9 +383,11 @@ const CellGroupManager = () => {
       {/* List of existing cell groups */}
       <div>
         <h3 className="text-lg font-medium mb-2">Existing Cell Groups</h3>
-        
+
         {cellGroups.length === 0 ? (
-          <p className="text-gray-500">No cell groups found. Add your first cell group above.</p>
+          <p className="text-gray-500">
+            No cell groups found. Add your first cell group above.
+          </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">

@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { getMedia, deleteMedia, uploadFile } from '../../services/api';
-import { 
-  Squares2X2Icon as ViewGridIcon, 
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { deleteMedia, uploadFile } from "../../services/api";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
+import {
+  Squares2X2Icon as ViewGridIcon,
   ListBulletIcon as ViewListIcon,
   ArrowUpTrayIcon as UploadIcon,
   TrashIcon,
@@ -12,9 +13,9 @@ import {
   MagnifyingGlassIcon as SearchIcon,
   FunnelIcon as FilterIcon,
   CheckCircleIcon,
-  ExclamationCircleIcon
-} from '@heroicons/react/24/outline';
-import config from '../../config';
+  ExclamationCircleIcon,
+} from "@heroicons/react/24/outline";
+import config from "../../config";
 
 const API_URL = config.API_URL;
 
@@ -29,12 +30,12 @@ class MediaErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('Media manager error caught by boundary:', error, errorInfo);
+    console.error("Media manager error caught by boundary:", error, errorInfo);
   }
 
   resetError = () => {
     this.setState({ hasError: false, error: null });
-  }
+  };
 
   render() {
     if (this.state.hasError) {
@@ -44,7 +45,7 @@ class MediaErrorBoundary extends React.Component {
             Something went wrong with the Media Manager
           </h3>
           <p className="mb-4 text-red-600">
-            {this.state.error?.message || 'Unknown error occurred'}
+            {this.state.error?.message || "Unknown error occurred"}
           </p>
           <button
             onClick={this.resetError}
@@ -61,18 +62,26 @@ class MediaErrorBoundary extends React.Component {
 }
 
 const MediaManager = () => {
+  // Use React Query for fetching media
+  const {
+    data: mediaData = [],
+    isLoading: mediaLoading,
+    error: mediaError,
+    refetch: refetchMedia,
+  } = useMediaQuery();
+
+  // Local state for media (will be updated with mediaData)
   const [media, setMedia] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [title, setTitle] = useState('');
-  const [category, setCategory] = useState('general');
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("general");
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterCategory, setFilterCategory] = useState('all');
-  const [viewMode, setViewMode] = useState('grid');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [viewMode, setViewMode] = useState("grid");
   const [previewUrl, setPreviewUrl] = useState(null);
   const [selectedMedia, setSelectedMedia] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -80,171 +89,125 @@ const MediaManager = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
-  
+
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
   const isMounted = useRef(true);
-  
+
   useEffect(() => {
     // Track component mounted state
     isMounted.current = true;
-    
+
     return () => {
       isMounted.current = false;
     };
   }, []);
-  
-  // Memoize fetchMedia to avoid recreation on each render
-  const fetchMedia = useCallback(async () => {
-    try {
-      setLoading(true);
-      console.log('Fetching media data from server...');
-      const data = await getMedia();
-      
-      // Check if component is still mounted before updating state
-      if (!isMounted.current) return;
-      
-      console.log('Fetched media data:', data);
-      
-      if (!Array.isArray(data)) {
-        console.error('Invalid media data format received:', data);
-        setError('Received invalid media data from server');
-        return;
-      }
-      
+
+  // Update local media state when mediaData changes
+  useEffect(() => {
+    if (mediaData && mediaData.length > 0) {
+      console.log("Fetched media data:", mediaData);
+
       // Validate media data
-      const validData = data.filter(item => 
-        item && item.id && (item.path || item.filename)
+      const validData = mediaData.filter(
+        (item) => item && item.id && (item.path || item.filename)
       );
-      
-      if (validData.length !== data.length) {
-        console.warn(`Filtered out ${data.length - validData.length} invalid media items`);
+
+      if (validData.length !== mediaData.length) {
+        console.warn(
+          `Filtered out ${mediaData.length - validData.length} invalid media items`
+        );
       }
-      
+
       // Store media items in both state and session storage for backup
       setMedia(validData);
-      
+
       // Keep a local cache to ensure persistence
       try {
-        sessionStorage.setItem('cachedMedia', JSON.stringify(validData));
-        localStorage.setItem('mediaBackup', JSON.stringify(validData));
+        sessionStorage.setItem("cachedMedia", JSON.stringify(validData));
+        localStorage.setItem("mediaBackup", JSON.stringify(validData));
         const timestamp = new Date().toISOString();
-        sessionStorage.setItem('mediaLastFetched', timestamp);
-        localStorage.setItem('mediaLastFetched', timestamp);
-        console.log('Media data cached successfully at', timestamp);
+        sessionStorage.setItem("mediaLastFetched", timestamp);
+        localStorage.setItem("mediaLastFetched", timestamp);
+        console.log("Media data cached successfully at", timestamp);
       } catch (cacheErr) {
-        console.error('Failed to cache media data:', cacheErr);
+        console.error("Failed to cache media data:", cacheErr);
       }
-      
+
       setError(null);
-    } catch (err) {
-      // Check if component is still mounted before updating state
-      if (!isMounted.current) return;
-      
-      console.error('Error fetching media:', err);
-      setError('Failed to load media. Please try again.');
-      
+    } else if (mediaError) {
+      console.error("Error fetching media:", mediaError);
+      setError("Failed to load media. Please try again.");
+
       // Try to recover from cached data if available
-      const cachedData = sessionStorage.getItem('cachedMedia') || localStorage.getItem('mediaBackup');
+      const cachedData =
+        sessionStorage.getItem("cachedMedia") ||
+        localStorage.getItem("mediaBackup");
       if (cachedData) {
         try {
           const parsedData = JSON.parse(cachedData);
-          console.log('Recovered media from cache:', parsedData.length, 'items');
+          console.log(
+            "Recovered media from cache:",
+            parsedData.length,
+            "items"
+          );
           setMedia(parsedData);
         } catch (cacheErr) {
-          console.error('Error parsing cached media:', cacheErr);
+          console.error("Error parsing cached media:", cacheErr);
         }
       }
-    } finally {
-      // Check if component is still mounted before updating state
-      if (isMounted.current) {
-        setLoading(false);
-      }
     }
-  }, []);
-  
-  // Initialize media from cache and set up refresh interval
+  }, [mediaData, mediaError]);
+
+  // Initialize media from cache on component load
   useEffect(() => {
-    console.log('Media manager component loaded');
-    
+    console.log("Media manager component loaded");
+
     // First try to load from session storage (faster)
-    const cachedData = sessionStorage.getItem('cachedMedia');
+    const cachedData = sessionStorage.getItem("cachedMedia");
     if (cachedData) {
       try {
         const parsedData = JSON.parse(cachedData);
-        console.log('Loaded media from session cache:', parsedData.length, 'items');
+        console.log(
+          "Loaded media from session cache:",
+          parsedData.length,
+          "items"
+        );
         setMedia(parsedData);
       } catch (err) {
-        console.error('Error parsing session cached media:', err);
-        
+        console.error("Error parsing session cached media:", err);
+
         // Try local storage as fallback
-        const localBackup = localStorage.getItem('mediaBackup');
+        const localBackup = localStorage.getItem("mediaBackup");
         if (localBackup) {
           try {
             const localData = JSON.parse(localBackup);
-            console.log('Loaded media from local backup:', localData.length, 'items');
+            console.log(
+              "Loaded media from local backup:",
+              localData.length,
+              "items"
+            );
             setMedia(localData);
           } catch (localErr) {
-            console.error('Error parsing local cached media:', localErr);
+            console.error("Error parsing local cached media:", localErr);
           }
         }
       }
     } else {
-      console.log('No cached media found, waiting for server data');
+      console.log("No cached media found, waiting for server data");
     }
-    
-    // Always fetch fresh data from server
-    fetchMedia();
-    
+
     // Set up less frequent refresh intervals to avoid overriding user uploads
     const refreshInterval = setInterval(() => {
-      console.log('Performing scheduled media refresh');
-      
-      // Instead of directly calling fetchMedia, we'll merge with existing media
-      getMedia().then(serverMedia => {
-        if (isMounted.current) {
-          setMedia(prevMedia => {
-            // Create a map of existing media by ID
-            const mediaMap = new Map();
-            prevMedia.forEach(item => mediaMap.set(item.id, item));
-            
-            // Add server media items, preferring local items if they exist
-            serverMedia.forEach(item => {
-              if (!mediaMap.has(item.id)) {
-                mediaMap.set(item.id, item);
-              }
-            });
-            
-            // Convert back to array and sort by most recent first
-            const mergedMedia = Array.from(mediaMap.values())
-              .sort((a, b) => {
-                // Sort by upload date if available
-                const dateA = a.uploadDate ? new Date(a.uploadDate) : new Date(0);
-                const dateB = b.uploadDate ? new Date(b.uploadDate) : new Date(0);
-                return dateB - dateA;
-              });
-            
-            // Update the cache with merged results
-            try {
-              sessionStorage.setItem('cachedMedia', JSON.stringify(mergedMedia));
-              localStorage.setItem('mediaBackup', JSON.stringify(mergedMedia));
-            } catch (err) {
-              console.error('Failed to update cache:', err);
-            }
-            
-            return mergedMedia;
-          });
-        }
-      }).catch(err => {
-        console.error('Error in refresh interval:', err);
-      });
+      console.log("Performing scheduled media refresh");
+      refetchMedia();
     }, 60000); // Reduced frequency to once per minute
-    
+
     return () => {
       clearInterval(refreshInterval);
     };
-  }, [fetchMedia, refreshTrigger]);
-  
+  }, [refetchMedia, refreshTrigger]);
+
   const handleDragOver = (e) => {
     e.preventDefault();
     setIsDragging(true);
@@ -258,7 +221,7 @@ const MediaManager = () => {
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
-    
+
     const files = e.dataTransfer.files;
     if (files.length > 0) {
       handleFileSelection(files[0]);
@@ -270,18 +233,18 @@ const MediaManager = () => {
 
     // Validate file type
     if (!file.type.match(/^image\//)) {
-      setUploadError('Only image files are allowed (jpg, jpeg, png, gif)');
+      setUploadError("Only image files are allowed (jpg, jpeg, png, gif)");
       return;
     }
-    
+
     // Check file size - limit to 5MB
     if (file.size > 5 * 1024 * 1024) {
-      setUploadError('File is too large. Maximum size allowed is 5MB');
+      setUploadError("File is too large. Maximum size allowed is 5MB");
       return;
     }
-    
+
     setSelectedFile(file);
-    setTitle(file.name.split('.').slice(0, -1).join('.'));
+    setTitle(file.name.split(".").slice(0, -1).join("."));
     setPreviewUrl(URL.createObjectURL(file));
     setUploadError(null);
   };
@@ -295,93 +258,102 @@ const MediaManager = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!selectedFile) {
-      setUploadError('Please select a file to upload.');
+      setUploadError("Please select a file to upload.");
       return;
     }
-    
+
     try {
       setIsUploading(true);
       setUploadProgress(0);
       setUploadError(null);
-      
+
       const uploadedMedia = await uploadFile(
         selectedFile,
         title || selectedFile.name,
         category,
         (progress) => {
           // Handle the new progress object format
-          if (progress && typeof progress.percent === 'number') {
+          if (progress && typeof progress.percent === "number") {
             setUploadProgress(progress.percent);
           } else if (progress && progress.total) {
             // Fallback for old format
-            setUploadProgress(Math.round((progress.loaded / progress.total) * 100));
+            setUploadProgress(
+              Math.round((progress.loaded / progress.total) * 100)
+            );
           } else if (progress && progress.lengthComputable) {
             // Fallback for XMLHttpRequest event format
-            setUploadProgress(Math.round((progress.loaded / progress.total) * 100));
+            setUploadProgress(
+              Math.round((progress.loaded / progress.total) * 100)
+            );
           }
         }
       );
-      
+
       if (!isMounted.current) return;
-      
-      console.log('Media upload successful:', uploadedMedia);
-      
+
+      console.log("Media upload successful:", uploadedMedia);
+
       // Ensure the path is properly set
       if (!uploadedMedia.path && uploadedMedia.filename) {
         uploadedMedia.path = `/uploads/${uploadedMedia.filename}`;
       }
-      
+
       // Add to media state with proper preview URLs
       const mediaWithUrls = {
         ...uploadedMedia,
         // Add upload date for sorting
         uploadDate: new Date().toISOString(),
         // Ensure fileUrl and thumbnailUrl are properly set
-        fileUrl: uploadedMedia.path.startsWith('http') 
-          ? uploadedMedia.path 
+        fileUrl: uploadedMedia.path.startsWith("http")
+          ? uploadedMedia.path
           : `${API_URL}${uploadedMedia.path}`,
-        thumbnailUrl: uploadedMedia.path.startsWith('http') 
-          ? uploadedMedia.path 
-          : `${API_URL}${uploadedMedia.path}`
+        thumbnailUrl: uploadedMedia.path.startsWith("http")
+          ? uploadedMedia.path
+          : `${API_URL}${uploadedMedia.path}`,
       };
-      
+
       // Update state with new media at the beginning of the array
-      setMedia(prev => {
+      setMedia((prev) => {
         // Check if we already have this media item (by id)
-        const exists = prev.some(item => item.id === mediaWithUrls.id);
+        const exists = prev.some((item) => item.id === mediaWithUrls.id);
         if (exists) {
           // Replace the existing item
-          return prev.map(item => 
+          return prev.map((item) =>
             item.id === mediaWithUrls.id ? mediaWithUrls : item
           );
         }
         // Add new item to beginning
         return [mediaWithUrls, ...prev];
       });
-      
+
       setSelectedFile(null);
-      setTitle('');
+      setTitle("");
       setPreviewUrl(null);
       setUploadProgress(0);
       setUploadSuccess(true);
-      
+
       // Update cache with new media included
-      const updatedMedia = [mediaWithUrls, ...media.filter(item => item.id !== mediaWithUrls.id)];
-      sessionStorage.setItem('cachedMedia', JSON.stringify(updatedMedia));
-      localStorage.setItem('mediaBackup', JSON.stringify(updatedMedia));
-      console.log('Updated media cache with new upload:', mediaWithUrls.title || mediaWithUrls.filename);
-      
+      const updatedMedia = [
+        mediaWithUrls,
+        ...media.filter((item) => item.id !== mediaWithUrls.id),
+      ];
+      sessionStorage.setItem("cachedMedia", JSON.stringify(updatedMedia));
+      localStorage.setItem("mediaBackup", JSON.stringify(updatedMedia));
+      console.log(
+        "Updated media cache with new upload:",
+        mediaWithUrls.title || mediaWithUrls.filename
+      );
+
       // Close modal after short delay
       setTimeout(() => {
         setShowUploadModal(false);
         setUploadSuccess(false);
       }, 1500);
-      
     } catch (err) {
       if (!isMounted.current) return;
-      console.error('Upload error:', err);
+      console.error("Upload error:", err);
       setUploadError(`Failed to upload file: ${err.message}`);
     } finally {
       if (isMounted.current) {
@@ -391,22 +363,21 @@ const MediaManager = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this media item?')) {
+    if (!window.confirm("Are you sure you want to delete this media item?")) {
       return;
     }
-    
+
     try {
       await deleteMedia(id);
-      setMedia(prev => prev.filter(item => item.id !== id));
-      
+      setMedia((prev) => prev.filter((item) => item.id !== id));
+
       // Update cache
-      const updatedMedia = media.filter(item => item.id !== id);
-      sessionStorage.setItem('cachedMedia', JSON.stringify(updatedMedia));
-      localStorage.setItem('mediaBackup', JSON.stringify(updatedMedia));
-      
+      const updatedMedia = media.filter((item) => item.id !== id);
+      sessionStorage.setItem("cachedMedia", JSON.stringify(updatedMedia));
+      localStorage.setItem("mediaBackup", JSON.stringify(updatedMedia));
     } catch (err) {
-      console.error('Delete error:', err);
-      setError('Failed to delete media item. Please try again.');
+      console.error("Delete error:", err);
+      setError("Failed to delete media item. Please try again.");
     }
   };
 
@@ -414,50 +385,53 @@ const MediaManager = () => {
     navigator.clipboard.writeText(text).then(
       () => {
         // Show success message
-        const el = document.createElement('div');
-        el.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg';
-        el.textContent = 'URL copied to clipboard!';
+        const el = document.createElement("div");
+        el.className =
+          "fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg";
+        el.textContent = "URL copied to clipboard!";
         document.body.appendChild(el);
         setTimeout(() => el.remove(), 2000);
       },
-      (err) => console.error('Failed to copy:', err)
+      (err) => console.error("Failed to copy:", err)
     );
   };
 
-  const filteredMedia = media
-    .filter(item => {
-      if (filterCategory !== 'all' && item.category !== filterCategory) return false;
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        return (
-          item.title?.toLowerCase().includes(searchLower) ||
-          item.filename?.toLowerCase().includes(searchLower) ||
-          item.category?.toLowerCase().includes(searchLower)
-        );
-      }
-      return true;
-    });
+  const filteredMedia = media.filter((item) => {
+    if (filterCategory !== "all" && item.category !== filterCategory)
+      return false;
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        item.title?.toLowerCase().includes(searchLower) ||
+        item.filename?.toLowerCase().includes(searchLower) ||
+        item.category?.toLowerCase().includes(searchLower)
+      );
+    }
+    return true;
+  });
 
   // Helper function to get the full URL for media items
   const getMediaImageUrl = useCallback((media) => {
-    if (!media) return '';
-    
+    if (!media) return "";
+
     // If it's already a full URL
-    if (media.fileUrl && media.fileUrl.startsWith('http')) {
+    if (media.fileUrl && media.fileUrl.startsWith("http")) {
       return media.fileUrl;
     }
-    
+
     // If path is available
     if (media.path) {
-      return media.path.startsWith('http') ? media.path : `${API_URL}${media.path}`;
+      return media.path.startsWith("http")
+        ? media.path
+        : `${API_URL}${media.path}`;
     }
-    
+
     // Fallback to filename
     if (media.filename) {
       return `${API_URL}/uploads/${media.filename}`;
     }
-    
-    return '';
+
+    return "";
   }, []);
 
   return (
@@ -471,7 +445,7 @@ const MediaManager = () => {
               Manage your images and media files
             </p>
           </div>
-          
+
           <div className="flex items-center gap-4">
             <button
               onClick={() => setShowUploadModal(true)}
@@ -480,24 +454,26 @@ const MediaManager = () => {
               <UploadIcon className="h-5 w-5 mr-2" />
               Upload Media
             </button>
-            
+
             <button
               onClick={() => {
-                setRefreshTrigger(prev => prev + 1);
-                fetchMedia();
+                setRefreshTrigger((prev) => prev + 1);
+                refetchMedia();
               }}
               className="p-2 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-lg"
               title="Refresh media"
             >
               <RefreshIcon className="h-5 w-5" />
             </button>
-            
+
             <button
-              onClick={() => setViewMode(prev => prev === 'grid' ? 'list' : 'grid')}
+              onClick={() =>
+                setViewMode((prev) => (prev === "grid" ? "list" : "grid"))
+              }
               className="p-2 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-lg"
               title="Toggle view mode"
             >
-              {viewMode === 'grid' ? (
+              {viewMode === "grid" ? (
                 <ViewListIcon className="h-5 w-5" />
               ) : (
                 <ViewGridIcon className="h-5 w-5" />
@@ -520,7 +496,7 @@ const MediaManager = () => {
               className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
             />
           </div>
-          
+
           <div className="relative inline-block text-left">
             <select
               value={filterCategory}
@@ -551,7 +527,7 @@ const MediaManager = () => {
         )}
 
         {/* Media Grid/List */}
-        {loading ? (
+        {mediaLoading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
           </div>
@@ -559,10 +535,13 @@ const MediaManager = () => {
           <div className="text-center py-12">
             <p className="text-gray-500">No media items found</p>
           </div>
-        ) : viewMode === 'grid' ? (
+        ) : viewMode === "grid" ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {filteredMedia.map(item => (
-              <div key={item.id} className="relative group rounded-lg overflow-hidden bg-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200">
+            {filteredMedia.map((item) => (
+              <div
+                key={item.id}
+                className="relative group rounded-lg overflow-hidden bg-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200"
+              >
                 <div className="relative pb-[75%] bg-gray-200">
                   <img
                     src={getMediaImageUrl(item)}
@@ -570,9 +549,9 @@ const MediaManager = () => {
                     className="absolute inset-0 w-full h-full object-cover"
                     loading="lazy"
                     onError={(e) => {
-                      console.error('Image load error:', item);
+                      console.error("Image load error:", item);
                       e.target.src = `${API_URL}/assets/media/placeholder.jpg`;
-                      e.target.alt = 'Image not found';
+                      e.target.alt = "Image not found";
                     }}
                   />
                 </div>
@@ -581,7 +560,7 @@ const MediaManager = () => {
                     {item.title || item.filename}
                   </h3>
                   <p className="text-xs text-gray-500 truncate">
-                    {item.category || 'Uncategorized'}
+                    {item.category || "Uncategorized"}
                   </p>
                 </div>
                 <div className="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -633,7 +612,7 @@ const MediaManager = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredMedia.map(item => (
+                {filteredMedia.map((item) => (
                   <tr key={item.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="h-12 w-12 rounded overflow-hidden">
@@ -644,7 +623,7 @@ const MediaManager = () => {
                           loading="lazy"
                           onError={(e) => {
                             e.target.src = `${API_URL}/assets/media/placeholder.jpg`;
-                            e.target.alt = 'Image not found';
+                            e.target.alt = "Image not found";
                           }}
                         />
                       </div>
@@ -656,7 +635,7 @@ const MediaManager = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                        {item.category || 'Uncategorized'}
+                        {item.category || "Uncategorized"}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -697,7 +676,7 @@ const MediaManager = () => {
           <div className="fixed inset-0 overflow-y-auto z-50">
             <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
               <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
-              
+
               <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
                 <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                   <div className="sm:flex sm:items-start">
@@ -705,7 +684,7 @@ const MediaManager = () => {
                       <h3 className="text-lg leading-6 font-medium text-gray-900">
                         Upload Media
                       </h3>
-                      
+
                       <div className="mt-4">
                         <div
                           ref={dropZoneRef}
@@ -714,8 +693,8 @@ const MediaManager = () => {
                           onDrop={handleDrop}
                           className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-lg ${
                             isDragging
-                              ? 'border-blue-500 bg-blue-50'
-                              : 'border-gray-300 hover:border-gray-400'
+                              ? "border-blue-500 bg-blue-50"
+                              : "border-gray-300 hover:border-gray-400"
                           }`}
                         >
                           <div className="space-y-1 text-center">
@@ -757,17 +736,20 @@ const MediaManager = () => {
                                 onClick={() => {
                                   setSelectedFile(null);
                                   setPreviewUrl(null);
-                                  setTitle('');
+                                  setTitle("");
                                 }}
                                 className="absolute top-2 right-2 p-1 bg-black/50 rounded-full text-white hover:bg-black/70"
                               >
                                 <XIcon className="h-4 w-4" />
                               </button>
                             </div>
-                            
+
                             <div className="mt-4 space-y-4">
                               <div>
-                                <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                                <label
+                                  htmlFor="title"
+                                  className="block text-sm font-medium text-gray-700"
+                                >
                                   Title
                                 </label>
                                 <input
@@ -778,9 +760,12 @@ const MediaManager = () => {
                                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                 />
                               </div>
-                              
+
                               <div>
-                                <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+                                <label
+                                  htmlFor="category"
+                                  className="block text-sm font-medium text-gray-700"
+                                >
                                   Category
                                 </label>
                                 <select
@@ -802,7 +787,7 @@ const MediaManager = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                   <button
                     type="button"
@@ -810,15 +795,31 @@ const MediaManager = () => {
                     disabled={!selectedFile || isUploading}
                     className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white sm:ml-3 sm:w-auto sm:text-sm ${
                       !selectedFile || isUploading
-                        ? 'bg-blue-400 cursor-not-allowed'
-                        : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                        ? "bg-blue-400 cursor-not-allowed"
+                        : "bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     }`}
                   >
                     {isUploading ? (
                       <>
-                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        <svg
+                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
                         </svg>
                         Uploading ({uploadProgress}%)
                       </>
@@ -828,7 +829,7 @@ const MediaManager = () => {
                         Uploaded!
                       </>
                     ) : (
-                      'Upload'
+                      "Upload"
                     )}
                   </button>
                   <button
@@ -837,7 +838,7 @@ const MediaManager = () => {
                       setShowUploadModal(false);
                       setSelectedFile(null);
                       setPreviewUrl(null);
-                      setTitle('');
+                      setTitle("");
                       setUploadError(null);
                     }}
                     className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
@@ -854,8 +855,11 @@ const MediaManager = () => {
         {showPreviewModal && selectedMedia && (
           <div className="fixed inset-0 overflow-y-auto z-50">
             <div className="flex items-center justify-center min-h-screen">
-              <div className="fixed inset-0 bg-black opacity-75" onClick={() => setShowPreviewModal(false)}></div>
-              
+              <div
+                className="fixed inset-0 bg-black opacity-75"
+                onClick={() => setShowPreviewModal(false)}
+              ></div>
+
               <div className="relative bg-white rounded-lg overflow-hidden shadow-xl max-w-3xl w-full m-4">
                 <div className="absolute top-0 right-0 pt-4 pr-4">
                   <button
@@ -865,7 +869,7 @@ const MediaManager = () => {
                     <XIcon className="h-6 w-6" />
                   </button>
                 </div>
-                
+
                 <div className="p-6">
                   <img
                     src={getMediaImageUrl(selectedMedia)}
@@ -873,31 +877,37 @@ const MediaManager = () => {
                     className="w-full h-auto rounded-lg"
                     onError={(e) => {
                       e.target.src = `${API_URL}/assets/media/placeholder.jpg`;
-                      e.target.alt = 'Image not found';
+                      e.target.alt = "Image not found";
                     }}
                   />
-                  
+
                   <div className="mt-4">
                     <h3 className="text-lg font-medium text-gray-900">
                       {selectedMedia.title || selectedMedia.filename}
                     </h3>
-                    
+
                     <dl className="mt-2 border-t border-gray-200 pt-4">
                       <div className="sm:grid sm:grid-cols-3 sm:gap-4">
-                        <dt className="text-sm font-medium text-gray-500">Category</dt>
+                        <dt className="text-sm font-medium text-gray-500">
+                          Category
+                        </dt>
                         <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                          {selectedMedia.category || 'Uncategorized'}
+                          {selectedMedia.category || "Uncategorized"}
                         </dd>
                       </div>
                       <div className="mt-4 sm:grid sm:grid-cols-3 sm:gap-4">
-                        <dt className="text-sm font-medium text-gray-500">URL</dt>
+                        <dt className="text-sm font-medium text-gray-500">
+                          URL
+                        </dt>
                         <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                           <div className="flex items-center">
                             <span className="flex-1 font-mono text-sm truncate">
                               {getMediaImageUrl(selectedMedia)}
                             </span>
                             <button
-                              onClick={() => copyToClipboard(getMediaImageUrl(selectedMedia))}
+                              onClick={() =>
+                                copyToClipboard(getMediaImageUrl(selectedMedia))
+                              }
                               className="ml-4 p-1 text-gray-400 hover:text-gray-500"
                             >
                               <DuplicateIcon className="h-5 w-5" />
@@ -908,7 +918,7 @@ const MediaManager = () => {
                     </dl>
                   </div>
                 </div>
-                
+
                 <div className="bg-gray-50 px-6 py-3 flex justify-end">
                   <button
                     type="button"

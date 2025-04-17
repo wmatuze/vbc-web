@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getEvents } from "../../services/api";
+import { useEventsQuery } from "../../hooks/useEventsQuery";
 import EventCard from "./EventsCard";
 import ToggleView from "./ToggleView";
 import FullCalendar from "@fullcalendar/react";
@@ -18,35 +18,27 @@ const ChurchCalendar = () => {
   const [viewMode, setViewMode] = useState("grid"); // Default to grid view
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [events, setEvents] = useState([]);
+  // Use React Query for fetching events
+  const {
+    data: events = [],
+    isLoading: loading,
+    error,
+    refetch: refetchEvents,
+  } = useEventsQuery();
+
   const [filteredEvents, setFilteredEvents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const navigate = useNavigate();
   const [isImageLoaded, setIsImageLoaded] = useState(false); // Loading state for Hero Image
 
-  // Fetch events from API
+  // Log events data when it changes
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        setLoading(true);
-        const data = await getEvents();
-        console.log("ChurchCalendar - API events data:", data);
-        setEvents(data);
-        setFilteredEvents(data);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching events:", err);
-        setError("Failed to load events. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEvents();
-  }, []);
+    if (events && events.length > 0) {
+      console.log("ChurchCalendar - API events data:", events);
+      setFilteredEvents(events);
+    }
+  }, [events]);
 
   // Get unique ministries for filter dropdown
   const ministryCategories = [
@@ -85,10 +77,10 @@ const ChurchCalendar = () => {
   const addToCalendar = (event) => {
     // Format date for Google Calendar
     // Use startDate (API field) if available, otherwise use legacy date and time fields
-    const startDate = event.startDate 
-      ? new Date(event.startDate) 
+    const startDate = event.startDate
+      ? new Date(event.startDate)
       : new Date(event.date + " " + (event.time || "00:00"));
-    
+
     // Use endDate (API field) if available, otherwise default to 2 hours duration
     const endDate = event.endDate
       ? new Date(event.endDate)
@@ -111,27 +103,29 @@ const ChurchCalendar = () => {
   // Get image URL with fallback
   const getImageUrl = (event) => {
     if (!event?.imageUrl && !event?.image) return FallbackImage;
-    
+
     if (event.imageUrl) {
       // Handle API uploaded images
-      return event.imageUrl.startsWith('http') 
-        ? event.imageUrl 
+      return event.imageUrl.startsWith("http")
+        ? event.imageUrl
         : `${API_URL}${event.imageUrl}`;
     } else if (event.image) {
       // Handle imported local images from the assets folder
       return event.image;
     }
-    
+
     return FallbackImage;
   };
 
   // Format events for FullCalendar
   const calendarEvents = events.map((event) => {
     // Use startDate (API format) if available, otherwise use legacy date field
-    const eventDate = event?.startDate 
-      ? new Date(event.startDate) 
-      : (event?.date ? new Date(event.date + " " + (event.time || "00:00")) : new Date());
-      
+    const eventDate = event?.startDate
+      ? new Date(event.startDate)
+      : event?.date
+        ? new Date(event.date + " " + (event.time || "00:00"))
+        : new Date();
+
     return {
       id: event.id,
       title: event.title,
@@ -228,7 +222,8 @@ const ChurchCalendar = () => {
               Church <span className="text-yellow-400">Calendar</span> 2025
             </h1>
             <p className="text-lg text-white text-center max-w-3xl mx-auto leading-relaxed font-light">
-              Explore upcoming events and join us as we grow in faith and community.
+              Explore upcoming events and join us as we grow in faith and
+              community.
             </p>
             <motion.div
               className="h-1 bg-yellow-400 mx-auto mt-8"
@@ -278,8 +273,11 @@ const ChurchCalendar = () => {
               disabled={loading}
             >
               {ministryCategories.map((ministry) => (
-                <option key={ministry || 'unknown'} value={ministry || 'unknown'}>
-                  {ministry || 'Unknown Ministry'}
+                <option
+                  key={ministry || "unknown"}
+                  value={ministry || "unknown"}
+                >
+                  {ministry || "Unknown Ministry"}
                 </option>
               ))}
             </select>
@@ -300,7 +298,7 @@ const ChurchCalendar = () => {
             <p className="text-xl text-gray-600">{error}</p>
             <button
               className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              onClick={() => window.location.reload()}
+              onClick={() => refetchEvents()}
             >
               Retry
             </button>
@@ -552,7 +550,9 @@ const ChurchCalendar = () => {
               {/* Description */}
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-2">About This Event</h3>
-                <p className="text-gray-700">{selectedEvent?.description || "No description available."}</p>
+                <p className="text-gray-700">
+                  {selectedEvent?.description || "No description available."}
+                </p>
               </div>
 
               {/* Action Buttons */}

@@ -1,39 +1,33 @@
 // apps/website/src/pages/Ministries/ChildrensMinistry.jsx
 import React, { useState, useEffect } from "react";
-import { getEvents } from "../../services/api";
+import { useEventsQuery } from "../../hooks/useEventsQuery";
 import EventCard from "../../components/ChurchCalendar/EventsCard";
 import PlaceHolderbanner from "../../assets/ministry-banners/ph.png"; //Using placeholder banner, you can replace with a Children's Ministry specific banner
 import FallbackImage from "../../assets/fallback-image.png"; // Import fallback image
 import { motion } from "framer-motion";
 
 const ChildrensMinistry = () => {
+  // Use React Query for fetching events
+  const {
+    data: events = [],
+    isLoading: loading,
+    error,
+    refetch: refetchEvents,
+  } = useEventsQuery();
+
   const [childrensMinistryEvents, setChildrensMinistryEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
-  // Fetch events from API
+  // Filter events for Children's Ministry when events data changes
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        setLoading(true);
-        const data = await getEvents();
-        // Filter events for Children's Ministry
-        const filteredEvents = data.filter(
-          (event) => event?.ministry === "Children's Ministry"
-        );
-        setChildrensMinistryEvents(filteredEvents);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching events:", err);
-        setError("Failed to load events. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEvents();
-  }, []);
+    if (events && events.length > 0) {
+      // Filter events for Children's Ministry
+      const filteredEvents = events.filter(
+        (event) => event?.ministry === "Children's Ministry"
+      );
+      setChildrensMinistryEvents(filteredEvents);
+    }
+  }, [events]);
 
   useEffect(() => {
     // Simulate loading all images
@@ -46,21 +40,24 @@ const ChildrensMinistry = () => {
     {
       id: 1,
       name: "Jennifer Wilson",
-      quote: "My children look forward to church every Sunday because of the Children's Ministry. They're learning biblical truths in such a fun way!",
-      role: "Parent of Joey (8) and Emma (6)"
+      quote:
+        "My children look forward to church every Sunday because of the Children's Ministry. They're learning biblical truths in such a fun way!",
+      role: "Parent of Joey (8) and Emma (6)",
     },
     {
       id: 2,
       name: "Michael Thompson",
-      quote: "The teachers are so dedicated and caring. My son has grown in his understanding of the Bible and loves sharing what he learns.",
-      role: "Parent of Lucas (7)"
+      quote:
+        "The teachers are so dedicated and caring. My son has grown in his understanding of the Bible and loves sharing what he learns.",
+      role: "Parent of Lucas (7)",
     },
     {
       id: 3,
       name: "Sophia Martinez",
-      quote: "I love my Sunday School class! My teacher makes Bible stories so exciting, and I've made lots of new friends.",
-      role: "Child (age 9)"
-    }
+      quote:
+        "I love my Sunday School class! My teacher makes Bible stories so exciting, and I've made lots of new friends.",
+      role: "Child (age 9)",
+    },
   ];
 
   // FAQ data
@@ -68,23 +65,28 @@ const ChildrensMinistry = () => {
     {
       id: 1,
       question: "What ages does the Children's Ministry serve?",
-      answer: "Our Children's Ministry serves children from birth through 5th grade. We have age-specific classes to ensure appropriate content and activities for each developmental stage."
+      answer:
+        "Our Children's Ministry serves children from birth through 5th grade. We have age-specific classes to ensure appropriate content and activities for each developmental stage.",
     },
     {
       id: 2,
       question: "What health and safety protocols are in place?",
-      answer: "We prioritize child safety with secure check-in/check-out procedures, background checks for all volunteers, allergy awareness, and a clean environment. All our staff are trained in first aid."
+      answer:
+        "We prioritize child safety with secure check-in/check-out procedures, background checks for all volunteers, allergy awareness, and a clean environment. All our staff are trained in first aid.",
     },
     {
       id: 3,
       question: "What happens in a typical Children's Ministry session?",
-      answer: "Sessions typically include worship songs, Bible teaching with interactive elements, age-appropriate activities, crafts or games that reinforce the lesson, and small group discussion time."
+      answer:
+        "Sessions typically include worship songs, Bible teaching with interactive elements, age-appropriate activities, crafts or games that reinforce the lesson, and small group discussion time.",
     },
     {
       id: 4,
-      question: "How can parents stay informed about what children are learning?",
-      answer: "We provide weekly take-home materials with lesson summaries and family discussion questions. We also send monthly newsletters and maintain a parent resource section on our church website."
-    }
+      question:
+        "How can parents stay informed about what children are learning?",
+      answer:
+        "We provide weekly take-home materials with lesson summaries and family discussion questions. We also send monthly newsletters and maintain a parent resource section on our church website.",
+    },
   ];
 
   return (
@@ -305,9 +307,7 @@ const ChildrensMinistry = () => {
         <div className="container mx-auto px-4 relative z-10 max-w-6xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800 relative inline-block">
-              <span className="relative z-10">
-                What Families Are Saying
-              </span>
+              <span className="relative z-10">What Families Are Saying</span>
               <span className="absolute bottom-0 left-0 w-full h-3 bg-yellow-200 -z-10 rounded"></span>
             </h2>
           </div>
@@ -322,17 +322,30 @@ const ChildrensMinistry = () => {
                 transition={{ delay: testimonial.id * 0.1 }}
               >
                 <div className="mb-4">
-                  <svg className="h-8 w-8 text-yellow-400 mb-4" fill="currentColor" viewBox="0 0 32 32">
+                  <svg
+                    className="h-8 w-8 text-yellow-400 mb-4"
+                    fill="currentColor"
+                    viewBox="0 0 32 32"
+                  >
                     <path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.8 3.456-8.256 9.12-8.256 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z" />
                   </svg>
-                  <p className="text-gray-600 italic mb-4">{testimonial.quote}</p>
+                  <p className="text-gray-600 italic mb-4">
+                    {testimonial.quote}
+                  </p>
                   <div className="flex items-center">
                     <div className="bg-yellow-100 w-10 h-10 rounded-full flex items-center justify-center text-yellow-600 font-bold text-sm mr-3">
-                      {testimonial.name.split(' ').map(n => n[0]).join('')}
+                      {testimonial.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-800">{testimonial.name}</h4>
-                      <p className="text-gray-500 text-sm">{testimonial.role}</p>
+                      <h4 className="font-semibold text-gray-800">
+                        {testimonial.name}
+                      </h4>
+                      <p className="text-gray-500 text-sm">
+                        {testimonial.role}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -347,9 +360,7 @@ const ChildrensMinistry = () => {
         <div className="container mx-auto px-4 max-w-5xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800 relative inline-block">
-              <span className="relative z-10">
-                Common Questions
-              </span>
+              <span className="relative z-10">Common Questions</span>
               <span className="absolute bottom-0 left-0 w-full h-3 bg-yellow-200 -z-10 rounded"></span>
             </h2>
           </div>

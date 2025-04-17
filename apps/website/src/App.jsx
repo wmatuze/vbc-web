@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { HelmetProvider } from "react-helmet-async"; // Import HelmetProvider
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import QueryProvider from "./providers/QueryProvider";
 import Navbar from "./components/Layout/Navbar";
 import HeroSection from "./components/Home/HeroSection";
 import Ministries from "./components/Home/Ministries";
@@ -13,7 +14,8 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import Membership from "./pages/Membership";
 import Renew from "./pages/Renew"; // Import Membership Renewal page
 import FoundationClasses from "./pages/FoundationClasses"; // Import Foundation Classes page
-import CellGroups from "./pages/CellGroups";
+import ZonesPage from "./pages/ZonesPage";
+import ZoneDetailPage from "./pages/ZoneDetailPage";
 import Media from "./pages/Media";
 import Missions from "./pages/Missions";
 import AboutUs from "./pages/AboutUs";
@@ -207,7 +209,15 @@ const AppContent = () => {
               path="/cell-groups"
               element={
                 <PageWrapper noPadding>
-                  <CellGroups />
+                  <ZonesPage />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="/cell-groups/:zoneId"
+              element={
+                <PageWrapper noPadding>
+                  <ZoneDetailPage />
                 </PageWrapper>
               }
             />
@@ -413,21 +423,23 @@ function App() {
   return (
     <HelmetProvider>
       <ErrorBoundary>
-        <BrowserRouter>
-          <AppContent />
-          <ToastContainer
-            position="top-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="light"
-          />
-        </BrowserRouter>
+        <QueryProvider>
+          <BrowserRouter>
+            <AppContent />
+            <ToastContainer
+              position="top-right"
+              autoClose={3000}
+              hideProgressBar={false}
+              newestOnTop
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="light"
+            />
+          </BrowserRouter>
+        </QueryProvider>
       </ErrorBoundary>
     </HelmetProvider>
   );

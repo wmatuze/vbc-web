@@ -7,7 +7,7 @@ import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 import { motion } from "framer-motion"; // Import motion
 import { Helmet } from "react-helmet"; // Import Helmet
-import { getLeaders } from "../services/api";
+import { useLeadershipQuery } from "../hooks/useLeadershipQuery";
 import config from "../config";
 
 // Import fallback images for leaders
@@ -22,46 +22,16 @@ const fallbackImages = {
 
 const Leadership = () => {
   const [selectedLeader, setSelectedLeader] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [leaders, setLeaders] = useState([]);
-  const [error, setError] = useState("");
+  const { data: leaders = [], isLoading, error } = useLeadershipQuery();
   const modalRef = useRef(null);
   const [isImageLoaded, setIsImageLoaded] = useState(false); // Loading state for Hero Image
 
-  // Fetch leaders data from API
+  // Log leaders data when it changes
   useEffect(() => {
-    const fetchLeaders = async () => {
-      try {
-        setIsLoading(true);
-        const data = await getLeaders();
-        console.log("Leadership - API leaders data:", data);
-
-        // Process leaders to ensure email is properly extracted from contact object
-        const processedLeaders = data.map((leader) => ({
-          ...leader,
-          // Extract email from contact object if present
-          email: leader.contact?.email || leader.email || "info@victorybc.org",
-        }));
-
-        // Sort leaders by order property
-        const sortedLeaders = processedLeaders.sort(
-          (a, b) => (a.order || 99) - (b.order || 99)
-        );
-        setLeaders(sortedLeaders);
-        setError("");
-      } catch (err) {
-        console.error("Error fetching leaders:", err);
-        setError(
-          "Failed to load leadership information. Please try again later."
-        );
-      } finally {
-        // Add a small delay to ensure smooth loading transition
-        setTimeout(() => setIsLoading(false), 300);
-      }
-    };
-
-    fetchLeaders();
-  }, []);
+    if (leaders.length > 0) {
+      console.log("Leadership - Leaders data:", leaders);
+    }
+  }, [leaders]);
 
   // Get image URL (either from API or fallback)
   const getImageUrl = (leader) => {
@@ -288,7 +258,10 @@ const Leadership = () => {
           </div>
         ) : error ? (
           <div className="text-center py-8 px-4">
-            <div className="text-red-500 mb-2">{error}</div>
+            <div className="text-red-500 mb-2">
+              {error.message ||
+                "Failed to load leadership information. Please try again later."}
+            </div>
             <button
               className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600"
               onClick={() => window.location.reload()}

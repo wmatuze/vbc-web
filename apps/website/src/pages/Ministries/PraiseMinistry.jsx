@@ -1,39 +1,33 @@
 // apps/website/src/pages/Ministries/PraiseMinistry.jsx
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { getEvents } from "../../services/api";
+import { useEventsQuery } from "../../hooks/useEventsQuery";
 import EventCard from "../../components/ChurchCalendar/EventsCard";
 import PlaceHolderbanner from "../../assets/ministry-banners/ph.png"; //Using placeholder banner, you can replace with a Praise Ministry specific banner
 import FallbackImage from "../../assets/fallback-image.png"; // Import fallback image
 
 const PraiseMinistry = () => {
+  // Use React Query for fetching events
+  const {
+    data: events = [],
+    isLoading: loading,
+    error,
+    refetch: refetchEvents,
+  } = useEventsQuery();
+
   const [praiseMinistryEvents, setPraiseMinistryEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
-  // Fetch events from API
+  // Filter events for Praise Ministry when events data changes
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        setLoading(true);
-        const data = await getEvents();
-        // Filter events for Praise Ministry
-        const filteredEvents = data.filter(
-          (event) => event?.ministry === "Praise Ministry"
-        );
-        setPraiseMinistryEvents(filteredEvents);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching events:", err);
-        setError("Failed to load events. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEvents();
-  }, []);
+    if (events && events.length > 0) {
+      // Filter events for Praise Ministry
+      const filteredEvents = events.filter(
+        (event) => event?.ministry === "Praise Ministry"
+      );
+      setPraiseMinistryEvents(filteredEvents);
+    }
+  }, [events]);
 
   useEffect(() => {
     // Simulate loading all images
@@ -46,45 +40,53 @@ const PraiseMinistry = () => {
     {
       id: 1,
       name: "James Wilson",
-      quote: "Being part of the Praise Ministry has deepened my worship experience and allowed me to use my musical gifts to serve the Lord.",
-      role: "Guitarist, member since 2018"
+      quote:
+        "Being part of the Praise Ministry has deepened my worship experience and allowed me to use my musical gifts to serve the Lord.",
+      role: "Guitarist, member since 2018",
     },
     {
       id: 2,
       name: "Maria Rodriguez",
-      quote: "I've grown so much as a worship leader through the mentoring and training provided by our ministry. The team feels like family.",
-      role: "Vocalist, member since 2019"
+      quote:
+        "I've grown so much as a worship leader through the mentoring and training provided by our ministry. The team feels like family.",
+      role: "Vocalist, member since 2019",
     },
     {
       id: 3,
       name: "Thomas Greene",
-      quote: "Working with the tech team has been such a blessing. It's amazing how our behind-the-scenes work helps create a seamless worship experience.",
-      role: "Sound Engineer, member since 2020"
-    }
+      quote:
+        "Working with the tech team has been such a blessing. It's amazing how our behind-the-scenes work helps create a seamless worship experience.",
+      role: "Sound Engineer, member since 2020",
+    },
   ];
 
   // FAQ data
   const faqs = [
     {
       id: 1,
-      question: "What musical experience do I need to join the Praise Ministry?",
-      answer: "While some musical background is helpful, we welcome people of all skill levels. More important than technical ability is a heart for worship and a willingness to grow and learn."
+      question:
+        "What musical experience do I need to join the Praise Ministry?",
+      answer:
+        "While some musical background is helpful, we welcome people of all skill levels. More important than technical ability is a heart for worship and a willingness to grow and learn.",
     },
     {
       id: 2,
       question: "What positions are available in the Praise Ministry?",
-      answer: "We have opportunities for vocalists, instrumentalists (guitar, keyboard, drums, bass, etc.), sound technicians, visual/projection team members, and more."
+      answer:
+        "We have opportunities for vocalists, instrumentalists (guitar, keyboard, drums, bass, etc.), sound technicians, visual/projection team members, and more.",
     },
     {
       id: 3,
       question: "How often does the team rehearse?",
-      answer: "We have weekly rehearsals on Thursday evenings from 6:30-8:30 PM. Additionally, worship teams arrive early on Sunday mornings for a final run-through before the service."
+      answer:
+        "We have weekly rehearsals on Thursday evenings from 6:30-8:30 PM. Additionally, worship teams arrive early on Sunday mornings for a final run-through before the service.",
     },
     {
       id: 4,
       question: "Is there an audition process to join the worship team?",
-      answer: "Yes, we do have a simple audition process, but it's designed to help us understand your skills and place you appropriately, not to exclude people. Contact us to schedule an informal audition with our worship leader."
-    }
+      answer:
+        "Yes, we do have a simple audition process, but it's designed to help us understand your skills and place you appropriately, not to exclude people. Contact us to schedule an informal audition with our worship leader.",
+    },
   ];
 
   return (
@@ -300,9 +302,7 @@ const PraiseMinistry = () => {
         <div className="container mx-auto px-4 relative z-10 max-w-6xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800 relative inline-block">
-              <span className="relative z-10">
-                Worship Team Testimonials
-              </span>
+              <span className="relative z-10">Worship Team Testimonials</span>
               <span className="absolute bottom-0 left-0 w-full h-3 bg-blue-200 -z-10 rounded"></span>
             </h2>
           </div>
@@ -317,17 +317,30 @@ const PraiseMinistry = () => {
                 transition={{ delay: testimonial.id * 0.1 }}
               >
                 <div className="mb-4">
-                  <svg className="h-8 w-8 text-blue-400 mb-4" fill="currentColor" viewBox="0 0 32 32">
+                  <svg
+                    className="h-8 w-8 text-blue-400 mb-4"
+                    fill="currentColor"
+                    viewBox="0 0 32 32"
+                  >
                     <path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.8 3.456-8.256 9.12-8.256 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z" />
                   </svg>
-                  <p className="text-gray-600 italic mb-4">{testimonial.quote}</p>
+                  <p className="text-gray-600 italic mb-4">
+                    {testimonial.quote}
+                  </p>
                   <div className="flex items-center">
                     <div className="bg-blue-100 w-10 h-10 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm mr-3">
-                      {testimonial.name.split(' ').map(n => n[0]).join('')}
+                      {testimonial.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-800">{testimonial.name}</h4>
-                      <p className="text-gray-500 text-sm">{testimonial.role}</p>
+                      <h4 className="font-semibold text-gray-800">
+                        {testimonial.name}
+                      </h4>
+                      <p className="text-gray-500 text-sm">
+                        {testimonial.role}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -342,9 +355,7 @@ const PraiseMinistry = () => {
         <div className="container mx-auto px-4 max-w-5xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800 relative inline-block">
-              <span className="relative z-10">
-                Frequently Asked Questions
-              </span>
+              <span className="relative z-10">Frequently Asked Questions</span>
               <span className="absolute bottom-0 left-0 w-full h-3 bg-blue-200 -z-10 rounded"></span>
             </h2>
           </div>

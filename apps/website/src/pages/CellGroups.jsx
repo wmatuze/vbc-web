@@ -58,7 +58,7 @@ const CellGroups = () => {
   const [favorites, setFavorites] = useState([]);
   const [expandedCard, setExpandedCard] = useState(null);
   const [isHeaderSticky, setIsHeaderSticky] = useState(false);
-  const [showBackToTop, setShowBackToTop] = useState(false);
+  // Using global back-to-top button from Navbar component
 
   // Fetch cell groups data from API
   useEffect(() => {
@@ -80,7 +80,9 @@ const CellGroups = () => {
   }, []);
 
   const searchRef = useRef(null);
-  const allTags = [...new Set(cellGroupsData.flatMap((group) => group.tags || []))];
+  const allTags = [
+    ...new Set(cellGroupsData.flatMap((group) => group.tags || [])),
+  ];
   const allLocations = [
     ...new Set(cellGroupsData.map((group) => group.location)),
   ];
@@ -89,7 +91,6 @@ const CellGroups = () => {
   useEffect(() => {
     const handleScroll = () => {
       setIsHeaderSticky(window.scrollY > 300);
-      setShowBackToTop(window.scrollY > 600);
     };
 
     window.addEventListener("scroll", handleScroll);
@@ -99,11 +100,18 @@ const CellGroups = () => {
   // Get image URL (either from API or fallback)
   const getImageUrl = (group) => {
     if (group.imageUrl) {
-      return group.imageUrl.startsWith('http') 
-        ? group.imageUrl 
+      return group.imageUrl.startsWith("http")
+        ? group.imageUrl
         : `${config.API_URL}${group.imageUrl}`;
     }
-    return fallbackImages[group.id % 4 + 1] || FallbackImage;
+    // Use a more reliable way to get fallback images
+    const index = (group.id ? group.id % 4 : 0) + 1;
+    try {
+      return fallbackImages[index] || FallbackImage;
+    } catch (error) {
+      console.error("Error loading fallback image:", error);
+      return FallbackImage;
+    }
   };
 
   // Filter groups based on search and active filters
@@ -354,60 +362,125 @@ const CellGroups = () => {
         ref={searchRef}
         className="container mx-auto px-4 py-16 max-w-7xl"
       >
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-10">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">
+        <div className="bg-white border border-gray-100 p-8 mb-12">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+            <h2 className="text-3xl font-bold text-gray-900">
               Find Your Cell Group
             </h2>
-            <div className="flex items-center gap-4">
-              <div className="relative w-full md:w-64">
+
+            {/* Mobile Search Bar */}
+            <div className="w-full md:hidden relative mb-4">
+              <input
+                type="text"
+                placeholder="Search by name or location..."
+                className="w-full pl-10 pr-4 py-3 border-b border-gray-200 focus:border-gray-900 focus:outline-none transition-colors"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <FaSearch className="absolute left-0 top-3.5 text-gray-400" />
+              {search && (
+                <button
+                  onClick={() => setSearch("")}
+                  className="absolute right-0 top-3 text-gray-400 hover:text-gray-600"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+
+            {/* Desktop Controls */}
+            <div className="flex items-center gap-6 w-full md:w-auto">
+              {/* Desktop Search */}
+              <div className="relative w-full md:w-64 hidden md:block">
                 <input
                   type="text"
                   placeholder="Search by name or location..."
-                  className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border-b border-gray-200 focus:border-gray-900 focus:outline-none transition-colors"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
-                <FaSearch className="absolute left-3 top-3 text-gray-400" />
+                <FaSearch className="absolute left-0 top-2.5 text-gray-400" />
+                {search && (
+                  <button
+                    onClick={() => setSearch("")}
+                    className="absolute right-0 top-2 text-gray-400 hover:text-gray-600"
+                  >
+                    ×
+                  </button>
+                )}
               </div>
+
+              {/* Filter Button */}
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`p-2 rounded-full ${
+                className={`py-2 px-4 flex items-center gap-2 border-b-2 ${
                   activeFilters.length > 0
-                    ? "bg-purple-100 text-purple-700"
-                    : "bg-gray-100 text-gray-600"
-                } flex items-center gap-2`}
+                    ? "border-gray-900 text-gray-900"
+                    : "border-transparent text-gray-500 hover:border-gray-300"
+                } transition-colors`}
               >
-                <FaFilter />
-                <span className="hidden md:inline">
+                <FaFilter size={14} />
+                <span>
                   Filters{" "}
                   {activeFilters.length > 0 && `(${activeFilters.length})`}
                 </span>
               </button>
-              <div className="flex gap-2">
+
+              {/* View Mode Toggles */}
+              <div className="flex border border-gray-200">
                 <button
-                  className={`p-2 rounded-full ${
+                  className={`p-2 ${
                     viewMode === "grid"
-                      ? "bg-purple-100 text-purple-700"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
+                      ? "bg-gray-900 text-white"
+                      : "bg-white text-gray-500 hover:bg-gray-100"
+                  } transition-colors`}
                   onClick={() => setViewMode("grid")}
+                  aria-label="Grid View"
                 >
                   <FaListUl />
                 </button>
                 <button
-                  className={`p-2 rounded-full ${
+                  className={`p-2 ${
                     viewMode === "map"
-                      ? "bg-purple-100 text-purple-700"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
+                      ? "bg-gray-900 text-white"
+                      : "bg-white text-gray-500 hover:bg-gray-100"
+                  } transition-colors`}
                   onClick={() => setViewMode("map")}
+                  aria-label="Map View"
                 >
                   <FaMapMarkedAlt />
                 </button>
               </div>
             </div>
           </div>
+
+          {/* Active Filters Display */}
+          {activeFilters.length > 0 && (
+            <div className="flex flex-wrap items-center gap-3 mb-6 pb-6 border-b border-gray-100">
+              <span className="text-sm text-gray-500">Active filters:</span>
+              {activeFilters.map((filter) => (
+                <div
+                  key={filter}
+                  className="flex items-center border border-gray-200 px-3 py-1 text-sm"
+                >
+                  {filter}
+                  <button
+                    onClick={() => toggleFilter(filter)}
+                    className="ml-2 text-gray-400 hover:text-gray-600"
+                    aria-label={`Remove ${filter} filter`}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={() => setActiveFilters([])}
+                className="text-sm text-gray-500 hover:text-gray-700 underline ml-2"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
 
           {/* Filter options */}
           <AnimatePresence>
@@ -419,24 +492,28 @@ const CellGroups = () => {
                 transition={{ duration: 0.3 }}
                 className="overflow-hidden"
               >
-                <div className="border-t pt-4">
-                  <h3 className="font-semibold text-gray-700 mb-3">
+                <div className="border-t border-gray-100 pt-6">
+                  <h3 className="font-semibold text-gray-900 mb-4">
                     Filter by:
                   </h3>
-                  <div className="flex flex-wrap gap-2">
+
+                  {/* Mobile-friendly filter layout */}
+                  <div className="space-y-6 md:space-y-0 md:flex md:flex-wrap md:gap-8">
                     {/* Location filters */}
                     <div className="mb-2">
-                      <h4 className="text-sm text-gray-500 mb-1">Location</h4>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">
+                        Location
+                      </h4>
                       <div className="flex flex-wrap gap-2">
                         {allLocations.map((location) => (
                           <button
                             key={location}
                             onClick={() => toggleFilter(location)}
-                            className={`px-3 py-1 text-sm rounded-full ${
+                            className={`px-3 py-1.5 text-sm ${
                               activeFilters.includes(location)
-                                ? "bg-purple-100 text-purple-700 border border-purple-300"
-                                : "bg-gray-100 text-gray-600 border border-gray-200"
-                            }`}
+                                ? "bg-gray-900 text-white"
+                                : "border border-gray-200 text-gray-600 hover:border-gray-300"
+                            } transition-colors`}
                           >
                             {location}
                           </button>
@@ -445,18 +522,20 @@ const CellGroups = () => {
                     </div>
 
                     {/* Tag filters */}
-                    <div className="mb-2 ml-4">
-                      <h4 className="text-sm text-gray-500 mb-1">Group Type</h4>
+                    <div className="mb-2">
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">
+                        Group Type
+                      </h4>
                       <div className="flex flex-wrap gap-2">
                         {allTags.map((tag) => (
                           <button
                             key={tag}
                             onClick={() => toggleFilter(tag)}
-                            className={`px-3 py-1 text-sm rounded-full ${
+                            className={`px-3 py-1.5 text-sm ${
                               activeFilters.includes(tag)
-                                ? "bg-purple-100 text-purple-700 border border-purple-300"
-                                : "bg-gray-100 text-gray-600 border border-gray-200"
-                            }`}
+                                ? "bg-gray-900 text-white"
+                                : "border border-gray-200 text-gray-600 hover:border-gray-300"
+                            } transition-colors`}
                           >
                             {tag}
                           </button>
@@ -465,8 +544,8 @@ const CellGroups = () => {
                     </div>
 
                     {/* Day filters */}
-                    <div className="mb-2 ml-4">
-                      <h4 className="text-sm text-gray-500 mb-1">
+                    <div className="mb-2">
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">
                         Meeting Day
                       </h4>
                       <div className="flex flex-wrap gap-2">
@@ -482,11 +561,11 @@ const CellGroups = () => {
                           <button
                             key={day}
                             onClick={() => toggleFilter(day)}
-                            className={`px-3 py-1 text-sm rounded-full ${
+                            className={`px-3 py-1.5 text-sm ${
                               activeFilters.includes(day)
-                                ? "bg-purple-100 text-purple-700 border border-purple-300"
-                                : "bg-gray-100 text-gray-600 border border-gray-200"
-                            }`}
+                                ? "bg-gray-900 text-white"
+                                : "border border-gray-200 text-gray-600 hover:border-gray-300"
+                            } transition-colors`}
                           >
                             {day}
                           </button>
@@ -495,14 +574,14 @@ const CellGroups = () => {
                     </div>
                   </div>
 
-                  {activeFilters.length > 0 && (
+                  <div className="mt-6 flex justify-end">
                     <button
-                      onClick={() => setActiveFilters([])}
-                      className="text-sm text-purple-600 hover:text-purple-800 mt-2"
+                      onClick={() => setShowFilters(false)}
+                      className="px-6 py-2 bg-black text-white hover:bg-gray-800 transition-colors"
                     >
-                      Clear all filters
+                      Apply Filters
                     </button>
-                  )}
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -510,9 +589,9 @@ const CellGroups = () => {
         </div>
 
         {/* Results section */}
-        <div className="mb-12">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-bold text-gray-800">
+        <div className="mb-16">
+          <div className="flex justify-between items-center mb-8">
+            <h3 className="text-2xl font-bold text-gray-900">
               {!isLoading && `${filteredGroups.length} Cell Groups`}
               {!isLoading && activeFilters.length > 0 && " (Filtered)"}
             </h3>
@@ -520,13 +599,13 @@ const CellGroups = () => {
 
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
-              <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-500 border-t-transparent"></div>
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-900 border-t-transparent"></div>
             </div>
           ) : filteredGroups.length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-center py-12 bg-white rounded-xl shadow-sm"
+              className="text-center py-16 bg-white border border-gray-100"
             >
               <FaSearch className="mx-auto text-3xl text-gray-300 mb-4" />
               <h3 className="text-xl font-semibold text-gray-700 mb-2">
@@ -539,7 +618,7 @@ const CellGroups = () => {
               {activeFilters.length > 0 && (
                 <button
                   onClick={() => setActiveFilters([])}
-                  className="mt-4 text-purple-600 hover:text-purple-800"
+                  className="mt-6 px-6 py-2 border border-gray-200 hover:border-gray-400 text-gray-700 inline-block"
                 >
                   Clear all filters
                 </button>
@@ -555,79 +634,132 @@ const CellGroups = () => {
                   initial="hidden"
                   animate="visible"
                   whileHover="hover"
-                  className={`bg-white rounded-xl shadow-md overflow-hidden transform transition-all duration-300 ${
+                  className={`bg-white border border-gray-100 overflow-hidden transform transition-all duration-300 ${
                     expandedCard === group.id
                       ? "lg:col-span-2 lg:row-span-2"
                       : ""
                   }`}
                 >
-                  <div className="relative h-48 overflow-hidden">
+                  <div className="relative h-56 overflow-hidden">
                     <img
                       src={getImageUrl(group)}
                       alt={group.name}
-                      className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover filter grayscale hover:grayscale-0 transition-all duration-500"
                     />
                     <button
                       onClick={() => toggleFavorite(group.id)}
-                      className="absolute top-3 right-3 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
+                      className="absolute top-4 right-4 p-2 rounded-full bg-black/30 hover:bg-black/50 transition-colors z-10"
+                      aria-label={
+                        favorites.includes(group.id)
+                          ? "Remove from favorites"
+                          : "Add to favorites"
+                      }
                     >
                       <FaHeart
                         className={`${
                           favorites.includes(group.id)
-                            ? "text-red-500"
-                            : "text-gray-400"
+                            ? "text-white"
+                            : "text-white/70"
                         }`}
                       />
                     </button>
-                  </div>
-                  <div className="p-5">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-lg font-bold text-gray-800">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                    <div className="absolute bottom-0 left-0 p-4 w-full">
+                      <h3 className="text-xl font-bold text-white mb-1">
                         {group.name}
                       </h3>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <FaMapMarkerAlt className="mr-1 text-purple-600" />
+                      <div className="flex items-center text-sm text-white/90">
+                        <FaMapMarkerAlt className="mr-1" />
                         {group.location}
                       </div>
                     </div>
-                    <p className="text-gray-600 mb-4">{group.description}</p>
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {group.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-2 py-1 text-xs rounded-full bg-purple-50 text-purple-700"
-                        >
-                          {tag}
-                        </span>
-                      ))}
+                  </div>
+
+                  <div className="p-6">
+                    {/* Tags */}
+                    {group.tags && group.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {group.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="px-2 py-1 text-xs border border-gray-200 text-gray-700"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <p className="text-gray-600 mb-6 line-clamp-3">
+                      {group.description}
+                    </p>
+
+                    {/* Meeting Information */}
+                    <div className="flex justify-between text-sm mb-6">
+                      <div className="flex items-center text-gray-700">
+                        <FaCalendarAlt className="mr-2" />
+                        {group.meetingDay} at {group.meetingTime}
+                      </div>
+                      <div className="flex items-center text-gray-700">
+                        {group.capacity && (
+                          <span className="text-xs border border-gray-200 px-2 py-1">
+                            {group.capacity}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="border-t pt-4">
-                      <div className="flex justify-between text-sm mb-2">
-                        <div className="flex items-center text-gray-600">
-                          <FaCalendarAlt className="mr-1" />
-                          {group.meetingDay} at {group.meetingTime}
+
+                    {/* Cell Leader Information */}
+                    <div className="flex items-start mb-6 border-t border-b border-gray-100 py-4">
+                      <div className="w-10 h-10 rounded-full bg-gray-100 flex-shrink-0 overflow-hidden mr-3">
+                        {group.leaderImage ? (
+                          <img
+                            src={group.leaderImage}
+                            alt={group.leader}
+                            className="w-full h-full object-cover filter grayscale"
+                            onError={(e) => {
+                              e.target.src = FallbackImage;
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500">
+                            <FaUser />
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">
+                          Led by {group.leader}
                         </div>
-                        <div className="text-gray-600">{group.capacity}</div>
+                        {group.leaderContact && (
+                          <div className="text-xs text-gray-500 mt-1 flex items-center">
+                            <FaEnvelope className="mr-1" size={10} />
+                            {group.leaderContact}
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center text-sm text-gray-600 mb-3">
-                        <FaUser className="mr-1" />
-                        Led by {group.leader}
-                      </div>
-                      <button
-                        onClick={() => setSelectedGroup(group)}
-                        className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-300 flex items-center justify-center"
-                      >
-                        Join this cell group
-                        <FaArrowRight className="ml-2" />
-                      </button>
                     </div>
+
+                    {/* Join Button */}
+                    <button
+                      onClick={() => setSelectedGroup(group)}
+                      className="w-full bg-black hover:bg-gray-800 text-white font-medium py-3 px-4 transition-colors duration-300 flex items-center justify-center"
+                    >
+                      Join this cell group
+                      <FaArrowRight className="ml-2" />
+                    </button>
                   </div>
                 </motion.div>
               ))}
             </div>
           ) : (
-            <div className="h-[600px] rounded-lg overflow-hidden shadow-md">
-              <LoadScript googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY || ""} libraries={libraries}>
+            <div className="h-[600px] overflow-hidden border border-gray-100">
+              <LoadScript
+                googleMapsApiKey={
+                  import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""
+                }
+                libraries={libraries}
+              >
                 <GoogleMap
                   mapContainerStyle={mapContainerStyle}
                   center={mapCenter}
@@ -641,15 +773,15 @@ const CellGroups = () => {
                   {filteredGroups.map((group) => (
                     <Marker
                       key={group.id}
-                      position={group.coordinates}
+                      position={group.coordinates || mapCenter}
                       onClick={() => setOpenInfoWindow(group.id)}
-                      icon={{
-                        url: "/assets/map-marker.svg",
-                        scaledSize: { width: 40, height: 40 },
-                      }}
+                      // Use a simple default marker instead of a custom icon
+                      // to avoid CORS issues with SVG files
                     >
                       {openInfoWindow === group.id && (
-                        <InfoWindow onCloseClick={() => setOpenInfoWindow(null)}>
+                        <InfoWindow
+                          onCloseClick={() => setOpenInfoWindow(null)}
+                        >
                           <div className="p-2 max-w-xs">
                             <div className="flex mb-2">
                               <img
@@ -661,12 +793,14 @@ const CellGroups = () => {
                                 <h4 className="font-semibold text-gray-900">
                                   {group.name}
                                 </h4>
-                                <p className="text-sm text-gray-500">{group.location}</p>
+                                <p className="text-sm text-gray-500">
+                                  {group.location}
+                                </p>
                               </div>
                             </div>
                             <button
                               onClick={() => setSelectedGroup(group)}
-                              className="w-full bg-purple-600 text-white text-sm py-1 px-2 rounded hover:bg-purple-700"
+                              className="w-full bg-black text-white text-sm py-2 px-3 hover:bg-gray-800 transition-colors mt-2"
                             >
                               Join Group
                             </button>
@@ -695,20 +829,7 @@ const CellGroups = () => {
         )}
       </AnimatePresence>
 
-      {/* Back to top button */}
-      <AnimatePresence>
-        {showBackToTop && (
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            onClick={scrollToTop}
-            className="fixed bottom-8 right-8 bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-full shadow-lg z-50"
-          >
-            <FaArrowRight className="transform rotate-[-90deg]" />
-          </motion.button>
-        )}
-      </AnimatePresence>
+      {/* Using global back-to-top button from Navbar component */}
     </div>
   );
 };

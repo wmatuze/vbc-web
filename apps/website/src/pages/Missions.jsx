@@ -90,9 +90,9 @@ const testimonials = [
   {
     quote:
       "Participating in the local outreach program opened my eyes to the needs in our own community. Serving alongside fellow believers to meet these needs has strengthened my faith and given me a deeper understanding of Christ's love in action.",
-    author: "David M.",
+    author: "Watu M.",
     authorTitle: "Local Outreach Volunteer",
-    image: "/images/testimonial-jane.jpg",
+    image: "/images/testimonial-watu.jpg",
     project: "Local Community Outreach",
   },
   {

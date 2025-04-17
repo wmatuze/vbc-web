@@ -1,49 +1,56 @@
 import { Link } from "react-router-dom";
 import { forwardRef, useState, useEffect } from "react";
-import { getEvents } from "../../services/api";
+import { useEventsQuery } from "../../hooks/useEventsQuery";
 import EventCard from "../ChurchCalendar/EventsCard";
 
 // API URL for static assets and uploads
-const API_URL = 'http://localhost:3000';
+const API_URL = "http://localhost:3000";
 
 const HeroSection = forwardRef((props, ref) => {
+  // Use React Query for fetching events
+  const {
+    data: events = [],
+    isLoading: loading,
+    error,
+    refetch: refetchEvents,
+  } = useEventsQuery();
+
   const [upcomingEvents, setUpcomingEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
-    
-    const fetchEvents = async () => {
-      try {
-        setLoading(true);
-        const events = await getEvents();
+  }, []);
+
+  // Process events data when it changes
+  useEffect(() => {
+    try {
+      if (events && events.length > 0) {
         console.log("Hero section - API events data:", events);
-        
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
-        // Add fallback static events if API call fails
-        if (!events || events.length === 0) {
-          throw new Error("No events available");
-        }
-        
-        const upcomingOnly = events.filter(event => {
-          // Check if we should use startDate (API format) or date (legacy format)
-          const eventDate = new Date(event.startDate || event.date || Date.now());
-          return eventDate >= today;
-        }).sort((a, b) => {
-          // Sort by date, using the appropriate field
-          return new Date(a.startDate || a.date) - new Date(b.startDate || b.date);
-        });
-        
+
+        const upcomingOnly = events
+          .filter((event) => {
+            // Check if we should use startDate (API format) or date (legacy format)
+            const eventDate = new Date(
+              event.startDate || event.date || Date.now()
+            );
+            return eventDate >= today;
+          })
+          .sort((a, b) => {
+            // Sort by date, using the appropriate field
+            return (
+              new Date(a.startDate || a.date) - new Date(b.startDate || b.date)
+            );
+          });
+
         setUpcomingEvents(upcomingOnly.slice(0, 4));
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching events:", err);
-        setError("Failed to load upcoming events");
-        
+      } else if (!loading && (!events || events.length === 0)) {
+        // If no events are available and we're not loading, use fallback data
+        console.error("No events available");
+
         // Fallback static events
         const staticEvents = [
           {
@@ -53,7 +60,7 @@ const HeroSection = forwardRef((props, ref) => {
             startDate: new Date(Date.now() + 86400000 * 3),
             time: "10:00 AM",
             location: "Main Sanctuary",
-            imageUrl: "/assets/events/default-event.jpg"
+            imageUrl: "/assets/events/default-event.jpg",
           },
           {
             id: "static2",
@@ -62,7 +69,7 @@ const HeroSection = forwardRef((props, ref) => {
             startDate: new Date(Date.now() + 86400000 * 5),
             time: "7:00 PM",
             location: "Prayer Room",
-            imageUrl: "/assets/events/default-event.jpg"
+            imageUrl: "/assets/events/default-event.jpg",
           },
           {
             id: "static3",
@@ -71,7 +78,7 @@ const HeroSection = forwardRef((props, ref) => {
             startDate: new Date(Date.now() + 86400000 * 7),
             time: "6:30 PM",
             location: "Fellowship Hall",
-            imageUrl: "/assets/events/default-event.jpg"
+            imageUrl: "/assets/events/default-event.jpg",
           },
           {
             id: "static4",
@@ -80,18 +87,16 @@ const HeroSection = forwardRef((props, ref) => {
             startDate: new Date(Date.now() + 86400000 * 6),
             time: "5:00 PM",
             location: "Youth Center",
-            imageUrl: "/assets/events/default-event.jpg"
-          }
+            imageUrl: "/assets/events/default-event.jpg",
+          },
         ];
-        
+
         setUpcomingEvents(staticEvents);
-      } finally {
-        setLoading(false);
       }
-    };
-    
-    fetchEvents();
-  }, []);
+    } catch (err) {
+      console.error("Error processing events:", err);
+    }
+  }, [events, loading]);
 
   const bgImage = `${API_URL}/assets/hero-bg.jpg`;
 
@@ -99,13 +104,13 @@ const HeroSection = forwardRef((props, ref) => {
   const serviceInfo = {
     sunday: {
       name: "Sunday Service",
-      time: "9:30 AM"
+      time: "9:30 AM",
     },
     wednesday: {
       name: "Midweek Service",
-      time: "6:00 PM"
+      time: "6:00 PM",
     },
-    address: "Victory Bible Church - Kitwe, Off Chiwala Road, CBU East Gate"
+    address: "Victory Bible Church - Kitwe, Off Chiwala Road, CBU East Gate",
   };
 
   return (
@@ -127,7 +132,9 @@ const HeroSection = forwardRef((props, ref) => {
           <div className="max-w-2xl pt-4 space-y-8">
             <div className="flex items-center space-x-4 fade-in">
               <div className="h-0.5 w-12 bg-primary-500" />
-              <span className="font-medium text-white text-lg tracking-wider">Welcome to Victory Bible Church</span>
+              <span className="font-medium text-white text-lg tracking-wider">
+                Welcome to Victory Bible Church
+              </span>
             </div>
 
             <div className="space-y-2">
@@ -158,45 +165,89 @@ const HeroSection = forwardRef((props, ref) => {
             {/* Service Times Card - New Addition */}
             <div className="bg-black/30 backdrop-blur-sm rounded-lg p-4 border border-white/10 opacity-0 animate-[fadeIn_1s_1.4s_forwards]">
               <div className="flex items-center space-x-2 mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-primary-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 <h3 className="text-white font-medium">Service Times</h3>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <p className="text-white text-sm">{serviceInfo.sunday.name}</p>
-                  <p className="text-primary-300 font-medium">{serviceInfo.sunday.time}</p>
+                  <p className="text-white text-sm">
+                    {serviceInfo.sunday.name}
+                  </p>
+                  <p className="text-primary-300 font-medium">
+                    {serviceInfo.sunday.time}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-white text-sm">{serviceInfo.wednesday.name}</p>
-                  <p className="text-primary-300 font-medium">{serviceInfo.wednesday.time}</p>
+                  <p className="text-white text-sm">
+                    {serviceInfo.wednesday.name}
+                  </p>
+                  <p className="text-primary-300 font-medium">
+                    {serviceInfo.wednesday.time}
+                  </p>
                 </div>
               </div>
               <div className="mt-2 pt-2 border-t border-white/10">
                 <div className="flex items-center space-x-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 text-primary-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
                   </svg>
                   <p className="text-white text-sm">{serviceInfo.address}</p>
                 </div>
-                <Link to="/contact" className="text-primary-300 text-sm mt-1 hover:text-primary-200 flex items-center">
+                <Link
+                  to="/contact"
+                  className="text-primary-300 text-sm mt-1 hover:text-primary-200 flex items-center"
+                >
                   Get Directions
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 ml-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M14 5l7 7m0 0l-7 7m7-7H3"
+                    />
                   </svg>
                 </Link>
               </div>
             </div>
 
             <div className="flex flex-wrap gap-6 opacity-0 animate-[fadeIn_1s_1.5s_forwards]">
-              <Link
-                to="/membership"
-                className="btn btn-primary group"
-              >
+              <Link to="/membership" className="btn btn-primary group">
                 GET CONNECTED
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -214,21 +265,29 @@ const HeroSection = forwardRef((props, ref) => {
                 </svg>
               </Link>
 
-              <Link
-                to="/about"
-                className="btn btn-outline text-white border-2"
-              >
+              <Link to="/about" className="btn btn-outline text-white border-2">
                 LEARN MORE
               </Link>
-              
+
               {/* New Button for "I'm New Here" */}
               <Link
                 to="/about/visitors"
                 className="btn bg-secondary hover:bg-secondary-600 text-white"
               >
                 I'M NEW HERE
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 ml-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                  />
                 </svg>
               </Link>
             </div>
@@ -284,8 +343,8 @@ const HeroSection = forwardRef((props, ref) => {
               ) : error ? (
                 <div className="card bg-white/5 backdrop-blur-sm border border-white/10 p-6">
                   <p className="text-red-400">{error}</p>
-                  <button 
-                    onClick={() => window.location.reload()}
+                  <button
+                    onClick={() => refetchEvents()}
                     className="text-sm text-primary-400 hover:text-primary-300 mt-2"
                   >
                     Try again
@@ -300,49 +359,119 @@ const HeroSection = forwardRef((props, ref) => {
               ) : (
                 <div className="card bg-white/5 backdrop-blur-sm border border-white/10 p-4 mb-4 h-24 flex items-center justify-center">
                   <div>
-                    <p className="text-gray-300 text-center">No upcoming events scheduled.</p>
-                    <p className="text-gray-400 text-sm mt-1 text-center">Check back soon for new events!</p>
+                    <p className="text-gray-300 text-center">
+                      No upcoming events scheduled.
+                    </p>
+                    <p className="text-gray-400 text-sm mt-1 text-center">
+                      Check back soon for new events!
+                    </p>
                   </div>
                 </div>
               )}
-              
+
               {/* Quick Info Links */}
-              <div className={`${upcomingEvents.length > 0 ? 'mt-3 space-y-2' : 'mt-6 space-y-3'}`}>
+              <div
+                className={`${upcomingEvents.length > 0 ? "mt-3 space-y-2" : "mt-6 space-y-3"}`}
+              >
                 {upcomingEvents.length > 0 ? (
                   // More compact layout for when we have events
                   <div className="flex justify-between gap-2">
-                    <Link to="/events" className="flex-1 card bg-white/5 backdrop-blur-sm border border-white/10 p-3 hover:bg-white/10 transition-colors flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-primary-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <Link
+                      to="/events"
+                      className="flex-1 card bg-white/5 backdrop-blur-sm border border-white/10 p-3 hover:bg-white/10 transition-colors flex items-center"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 text-primary-400 mr-2 flex-shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
                       </svg>
-                      <span className="text-white text-xs truncate">Sunday: 10:00AM & 6:00PM</span>
+                      <span className="text-white text-xs truncate">
+                        Sunday: 10:00AM & 6:00PM
+                      </span>
                     </Link>
-                    
-                    <Link to="/media/sermons" className="flex-1 card bg-white/5 backdrop-blur-sm border border-white/10 p-3 hover:bg-white/10 transition-colors flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-primary-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+
+                    <Link
+                      to="/media/sermons"
+                      className="flex-1 card bg-white/5 backdrop-blur-sm border border-white/10 p-3 hover:bg-white/10 transition-colors flex items-center"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 text-primary-400 mr-2 flex-shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                        />
                       </svg>
-                      <span className="text-white text-xs truncate">Latest Sermons</span>
+                      <span className="text-white text-xs truncate">
+                        Latest Sermons
+                      </span>
                     </Link>
                   </div>
                 ) : (
                   // Original layout for when we don't have events
                   <>
-                    <Link to="/events" className="block card bg-white/5 backdrop-blur-sm border border-white/10 p-4 hover:bg-white/10 transition-colors">
+                    <Link
+                      to="/events"
+                      className="block card bg-white/5 backdrop-blur-sm border border-white/10 p-4 hover:bg-white/10 transition-colors"
+                    >
                       <div className="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-primary-400 mr-3"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
                         </svg>
-                        <span className="text-white text-sm">Sunday Service: 10:00 AM & 6:00 PM</span>
+                        <span className="text-white text-sm">
+                          Sunday Service: 10:00 AM & 6:00 PM
+                        </span>
                       </div>
                     </Link>
-                    
-                    <Link to="/media/sermons" className="block card bg-white/5 backdrop-blur-sm border border-white/10 p-4 hover:bg-white/10 transition-colors">
+
+                    <Link
+                      to="/media/sermons"
+                      className="block card bg-white/5 backdrop-blur-sm border border-white/10 p-4 hover:bg-white/10 transition-colors"
+                    >
                       <div className="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-primary-400 mr-3"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                          />
                         </svg>
-                        <span className="text-white text-sm">Latest Sermons</span>
+                        <span className="text-white text-sm">
+                          Latest Sermons
+                        </span>
                       </div>
                     </Link>
                   </>
@@ -381,7 +510,7 @@ const HeroSection = forwardRef((props, ref) => {
 
       {/* Scroll Down Indicator */}
       <div
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 
+        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20
                   hidden lg:flex flex-col items-center animate-bounce cursor-pointer
                   opacity-0 animate-[fadeIn_1s_2s_forwards]"
         onClick={() => {

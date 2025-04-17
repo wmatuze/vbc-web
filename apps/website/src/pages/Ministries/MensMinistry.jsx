@@ -1,39 +1,33 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { getEvents } from "../../services/api";
+import { useEventsQuery } from "../../hooks/useEventsQuery";
 import EventCard from "../../components/ChurchCalendar/EventsCard";
 import PlaceHolderbanner from "../../assets/ministry-banners/ph.png";
 import FallbackImage from "../../assets/fallback-image.png"; // Import fallback image
 import { Helmet } from "react-helmet"; // Import Helmet
 
 const MensMinistry = () => {
+  // Use React Query for fetching events
+  const {
+    data: events = [],
+    isLoading: loading,
+    error,
+    refetch: refetchEvents,
+  } = useEventsQuery();
+
   const [mensMinistryEvents, setMensMinistryEvents] = useState([]);
   const [isImageLoaded, setIsImageLoaded] = useState(false); // Loading state for Hero Image
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // Fetch events from API
+  // Filter events for Men's Ministry when events data changes
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        setLoading(true);
-        const data = await getEvents();
-        // Filter events for Men's Ministry
-        const filteredEvents = data.filter(
-          (event) => event?.ministry === "Men's Ministry"
-        );
-        setMensMinistryEvents(filteredEvents);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching events:", err);
-        setError("Failed to load events. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEvents();
-  }, []);
+    if (events && events.length > 0) {
+      // Filter events for Men's Ministry
+      const filteredEvents = events.filter(
+        (event) => event?.ministry === "Men's Ministry"
+      );
+      setMensMinistryEvents(filteredEvents);
+    }
+  }, [events]);
 
   useEffect(() => {
     // Simulate loading all images
@@ -46,21 +40,24 @@ const MensMinistry = () => {
     {
       id: 1,
       name: "John Smith",
-      quote: "Being part of the Men's Ministry has strengthened my faith and given me a brotherhood I can rely on.",
-      role: "Member since 2018"
+      quote:
+        "Being part of the Men's Ministry has strengthened my faith and given me a brotherhood I can rely on.",
+      role: "Member since 2018",
     },
     {
       id: 2,
       name: "Robert Johnson",
-      quote: "The weekly Bible studies have helped me grow spiritually and apply God's word in my daily life.",
-      role: "Member since 2020"
+      quote:
+        "The weekly Bible studies have helped me grow spiritually and apply God's word in my daily life.",
+      role: "Member since 2020",
     },
     {
       id: 3,
       name: "David Williams",
-      quote: "The service projects we organize have given me purpose and a way to give back to our community.",
-      role: "Member since 2019"
-    }
+      quote:
+        "The service projects we organize have given me purpose and a way to give back to our community.",
+      role: "Member since 2019",
+    },
   ];
 
   // FAQ data
@@ -68,23 +65,27 @@ const MensMinistry = () => {
     {
       id: 1,
       question: "When and where does the Men's Ministry meet?",
-      answer: "We hold our weekly Bible studies every Tuesday at 7:00 PM in Room 201. We also have a monthly Men's Breakfast on the first Saturday of each month."
+      answer:
+        "We hold our weekly Bible studies every Tuesday at 7:00 PM in Room 201. We also have a monthly Men's Breakfast on the first Saturday of each month.",
     },
     {
       id: 2,
       question: "Do I need to register before attending?",
-      answer: "No registration is required. You're welcome to join us at any time. Just show up and you'll be greeted by our team."
+      answer:
+        "No registration is required. You're welcome to join us at any time. Just show up and you'll be greeted by our team.",
     },
     {
       id: 3,
       question: "Is there a membership fee?",
-      answer: "There is no fee to join our ministry. Some special events like retreats may have associated costs, but our regular meetings are free to attend."
+      answer:
+        "There is no fee to join our ministry. Some special events like retreats may have associated costs, but our regular meetings are free to attend.",
     },
     {
       id: 4,
       question: "How can I volunteer with the Men's Ministry?",
-      answer: "We're always looking for volunteers! Please speak with one of our ministry leaders after a meeting, or email us at [email protected]"
-    }
+      answer:
+        "We're always looking for volunteers! Please speak with one of our ministry leaders after a meeting, or email us at [email protected]",
+    },
   ];
 
   return (
@@ -374,9 +375,7 @@ const MensMinistry = () => {
         <div className="container mx-auto px-4 relative z-10 max-w-6xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800 relative inline-block">
-              <span className="relative z-10">
-                Member Testimonials
-              </span>
+              <span className="relative z-10">Member Testimonials</span>
               <span className="absolute bottom-0 left-0 w-full h-3 bg-red-200 -z-10 rounded"></span>
             </h2>
           </div>
@@ -391,17 +390,30 @@ const MensMinistry = () => {
                 transition={{ delay: testimonial.id * 0.1 }}
               >
                 <div className="mb-4">
-                  <svg className="h-8 w-8 text-red-400 mb-4" fill="currentColor" viewBox="0 0 32 32">
+                  <svg
+                    className="h-8 w-8 text-red-400 mb-4"
+                    fill="currentColor"
+                    viewBox="0 0 32 32"
+                  >
                     <path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.8 3.456-8.256 9.12-8.256 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z" />
                   </svg>
-                  <p className="text-gray-600 italic mb-4">{testimonial.quote}</p>
+                  <p className="text-gray-600 italic mb-4">
+                    {testimonial.quote}
+                  </p>
                   <div className="flex items-center">
                     <div className="bg-red-100 w-10 h-10 rounded-full flex items-center justify-center text-red-600 font-bold text-sm mr-3">
-                      {testimonial.name.split(' ').map(n => n[0]).join('')}
+                      {testimonial.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-800">{testimonial.name}</h4>
-                      <p className="text-gray-500 text-sm">{testimonial.role}</p>
+                      <h4 className="font-semibold text-gray-800">
+                        {testimonial.name}
+                      </h4>
+                      <p className="text-gray-500 text-sm">
+                        {testimonial.role}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -416,9 +428,7 @@ const MensMinistry = () => {
         <div className="container mx-auto px-4 max-w-5xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800 relative inline-block">
-              <span className="relative z-10">
-                Frequently Asked Questions
-              </span>
+              <span className="relative z-10">Frequently Asked Questions</span>
               <span className="absolute bottom-0 left-0 w-full h-3 bg-red-200 -z-10 rounded"></span>
             </h2>
           </div>
@@ -524,9 +534,7 @@ const MensMinistry = () => {
                   <h3 className="font-semibold text-gray-800 mb-2">
                     Monthly Men's Breakfast
                   </h3>
-                  <p className="text-gray-600">
-                    First Saturday of each month
-                  </p>
+                  <p className="text-gray-600">First Saturday of each month</p>
                 </motion.div>
 
                 <motion.div

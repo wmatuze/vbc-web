@@ -331,12 +331,22 @@ export const updateLeader = (id, leader) =>
   updateData("api/leaders", id, leader);
 export const deleteLeader = (id) => deleteData("api/leaders", id);
 
+// Cell Groups API functions
 export const getCellGroups = () => fetchData("api/cell-groups");
 export const getCellGroupById = (id) => fetchData(`api/cell-groups/${id}`);
+export const getCellGroupsByZone = (zoneId) =>
+  fetchData(`api/cell-groups?zoneId=${zoneId}`);
 export const createCellGroup = (group) => postData("api/cell-groups", group);
 export const updateCellGroup = (id, group) =>
   updateData("api/cell-groups", id, group);
 export const deleteCellGroup = (id) => deleteData("api/cell-groups", id);
+
+// Zones API functions
+export const getZones = () => fetchData("api/zones");
+export const getZoneById = (id) => fetchData(`api/zones/${id}`);
+export const createZone = (zone) => postData("api/zones", zone);
+export const updateZone = (id, zone) => updateData("api/zones", id, zone);
+export const deleteZone = (id) => deleteData("api/zones", id);
 
 // Enhanced media functions with cache busting
 export const getMedia = async () => {

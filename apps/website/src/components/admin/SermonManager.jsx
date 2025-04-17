@@ -1,11 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import {
-  getSermons,
-  createSermon,
-  updateSermon,
-  deleteSermon,
-  getMedia,
-} from "../../services/api";
+import { createSermon, updateSermon, deleteSermon } from "../../services/api";
+import { useSermonsQuery } from "../../hooks/useSermonsQuery";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
 import {
   PlusIcon,
   PencilIcon,
@@ -29,8 +25,15 @@ import config from "../../config";
 const API_URL = config.API_URL;
 
 const SermonManager = () => {
-  const [sermons, setSermons] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Use React Query for fetching sermons
+  const {
+    data: sermons = [],
+    isLoading: sermonsLoading,
+    error: sermonsError,
+    refetch: refetchSermons,
+  } = useSermonsQuery();
+
+  // Local state for operations other than fetching
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [formMode, setFormMode] = useState("add");
@@ -64,42 +67,35 @@ const SermonManager = () => {
     ...new Set(sermons.filter((s) => s.series).map((s) => s.series)),
   ];
 
-  const fetchSermons = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await getSermons();
-      setSermons(data);
-      setError(null);
-    } catch (err) {
-      console.error("Error fetching sermons:", err);
+  // Display any query errors
+  useEffect(() => {
+    if (sermonsError) {
       setError("Failed to load sermons. Please try again.");
-    } finally {
-      setLoading(false);
     }
-  }, []);
+  }, [sermonsError]);
 
+  // Use React Query for fetching media
+  const {
+    data: mediaData = [],
+    isLoading: mediaLoading,
+    refetch: refetchMedia,
+  } = useMediaQuery({
+    enabled: isMediaSelectorOpen, // Only fetch when media selector is open
+    onSuccess: (data) => {
+      console.log("Fetched media items:", data);
+      setMediaItems(data);
+    },
+    onError: (error) => {
+      console.error("Error fetching media:", error);
+    },
+  });
+
+  // Update media items when mediaData changes
   useEffect(() => {
-    fetchSermons();
-  }, [fetchSermons]);
-
-  useEffect(() => {
-    if (isMediaSelectorOpen) {
-      const fetchMediaItems = async () => {
-        try {
-          setIsLoadingMedia(true);
-          const mediaData = await getMedia();
-          console.log("Fetched media items:", mediaData);
-          setMediaItems(mediaData);
-        } catch (error) {
-          console.error("Error fetching media:", error);
-        } finally {
-          setIsLoadingMedia(false);
-        }
-      };
-
-      fetchMediaItems();
+    if (mediaData.length > 0) {
+      setMediaItems(mediaData);
     }
-  }, [isMediaSelectorOpen]);
+  }, [mediaData]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -151,7 +147,7 @@ const SermonManager = () => {
     e.preventDefault();
 
     try {
-      setLoading(true);
+      // Show loading state in UI
 
       // Format date for display
       const formattedSermon = {
@@ -184,7 +180,7 @@ const SermonManager = () => {
         setSuccessMessage("Sermon updated successfully!");
       }
 
-      await fetchSermons();
+      await refetchSermons();
       resetForm();
 
       // Clear success message after 3 seconds
@@ -193,7 +189,7 @@ const SermonManager = () => {
       console.error("Error saving sermon:", err);
       setError("Failed to save sermon. Please try again.");
     } finally {
-      setLoading(false);
+      // Loading complete
     }
   };
 
@@ -212,10 +208,10 @@ const SermonManager = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this sermon?")) {
       try {
-        setLoading(true);
+        // Show loading state in UI
         await deleteSermon(id);
         setSuccessMessage("Sermon deleted successfully!");
-        await fetchSermons();
+        await refetchSermons();
 
         // Clear success message after 3 seconds
         setTimeout(() => setSuccessMessage(""), 3000);
@@ -223,7 +219,7 @@ const SermonManager = () => {
         console.error("Error deleting sermon:", err);
         setError("Failed to delete sermon. Please try again.");
       } finally {
-        setLoading(false);
+        // Loading complete
       }
     }
   };
@@ -321,7 +317,7 @@ const SermonManager = () => {
           </button>
 
           <button
-            onClick={fetchSermons}
+            onClick={() => refetchSermons()}
             className="p-2 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-lg"
             title="Refresh sermons"
           >
@@ -414,7 +410,7 @@ const SermonManager = () => {
       </div>
 
       {/* Sermons List */}
-      {loading && sermons.length === 0 ? (
+      {sermonsLoading && sermons.length === 0 ? (
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
         </div>

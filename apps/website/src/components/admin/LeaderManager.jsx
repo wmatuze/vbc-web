@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { getLeaders, createLeader, updateLeader, deleteLeader } from '../../services/api';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { createLeader, updateLeader, deleteLeader } from "../../services/api";
+import { useLeadersQuery } from "../../hooks/useLeadersQuery";
 import {
   PlusIcon,
   UserIcon,
@@ -23,45 +24,54 @@ import {
   PhoneIcon,
   ArrowUpTrayIcon,
   ArrowDownTrayIcon,
-  DocumentArrowDownIcon
-} from '@heroicons/react/24/outline';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { useLeaderFilters } from '../../hooks/useLeaderFilters';
-import LeaderCard from './LeaderCard';
-import ConfirmDialog from '../common/ConfirmDialog';
-import config from '../../config';
-import LeaderForm from './LeaderForm';
+  DocumentArrowDownIcon,
+} from "@heroicons/react/24/outline";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { useLeaderFilters } from "../../hooks/useLeaderFilters";
+import LeaderCard from "./LeaderCard";
+import ConfirmDialog from "../common/ConfirmDialog";
+import config from "../../config";
+import LeaderForm from "./LeaderForm";
 
 const API_URL = config.API_URL;
 
 const ITEMS_PER_PAGE = 9; // Number of items to show per page in grid view
 
 // Base64 encoded placeholder image for leaders
-const placeholderImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAADICAYAAADGFbfiAAAACXBIWXMAAAsTAAALEwEAmpwYAAAFyGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDUgNzkuMTYzNDk5LCAyMDE4LzA4LzEzLTE2OjQwOjIyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDIwLTAzLTA1VDIyOjMzOjMwLTA4OjAwIiB4bXA6TW9kaWZ5RGF0ZT0iMjAyMC0wMy0xM1QxMDowNTozOC0wNzowMCIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAyMC0wMy0xM1QxMDowNTozOC0wNzowMCIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiIHBob3Rvc2hvcDpJQ0NQcm9maWxlPSJzUkdCIElFQzYxOTY2LTIuMSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDpmYjRjYzkwZC1mNWRhLTRiNGMtOWVjYi0wYjgyODM0YzUxMmMiIHhtcE1NOkRvY3VtZW50SUQ9ImFkb2JlOmRvY2lkOnBob3Rvc2hvcDo0ZGYyZjI5Yi1iOGNiLTZlNDktYWE4Ni0yYzAzODJjY2M5YjkiIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo2ZWJiZDlkOS0zYTVkLWM5NGMtOTVjNS0wNmM1Mzc0YmJhOTgiPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjcmVhdGVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjZlYmJkOWQ5LTNhNWQtYzk0Yy05NWM1LTA2YzUzNzRiYmE5OCIgc3RFdnQ6d2hlbj0iMjAyMC0wMy0wNVQyMjozMzozMC0wODowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKFdpbmRvd3MpIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJzYXZlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDpmYjRjYzkwZC1mNWRhLTRiNGMtOWVjYi0wYjgyODM0YzUxMmMiIHN0RXZ0OndoZW49IjIwMjAtMDMtMTNUMTA6MDU6MzgtMDc6MDAiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBDQyAyMDE5IChXaW5kb3dzKSIgc3RFdnQ6Y2hhbmdlZD0iLyIvPiA8L3JkZjpTZXE+IDwveG1wTU06SGlzdG9yeT4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7JL8VBAAAF/UlEQVR4nO3dMW4bSRRA0TbgDbiJl+MluONGK3DGJVfoNbgEL8GdOzCgDowBDDPkkGxO/ycwGAgEWU3d4qtXPZ+engAAe/3v1QcAAO9JQAAgEhAA';
+const placeholderImage =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAADICAYAAADGFbfiAAAACXBIWXMAAAsTAAALEwEAmpwYAAAFyGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDUgNzkuMTYzNDk5LCAyMDE4LzA4LzEzLTE2OjQwOjIyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDIwLTAzLTA1VDIyOjMzOjMwLTA4OjAwIiB4bXA6TW9kaWZ5RGF0ZT0iMjAyMC0wMy0xM1QxMDowNTozOC0wNzowMCIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAyMC0wMy0xM1QxMDowNTozOC0wNzowMCIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiIHBob3Rvc2hvcDpJQ0NQcm9maWxlPSJzUkdCIElFQzYxOTY2LTIuMSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDpmYjRjYzkwZC1mNWRhLTRiNGMtOWVjYi0wYjgyODM0YzUxMmMiIHhtcE1NOkRvY3VtZW50SUQ9ImFkb2JlOmRvY2lkOnBob3Rvc2hvcDo0ZGYyZjI5Yi1iOGNiLTZlNDktYWE4Ni0yYzAzODJjY2M5YjkiIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo2ZWJiZDlkOS0zYTVkLWM5NGMtOTVjNS0wNmM1Mzc0YmJhOTgiPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjcmVhdGVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjZlYmJkOWQ5LTNhNWQtYzk0Yy05NWM1LTA2YzUzNzRiYmE5OCIgc3RFdnQ6d2hlbj0iMjAyMC0wMy0wNVQyMjozMzozMC0wODowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKFdpbmRvd3MpIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJzYXZlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDpmYjRjYzkwZC1mNWRhLTRiNGMtOWVjYi0wYjgyODM0YzUxMmMiIHN0RXZ0OndoZW49IjIwMjAtMDMtMTNUMTA6MDU6MzgtMDc6MDAiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBDQyAyMDE5IChXaW5kb3dzKSIgc3RFdnQ6Y2hhbmdlZD0iLyIvPiA8L3JkZjpTZXE+IDwveG1wTU06SGlzdG9yeT4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7JL8VBAAAF/UlEQVR4nO3dMW4bSRRA0TbgDbiJl+MluONGK3DGJVfoNbgEL8GdOzCgDowBDDPkkGxO/ycwGAgEWU3d4qtXPZ+engAAe/3v1QcAAO9JQAAgEhAA";
 
 const LeaderManager = () => {
   // Core state
-  const [leaders, setLeaders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  // Use React Query to fetch leaders
+  const {
+    data: leaders = [],
+    isLoading,
+    error: queryError,
+    refetch: refetchLeaders,
+  } = useLeadersQuery();
+
+  // Local error state for operations other than fetching
   const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState('');
-  
+
   // UI state
   const [showForm, setShowForm] = useState(false);
-  const [formMode, setFormMode] = useState('add');
-  const [viewMode, setViewMode] = useState('grid');
+  const [formMode, setFormMode] = useState("add");
+  const [viewMode, setViewMode] = useState("grid");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedLeaders, setSelectedLeaders] = useState(new Set());
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
-  
+
   // Dialog state
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
-    title: '',
-    message: '',
+    title: "",
+    message: "",
     onConfirm: null,
-    type: 'danger'
+    type: "danger",
   });
 
   // File input ref for image upload
@@ -78,146 +88,116 @@ const LeaderManager = () => {
     sortOrder,
     setSortOrder,
     departmentList,
-    filteredLeaders
+    filteredLeaders,
   } = useLeaderFilters(leaders);
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredLeaders.length / ITEMS_PER_PAGE);
-  const paginatedLeaders = viewMode === 'grid' 
-    ? filteredLeaders.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
-    : filteredLeaders;
+  const paginatedLeaders =
+    viewMode === "grid"
+      ? filteredLeaders.slice(
+          (currentPage - 1) * ITEMS_PER_PAGE,
+          currentPage * ITEMS_PER_PAGE
+        )
+      : filteredLeaders;
 
   // Leader form state with validation
   const [currentLeader, setCurrentLeader] = useState({
-    name: '',
-    title: '',
-    imageUrl: '',
-    bio: '',
-    email: '',
-    phone: '',
+    name: "",
+    title: "",
+    imageUrl: "",
+    bio: "",
+    email: "",
+    phone: "",
     ministryFocus: [],
     socialMedia: {
-      facebook: '',
-      twitter: '',
-      instagram: '',
-      linkedin: ''
+      facebook: "",
+      twitter: "",
+      instagram: "",
+      linkedin: "",
     },
     education: [],
     experience: [],
     order: 0,
-    status: 'active',
-    department: '',
-    startDate: '',
+    status: "active",
+    department: "",
+    startDate: "",
     responsibilities: [],
     achievements: [],
     speakingTopics: [],
     availability: {
-      office: '',
-      meetings: '',
-      counseling: ''
+      office: "",
+      meetings: "",
+      counseling: "",
     },
-    profileVideo: '',
+    profileVideo: "",
     publications: [],
-    certifications: []
+    certifications: [],
   });
 
   const [formErrors, setFormErrors] = useState({});
 
-  // Fetch leaders with retry mechanism
-  const fetchLeaders = useCallback(async (retryCount = 3) => {
-    try {
-      setLoading(true);
-      const data = await getLeaders();
-      
-      // Sort leaders by order
-      const sortedLeaders = data.sort((a, b) => (a.order || 0) - (b.order || 0));
-      
-      setLeaders(sortedLeaders);
-      setError(null);
-      
-      // Cache leaders in session storage
-      sessionStorage.setItem('cachedLeaders', JSON.stringify(sortedLeaders));
-    } catch (err) {
-      console.error('Error fetching leaders:', err);
-      
-      // Retry logic
-      if (retryCount > 0) {
-        setTimeout(() => fetchLeaders(retryCount - 1), 1000);
-        return;
-      }
-      
-      setError('Failed to load leaders. Please try again.');
-      
-      // Try to load from cache if server fetch fails
-      const cachedData = sessionStorage.getItem('cachedLeaders');
-      if (cachedData) {
-        try {
-          const parsedData = JSON.parse(cachedData);
-          setLeaders(parsedData);
-        } catch (cacheErr) {
-          console.error('Error parsing cached leaders:', cacheErr);
-        }
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
+  // Display any query errors
   useEffect(() => {
-    fetchLeaders();
-  }, [fetchLeaders]);
+    if (queryError) {
+      setError("Failed to load leaders. Please try again.");
+    }
+  }, [queryError]);
 
   // Form validation
   const validateForm = (data) => {
     const errors = {};
-    
+
     if (!data.name.trim()) {
-      errors.name = 'Name is required';
+      errors.name = "Name is required";
     }
-    
+
     if (!data.title.trim()) {
-      errors.title = 'Title is required';
+      errors.title = "Title is required";
     }
-    
+
     if (!data.email.trim()) {
-      errors.email = 'Email is required';
+      errors.email = "Email is required";
     } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(data.email)) {
-      errors.email = 'Invalid email address';
+      errors.email = "Invalid email address";
     }
-    
+
     if (!data.bio.trim()) {
-      errors.bio = 'Bio is required';
+      errors.bio = "Bio is required";
     }
-    
+
     if (data.phone && !/^\+?[\d\s-()]{10,}$/.test(data.phone)) {
-      errors.phone = 'Invalid phone number';
+      errors.phone = "Invalid phone number";
     }
-    
+
     return errors;
   };
 
   // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
-    setFormErrors(prev => ({ ...prev, [name]: '' }));
-    
-    if (name.startsWith('social-')) {
-      const platform = name.replace('social-', '');
-      setCurrentLeader(prev => ({
+
+    setFormErrors((prev) => ({ ...prev, [name]: "" }));
+
+    if (name.startsWith("social-")) {
+      const platform = name.replace("social-", "");
+      setCurrentLeader((prev) => ({
         ...prev,
         socialMedia: {
           ...prev.socialMedia,
-          [platform]: value
-        }
+          [platform]: value,
+        },
       }));
-    } else if (name === 'ministryFocus') {
-      const items = value.split(',').map(item => item.trim()).filter(Boolean);
-      setCurrentLeader(prev => ({ ...prev, [name]: items }));
+    } else if (name === "ministryFocus") {
+      const items = value
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+      setCurrentLeader((prev) => ({ ...prev, [name]: items }));
     } else {
-      setCurrentLeader(prev => ({
+      setCurrentLeader((prev) => ({
         ...prev,
-        [name]: type === 'checkbox' ? checked : value
+        [name]: type === "checkbox" ? checked : value,
       }));
     }
   };
@@ -228,111 +208,114 @@ const LeaderManager = () => {
     if (!file) return;
 
     // Validate file type and size
-    const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    const validTypes = ["image/jpeg", "image/png", "image/gif"];
     if (!validTypes.includes(file.type)) {
-      setError('Please upload a valid image file (JPEG, PNG, or GIF)');
+      setError("Please upload a valid image file (JPEG, PNG, or GIF)");
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
-      setError('Image size should be less than 5MB');
+    if (file.size > 5 * 1024 * 1024) {
+      // 5MB limit
+      setError("Image size should be less than 5MB");
       return;
     }
 
     try {
-      setLoading(true);
-      
+      // Show loading state in UI
+
       // Create FormData for upload
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('title', file.name.split('.')[0] || 'Leader image');
-      formData.append('category', 'leadership');
-      
+      formData.append("file", file);
+      formData.append("title", file.name.split(".")[0] || "Leader image");
+      formData.append("category", "leadership");
+
       // Important: Don't set Content-Type header when using FormData
       // The browser will automatically set the correct multipart/form-data with boundary
       const response = await fetch(`${API_URL}/api/upload`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: formData
+        body: formData,
       });
 
       if (!response.ok) {
         const errorData = await response.text();
-        console.error('Server response:', errorData);
-        throw new Error(`Failed to upload image: ${response.status} ${response.statusText}`);
+        console.error("Server response:", errorData);
+        throw new Error(
+          `Failed to upload image: ${response.status} ${response.statusText}`
+        );
       }
 
       const data = await response.json();
-      console.log('Upload success:', data);
-      setCurrentLeader(prev => ({ ...prev, imageUrl: data.path }));
+      console.log("Upload success:", data);
+      setCurrentLeader((prev) => ({ ...prev, imageUrl: data.path }));
       setError(null); // Clear any previous errors
     } catch (err) {
-      console.error('Error uploading image:', err);
-      setError('Failed to upload image. Please try again.');
+      console.error("Error uploading image:", err);
+      setError("Failed to upload image. Please try again.");
     } finally {
-      setLoading(false);
+      // Loading complete
     }
   };
 
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validate form
     const errors = validateForm(currentLeader);
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       return;
     }
-    
+
     try {
-      setLoading(true);
-      
-      if (formMode === 'add') {
+      // Show loading state in UI
+
+      if (formMode === "add") {
         // Set order to be last in the list
         const newLeader = {
           ...currentLeader,
           id: Date.now(),
-          order: leaders.length
+          order: leaders.length,
         };
         await createLeader(newLeader);
-        setSuccessMessage('Leader added successfully!');
+        setSuccessMessage("Leader added successfully!");
       } else {
         await updateLeader(currentLeader.id, currentLeader);
-        setSuccessMessage('Leader updated successfully!');
+        setSuccessMessage("Leader updated successfully!");
       }
-      
-      await fetchLeaders();
+
+      await refetchLeaders();
       setShowForm(false);
       resetForm();
-      
+
       // Clear success message after 3 seconds
-      setTimeout(() => setSuccessMessage(''), 3000);
+      setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
-      console.error('Error saving leader:', err);
-      setError('Failed to save leader. Please try again.');
+      console.error("Error saving leader:", err);
+      setError("Failed to save leader. Please try again.");
     } finally {
-      setLoading(false);
+      // Loading complete
     }
   };
 
   // Handle delete
   const handleDelete = async (id) => {
     try {
-      setLoading(true);
+      // Show loading state in UI
       await deleteLeader(id);
-      setSuccessMessage('Leader deleted successfully!');
-      await fetchLeaders();
-      
+      setSuccessMessage("Leader deleted successfully!");
+      await refetchLeaders();
+
       // Clear success message after 3 seconds
-      setTimeout(() => setSuccessMessage(''), 3000);
+      setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
-      console.error('Error deleting leader:', err);
-      setError('Failed to delete leader. Please try again.');
+      console.error("Error deleting leader:", err);
+      setError("Failed to delete leader. Please try again.");
     } finally {
-      setLoading(false);
+      // Loading complete
     }
   };
 
@@ -341,18 +324,20 @@ const LeaderManager = () => {
     if (selectedLeaders.size === 0) return;
 
     try {
-      setLoading(true);
+      // Show loading state in UI
       await Promise.all(
-        Array.from(selectedLeaders).map(id => deleteLeader(id))
+        Array.from(selectedLeaders).map((id) => deleteLeader(id))
       );
-      setSuccessMessage(`Successfully deleted ${selectedLeaders.size} leader(s)`);
+      setSuccessMessage(
+        `Successfully deleted ${selectedLeaders.size} leader(s)`
+      );
       setSelectedLeaders(new Set());
-      await fetchLeaders();
+      await refetchLeaders();
     } catch (err) {
-      console.error('Error deleting leaders:', err);
-      setError('Failed to delete some leaders. Please try again.');
+      console.error("Error deleting leaders:", err);
+      setError("Failed to delete some leaders. Please try again.");
     } finally {
-      setLoading(false);
+      // Loading complete
     }
   };
 
@@ -367,36 +352,39 @@ const LeaderManager = () => {
     // Update order values
     const updatedItems = items.map((item, index) => ({
       ...item,
-      order: index
+      order: index,
     }));
 
-    setLeaders(updatedItems);
+    // Update local state temporarily until refetch completes
+    // This will be overwritten when refetchLeaders() completes
 
     try {
       await Promise.all(
-        updatedItems.map(leader => updateLeader(leader.id, leader))
+        updatedItems.map((leader) => updateLeader(leader.id, leader))
       );
-      setSuccessMessage('Leader order updated successfully!');
-      setTimeout(() => setSuccessMessage(''), 3000);
+      setSuccessMessage("Leader order updated successfully!");
+      setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
-      console.error('Error updating leader order:', err);
-      setError('Failed to update leader order. Please try again.');
-      fetchLeaders(); // Revert to original order
+      console.error("Error updating leader order:", err);
+      setError("Failed to update leader order. Please try again.");
+      refetchLeaders(); // Revert to original order
     }
   };
 
   // Handle export
   const handleExport = () => {
-    const exportData = leaders.map(leader => ({
+    const exportData = leaders.map((leader) => ({
       ...leader,
-      password: undefined // Remove sensitive data
+      password: undefined, // Remove sensitive data
     }));
 
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+      type: "application/json",
+    });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = 'leaders-export.json';
+    a.download = "leaders-export.json";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -406,57 +394,63 @@ const LeaderManager = () => {
   // Reset form
   const resetForm = () => {
     setCurrentLeader({
-      name: '',
-      title: '',
-      imageUrl: '',
-      bio: '',
-      email: '',
-      phone: '',
+      name: "",
+      title: "",
+      imageUrl: "",
+      bio: "",
+      email: "",
+      phone: "",
       ministryFocus: [],
       socialMedia: {
-        facebook: '',
-        twitter: '',
-        instagram: '',
-        linkedin: ''
+        facebook: "",
+        twitter: "",
+        instagram: "",
+        linkedin: "",
       },
       education: [],
       experience: [],
       order: 0,
-      status: 'active',
-      department: '',
-      startDate: '',
+      status: "active",
+      department: "",
+      startDate: "",
       responsibilities: [],
       achievements: [],
       speakingTopics: [],
       availability: {
-        office: '',
-        meetings: '',
-        counseling: ''
+        office: "",
+        meetings: "",
+        counseling: "",
       },
-      profileVideo: '',
+      profileVideo: "",
       publications: [],
-      certifications: []
+      certifications: [],
     });
     setFormErrors({});
-    setFormMode('add');
+    setFormMode("add");
     setShowForm(false);
   };
 
   // Helper function for image preview URLs
   const getImagePreviewUrl = useCallback((imageUrl) => {
     if (!imageUrl) return null;
-    return imageUrl.startsWith('/') ? `${API_URL}${imageUrl}` : imageUrl;
+    return imageUrl.startsWith("/") ? `${API_URL}${imageUrl}` : imageUrl;
   }, []);
 
   // Handle image load errors
   const handleImageError = (e) => {
-    console.error('Image failed to load:', e.target.src);
+    console.error("Image failed to load:", e.target.src);
     e.target.src = placeholderImage;
     e.target.onerror = null; // Prevent infinite error loop
   };
 
-  if (loading && leaders.length === 0) {
-    return <div className="text-center py-4">Loading...</div>;
+  // Show loading state when initially loading data
+  if (isLoading && leaders.length === 0) {
+    return (
+      <div className="text-center py-4">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
+        <p className="mt-2 text-gray-600">Loading leaders...</p>
+      </div>
+    );
   }
 
   return (
@@ -469,11 +463,11 @@ const LeaderManager = () => {
             Manage your church leadership team
           </p>
         </div>
-        
+
         <div className="flex items-center gap-4">
           <button
             onClick={() => {
-              setFormMode('add');
+              setFormMode("add");
               setShowForm(true);
             }}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -481,7 +475,7 @@ const LeaderManager = () => {
             <PlusIcon className="h-5 w-5 mr-2" />
             Add Leader
           </button>
-          
+
           {selectedLeaders.size > 0 && (
             <button
               onClick={handleBulkDelete}
@@ -490,7 +484,7 @@ const LeaderManager = () => {
               Delete Selected ({selectedLeaders.size})
             </button>
           )}
-          
+
           <div className="flex items-center gap-2">
             <button
               onClick={handleExport}
@@ -499,26 +493,26 @@ const LeaderManager = () => {
             >
               <DocumentArrowDownIcon className="h-5 w-5" />
             </button>
-            
+
             <button
-              onClick={fetchLeaders}
+              onClick={() => refetchLeaders()}
               className="p-2 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-lg"
               title="Refresh leaders"
             >
               <ArrowPathIcon className="h-5 w-5" />
             </button>
-            
+
             <div className="flex items-center border border-gray-300 rounded-lg p-1">
               <button
-                onClick={() => setViewMode('grid')}
-                className={`p-2 rounded ${viewMode === 'grid' ? 'bg-gray-100 text-gray-900' : 'text-gray-400 hover:text-gray-500'}`}
+                onClick={() => setViewMode("grid")}
+                className={`p-2 rounded ${viewMode === "grid" ? "bg-gray-100 text-gray-900" : "text-gray-400 hover:text-gray-500"}`}
                 title="Grid view"
               >
                 <ViewColumnsIcon className="h-5 w-5" />
               </button>
               <button
-                onClick={() => setViewMode('list')}
-                className={`p-2 rounded ${viewMode === 'list' ? 'bg-gray-100 text-gray-900' : 'text-gray-400 hover:text-gray-500'}`}
+                onClick={() => setViewMode("list")}
+                className={`p-2 rounded ${viewMode === "list" ? "bg-gray-100 text-gray-900" : "text-gray-400 hover:text-gray-500"}`}
                 title="List view"
               >
                 <ListBulletIcon className="h-5 w-5" />
@@ -569,7 +563,7 @@ const LeaderManager = () => {
             className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           />
         </div>
-        
+
         <div className="flex items-center gap-4">
           <select
             value={filterDepartment}
@@ -577,11 +571,15 @@ const LeaderManager = () => {
             className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg"
           >
             <option value="all">All Departments</option>
-            {departmentList.filter(d => d !== 'all').map(department => (
-              <option key={department} value={department}>{department}</option>
-            ))}
+            {departmentList
+              .filter((d) => d !== "all")
+              .map((department) => (
+                <option key={department} value={department}>
+                  {department}
+                </option>
+              ))}
           </select>
-          
+
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
@@ -590,13 +588,15 @@ const LeaderManager = () => {
             <option value="order">Sort by Order</option>
             <option value="name">Sort by Name</option>
           </select>
-          
+
           <button
-            onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+            onClick={() =>
+              setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))
+            }
             className="p-2 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-lg"
-            title={`Sort ${sortOrder === 'asc' ? 'ascending' : 'descending'}`}
+            title={`Sort ${sortOrder === "asc" ? "ascending" : "descending"}`}
           >
-            {sortOrder === 'asc' ? (
+            {sortOrder === "asc" ? (
               <ArrowUpIcon className="h-5 w-5" />
             ) : (
               <ArrowDownIcon className="h-5 w-5" />
@@ -606,30 +606,32 @@ const LeaderManager = () => {
       </div>
 
       {/* Leaders Display */}
-      {loading && leaders.length === 0 ? (
+      {isLoading && leaders.length === 0 ? (
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
         </div>
       ) : filteredLeaders.length === 0 ? (
         <div className="text-center py-12">
           <UserIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No leaders found</h3>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">
+            No leaders found
+          </h3>
           <p className="mt-1 text-sm text-gray-500">
-            {searchTerm || filterDepartment !== 'all'
-              ? 'Try adjusting your search or filter settings'
-              : 'Get started by adding a new leader'}
+            {searchTerm || filterDepartment !== "all"
+              ? "Try adjusting your search or filter settings"
+              : "Get started by adding a new leader"}
           </p>
         </div>
-      ) : viewMode === 'grid' ? (
+      ) : viewMode === "grid" ? (
         <>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {paginatedLeaders.map(leader => (
+            {paginatedLeaders.map((leader) => (
               <LeaderCard
                 key={leader.id}
                 leader={leader}
                 onEdit={() => {
                   setCurrentLeader(leader);
-                  setFormMode('edit');
+                  setFormMode("edit");
                   setShowForm(true);
                 }}
                 onDelete={handleDelete}
@@ -641,18 +643,23 @@ const LeaderManager = () => {
               />
             ))}
           </div>
-          
+
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="mt-6 flex justify-center">
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+              <nav
+                className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                aria-label="Pagination"
+              >
                 <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
                   disabled={currentPage === 1}
                   className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
-                    currentPage === 1 
-                      ? 'text-gray-300 cursor-not-allowed' 
-                      : 'text-gray-500 hover:bg-gray-50'
+                    currentPage === 1
+                      ? "text-gray-300 cursor-not-allowed"
+                      : "text-gray-500 hover:bg-gray-50"
                   }`}
                 >
                   Previous
@@ -663,20 +670,22 @@ const LeaderManager = () => {
                     onClick={() => setCurrentPage(i + 1)}
                     className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                       currentPage === i + 1
-                        ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                        ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                        : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
                     }`}
                   >
                     {i + 1}
                   </button>
                 ))}
                 <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
                   disabled={currentPage === totalPages}
                   className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
-                    currentPage === totalPages 
-                      ? 'text-gray-300 cursor-not-allowed' 
-                      : 'text-gray-500 hover:bg-gray-50'
+                    currentPage === totalPages
+                      ? "text-gray-300 cursor-not-allowed"
+                      : "text-gray-500 hover:bg-gray-50"
                   }`}
                 >
                   Next
@@ -697,7 +706,9 @@ const LeaderManager = () => {
                       checked={selectedLeaders.size === filteredLeaders.length}
                       onChange={(e) => {
                         if (e.target.checked) {
-                          setSelectedLeaders(new Set(filteredLeaders.map(l => l.id)));
+                          setSelectedLeaders(
+                            new Set(filteredLeaders.map((l) => l.id))
+                          );
                         } else {
                           setSelectedLeaders(new Set());
                         }
@@ -705,19 +716,34 @@ const LeaderManager = () => {
                       className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
                     />
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Leader
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Contact
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Department
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Ministry Focus
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Actions
                   </th>
                 </tr>
@@ -730,12 +756,20 @@ const LeaderManager = () => {
                     className="bg-white divide-y divide-gray-200"
                   >
                     {paginatedLeaders.map((leader, index) => (
-                      <Draggable key={leader.id} draggableId={leader.id.toString()} index={index}>
+                      <Draggable
+                        key={leader.id}
+                        draggableId={leader.id.toString()}
+                        index={index}
+                      >
                         {(provided, snapshot) => (
                           <tr
                             ref={provided.innerRef}
                             {...provided.draggableProps}
-                            className={snapshot.isDragging ? 'bg-gray-50' : 'hover:bg-gray-50'}
+                            className={
+                              snapshot.isDragging
+                                ? "bg-gray-50"
+                                : "hover:bg-gray-50"
+                            }
                           >
                             <td className="px-6 py-4">
                               <input
@@ -753,7 +787,10 @@ const LeaderManager = () => {
                                 className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
                               />
                             </td>
-                            <td className="px-6 py-4" {...provided.dragHandleProps}>
+                            <td
+                              className="px-6 py-4"
+                              {...provided.dragHandleProps}
+                            >
                               <div className="flex items-center">
                                 {leader.imageUrl ? (
                                   <img
@@ -761,7 +798,9 @@ const LeaderManager = () => {
                                     alt=""
                                     className="h-10 w-10 rounded-full object-cover cursor-pointer"
                                     onClick={() => {
-                                      setSelectedImage(getImagePreviewUrl(leader.imageUrl));
+                                      setSelectedImage(
+                                        getImagePreviewUrl(leader.imageUrl)
+                                      );
                                       setShowImagePreview(true);
                                     }}
                                     onError={handleImageError}
@@ -784,13 +823,19 @@ const LeaderManager = () => {
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               <div className="space-y-1">
                                 {leader.email && (
-                                  <a href={`mailto:${leader.email}`} className="flex items-center hover:text-gray-700">
+                                  <a
+                                    href={`mailto:${leader.email}`}
+                                    className="flex items-center hover:text-gray-700"
+                                  >
                                     <EnvelopeIcon className="h-4 w-4 mr-1" />
                                     {leader.email}
                                   </a>
                                 )}
                                 {leader.phone && (
-                                  <a href={`tel:${leader.phone}`} className="flex items-center hover:text-gray-700">
+                                  <a
+                                    href={`tel:${leader.phone}`}
+                                    className="flex items-center hover:text-gray-700"
+                                  >
                                     <PhoneIcon className="h-4 w-4 mr-1" />
                                     {leader.phone}
                                   </a>
@@ -806,8 +851,11 @@ const LeaderManager = () => {
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex flex-wrap gap-2">
-                                {leader.ministryFocus?.map(focus => (
-                                  <span key={focus} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                {leader.ministryFocus?.map((focus) => (
+                                  <span
+                                    key={focus}
+                                    className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
+                                  >
                                     {focus}
                                   </span>
                                 ))}
@@ -818,7 +866,7 @@ const LeaderManager = () => {
                                 <button
                                   onClick={() => {
                                     setCurrentLeader(leader);
-                                    setFormMode('edit');
+                                    setFormMode("edit");
                                     setShowForm(true);
                                   }}
                                   className="text-blue-400 hover:text-blue-500"
@@ -852,8 +900,13 @@ const LeaderManager = () => {
       {showForm && (
         <div className="fixed inset-0 overflow-y-auto z-50">
           <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={resetForm}></div>
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+            <div
+              className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+              onClick={resetForm}
+            ></div>
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen">
+              &#8203;
+            </span>
             <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
               <LeaderForm
                 currentLeader={currentLeader}
@@ -873,17 +926,19 @@ const LeaderManager = () => {
 
       {/* Image Preview Modal */}
       {showImagePreview && selectedImage && (
-        <div 
+        <div
           className="fixed z-50 inset-0 overflow-y-auto"
           onClick={() => setShowImagePreview(false)}
         >
           <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen">
+              &#8203;
+            </span>
             <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <img 
-                src={selectedImage} 
-                alt="Preview" 
+              <img
+                src={selectedImage}
+                alt="Preview"
                 className="w-full h-auto"
                 onError={handleImageError}
               />
