@@ -29,11 +29,11 @@ const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="bg-white rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto"
+        className="bg-white/95 backdrop-blur-md rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-xl border border-white/20"
       >
         {step === 1 ? (
           <>
@@ -54,7 +54,7 @@ const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
             </div>
 
             {/* Group Info */}
-            <div className="bg-gray-50 p-4 rounded-lg mb-6">
+            <div className="bg-white/80 backdrop-blur-sm p-4 rounded-lg mb-6 shadow-sm">
               <div className="flex items-center mb-2">
                 <FaCalendarAlt className="text-gray-500 mr-2" />
                 <span className="text-gray-700">
@@ -87,7 +87,7 @@ const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
                   <input
                     type="text"
                     required
-                    className="w-full pl-10 p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    className="w-full pl-10 p-3 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 shadow-sm"
                     value={formData.name}
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
@@ -108,7 +108,7 @@ const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
                   <input
                     type="email"
                     required
-                    className="w-full pl-10 p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    className="w-full pl-10 p-3 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 shadow-sm"
                     value={formData.email}
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
@@ -128,7 +128,7 @@ const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
                   </div>
                   <input
                     type="tel"
-                    className="w-full pl-10 p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    className="w-full pl-10 p-3 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 shadow-sm"
                     value={formData.phone}
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
@@ -147,7 +147,7 @@ const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
                     <FaComment className="text-gray-400" />
                   </div>
                   <textarea
-                    className="w-full pl-10 p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    className="w-full pl-10 p-3 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 shadow-sm"
                     rows="4"
                     value={formData.message}
                     onChange={(e) =>
@@ -180,14 +180,14 @@ const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50"
+                  className="px-4 py-2.5 border border-gray-200 rounded-lg text-gray-600 hover:bg-white/90 backdrop-blur-sm shadow-sm transition-all duration-300"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading || !consent}
-                  className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-all duration-300"
                 >
                   {isLoading ? "Submitting..." : "Send Request"}
                 </button>
@@ -217,7 +217,7 @@ const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
               Your request to join {group.name} has been sent to {group.leader}.
               You should receive a response within 48 hours.
             </p>
-            <div className="bg-gray-50 p-4 rounded-lg mb-6 text-left">
+            <div className="bg-white/80 backdrop-blur-sm p-4 rounded-lg mb-6 text-left shadow-sm">
               <h4 className="font-medium text-gray-800 mb-2">Next Steps:</h4>
               <ol className="list-decimal list-inside space-y-2 text-gray-700">
                 <li>Check your email for a confirmation</li>
@@ -229,7 +229,7 @@ const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
             </div>
             <button
               onClick={onClose}
-              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              className="px-6 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 shadow-md transition-all duration-300"
             >
               Close
             </button>

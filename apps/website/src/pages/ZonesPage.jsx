@@ -197,28 +197,35 @@ const ZonesPage = () => {
 
       {/* Zones Section */}
       <section className="container mx-auto px-4 py-16 max-w-7xl">
-        <div className="bg-white border border-gray-100 p-8 mb-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-white/90 backdrop-blur-md shadow-lg rounded-xl p-8 mb-12 border border-white/20"
+        >
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
             <h2 className="text-3xl font-bold text-gray-900">Find Your Zone</h2>
 
             {/* Search Bar */}
             <div className="relative w-full md:w-64">
-              <input
-                type="text"
-                placeholder="Search zones..."
-                className="w-full pl-10 pr-4 py-2 border-b border-gray-200 focus:border-gray-900 focus:outline-none transition-colors"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <FaSearch className="absolute left-0 top-2.5 text-gray-400" />
-              {search && (
-                <button
-                  onClick={() => setSearch("")}
-                  className="absolute right-0 top-2 text-gray-400 hover:text-gray-600"
-                >
-                  ×
-                </button>
-              )}
+              <div className="relative overflow-hidden rounded-lg shadow-sm bg-white/80 backdrop-blur-sm">
+                <input
+                  type="text"
+                  placeholder="Search zones..."
+                  className="w-full pl-10 pr-4 py-2.5 bg-transparent focus:outline-none transition-colors"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                <FaSearch className="absolute left-3 top-3 text-gray-400" />
+                {search && (
+                  <button
+                    onClick={() => setSearch("")}
+                    className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -231,7 +238,7 @@ const ZonesPage = () => {
               all the cell groups in that area.
             </p>
           </div>
-        </div>
+        </motion.div>
 
         {/* Zones Grid */}
         <div className="mb-16">
@@ -249,7 +256,7 @@ const ZonesPage = () => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-center py-16 bg-white border border-gray-100"
+              className="text-center py-16 bg-white/90 backdrop-blur-md rounded-xl shadow-lg border border-white/20"
             >
               <FaSearch className="mx-auto text-3xl text-gray-300 mb-4" />
               <h3 className="text-xl font-semibold text-gray-700 mb-2">
@@ -261,7 +268,7 @@ const ZonesPage = () => {
               {search && (
                 <button
                   onClick={() => setSearch("")}
-                  className="mt-6 px-6 py-2 border border-gray-200 hover:border-gray-400 text-gray-700 inline-block"
+                  className="mt-6 px-6 py-2.5 rounded-lg bg-white/80 backdrop-blur-sm hover:bg-white/90 text-gray-700 inline-block shadow-sm transition-all duration-300"
                 >
                   Clear search
                 </button>
@@ -277,9 +284,9 @@ const ZonesPage = () => {
                   initial="hidden"
                   animate="visible"
                   whileHover="hover"
-                  className="bg-white border border-gray-100 overflow-hidden transform transition-all duration-300"
+                  className="bg-white/90 backdrop-blur-md rounded-xl shadow-lg border border-white/20 overflow-hidden transform transition-all duration-300"
                 >
-                  <div className="relative h-56 overflow-hidden">
+                  <div className="relative h-56 overflow-hidden rounded-t-xl">
                     <img
                       src={zone.coverImage || FallbackImage}
                       alt={zone.name}
@@ -306,8 +313,8 @@ const ZonesPage = () => {
                     </p>
 
                     {/* Elder Information */}
-                    <div className="flex items-start mb-6 border-t border-b border-gray-100 py-4">
-                      <div className="w-10 h-10 rounded-full bg-gray-100 flex-shrink-0 overflow-hidden mr-3">
+                    <div className="flex items-start mb-6 border-t border-b border-gray-100/50 py-4">
+                      <div className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm shadow-md flex-shrink-0 overflow-hidden mr-3">
                         {zone.elder.image ? (
                           <img
                             src={zone.elder.image}
@@ -318,7 +325,7 @@ const ZonesPage = () => {
                             }}
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500">
+                          <div className="w-full h-full flex items-center justify-center bg-white/90 text-gray-500">
                             <FaUser />
                           </div>
                         )}
@@ -335,7 +342,7 @@ const ZonesPage = () => {
 
                     {/* Cell Group Count */}
                     <div className="flex justify-between text-sm mb-6">
-                      <div className="flex items-center text-gray-700">
+                      <div className="flex items-center text-gray-700 bg-white/80 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-sm">
                         {zone.iconName ? (
                           <span className="mr-2">
                             {renderIcon(zone.iconName)}
@@ -350,7 +357,7 @@ const ZonesPage = () => {
                     {/* View Zone Button */}
                     <Link
                       to={`/cell-groups/${zone.id}`}
-                      className="w-full bg-black hover:bg-gray-800 text-white font-medium py-3 px-4 transition-colors duration-300 flex items-center justify-center"
+                      className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 px-4 rounded-lg shadow-md transition-all duration-300 flex items-center justify-center"
                     >
                       View Cell Groups
                       <FaArrowRight className="ml-2" />
