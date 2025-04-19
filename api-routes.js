@@ -5,12 +5,21 @@ const emailService = require("./utils/emailService");
 const { authMiddleware } = require("./auth-middleware");
 const notificationRoutes = require("./routes/notificationRoutes");
 const exportRoutes = require("./routes/exportRoutes");
+const zoneRoutes = require("./routes/zoneRoutes");
+const cellGroupJoinRequestRoutes = require("./routes/cellGroupJoinRequestRoutes");
+const formatResponse = require("./utils/formatResponse");
 
 // Mount notification routes
 router.use("/notifications", notificationRoutes);
 
 // Mount export routes
 router.use("/export", exportRoutes);
+
+// Mount zone routes
+router.use("/zones", zoneRoutes);
+
+// Mount cell group join request routes
+router.use("/cell-group-join-requests", cellGroupJoinRequestRoutes);
 
 // Support request endpoint
 router.post("/support", async (req, res) => {
@@ -79,68 +88,7 @@ This message was sent from the Victory Bible Church CMS Support Form.
   }
 });
 
-// Helper function to format MongoDB data for frontend compatibility
-const formatResponse = (data) => {
-  // If data is an array, map over each item
-  if (Array.isArray(data)) {
-    return data.map((item) => formatObject(item));
-  }
-
-  // If data is a single object
-  return formatObject(data);
-};
-
-// Helper to format a single object
-const formatObject = (item) => {
-  // If item is a Mongoose document, convert to plain object
-  const obj = item && item.toObject ? item.toObject() : { ...item };
-
-  // Add id property (frontend expects this)
-  if (obj._id) {
-    obj.id = obj._id.toString();
-  }
-
-  // Handle image/imageUrl
-  if (obj.image) {
-    // If image is a populated object with path
-    if (obj.image.path) {
-      obj.imageUrl = obj.image.path;
-    }
-    // If image is just an ID reference
-    else if (obj.image._id || obj.image.toString) {
-      // Keep any existing imageUrl or set default based on type
-      if (!obj.imageUrl) {
-        if (obj.type === "sermon" || obj.category === "sermon") {
-          obj.imageUrl = "/assets/sermons/default-sermon.jpg";
-        } else if (obj.type === "event" || obj.category === "event") {
-          obj.imageUrl = "/assets/events/default-event.jpg";
-        } else if (obj.type === "leader" || obj.category === "leader") {
-          obj.imageUrl = "/assets/leadership/default-leader.jpg";
-        } else if (obj.type === "cell-group" || obj.category === "cell-group") {
-          obj.imageUrl = "/assets/cell-groups/default-cell-group.jpg";
-        } else {
-          obj.imageUrl = "/assets/media/default-image.jpg";
-        }
-      }
-    }
-  }
-  // No image reference but need imageUrl
-  else if (!obj.imageUrl) {
-    if (obj.type === "sermon" || obj.category === "sermon") {
-      obj.imageUrl = "/assets/sermons/default-sermon.jpg";
-    } else if (obj.type === "event" || obj.category === "event") {
-      obj.imageUrl = "/assets/events/default-event.jpg";
-    } else if (obj.type === "leader" || obj.category === "leader") {
-      obj.imageUrl = "/assets/leadership/default-leader.jpg";
-    } else if (obj.type === "cell-group" || obj.category === "cell-group") {
-      obj.imageUrl = "/assets/cell-groups/default-cell-group.jpg";
-    } else {
-      obj.imageUrl = "/assets/media/default-image.jpg";
-    }
-  }
-
-  return obj;
-};
+// Use the formatResponse utility function
 
 // Get all events
 router.get("/events", async (req, res) => {
@@ -512,6 +460,8 @@ router.get("/cell-groups", async (req, res) => {
   try {
     const cellGroups = await models.CellGroup.find()
       .populate("image")
+      .populate("leaderImage")
+      .populate("zone")
       .sort({ name: 1 });
 
     // Format cell groups for frontend compatibility
@@ -521,6 +471,118 @@ router.get("/cell-groups", async (req, res) => {
   } catch (error) {
     console.error("Error fetching cell groups:", error);
     res.status(500).json({ error: "Failed to fetch cell groups" });
+  }
+});
+
+// Get a single cell group by ID
+router.get("/cell-groups/:id", async (req, res) => {
+  try {
+    const cellGroup = await models.CellGroup.findById(req.params.id)
+      .populate("image")
+      .populate("leaderImage")
+      .populate("zone");
+
+    if (!cellGroup) {
+      return res.status(404).json({ error: "Cell group not found" });
+    }
+
+    // Format cell group for frontend compatibility
+    const formattedCellGroup = formatResponse(cellGroup);
+
+    res.json(formattedCellGroup);
+  } catch (error) {
+    console.error("Error fetching cell group:", error);
+    res.status(500).json({ error: "Failed to fetch cell group" });
+  }
+});
+
+// Create a new cell group (admin only)
+router.post("/cell-groups", authMiddleware, async (req, res) => {
+  try {
+    console.log("Received cell group creation request:", req.body);
+
+    // Create a new cell group from the request body
+    const cellGroupData = {
+      ...req.body,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Create and save the new cell group
+    const cellGroup = new models.CellGroup(cellGroupData);
+    const savedCellGroup = await cellGroup.save();
+
+    // Format for response
+    const formattedCellGroup = formatResponse(savedCellGroup);
+
+    console.log("Successfully created cell group:", formattedCellGroup.name);
+
+    res.status(201).json(formattedCellGroup);
+  } catch (error) {
+    console.error("Error creating cell group:", error);
+    res.status(500).json({ error: "Failed to create cell group" });
+  }
+});
+
+// Update a cell group (admin only)
+router.put("/cell-groups/:id", authMiddleware, async (req, res) => {
+  try {
+    const updateData = { ...req.body, updatedAt: new Date() };
+
+    // Remove MongoDB-specific fields that might cause issues
+    delete updateData._id;
+    delete updateData.__v;
+    delete updateData.createdAt;
+
+    const cellGroup = await models.CellGroup.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true }
+    )
+      .populate("image")
+      .populate("leaderImage")
+      .populate("zone");
+
+    if (!cellGroup) {
+      return res.status(404).json({ error: "Cell group not found" });
+    }
+
+    // Format for response
+    const formattedCellGroup = formatResponse(cellGroup);
+
+    res.json(formattedCellGroup);
+  } catch (error) {
+    console.error("Error updating cell group:", error);
+    res.status(500).json({ error: "Failed to update cell group" });
+  }
+});
+
+// Delete a cell group (admin only)
+router.delete("/cell-groups/:id", authMiddleware, async (req, res) => {
+  try {
+    // Check if there are any join requests for this cell group
+    const joinRequestCount = await models.CellGroupJoinRequest.countDocuments({
+      cellGroup: req.params.id,
+    });
+
+    if (joinRequestCount > 0) {
+      // Delete all join requests for this cell group
+      await models.CellGroupJoinRequest.deleteMany({
+        cellGroup: req.params.id,
+      });
+      console.log(
+        `Deleted ${joinRequestCount} join requests for cell group ${req.params.id}`
+      );
+    }
+
+    const cellGroup = await models.CellGroup.findByIdAndDelete(req.params.id);
+    if (!cellGroup) {
+      return res.status(404).json({ error: "Cell group not found" });
+    }
+    res.json({ message: "Cell group deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting cell group:", error);
+    res.status(500).json({ error: "Failed to delete cell group" });
   }
 });
 

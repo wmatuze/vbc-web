@@ -1,11 +1,13 @@
-const User = require('./User');
-const Media = require('./Media');
-const Sermon = require('./Sermon');
-const Event = require('./Event');
-const Leader = require('./Leader');
-const CellGroup = require('./CellGroup');
-const MemberRenewal = require('./MemberRenewal');
-const FoundationClassRegistration = require('./FoundationClassRegistration');
+const User = require("./User");
+const Media = require("./Media");
+const Sermon = require("./Sermon");
+const Event = require("./Event");
+const Leader = require("./Leader");
+const Zone = require("./Zone");
+const CellGroup = require("./CellGroup");
+const CellGroupJoinRequest = require("./CellGroupJoinRequest");
+const MemberRenewal = require("./MemberRenewal");
+const FoundationClassRegistration = require("./FoundationClassRegistration");
 
 module.exports = {
   User,
@@ -13,7 +15,9 @@ module.exports = {
   Sermon,
   Event,
   Leader,
+  Zone,
   CellGroup,
+  CellGroupJoinRequest,
   MemberRenewal,
-  FoundationClassRegistration
+  FoundationClassRegistration,
 };

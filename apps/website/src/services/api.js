@@ -334,8 +334,6 @@ export const deleteLeader = (id) => deleteData("api/leaders", id);
 // Cell Groups API functions
 export const getCellGroups = () => fetchData("api/cell-groups");
 export const getCellGroupById = (id) => fetchData(`api/cell-groups/${id}`);
-export const getCellGroupsByZone = (zoneId) =>
-  fetchData(`api/cell-groups?zoneId=${zoneId}`);
 export const createCellGroup = (group) => postData("api/cell-groups", group);
 export const updateCellGroup = (id, group) =>
   updateData("api/cell-groups", id, group);
@@ -344,9 +342,25 @@ export const deleteCellGroup = (id) => deleteData("api/cell-groups", id);
 // Zones API functions
 export const getZones = () => fetchData("api/zones");
 export const getZoneById = (id) => fetchData(`api/zones/${id}`);
+export const getZoneCellGroups = (zoneId) =>
+  fetchData(`api/zones/${zoneId}/cell-groups`);
+// Alias for backward compatibility
+export const getCellGroupsByZone = getZoneCellGroups;
 export const createZone = (zone) => postData("api/zones", zone);
 export const updateZone = (id, zone) => updateData("api/zones", id, zone);
 export const deleteZone = (id) => deleteData("api/zones", id);
+
+// Cell Group Join Request API functions
+export const submitCellGroupJoinRequest = (request) =>
+  postData("api/cell-group-join-requests", request);
+export const getCellGroupJoinRequests = () =>
+  fetchData("api/cell-group-join-requests");
+export const getCellGroupJoinRequestsForCellGroup = (cellGroupId) =>
+  fetchData(`api/cell-group-join-requests/cell-group/${cellGroupId}`);
+export const updateCellGroupJoinRequest = (id, status) =>
+  updateData("api/cell-group-join-requests", id, { status });
+export const deleteCellGroupJoinRequest = (id) =>
+  deleteData("api/cell-group-join-requests", id);
 
 // Enhanced media functions with cache busting
 export const getMedia = async () => {

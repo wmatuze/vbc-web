@@ -8,24 +8,56 @@ import {
   FaComment,
   FaCalendarAlt,
   FaMapMarkerAlt,
+  FaWhatsapp,
 } from "react-icons/fa";
+import { submitCellGroupJoinRequest } from "../services/api";
 
 const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
+    whatsapp: "",
     message: "",
   });
 
   const [step, setStep] = useState(1); // 1: Form, 2: Success
   const [consent, setConsent] = useState(false);
 
-  const handleSubmit = (e) => {
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!consent) return;
-    onSubmit(formData);
-    setStep(2); // Move to success step
+
+    try {
+      setError("");
+
+      // Prepare the request data
+      const requestData = {
+        cellGroupId: group.id,
+        ...formData,
+      };
+
+      // If WhatsApp is empty, use the phone number
+      if (!requestData.whatsapp && requestData.phone) {
+        requestData.whatsapp = requestData.phone;
+      }
+
+      // Submit the request to the API
+      await submitCellGroupJoinRequest(requestData);
+
+      // Call the onSubmit callback if provided
+      if (onSubmit) {
+        onSubmit(formData);
+      }
+
+      // Move to success step
+      setStep(2);
+    } catch (error) {
+      console.error("Error submitting join request:", error);
+      setError("There was an error submitting your request. Please try again.");
+    }
   };
 
   return (
@@ -120,7 +152,7 @@ const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
 
               <div>
                 <label className="block text-gray-700 mb-2 font-medium">
-                  Phone Number (Optional)
+                  Phone Number
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -128,6 +160,7 @@ const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
                   </div>
                   <input
                     type="tel"
+                    required
                     className="w-full pl-10 p-3 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 shadow-sm"
                     value={formData.phone}
                     onChange={(e) =>
@@ -136,6 +169,29 @@ const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
                     placeholder="(123) 456-7890"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 mb-2 font-medium">
+                  WhatsApp Number (Optional)
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FaWhatsapp className="text-gray-400" />
+                  </div>
+                  <input
+                    type="tel"
+                    className="w-full pl-10 p-3 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 shadow-sm"
+                    value={formData.whatsapp}
+                    onChange={(e) =>
+                      setFormData({ ...formData, whatsapp: e.target.value })
+                    }
+                    placeholder="Same as phone number"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Leave blank to use your phone number
+                </p>
               </div>
 
               <div>
@@ -175,6 +231,12 @@ const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
                   </span>
                 </label>
               </div>
+
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+                  {error}
+                </div>
+              )}
 
               <div className="flex justify-end space-x-4 mt-6">
                 <button

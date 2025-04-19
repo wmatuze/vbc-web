@@ -14,18 +14,23 @@ import {
   FaArrowLeft,
   FaUsers,
 } from "react-icons/fa";
+import {
+  useZoneByIdQuery,
+  useZoneCellGroupsQuery,
+} from "../hooks/useZonesQuery";
 import { Helmet } from "react-helmet-async";
 import JoinGroupModal from "../components/JoinGroupModal";
 import FallbackImage from "../assets/fallback-image.png";
-import zonesData from "../data/zonesData";
-import cellGroupsData from "../data/cellGroupsData";
-import { getZoneById, getCellGroupsByZone } from "../services/api";
 
 // Import fallback images in case there are no API images
 import CellGroupImage1 from "../assets/cell-groups/cell-group-1.jpg";
 import CellGroupImage2 from "../assets/cell-groups/cell-group-2.jpg";
 import CellGroupImage3 from "../assets/cell-groups/cell-group-3.jpg";
 import CellGroupImage4 from "../assets/cell-groups/cell-group-4.jpg";
+
+// Import mock data for fallback
+import zonesData from "../data/zonesData";
+import cellGroupsData from "../data/cellGroupsData";
 
 // Fallback images map
 const fallbackImages = {
@@ -37,79 +42,31 @@ const fallbackImages = {
 
 const ZoneDetailPage = () => {
   const { zoneId } = useParams();
-  const [zone, setZone] = useState(null);
-  const [cellGroups, setCellGroups] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedGroup, setSelectedGroup] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [activeFilters, setActiveFilters] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
   const [favorites, setFavorites] = useState([]);
   const [isHeaderSticky, setIsHeaderSticky] = useState(false);
   const searchRef = useRef(null);
 
-  // Load zone and cell group data
+  // Use React Query for fetching zone data
+  const {
+    data: zone,
+    isLoading: isZoneLoading,
+    error: zoneError,
+  } = useZoneByIdQuery(zoneId);
+
+  // Use React Query for fetching cell groups in this zone
+  const { data: cellGroups = [], isLoading: isCellGroupsLoading } =
+    useZoneCellGroupsQuery(zoneId);
+
+  // Determine if we're in a loading state
+  const isLoading = isZoneLoading || isCellGroupsLoading;
+
+  // Scroll to top when component mounts
   useEffect(() => {
-    const fetchZoneData = async () => {
-      setIsLoading(true);
-
-      try {
-        // Try to fetch zone from API first
-        try {
-          const apiZone = await getZoneById(zoneId);
-          if (apiZone && apiZone.id) {
-            setZone(apiZone);
-          } else {
-            // Fall back to mock data if API returns empty result
-            const mockZone = zonesData.find((z) => z.id === zoneId);
-            setZone(mockZone);
-          }
-        } catch (apiError) {
-          console.log("Zone API not available, using mock data", apiError);
-          // Fall back to mock data if API fails
-          const mockZone = zonesData.find((z) => z.id === zoneId);
-          setZone(mockZone);
-        }
-
-        // Try to fetch cell groups from API
-        try {
-          const apiGroups = await getCellGroupsByZone(zoneId);
-          if (apiGroups && apiGroups.length > 0) {
-            setCellGroups(apiGroups);
-          } else {
-            // Fall back to mock data if API returns empty result
-            const mockGroups = cellGroupsData.filter(
-              (group) => group.zoneId === zoneId
-            );
-            setCellGroups(mockGroups);
-          }
-        } catch (apiError) {
-          console.log(
-            "Cell groups API not available, using mock data",
-            apiError
-          );
-          // Fall back to mock data if API fails
-          const mockGroups = cellGroupsData.filter(
-            (group) => group.zoneId === zoneId
-          );
-          setCellGroups(mockGroups);
-        }
-      } catch (err) {
-        console.error("Error fetching zone data:", err);
-        // Still use mock data as last resort
-        const mockZone = zonesData.find((z) => z.id === zoneId);
-        setZone(mockZone);
-
-        const mockGroups = cellGroupsData.filter(
-          (group) => group.zoneId === zoneId
-        );
-        setCellGroups(mockGroups);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchZoneData();
+    window.scrollTo(0, 0);
   }, [zoneId]);
 
   // Scroll tracking for sticky header
@@ -122,9 +79,12 @@ const ZoneDetailPage = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Get all unique tags and locations for filters
-  const allTags = [...new Set(cellGroups.flatMap((group) => group.tags || []))];
-  const allLocations = [...new Set(cellGroups.map((group) => group.location))];
+  // Get all unique tags for filters
+  const allTags = [
+    ...new Set(displayCellGroups.flatMap((group) => group.tags || [])),
+  ];
+  // Get all unique locations for filters (commented out as it's not currently used)
+  // const allLocations = [...new Set(cellGroups.map((group) => group.location))];
 
   // Get image URL (either from API or fallback)
   const getImageUrl = (group) => {
@@ -144,7 +104,7 @@ const ZoneDetailPage = () => {
   };
 
   // Filter groups based on search and active filters
-  const filteredGroups = cellGroups.filter((group) => {
+  const filteredGroups = displayCellGroups.filter((group) => {
     // Match search term
     const matchesSearch =
       group.name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -165,8 +125,10 @@ const ZoneDetailPage = () => {
     return matchesSearch && matchesFilters;
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleJoinRequest = async (formData) => {
-    setIsLoading(true);
+    setIsSubmitting(true);
     try {
       // Add your API call here
       console.log("Joining group:", selectedGroup.name);
@@ -176,7 +138,7 @@ const ZoneDetailPage = () => {
     } catch (err) {
       console.error("Failed to submit request:", err);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -196,9 +158,10 @@ const ZoneDetailPage = () => {
     );
   };
 
-  const scrollToSearch = () => {
-    searchRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  // Function to scroll to search section (commented out as it's not currently used)
+  // const scrollToSearch = () => {
+  //   searchRef.current?.scrollIntoView({ behavior: "smooth" });
+  // };
 
   // Card variants for framer motion
   const cardVariants = {
@@ -220,21 +183,53 @@ const ZoneDetailPage = () => {
     },
   };
 
-  if (!zone && !isLoading) {
+  // State for fallback data
+  const [fallbackZone, setFallbackZone] = useState(null);
+  const [fallbackCellGroups, setFallbackCellGroups] = useState([]);
+
+  // Use fallback data if API fails
+  useEffect(() => {
+    if ((zoneError || !zone) && !isLoading) {
+      console.log("Using fallback zone data for", zoneId);
+      // Find the zone in the mock data
+      const mockZone = zonesData.find((z) => z.id === zoneId);
+      if (mockZone) {
+        console.log("Found fallback zone:", mockZone.name);
+        setFallbackZone(mockZone);
+
+        // Find cell groups for this zone
+        const mockCellGroups = cellGroupsData.filter(
+          (group) => group.zoneId === zoneId
+        );
+        console.log(`Found ${mockCellGroups.length} fallback cell groups`);
+        setFallbackCellGroups(mockCellGroups);
+      }
+    }
+  }, [zoneError, zone, isLoading, zoneId]);
+
+  // Use fallback data if API fails
+  const displayZone = zone || fallbackZone;
+  const displayCellGroups =
+    cellGroups.length > 0 ? cellGroups : fallbackCellGroups;
+
+  // Show error state if there's an error or zone not found and no fallback data
+  if ((zoneError || !zone) && !isLoading && !fallbackZone) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center p-8">
+        <div className="text-center p-8 bg-white/90 backdrop-blur-md rounded-xl shadow-lg border border-white/20 max-w-md">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">
             Zone Not Found
           </h2>
           <p className="text-gray-600 mb-6">
-            The zone you're looking for doesn't exist or has been moved.
+            {zoneError
+              ? "There was an error loading this zone. Please try again later."
+              : "The zone you're looking for doesn't exist or has been moved."}
           </p>
           <Link
             to="/cell-groups"
-            className="bg-black text-white px-6 py-3 inline-block"
+            className="bg-gray-900 text-white px-6 py-3 rounded-lg shadow-md hover:bg-gray-800 transition-all duration-300 inline-flex items-center"
           >
-            Return to Zones
+            <FaArrowLeft className="mr-2" /> Return to Zones
           </Link>
         </div>
       </div>
@@ -246,21 +241,23 @@ const ZoneDetailPage = () => {
       {/* SEO Meta Tags */}
       <Helmet>
         <title>
-          {zone ? `${zone.name} - Cell Groups` : "Loading Zone..."} - Victory
-          Bible Church
+          {displayZone
+            ? `${displayZone.name} - Cell Groups`
+            : "Loading Zone..."}{" "}
+          - Victory Bible Church
         </title>
         <meta
           name="description"
           content={
-            zone
-              ? `Explore cell groups in the ${zone.name} led by ${zone.elder.name}. Find a group near you for fellowship, growth, and community.`
+            displayZone
+              ? `Explore cell groups in the ${displayZone.name} led by ${displayZone.elder.name}. Find a group near you for fellowship, growth, and community.`
               : "Loading zone information..."
           }
         />
       </Helmet>
 
       {/* Zone Header */}
-      {zone && (
+      {displayZone && (
         <section className="relative bg-gray-900 text-white py-16 pt-32">
           <div className="container mx-auto px-4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-12">
@@ -273,19 +270,21 @@ const ZoneDetailPage = () => {
 
               <div className="flex items-center text-yellow-400 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full shadow-md">
                 <FaUsers className="mr-2" />
-                <span>{zone.cellCount} Cell Groups</span>
+                <span>
+                  {displayZone.cellCount || filteredGroups.length} Cell Groups
+                </span>
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
               <div className="lg:col-span-2">
-                <h1 className="text-4xl font-bold mb-4">{zone.name}</h1>
+                <h1 className="text-4xl font-bold mb-4">{displayZone.name}</h1>
                 <div className="flex items-center text-gray-300 mb-4 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full shadow-md inline-block">
                   <FaMapMarkerAlt className="mr-2" />
-                  <span>{zone.location}</span>
+                  <span>{displayZone.location}</span>
                 </div>
                 <p className="text-lg text-gray-300 mb-6 bg-black/20 backdrop-blur-sm p-4 rounded-xl shadow-md">
-                  {zone.description}
+                  {displayZone.description}
                 </p>
               </div>
 
@@ -294,10 +293,10 @@ const ZoneDetailPage = () => {
                 <h2 className="text-xl font-bold mb-4">Zone Elder</h2>
                 <div className="flex items-start">
                   <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm overflow-hidden mr-4 shadow-md">
-                    {zone.elder.image ? (
+                    {displayZone.elder.image ? (
                       <img
-                        src={zone.elder.image}
-                        alt={zone.elder.name}
+                        src={displayZone.elder.image}
+                        alt={displayZone.elder.name}
                         className="w-full h-full object-cover filter grayscale hover:grayscale-0 transition-all duration-500"
                         onError={(e) => {
                           e.target.src = FallbackImage;
@@ -310,22 +309,26 @@ const ZoneDetailPage = () => {
                     )}
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg">{zone.elder.name}</h3>
-                    <p className="text-gray-300 mb-2">{zone.elder.title}</p>
+                    <h3 className="font-bold text-lg">
+                      {displayZone.elder.name}
+                    </h3>
+                    <p className="text-gray-300 mb-2">
+                      {displayZone.elder.title}
+                    </p>
                     <p className="text-sm text-gray-300 mb-4">
-                      {zone.elder.bio}
+                      {displayZone.elder.bio}
                     </p>
                     <div className="flex flex-col space-y-2">
-                      {zone.elder.email && (
+                      {displayZone.elder.contact && (
                         <div className="flex items-center text-gray-300 text-sm bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm">
                           <FaEnvelope className="mr-2" />
-                          <span>{zone.elder.contact}</span>
+                          <span>{displayZone.elder.contact}</span>
                         </div>
                       )}
-                      {zone.elder.phone && (
+                      {displayZone.elder.phone && (
                         <div className="flex items-center text-gray-300 text-sm bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm">
                           <FaPhone className="mr-2" />
-                          <span>{zone.elder.phone}</span>
+                          <span>{displayZone.elder.phone}</span>
                         </div>
                       )}
                     </div>
@@ -356,7 +359,7 @@ const ZoneDetailPage = () => {
                   <FaArrowLeft />
                 </Link>
                 <h2 className="text-xl font-bold text-gray-900 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-lg shadow-sm">
-                  {zone ? zone.name : "Loading..."} Cell Groups
+                  {displayZone ? displayZone.name : "Loading..."} Cell Groups
                 </h2>
               </div>
               <div className="flex items-center space-x-4">
@@ -391,7 +394,8 @@ const ZoneDetailPage = () => {
         >
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
             <h2 className="text-3xl font-bold text-gray-900">
-              Find a Cell Group in {zone ? zone.name : "this Zone"}
+              Find a Cell Group in{" "}
+              {displayZone ? displayZone.name : "this Zone"}
             </h2>
 
             {/* Mobile Search Bar */}
@@ -743,7 +747,7 @@ const ZoneDetailPage = () => {
           group={selectedGroup}
           onClose={() => setSelectedGroup(null)}
           onSubmit={handleJoinRequest}
-          isLoading={isLoading}
+          isLoading={isSubmitting}
         />
       )}
     </div>

@@ -1,5 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
-import { getCellGroups, getCellGroupById, getCellGroupsByZone } from '../services/api';
+import { useQuery } from "@tanstack/react-query";
+import {
+  getCellGroups,
+  getCellGroupById,
+  getZoneCellGroups,
+} from "../services/api";
 
 /**
  * Custom hook for fetching cell groups data using React Query
@@ -8,15 +12,15 @@ import { getCellGroups, getCellGroupById, getCellGroupsByZone } from '../service
  */
 export const useCellGroupsQuery = (options = {}) => {
   return useQuery({
-    queryKey: ['cellGroups'],
+    queryKey: ["cellGroups"],
     queryFn: getCellGroups,
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
     retry: 1,
     onError: (error) => {
-      console.error('Error fetching cell groups:', error);
+      console.error("Error fetching cell groups:", error);
     },
-    ...options
+    ...options,
   });
 };
 
@@ -27,15 +31,15 @@ export const useCellGroupsQuery = (options = {}) => {
  */
 export const useCellGroupsByZoneQuery = (zoneId) => {
   return useQuery({
-    queryKey: ['cellGroups', 'zone', zoneId],
-    queryFn: () => getCellGroupsByZone(zoneId),
+    queryKey: ["cellGroups", "zone", zoneId],
+    queryFn: () => getZoneCellGroups(zoneId),
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
     retry: 1,
     enabled: !!zoneId, // Only run the query if we have a zoneId
     onError: (error) => {
       console.error(`Error fetching cell groups for zone ${zoneId}:`, error);
-    }
+    },
   });
 };
 
@@ -46,7 +50,7 @@ export const useCellGroupsByZoneQuery = (zoneId) => {
  */
 export const useCellGroupByIdQuery = (id) => {
   return useQuery({
-    queryKey: ['cellGroups', id],
+    queryKey: ["cellGroups", id],
     queryFn: () => getCellGroupById(id),
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
@@ -54,6 +58,6 @@ export const useCellGroupByIdQuery = (id) => {
     enabled: !!id, // Only run the query if we have an ID
     onError: (error) => {
       console.error(`Error fetching cell group with ID ${id}:`, error);
-    }
+    },
   });
 };

@@ -452,10 +452,146 @@ Victory Bible Church Team
   }
 };
 
+/**
+ * Send cell group join request emails
+ * @param {Object} request - Cell group join request data
+ * @param {Object} cellGroup - Cell group data
+ */
+const sendCellGroupJoinRequestEmails = async (request, cellGroup) => {
+  try {
+    // Email to the person who wants to join
+    await sendEmail({
+      to: request.email,
+      subject: "Cell Group Join Request Confirmation - Victory Bible Church",
+      text: `
+Dear ${request.name},
+
+Thank you for your interest in joining the "${cellGroup.name}" cell group. Your request has been received and is being processed.
+
+Request Details:
+- Cell Group: ${cellGroup.name}
+- Leader: ${cellGroup.leader}
+- Meeting Day: ${cellGroup.meetingDay || "Not specified"}
+- Meeting Time: ${cellGroup.meetingTime || "Not specified"}
+- Location: ${cellGroup.location}
+
+The cell group leader will contact you soon with more information. If you have any questions in the meantime, please contact our church office.
+
+Blessings,
+Victory Bible Church Team
+      `,
+      html: `
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+  <div style="background-color: #4f46e5; color: white; padding: 20px; text-align: center;">
+    <h1>Cell Group Join Request Confirmation</h1>
+  </div>
+  <div style="padding: 20px; border: 1px solid #e5e7eb; border-top: none;">
+    <p>Dear ${request.name},</p>
+
+    <p>Thank you for your interest in joining the "${cellGroup.name}" cell group. Your request has been received and is being processed.</p>
+
+    <div style="background-color: #f3f4f6; padding: 15px; border-radius: 5px; margin: 20px 0;">
+      <h3 style="margin-top: 0;">Request Details:</h3>
+      <ul>
+        <li><strong>Cell Group:</strong> ${cellGroup.name}</li>
+        <li><strong>Leader:</strong> ${cellGroup.leader}</li>
+        <li><strong>Meeting Day:</strong> ${cellGroup.meetingDay || "Not specified"}</li>
+        <li><strong>Meeting Time:</strong> ${cellGroup.meetingTime || "Not specified"}</li>
+        <li><strong>Location:</strong> ${cellGroup.location}</li>
+      </ul>
+    </div>
+
+    <p>The cell group leader will contact you soon with more information. If you have any questions in the meantime, please contact our church office.</p>
+
+    <p>Blessings,<br>Victory Bible Church Team</p>
+  </div>
+  <div style="background-color: #f3f4f6; padding: 10px; text-align: center; font-size: 12px; color: #6b7280;">
+    &copy; ${new Date().getFullYear()} Victory Bible Church. All rights reserved.
+  </div>
+</div>
+      `,
+    });
+
+    // Email to the cell group leader
+    await sendEmail({
+      to:
+        cellGroup.leaderContact ||
+        process.env.ADMIN_EMAIL ||
+        "admin@victorybiblechurch.org",
+      subject: "New Cell Group Join Request - Victory Bible Church",
+      text: `
+Dear ${cellGroup.leader},
+
+A new request to join your cell group has been submitted.
+
+Join Request Details:
+- Name: ${request.name}
+- Email: ${request.email}
+- Phone: ${request.phone}
+${request.whatsapp ? `- WhatsApp: ${request.whatsapp}` : ""}
+${request.message ? `- Message: ${request.message}` : ""}
+
+Cell Group:
+- Name: ${cellGroup.name}
+- Location: ${cellGroup.location}
+
+Please contact this person soon to welcome them and provide more information about your cell group.
+
+Blessings,
+Victory Bible Church Team
+      `,
+      html: `
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+  <div style="background-color: #4f46e5; color: white; padding: 20px; text-align: center;">
+    <h1>New Cell Group Join Request</h1>
+  </div>
+  <div style="padding: 20px; border: 1px solid #e5e7eb; border-top: none;">
+    <p>Dear ${cellGroup.leader},</p>
+
+    <p>A new request to join your cell group has been submitted.</p>
+
+    <div style="background-color: #f3f4f6; padding: 15px; border-radius: 5px; margin: 20px 0;">
+      <h3 style="margin-top: 0;">Join Request Details:</h3>
+      <ul>
+        <li><strong>Name:</strong> ${request.name}</li>
+        <li><strong>Email:</strong> ${request.email}</li>
+        <li><strong>Phone:</strong> ${request.phone}</li>
+        ${request.whatsapp ? `<li><strong>WhatsApp:</strong> ${request.whatsapp}</li>` : ""}
+        ${request.message ? `<li><strong>Message:</strong> ${request.message}</li>` : ""}
+      </ul>
+    </div>
+
+    <div style="background-color: #e0e7ff; padding: 15px; border-radius: 5px; margin: 20px 0;">
+      <h3 style="margin-top: 0; color: #4338ca;">Cell Group:</h3>
+      <ul>
+        <li><strong>Name:</strong> ${cellGroup.name}</li>
+        <li><strong>Location:</strong> ${cellGroup.location}</li>
+      </ul>
+    </div>
+
+    <p>Please contact this person soon to welcome them and provide more information about your cell group.</p>
+
+    <p>Blessings,<br>Victory Bible Church Team</p>
+  </div>
+  <div style="background-color: #f3f4f6; padding: 10px; text-align: center; font-size: 12px; color: #6b7280;">
+    &copy; ${new Date().getFullYear()} Victory Bible Church. All rights reserved.
+  </div>
+</div>
+      `,
+    });
+
+    console.log("Cell group join request emails sent successfully");
+  } catch (error) {
+    console.error("Error sending cell group join request emails:", error);
+    // Don't throw the error - we don't want to break the API if email fails
+  }
+};
+
 module.exports = {
   sendEmail,
   sendMembershipRenewalEmails,
   sendFoundationClassRegistrationEmails,
   sendMembershipApprovalEmail,
   sendFoundationClassCompletionEmail,
+  sendCellGroupJoinRequestEmails,
 };
