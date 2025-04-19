@@ -61,13 +61,23 @@ const Sermons = () => {
   const getSermonImageUrl = (sermon) => {
     console.log("Processing sermon image:", sermon);
 
+    // Handle case where sermon might be an object with imageUrl property
+    if (
+      typeof sermon === "object" &&
+      sermon.imageUrl &&
+      typeof sermon.imageUrl === "object"
+    ) {
+      console.log("Found object imageUrl, using placeholder");
+      return placeholderImage;
+    }
+
     if (sermon.image?.path) {
       const url = sermon.image.path.startsWith("/")
         ? `${config.API_URL}${sermon.image.path}`
         : sermon.image.path;
       console.log("Using image.path:", url);
       return url;
-    } else if (sermon.imageUrl) {
+    } else if (sermon.imageUrl && typeof sermon.imageUrl === "string") {
       const url = sermon.imageUrl.startsWith("/")
         ? `${config.API_URL}${sermon.imageUrl}`
         : sermon.imageUrl;
@@ -82,7 +92,7 @@ const Sermons = () => {
     }
 
     // For static data, use the image path directly
-    if (sermon.image) {
+    if (sermon.image && typeof sermon.image === "string") {
       console.log("Using static sermon.image:", sermon.image);
       return sermon.image;
     }
@@ -116,6 +126,22 @@ const Sermons = () => {
   // Log sermon data when it changes
   if (sermons && sermons.length > 0) {
     console.log("API Sermon Data:", sermons);
+
+    // Debug: Check for objects that might be incorrectly rendered
+    sermons.forEach((sermon) => {
+      if (sermon.description && typeof sermon.description === "object") {
+        console.warn(
+          "Found object description that might cause rendering issues:",
+          sermon.description
+        );
+      }
+      if (sermon.imageUrl && typeof sermon.imageUrl === "object") {
+        console.warn(
+          "Found object imageUrl that might cause rendering issues:",
+          sermon.imageUrl
+        );
+      }
+    });
   }
 
   if (isLoading) {
@@ -153,12 +179,13 @@ const Sermons = () => {
   }
 
   // If we have an error but we're showing static data, log it
+  let sermonsToDisplay = sermons;
   if (error && sermons.length === 0) {
     console.log("Using static sermon data due to API error");
-    sermons = staticSermons;
+    sermonsToDisplay = staticSermons;
   }
 
-  const latestSermon = sermons[0];
+  const latestSermon = sermonsToDisplay[0];
 
   return (
     <section className="py-20 px-6 bg-gray-50">
@@ -268,7 +295,11 @@ const Sermons = () => {
                     {formatSermonDate(latestSermon.date)}
                   </p>
                   <p className="text-gray-600 mb-6">
-                    {latestSermon.description}
+                    {typeof latestSermon.description === "string"
+                      ? latestSermon.description
+                      : typeof latestSermon.description === "object"
+                        ? "View sermon details"
+                        : "No description available"}
                   </p>
                 </div>
 
@@ -313,7 +344,7 @@ const Sermons = () => {
 
         {/* Recent Sermons Grid */}
         <div className="grid md:grid-cols-3 gap-8">
-          {sermons.slice(1, 4).map((sermon, index) => (
+          {sermonsToDisplay.slice(1, 4).map((sermon, index) => (
             <motion.div
               key={sermon.id || index}
               initial={{ opacity: 0, y: 20 }}

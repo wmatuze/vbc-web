@@ -68,6 +68,9 @@ app.use(
       "Content-Type",
       "Accept",
       "Authorization",
+      "Cache-Control",
+      "Pragma",
+      "Expires",
     ],
     credentials: true,
     preflightContinue: false,
@@ -312,11 +315,9 @@ app.post(
       // Verify the file was saved successfully
       if (!fs.existsSync(filePath)) {
         console.error("File not found on disk after upload:", filePath);
-        return res
-          .status(500)
-          .json({
-            error: "File upload failed - could not verify file existence",
-          });
+        return res.status(500).json({
+          error: "File upload failed - could not verify file existence",
+        });
       }
 
       // Check file size on disk to make sure it wasn't corrupted
@@ -395,11 +396,43 @@ app.get("/api/media", async (req, res) => {
 
 // Also add routes without the /api prefix for compatibility
 app.get("/media", async (req, res) => {
+  // Set CORS headers explicitly for this endpoint
+  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
+  res.header("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma, Expires"
+  );
+  res.header("Access-Control-Allow-Credentials", "true");
+
   try {
     const media = await models.Media.find().sort({ uploadDate: -1 });
     res.json(media);
   } catch (error) {
     console.error("Error fetching media:", error);
+    res.status(500).json({ error: "Failed to fetch media" });
+  }
+});
+
+// Get media by ID
+app.get("/media/:id", async (req, res) => {
+  // Set CORS headers explicitly for this endpoint
+  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
+  res.header("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma, Expires"
+  );
+  res.header("Access-Control-Allow-Credentials", "true");
+
+  try {
+    const media = await models.Media.findById(req.params.id);
+    if (!media) {
+      return res.status(404).json({ error: "Media not found" });
+    }
+    res.json(media);
+  } catch (error) {
+    console.error(`Error fetching media with ID ${req.params.id}:`, error);
     res.status(500).json({ error: "Failed to fetch media" });
   }
 });

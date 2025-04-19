@@ -8,6 +8,7 @@ import {
   getCurrentUser,
 } from "../services/api";
 import SermonManager from "../components/admin/SermonManager";
+import SermonManagerWrapper from "../components/admin/SermonManagerWrapper";
 import EventManager from "../components/admin/EventManager";
 import LeaderManager from "../components/admin/LeaderManager";
 import CellGroupManager from "../components/admin/CellGroupManager";
@@ -633,7 +634,9 @@ const Admin = () => {
                 darkMode ? "bg-gray-800 border border-gray-700" : "bg-white"
               }`}
             >
-              {activeTab === "sermons" && <SermonManager darkMode={darkMode} />}
+              {activeTab === "sermons" && (
+                <SermonManagerWrapper darkMode={darkMode} />
+              )}
               {activeTab === "events" && <EventManager darkMode={darkMode} />}
               {activeTab === "leaders" && <LeaderManager darkMode={darkMode} />}
               {activeTab === "cellGroups" && (
@@ -649,7 +652,9 @@ const Admin = () => {
                   setDarkMode={setDarkMode}
                 />
               )}
-              {activeTab === "members" && <RequestsManager />}
+              {activeTab === "members" && (
+                <RequestsManager darkMode={darkMode} />
+              )}
             </div>
 
             {/* Admin Footer */}

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createSermon, updateSermon, deleteSermon } from "../../services/api";
 import { useSermonsQuery } from "../../hooks/useSermonsQuery";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
+import { safeRenderValue, safeRenderObject } from "../../utils/safeRenderUtils";
 import {
   PlusIcon,
   PencilIcon,
@@ -37,6 +38,7 @@ const SermonManager = () => {
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [formMode, setFormMode] = useState("add");
+  const [loading, setLoading] = useState(false);
   const [currentSermon, setCurrentSermon] = useState({
     title: "",
     speaker: "",
@@ -95,7 +97,9 @@ const SermonManager = () => {
     if (mediaData.length > 0) {
       setMediaItems(mediaData);
     }
-  }, [mediaData]);
+    // Update loading state based on mediaLoading
+    setIsLoadingMedia(mediaLoading);
+  }, [mediaData, mediaLoading]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -113,6 +117,33 @@ const SermonManager = () => {
   const getImagePreviewUrl = (imageUrl) => {
     if (!imageUrl) return null;
     console.log("Getting preview for:", imageUrl);
+
+    // Handle case where imageUrl is an object
+    if (typeof imageUrl === "object") {
+      console.warn("imageUrl is an object, not a string:", imageUrl);
+      return placeholderImage;
+    }
+
+    // Handle case where imageUrl might be an object with imageUrl property
+    if (
+      imageUrl &&
+      typeof imageUrl === "string" &&
+      imageUrl.includes('{"imageUrl"')
+    ) {
+      console.warn("imageUrl contains a stringified object:", imageUrl);
+      try {
+        const parsed = JSON.parse(imageUrl);
+        if (parsed && parsed.imageUrl && typeof parsed.imageUrl === "string") {
+          return parsed.imageUrl.startsWith("/")
+            ? `${API_URL}${parsed.imageUrl}`
+            : parsed.imageUrl;
+        }
+      } catch (e) {
+        console.error("Failed to parse imageUrl:", e);
+      }
+      return placeholderImage;
+    }
+
     const fullUrl = imageUrl.startsWith("/")
       ? `${API_URL}${imageUrl}`
       : imageUrl;
@@ -145,15 +176,23 @@ const SermonManager = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
-      // Show loading state in UI
+      // Create a clean copy of the sermon data without any problematic fields
+      const cleanSermon = {
+        title: currentSermon.title,
+        speaker: currentSermon.speaker,
+        date: format(parseISO(currentSermon.date), "MMMM d, yyyy"),
+        videoId: currentSermon.videoId,
+        duration: currentSermon.duration,
+        description: currentSermon.description,
+        series: currentSermon.series,
+        tags: currentSermon.tags || [],
+      };
 
       // Format date for display
-      const formattedSermon = {
-        ...currentSermon,
-        date: format(parseISO(currentSermon.date), "MMMM d, yyyy"),
-      };
+      const formattedSermon = { ...cleanSermon };
 
       // Ensure we're setting the image properly
       // If we have a selected Media object with an ID, use that as image reference
@@ -190,25 +229,47 @@ const SermonManager = () => {
       setError("Failed to save sermon. Please try again.");
     } finally {
       // Loading complete
+      setLoading(false);
     }
   };
 
   const handleEdit = (sermon) => {
-    // Convert display date back to ISO format for input
-    const isoDate = format(new Date(sermon.date), "yyyy-MM-dd");
-    setCurrentSermon({
-      ...sermon,
-      date: isoDate,
-      tags: sermon.tags || [],
-    });
-    setFormMode("edit");
-    setShowForm(true);
+    try {
+      // Safely convert display date back to ISO format for input
+      let isoDate;
+      try {
+        // Try to parse the date
+        const dateObj = new Date(sermon.date);
+        // Check if date is valid
+        if (isNaN(dateObj.getTime())) {
+          console.warn("Invalid date value:", sermon.date);
+          isoDate = format(new Date(), "yyyy-MM-dd"); // Use current date as fallback
+        } else {
+          isoDate = format(dateObj, "yyyy-MM-dd");
+        }
+      } catch (error) {
+        console.error("Error formatting date:", error);
+        isoDate = format(new Date(), "yyyy-MM-dd"); // Use current date as fallback
+      }
+
+      setCurrentSermon({
+        ...sermon,
+        date: isoDate,
+        tags: sermon.tags || [],
+      });
+      setFormMode("edit");
+      setShowForm(true);
+    } catch (error) {
+      console.error("Error in handleEdit:", error);
+      // Show error message to user
+      setError(`Failed to edit sermon: ${error.message}`);
+    }
   };
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this sermon?")) {
+      setLoading(true);
       try {
-        // Show loading state in UI
         await deleteSermon(id);
         setSuccessMessage("Sermon deleted successfully!");
         await refetchSermons();
@@ -220,6 +281,7 @@ const SermonManager = () => {
         setError("Failed to delete sermon. Please try again.");
       } finally {
         // Loading complete
+        setLoading(false);
       }
     }
   };
@@ -227,17 +289,31 @@ const SermonManager = () => {
   // Filter and sort sermons
   const filteredSermons = sermons
     .filter((sermon) => {
+      // Safely get string values for search
+      const safeTitle =
+        typeof sermon.title === "string"
+          ? sermon.title
+          : String(sermon.title || "");
+      const safeSpeaker =
+        typeof sermon.speaker === "string"
+          ? sermon.speaker
+          : String(sermon.speaker || "");
+      const safeDescription =
+        typeof sermon.description === "string" ? sermon.description : "";
+
       const matchesSearch =
         searchTerm === "" ||
-        sermon.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sermon.speaker.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sermon.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sermon.tags?.some((tag) =>
-          tag.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        safeTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        safeSpeaker.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        safeDescription.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        sermon.tags?.some((tag) => {
+          const safeTag = typeof tag === "string" ? tag : String(tag || "");
+          return safeTag.toLowerCase().includes(searchTerm.toLowerCase());
+        });
 
       const matchesSeries =
-        filterSeries === "all" || sermon.series === filterSeries;
+        filterSeries === "all" ||
+        (typeof sermon.series === "string" && sermon.series === filterSeries);
 
       // Date filtering
       let matchesDateFilter = true;
@@ -259,9 +335,28 @@ const SermonManager = () => {
       return matchesSearch && matchesSeries && matchesDateFilter;
     })
     .sort((a, b) => {
-      const dateA = new Date(a[sortBy]);
-      const dateB = new Date(b[sortBy]);
-      return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+      try {
+        // Safely get date values for sorting
+        const valueA = a[sortBy];
+        const valueB = b[sortBy];
+
+        // Handle date sorting
+        if (sortBy === "date") {
+          const dateA = new Date(valueA || 0);
+          const dateB = new Date(valueB || 0);
+          return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+        }
+
+        // Handle string sorting
+        const strA = String(valueA || "");
+        const strB = String(valueB || "");
+        return sortOrder === "asc"
+          ? strA.localeCompare(strB)
+          : strB.localeCompare(strA);
+      } catch (error) {
+        console.error("Error sorting sermons:", error);
+        return 0; // Keep original order if error
+      }
     });
 
   // Handle image error
@@ -271,6 +366,16 @@ const SermonManager = () => {
     e.target.src = placeholderImage;
     e.target.onerror = null; // Prevent infinite error loop
   };
+
+  // Function to refresh media items
+  const refreshMedia = useCallback(() => {
+    if (refetchMedia) {
+      setIsLoadingMedia(true);
+      refetchMedia().finally(() => {
+        setIsLoadingMedia(false);
+      });
+    }
+  }, [refetchMedia]);
 
   const handleMediaSelection = () => {
     if (selectedMediaItem) {
@@ -435,23 +540,30 @@ const SermonManager = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
                       <h4 className="text-lg font-medium text-gray-900 truncate">
-                        {sermon.title}
+                        {safeRenderValue(sermon.title, "Untitled Sermon")}
                       </h4>
                       <div className="mt-2 flex items-center text-sm text-gray-500">
                         <UserIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
-                        <span>{sermon.speaker}</span>
+                        <span>
+                          {safeRenderValue(sermon.speaker, "Unknown Speaker")}
+                        </span>
                         <CalendarIcon className="flex-shrink-0 ml-4 mr-1.5 h-5 w-5 text-gray-400" />
-                        <span>{sermon.date}</span>
+                        <span>{safeRenderValue(sermon.date, "No date")}</span>
                         {sermon.duration && (
                           <>
                             <ClockIcon className="flex-shrink-0 ml-4 mr-1.5 h-5 w-5 text-gray-400" />
-                            <span>{sermon.duration}</span>
+                            <span>
+                              {safeRenderValue(
+                                sermon.duration,
+                                "Unknown duration"
+                              )}
+                            </span>
                           </>
                         )}
                       </div>
                       {sermon.series && (
                         <span className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          {sermon.series}
+                          {safeRenderValue(sermon.series, "Uncategorized")}
                         </span>
                       )}
                       {sermon.tags && sermon.tags.length > 0 && (
@@ -461,7 +573,7 @@ const SermonManager = () => {
                               key={tag}
                               className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
                             >
-                              {tag}
+                              {safeRenderValue(tag, "tag")}
                             </span>
                           ))}
                         </div>
@@ -802,9 +914,18 @@ const SermonManager = () => {
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start">
                   <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      Select Thumbnail Image
-                    </h3>
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-lg font-medium text-gray-900">
+                        Select Thumbnail Image
+                      </h3>
+                      <button
+                        onClick={refreshMedia}
+                        className="p-2 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-lg"
+                        title="Refresh media"
+                      >
+                        <RefreshIcon className="h-5 w-5" />
+                      </button>
+                    </div>
                     <div className="mt-4">
                       {/* Search bar */}
                       <div className="relative mb-4">
@@ -866,7 +987,10 @@ const SermonManager = () => {
                                   />
                                 </div>
                                 <div className="p-1 text-xs text-center truncate">
-                                  {item.title || item.filename}
+                                  {safeRenderValue(
+                                    item.title || item.filename,
+                                    "Untitled"
+                                  )}
                                 </div>
                               </div>
                             ))}
