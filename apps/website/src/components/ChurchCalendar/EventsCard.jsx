@@ -9,70 +9,140 @@ const EventCard = ({ event, highlight, compact = false }) => {
   // Get image URL with fallback
   const getImageUrl = (event) => {
     if (!event?.imageUrl && !event?.image) return FallbackImage;
-    
+
     if (event.imageUrl) {
       // Add console log to debug image URL
-      console.log('Event image URL:', event.imageUrl);
-      
+      console.log("Event image URL:", event.imageUrl);
+
       // Handle API uploaded images
-      if (event.imageUrl.startsWith('http')) {
+      if (event.imageUrl.startsWith("http")) {
         return event.imageUrl;
-      } else if (event.imageUrl.startsWith('/')) {
+      } else if (event.imageUrl.startsWith("/")) {
         return `${API_URL}${event.imageUrl}`;
       } else {
         // For relative paths without leading slash
         return `${API_URL}/${event.imageUrl}`;
       }
     } else if (event.image) {
-      console.log('Event image object:', event.image);
-      
+      console.log("Event image object:", event.image);
+
       // Handle image object
-      if (typeof event.image === 'object') {
+      if (typeof event.image === "object") {
         if (event.image.path) {
-          return event.image.path.startsWith('/') 
+          return event.image.path.startsWith("/")
             ? `${API_URL}${event.image.path}`
             : `${API_URL}/${event.image.path}`;
         } else if (event.image.filename) {
           return `${API_URL}/uploads/${event.image.filename}`;
         }
       }
-      
+
       // Handle imported local images from the assets folder
       return event.image;
     }
-    
+
     return FallbackImage;
   };
-  
+
   // Get the image URL for the event
   const imageUrl = getImageUrl(event);
 
-  // Helper function to format date and time from API data
+  // Helper function to format date and time from API data with robust parsing
   const getEventDate = (event) => {
-    // Use API fields (startDate) if available, otherwise use legacy date field
-    return new Date(event?.startDate || event?.date || Date.now());
+    try {
+      // Try parsing the date in different formats
+      if (event?.startDate) {
+        // If it's a string like "April 30, 2025", parse it properly
+        if (
+          typeof event.startDate === "string" &&
+          event.startDate.includes(",")
+        ) {
+          const parts = event.startDate.split(",");
+          if (parts.length === 2) {
+            const monthDay = parts[0].trim().split(" ");
+            const year = parts[1].trim();
+            if (monthDay.length === 2) {
+              const month = monthDay[0];
+              const day = parseInt(monthDay[1]);
+              return new Date(`${month} ${day}, ${year}`);
+            }
+          }
+        }
+        // Try standard date parsing
+        return new Date(event.startDate);
+      } else if (event?.date) {
+        // If it's a string like "April 30, 2025", parse it properly
+        if (typeof event.date === "string" && event.date.includes(",")) {
+          const parts = event.date.split(",");
+          if (parts.length === 2) {
+            const monthDay = parts[0].trim().split(" ");
+            const year = parts[1].trim();
+            if (monthDay.length === 2) {
+              const month = monthDay[0];
+              const day = parseInt(monthDay[1]);
+              return new Date(`${month} ${day}, ${year}`);
+            }
+          }
+        }
+        // Try standard date parsing
+        return new Date(event.date);
+      }
+    } catch (err) {
+      console.error(`Error parsing date for event:`, err, event);
+    }
+
+    // Fallback to current date if parsing fails
+    return new Date();
   };
 
-  // Extract time from event
+  // Extract time from event with robust parsing
   const getEventTime = (event) => {
     // If event has a specific time field, use it
     if (event?.time) {
       return event.time;
     }
-    
+
     // Otherwise, try to extract time from startDate
     if (event?.startDate) {
-      const date = new Date(event.startDate);
-      return date.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: 'numeric',
-        hour12: true
-      });
+      try {
+        const date = new Date(event.startDate);
+        // Check if date is valid
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "numeric",
+            hour12: true,
+          });
+        }
+      } catch (err) {
+        console.error(
+          `Error extracting time from startDate:`,
+          err,
+          event.startDate
+        );
+      }
     }
-    
+
+    // Try to extract time from date field as fallback
+    if (event?.date) {
+      try {
+        const date = new Date(event.date);
+        // Check if date is valid
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "numeric",
+            hour12: true,
+          });
+        }
+      } catch (err) {
+        console.error(`Error extracting time from date:`, err, event.date);
+      }
+    }
+
     return "TBA";
   };
-  
+
   // Compact version for the hero section
   if (compact) {
     return (
@@ -93,7 +163,7 @@ const EventCard = ({ event, highlight, compact = false }) => {
               />
             </div>
           )}
-          
+
           {/* Content Section */}
           <div className="p-3 flex-1 flex items-center">
             {/* Date in calendar style */}
@@ -130,7 +200,7 @@ const EventCard = ({ event, highlight, compact = false }) => {
                   </svg>
                   <span className="truncate">{getEventTime(event)}</span>
                 </div>
-                
+
                 {event?.location && (
                   <div className="text-xs text-gray-300 flex items-center">
                     <svg
@@ -163,10 +233,12 @@ const EventCard = ({ event, highlight, compact = false }) => {
       </div>
     );
   }
-    
+
   // Original full version
   return (
-    <div className={`bg-white text-black rounded-lg overflow-hidden ${highlight ? 'shadow-xl border-red-200' : 'shadow-lg border-gray-100'} transition-all duration-300 border h-full transform hover:-translate-y-1`}>
+    <div
+      className={`bg-white text-black rounded-lg overflow-hidden ${highlight ? "shadow-xl border-red-200" : "shadow-lg border-gray-100"} transition-all duration-300 border h-full transform hover:-translate-y-1`}
+    >
       {/* Image Section */}
       <div className="relative h-40 overflow-hidden bg-gray-200">
         <img
@@ -225,7 +297,9 @@ const EventCard = ({ event, highlight, compact = false }) => {
         </div>
 
         {/* Description with line clamp */}
-        <p className="text-gray-600 mb-4 line-clamp-3">{event?.description || "No description available."}</p>
+        <p className="text-gray-600 mb-4 line-clamp-3">
+          {event?.description || "No description available."}
+        </p>
 
         {/* Location info */}
         {event?.location && (

@@ -11,6 +11,7 @@ import HomeSermons from "./components/Home/Sermons";
 import CallToAction from "./components/Home/CallToAction";
 import Footer from "./components/Layout/Footer";
 import ErrorBoundary from "./components/ErrorBoundary";
+import GlobalErrorBoundary from "./components/GlobalErrorBoundary";
 import Membership from "./pages/Membership";
 import Renew from "./pages/Renew"; // Import Membership Renewal page
 import FoundationClasses from "./pages/FoundationClasses"; // Import Foundation Classes page
@@ -40,6 +41,7 @@ import ContactUs from "./pages/ContactUs";
 import Admin from "./pages/Admin"; // Import Admin component
 import AdminGuide from "./pages/admin/AdminGuide"; // Import Admin Guide page
 import Support from "./pages/admin/Support"; // Import Support page
+import ErrorTester from "./components/ErrorTester"; // Import Error Tester component
 import ProtectedRoute from "./components/auth/ProtectedRoute"; // Import ProtectedRoute component
 import TestMedia from "./pages/TestMedia"; // Import our test page
 
@@ -400,6 +402,16 @@ const AppContent = () => {
               }
             />
 
+            {/* Error Boundary Test */}
+            <Route
+              path="/test-error-boundary"
+              element={
+                <PageWrapper>
+                  <ErrorTester />
+                </PageWrapper>
+              }
+            />
+
             {/* 404 Error Page */}
             <Route
               path="*"
@@ -422,7 +434,7 @@ const AppContent = () => {
 function App() {
   return (
     <HelmetProvider>
-      <ErrorBoundary>
+      <GlobalErrorBoundary>
         <QueryProvider>
           <BrowserRouter>
             <AppContent />
@@ -440,7 +452,7 @@ function App() {
             />
           </BrowserRouter>
         </QueryProvider>
-      </ErrorBoundary>
+      </GlobalErrorBoundary>
     </HelmetProvider>
   );
 }

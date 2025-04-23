@@ -25,31 +25,113 @@ const HeroSection = forwardRef((props, ref) => {
   // Process events data when it changes
   useEffect(() => {
     try {
+      console.log("Hero section - Events data received:", events);
+      console.log("Loading state:", loading);
+      console.log("Error state:", error);
+
       if (events && events.length > 0) {
         console.log("Hero section - API events data:", events);
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        console.log("Today's date for comparison:", today);
 
         const upcomingOnly = events
           .filter((event) => {
             // Check if we should use startDate (API format) or date (legacy format)
-            const eventDate = new Date(
-              event.startDate || event.date || Date.now()
+            let eventDate;
+
+            try {
+              // Try parsing the date in different formats
+              if (event.startDate) {
+                // If it's a string like "April 30, 2025", parse it properly
+                if (
+                  typeof event.startDate === "string" &&
+                  event.startDate.includes(",")
+                ) {
+                  const parts = event.startDate.split(",");
+                  if (parts.length === 2) {
+                    const monthDay = parts[0].trim().split(" ");
+                    const year = parts[1].trim();
+                    if (monthDay.length === 2) {
+                      const month = monthDay[0];
+                      const day = parseInt(monthDay[1]);
+                      eventDate = new Date(`${month} ${day}, ${year}`);
+                    }
+                  }
+                } else {
+                  // Try standard date parsing
+                  eventDate = new Date(event.startDate);
+                }
+              } else if (event.date) {
+                // If it's a string like "April 30, 2025", parse it properly
+                if (
+                  typeof event.date === "string" &&
+                  event.date.includes(",")
+                ) {
+                  const parts = event.date.split(",");
+                  if (parts.length === 2) {
+                    const monthDay = parts[0].trim().split(" ");
+                    const year = parts[1].trim();
+                    if (monthDay.length === 2) {
+                      const month = monthDay[0];
+                      const day = parseInt(monthDay[1]);
+                      eventDate = new Date(`${month} ${day}, ${year}`);
+                    }
+                  }
+                } else {
+                  // Try standard date parsing
+                  eventDate = new Date(event.date);
+                }
+              } else {
+                // Fallback to current date
+                eventDate = new Date();
+              }
+
+              // Check if the date is valid
+              if (isNaN(eventDate.getTime())) {
+                console.error(
+                  `Invalid date for event: ${event.title}`,
+                  event.startDate || event.date
+                );
+                eventDate = new Date(); // Fallback to current date
+              }
+            } catch (err) {
+              console.error(
+                `Error parsing date for event: ${event.title}`,
+                err
+              );
+              eventDate = new Date(); // Fallback to current date
+            }
+
+            console.log(
+              `Event: ${event.title}, Date: ${eventDate.toISOString()}, Original: ${event.startDate || event.date}, Is upcoming: ${eventDate >= today}`
             );
             return eventDate >= today;
           })
           .sort((a, b) => {
-            // Sort by date, using the appropriate field
-            return (
-              new Date(a.startDate || a.date) - new Date(b.startDate || b.date)
-            );
+            // Sort by date, using the appropriate field with robust parsing
+            const parseEventDate = (event) => {
+              try {
+                if (event.startDate) {
+                  return new Date(event.startDate);
+                } else if (event.date) {
+                  return new Date(event.date);
+                }
+              } catch (err) {
+                console.error(`Error parsing date for sorting:`, err);
+              }
+              return new Date(); // Fallback
+            };
+
+            return parseEventDate(a) - parseEventDate(b);
           });
 
+        console.log("Upcoming events after filtering:", upcomingOnly);
         setUpcomingEvents(upcomingOnly.slice(0, 4));
       } else if (!loading && (!events || events.length === 0)) {
         // If no events are available and we're not loading, use fallback data
-        console.error("No events available");
+        console.error("No events available in the database");
 
         // Fallback static events
         const staticEvents = [

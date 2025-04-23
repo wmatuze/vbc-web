@@ -1,4 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
+import useErrorHandler from "../../hooks/useErrorHandler";
+import { validateSermon, validateField } from "../../utils/validationUtils";
+import FormField from "../common/FormField";
 import { createSermon, updateSermon, deleteSermon } from "../../services/api";
 import { useSermonsQuery } from "../../hooks/useSermonsQuery";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
@@ -35,7 +38,9 @@ const SermonManager = () => {
   } = useSermonsQuery();
 
   // Local state for operations other than fetching
-  const [error, setError] = useState(null);
+  // Use our custom error handling hook
+  const { error, errorMessage, handleError, clearError, withErrorHandling } =
+    useErrorHandler("SermonManager");
   const [showForm, setShowForm] = useState(false);
   const [formMode, setFormMode] = useState("add");
   const [loading, setLoading] = useState(false);
@@ -62,6 +67,7 @@ const SermonManager = () => {
   const [isLoadingMedia, setIsLoadingMedia] = useState(false);
   const [mediaItems, setMediaItems] = useState([]);
   const [selectedMediaItem, setSelectedMediaItem] = useState(null);
+  const [formErrors, setFormErrors] = useState({});
 
   // Get unique series from sermons for filter dropdown
   const seriesList = [
@@ -72,9 +78,9 @@ const SermonManager = () => {
   // Display any query errors
   useEffect(() => {
     if (sermonsError) {
-      setError("Failed to load sermons. Please try again.");
+      handleError(sermonsError, "Loading Sermons");
     }
-  }, [sermonsError]);
+  }, [sermonsError, handleError]);
 
   // Use React Query for fetching media
   const {
@@ -101,9 +107,47 @@ const SermonManager = () => {
     setIsLoadingMedia(mediaLoading);
   }, [mediaData, mediaLoading]);
 
+  // Define validation rules for sermon fields
+  const validationRules = {
+    title: {
+      type: "string",
+      required: true,
+      minLength: 3,
+      maxLength: 100,
+      fieldName: "Title",
+    },
+    speaker: {
+      type: "string",
+      required: true,
+      minLength: 2,
+      maxLength: 50,
+      fieldName: "Speaker",
+    },
+    date: { type: "date", required: true, fieldName: "Date" },
+    videoId: {
+      type: "youtubeId",
+      required: true,
+      fieldName: "YouTube Video ID",
+    },
+    duration: { type: "duration", required: true, fieldName: "Duration" },
+    description: { type: "string", maxLength: 1000, fieldName: "Description" },
+    series: { type: "string", maxLength: 50, fieldName: "Series" },
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setCurrentSermon((prev) => ({ ...prev, [name]: value }));
+
+    // Validate the field if it has validation rules
+    if (validationRules[name]) {
+      validateField(
+        name,
+        value,
+        validationRules[name],
+        formErrors,
+        setFormErrors
+      );
+    }
   };
 
   const handleTagsChange = (e) => {
@@ -112,6 +156,27 @@ const SermonManager = () => {
       .map((tag) => tag.trim())
       .filter(Boolean);
     setCurrentSermon((prev) => ({ ...prev, tags }));
+
+    // Validate tags
+    validateField(
+      "tags",
+      tags,
+      {
+        type: "array",
+        maxLength: 10,
+        itemValidator: (tag) =>
+          validateField(
+            "tag",
+            tag,
+            { type: "string", maxLength: 20, fieldName: "Tag" },
+            {},
+            () => {}
+          ),
+        fieldName: "Tags",
+      },
+      formErrors,
+      setFormErrors
+    );
   };
 
   const getImagePreviewUrl = (imageUrl) => {
@@ -172,13 +237,30 @@ const SermonManager = () => {
     setMediaSearchTerm("");
     setFormMode("add");
     setShowForm(false);
+    setFormErrors({});
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  // Wrap the submit handler with our error handling utility
+  const handleSubmit = withErrorHandling(
+    async (e) => {
+      e.preventDefault();
 
-    try {
+      // Validate all fields before submission
+      const { isValid, errors } = validateSermon(currentSermon);
+
+      if (!isValid) {
+        // Update form errors and stop submission
+        setFormErrors(errors);
+        // Show error message
+        handleError(
+          new Error("Please fix the form errors before submitting"),
+          "Form Validation"
+        );
+        return;
+      }
+
+      setLoading(true);
+
       // Create a clean copy of the sermon data without any problematic fields
       const cleanSermon = {
         title: currentSermon.title,
@@ -224,17 +306,51 @@ const SermonManager = () => {
 
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(""), 3000);
-    } catch (err) {
-      console.error("Error saving sermon:", err);
-      setError("Failed to save sermon. Please try again.");
-    } finally {
+
       // Loading complete
       setLoading(false);
+    },
+    {
+      showLoading: false, // We're handling loading state manually
+      showSuccess: false, // We're handling success messages manually
+      context: "Form Submission",
     }
-  };
+  );
 
   const handleEdit = (sermon) => {
     try {
+      // Ensure we're working with a valid sermon object
+      if (!sermon || typeof sermon !== "object") {
+        throw new Error("Invalid sermon data");
+      }
+
+      // Create a safe copy of the sermon with primitive values
+      const safeSermon = {};
+
+      // Copy all primitive values and convert objects to strings
+      Object.keys(sermon).forEach((key) => {
+        const value = sermon[key];
+        if (value === null || value === undefined) {
+          safeSermon[key] = "";
+        } else if (typeof value === "object" && !Array.isArray(value)) {
+          // For specific known objects, handle specially
+          if (key === "image" && value.path) {
+            safeSermon.imageUrl = value.path;
+          } else {
+            // For other objects, stringify them
+            safeSermon[key] = JSON.stringify(value);
+          }
+        } else if (Array.isArray(value)) {
+          // For arrays, ensure each item is safe
+          safeSermon[key] = value.map((item) =>
+            typeof item === "object" ? JSON.stringify(item) : item
+          );
+        } else {
+          // For primitive values, use as is
+          safeSermon[key] = value;
+        }
+      });
+
       // Safely convert display date back to ISO format for input
       let isoDate;
       try {
@@ -252,54 +368,63 @@ const SermonManager = () => {
         isoDate = format(new Date(), "yyyy-MM-dd"); // Use current date as fallback
       }
 
+      // Set the current sermon with safe values
       setCurrentSermon({
-        ...sermon,
+        ...safeSermon,
         date: isoDate,
-        tags: sermon.tags || [],
+        tags: Array.isArray(sermon.tags) ? sermon.tags : [],
+        // Ensure these critical fields are set
+        title: String(sermon.title || ""),
+        speaker: String(sermon.speaker || ""),
+        description: String(sermon.description || ""),
+        videoId: String(sermon.videoId || ""),
       });
+
       setFormMode("edit");
       setShowForm(true);
     } catch (error) {
-      console.error("Error in handleEdit:", error);
-      // Show error message to user
-      setError(`Failed to edit sermon: ${error.message}`);
+      handleError(error, "Editing Sermon", { sermonId: sermon?.id });
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this sermon?")) {
-      setLoading(true);
-      try {
+  // Wrap the delete handler with our error handling utility
+  const handleDelete = withErrorHandling(
+    async (id) => {
+      if (window.confirm("Are you sure you want to delete this sermon?")) {
+        setLoading(true);
         await deleteSermon(id);
         setSuccessMessage("Sermon deleted successfully!");
         await refetchSermons();
 
         // Clear success message after 3 seconds
         setTimeout(() => setSuccessMessage(""), 3000);
-      } catch (err) {
-        console.error("Error deleting sermon:", err);
-        setError("Failed to delete sermon. Please try again.");
-      } finally {
+
         // Loading complete
         setLoading(false);
       }
+    },
+    {
+      showLoading: false, // We're handling loading state manually
+      showSuccess: false, // We're handling success messages manually
+      context: "Sermon Deletion",
     }
-  };
+  );
 
   // Filter and sort sermons
   const filteredSermons = sermons
     .filter((sermon) => {
+      // Ensure sermon is a valid object
+      if (!sermon || typeof sermon !== "object") {
+        console.warn("Invalid sermon object:", sermon);
+        return false;
+      }
+
       // Safely get string values for search
-      const safeTitle =
-        typeof sermon.title === "string"
-          ? sermon.title
-          : String(sermon.title || "");
-      const safeSpeaker =
-        typeof sermon.speaker === "string"
-          ? sermon.speaker
-          : String(sermon.speaker || "");
-      const safeDescription =
-        typeof sermon.description === "string" ? sermon.description : "";
+      const safeTitle = String(sermon.title || "");
+      const safeSpeaker = String(sermon.speaker || "");
+      const safeDescription = String(sermon.description || "");
+      // Get series as string for filtering
+      const safeSeries = String(sermon.series || "");
 
       const matchesSearch =
         searchTerm === "" ||
@@ -312,8 +437,7 @@ const SermonManager = () => {
         });
 
       const matchesSeries =
-        filterSeries === "all" ||
-        (typeof sermon.series === "string" && sermon.series === filterSeries);
+        filterSeries === "all" || safeSeries === filterSeries;
 
       // Date filtering
       let matchesDateFilter = true;
@@ -453,7 +577,13 @@ const SermonManager = () => {
               <ExclamationCircleIcon className="h-5 w-5 text-red-400" />
             </div>
             <div className="ml-3">
-              <p className="text-sm text-red-700">{error}</p>
+              <p className="text-sm text-red-700 font-medium">{errorMessage}</p>
+              <button
+                onClick={clearError}
+                className="mt-2 text-xs text-red-500 hover:text-red-700 underline"
+              >
+                Dismiss
+              </button>
             </div>
           </div>
         </div>
@@ -622,120 +752,85 @@ const SermonManager = () => {
                   </div>
 
                   <div className="space-y-4">
-                    <div>
-                      <label
-                        htmlFor="title"
-                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                      >
-                        Title
-                      </label>
-                      <input
-                        type="text"
-                        id="title"
-                        name="title"
-                        value={currentSermon.title}
-                        onChange={handleInputChange}
-                        className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        required
-                      />
-                    </div>
+                    <FormField
+                      label="Title"
+                      name="title"
+                      type="text"
+                      value={currentSermon.title}
+                      onChange={handleInputChange}
+                      placeholder="Enter sermon title"
+                      required={true}
+                      validation={validationRules.title}
+                      errors={formErrors}
+                      setErrors={setFormErrors}
+                    />
 
-                    <div>
-                      <label
-                        htmlFor="speaker"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Speaker
-                      </label>
-                      <input
-                        type="text"
-                        id="speaker"
-                        name="speaker"
-                        value={currentSermon.speaker}
-                        onChange={handleInputChange}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        required
-                      />
-                    </div>
+                    <FormField
+                      label="Speaker"
+                      name="speaker"
+                      type="text"
+                      value={currentSermon.speaker}
+                      onChange={handleInputChange}
+                      placeholder="Enter speaker name"
+                      required={true}
+                      validation={validationRules.speaker}
+                      errors={formErrors}
+                      setErrors={setFormErrors}
+                    />
 
-                    <div>
-                      <label
-                        htmlFor="date"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Date
-                      </label>
-                      <input
-                        type="date"
-                        id="date"
-                        name="date"
-                        value={currentSermon.date}
-                        onChange={handleInputChange}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        required
-                      />
-                    </div>
+                    <FormField
+                      label="Date"
+                      name="date"
+                      type="date"
+                      value={currentSermon.date}
+                      onChange={handleInputChange}
+                      required={true}
+                      validation={validationRules.date}
+                      errors={formErrors}
+                      setErrors={setFormErrors}
+                    />
 
-                    <div>
-                      <label
-                        htmlFor="videoId"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        YouTube Video ID
-                      </label>
-                      <input
-                        type="text"
-                        id="videoId"
-                        name="videoId"
-                        value={currentSermon.videoId}
-                        onChange={handleInputChange}
-                        placeholder="e.g. dQw4w9WgXcQ"
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        required
-                      />
-                      <p className="mt-1 text-xs text-gray-500">
-                        Found in the YouTube URL after "v="
-                      </p>
-                    </div>
+                    <FormField
+                      label="YouTube Video ID"
+                      name="videoId"
+                      type="text"
+                      value={currentSermon.videoId}
+                      onChange={handleInputChange}
+                      placeholder="e.g. dQw4w9WgXcQ"
+                      required={true}
+                      validation={validationRules.videoId}
+                      errors={formErrors}
+                      setErrors={setFormErrors}
+                      helpText="Found in the YouTube URL after 'v='"
+                    />
 
-                    <div>
-                      <label
-                        htmlFor="duration"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Duration
-                      </label>
-                      <input
-                        type="text"
-                        id="duration"
-                        name="duration"
-                        value={currentSermon.duration}
-                        onChange={handleInputChange}
-                        placeholder="e.g. 1:05:38"
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        required
-                      />
-                    </div>
+                    <FormField
+                      label="Duration"
+                      name="duration"
+                      type="text"
+                      value={currentSermon.duration}
+                      onChange={handleInputChange}
+                      placeholder="e.g. 1:05:38"
+                      required={true}
+                      validation={validationRules.duration}
+                      errors={formErrors}
+                      setErrors={setFormErrors}
+                      helpText="Format: h:mm:ss or mm:ss"
+                    />
 
-                    <div>
-                      <label
-                        htmlFor="series"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Series
-                      </label>
-                      <input
-                        type="text"
-                        id="series"
-                        name="series"
-                        value={currentSermon.series}
-                        onChange={handleInputChange}
-                        placeholder="e.g. Easter 2024"
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                      />
-                    </div>
+                    <FormField
+                      label="Series"
+                      name="series"
+                      type="text"
+                      value={currentSermon.series}
+                      onChange={handleInputChange}
+                      placeholder="e.g. Easter 2024"
+                      validation={validationRules.series}
+                      errors={formErrors}
+                      setErrors={setFormErrors}
+                    />
 
-                    <div>
+                    <div className={`${formErrors.tags ? "has-error" : ""}`}>
                       <label
                         htmlFor="tags"
                         className="block text-sm font-medium text-gray-700"
@@ -749,29 +844,32 @@ const SermonManager = () => {
                         value={currentSermon.tags?.join(", ") || ""}
                         onChange={handleTagsChange}
                         placeholder="faith, prayer, healing"
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        className={`mt-1 block w-full border ${formErrors.tags ? "border-red-500" : "border-gray-300"} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
                       />
-                      <p className="mt-1 text-xs text-gray-500">
-                        Separate tags with commas
-                      </p>
+                      {!formErrors.tags && (
+                        <p className="mt-1 text-xs text-gray-500">
+                          Separate tags with commas (max 10 tags)
+                        </p>
+                      )}
+                      {formErrors.tags && (
+                        <p className="mt-1 text-xs text-red-500">
+                          {formErrors.tags}
+                        </p>
+                      )}
                     </div>
 
-                    <div>
-                      <label
-                        htmlFor="description"
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Description
-                      </label>
-                      <textarea
-                        id="description"
-                        name="description"
-                        value={currentSermon.description}
-                        onChange={handleInputChange}
-                        rows={3}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                      />
-                    </div>
+                    <FormField
+                      label="Description"
+                      name="description"
+                      type="textarea"
+                      value={currentSermon.description}
+                      onChange={handleInputChange}
+                      placeholder="Enter sermon description"
+                      validation={validationRules.description}
+                      errors={formErrors}
+                      setErrors={setFormErrors}
+                      rows={3}
+                    />
 
                     <div>
                       <label

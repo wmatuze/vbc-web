@@ -1,4 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
+import useErrorHandler from "../../hooks/useErrorHandler";
+import { validateEvent, validateField } from "../../utils/validationUtils";
+import FormField from "../common/FormField";
 import { createEvent, updateEvent, deleteEvent } from "../../services/api";
 import { useEventsQuery } from "../../hooks/useEventsQuery";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
@@ -39,7 +42,12 @@ const EventManager = () => {
   } = useEventsQuery();
 
   // Local state for operations other than fetching
-  const [error, setError] = useState(null);
+  // Use our custom error handling hook
+  const { error, errorMessage, handleError, clearError, withErrorHandling } =
+    useErrorHandler("EventManager");
+
+  // Form validation errors
+  const [formErrors, setFormErrors] = useState({});
   const [showForm, setShowForm] = useState(false);
   const [formMode, setFormMode] = useState("add");
   const [currentEvent, setCurrentEvent] = useState({
@@ -106,9 +114,81 @@ const EventManager = () => {
     }
   }, [mediaData]);
 
+  // Define validation rules for event fields
+  const validationRules = {
+    title: {
+      type: "string",
+      required: true,
+      minLength: 3,
+      maxLength: 100,
+      fieldName: "Title",
+    },
+    date: { type: "date", required: true, fieldName: "Date" },
+    time: { type: "time", required: true, fieldName: "Time" },
+    location: {
+      type: "string",
+      required: true,
+      minLength: 3,
+      maxLength: 100,
+      fieldName: "Location",
+    },
+    description: { type: "string", maxLength: 1000, fieldName: "Description" },
+    capacity: { type: "number", integer: true, min: 1, fieldName: "Capacity" },
+    ministry: { type: "string", maxLength: 50, fieldName: "Ministry" },
+    registrationUrl: { type: "url", fieldName: "Registration URL" },
+    organizer: { type: "string", maxLength: 50, fieldName: "Organizer" },
+    contactEmail: { type: "email", fieldName: "Contact Email" },
+    recurringPattern: {
+      type: "string",
+      maxLength: 50,
+      fieldName: "Recurring Pattern",
+    },
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setCurrentEvent((prev) => ({ ...prev, [name]: value }));
+
+    // Validate the field if it has validation rules
+    if (validationRules[name]) {
+      validateField(
+        name,
+        value,
+        validationRules[name],
+        formErrors,
+        setFormErrors
+      );
+    }
+  };
+
+  // Handle tags input with validation
+  const handleTagsChange = (e) => {
+    const tags = e.target.value
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+    setCurrentEvent((prev) => ({ ...prev, tags }));
+
+    // Validate tags
+    validateField(
+      "tags",
+      tags,
+      {
+        type: "array",
+        maxLength: 10,
+        itemValidator: (tag) =>
+          validateField(
+            "tag",
+            tag,
+            { type: "string", maxLength: 20, fieldName: "Tag" },
+            {},
+            () => {}
+          ),
+        fieldName: "Tags",
+      },
+      formErrors,
+      setFormErrors
+    );
   };
 
   const resetForm = () => {
@@ -132,12 +212,27 @@ const EventManager = () => {
       featured: false,
     });
     setFormMode("add");
+    setFormErrors({});
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = withErrorHandling(
+    async (e) => {
+      e.preventDefault();
 
-    try {
+      // Validate all fields before submission
+      const { isValid, errors } = validateEvent(currentEvent);
+
+      if (!isValid) {
+        // Update form errors and stop submission
+        setFormErrors(errors);
+        // Show error message
+        handleError(
+          new Error("Please fix the form errors before submitting"),
+          "Form Validation"
+        );
+        return;
+      }
+
       // Show loading state in UI
 
       // Create a clean copy of the event data
@@ -150,11 +245,23 @@ const EventManager = () => {
       let eventDate;
       try {
         // Use the formattedDate if available, otherwise format the date input
-        eventDate =
-          cleanEvent.formattedDate ||
-          format(new Date(cleanEvent.date), "MMMM d, yyyy");
+        if (cleanEvent.formattedDate) {
+          eventDate = cleanEvent.formattedDate;
+          console.log(`Using pre-formatted date: ${eventDate}`);
+        } else if (cleanEvent.date) {
+          // Ensure date is in a consistent format (MMMM d, yyyy)
+          const parsedDate = parseISO(cleanEvent.date);
+          eventDate = format(parsedDate, "MMMM d, yyyy");
+          console.log(
+            `Formatted date for event: ${eventDate} (from ${cleanEvent.date})`
+          );
+        } else {
+          // Fallback to current date
+          eventDate = format(new Date(), "MMMM d, yyyy");
+          console.warn("No date provided for event, using current date");
+        }
       } catch (dateError) {
-        console.error("Date parsing error:", dateError);
+        console.error("Date parsing error:", dateError, cleanEvent.date);
         eventDate = format(new Date(), "MMMM d, yyyy"); // Fallback to current date
       }
 
@@ -228,18 +335,16 @@ const EventManager = () => {
 
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(""), 3000);
-    } catch (err) {
-      console.error("Error saving event:", err);
-      setError(
-        `Failed to save event: ${err.message || "Unknown error"}. Please try again.`
-      );
-    } finally {
-      // Loading complete
+    },
+    {
+      showLoading: false, // We're handling loading state manually
+      showSuccess: false, // We're handling success messages manually
+      context: "Event Form Submission",
     }
-  };
+  );
 
-  const handleEdit = (event) => {
-    try {
+  const handleEdit = withErrorHandling(
+    (event) => {
       // Convert display date to ISO format for input
       let isoDate;
       try {
@@ -266,17 +371,15 @@ const EventManager = () => {
       setCurrentEvent(eventData);
       setFormMode("edit");
       setShowForm(true);
-    } catch (err) {
-      console.error("Error in handleEdit:", err);
-      setError("Error preparing event for editing. Please try again.");
+    },
+    {
+      context: "Event Editing",
     }
-  };
+  );
 
-  const handleDelete = async (event) => {
-    if (window.confirm("Are you sure you want to delete this event?")) {
-      try {
-        // Show loading state in UI
-
+  const handleDelete = withErrorHandling(
+    async (event) => {
+      if (window.confirm("Are you sure you want to delete this event?")) {
         // Get the correct ID (could be id, _id, or both)
         const eventId = event.id || event._id;
 
@@ -292,16 +395,12 @@ const EventManager = () => {
 
         // Clear success message after 3 seconds
         setTimeout(() => setSuccessMessage(""), 3000);
-      } catch (err) {
-        console.error("Error deleting event:", err);
-        setError(
-          `Failed to delete event: ${err.message || "Unknown error"}. Please try again.`
-        );
-      } finally {
-        // Loading complete
       }
+    },
+    {
+      context: "Event Deletion",
     }
-  };
+  );
 
   const handleDuplicate = (event) => {
     const duplicatedEvent = {
@@ -492,7 +591,22 @@ const EventManager = () => {
 
       {error && (
         <div className="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded mb-4">
-          {error}
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <ExclamationCircleIcon className="h-5 w-5 text-red-400" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-red-700 dark:text-red-200 font-medium">
+                {errorMessage}
+              </p>
+              <button
+                onClick={clearError}
+                className="mt-2 text-xs text-red-500 dark:text-red-300 hover:text-red-700 dark:hover:text-red-100 underline"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -512,19 +626,19 @@ const EventManager = () => {
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Title
-            </label>
-            <input
-              type="text"
-              name="title"
-              value={currentEvent.title}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              required
-            />
-          </div>
+          <FormField
+            label="Title"
+            name="title"
+            type="text"
+            value={currentEvent.title}
+            onChange={handleInputChange}
+            placeholder="Enter event title"
+            required={true}
+            validation={validationRules.title}
+            errors={formErrors}
+            setErrors={setFormErrors}
+            className="mb-0"
+          />
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -548,12 +662,27 @@ const EventManager = () => {
                       date: inputDate,
                       formattedDate: formattedDate,
                     }));
+
+                    // Validate the date field
+                    validateField(
+                      "date",
+                      inputDate,
+                      validationRules.date,
+                      formErrors,
+                      setFormErrors
+                    );
                   } catch (err) {
                     console.error("Error formatting date:", err);
                     setCurrentEvent((prev) => ({
                       ...prev,
                       date: inputDate,
                       formattedDate: inputDate,
+                    }));
+
+                    // Show validation error
+                    setFormErrors((prev) => ({
+                      ...prev,
+                      date: "Invalid date format",
                     }));
                   }
                 } else {
@@ -562,32 +691,44 @@ const EventManager = () => {
                     date: "",
                     formattedDate: "",
                   }));
+
+                  // Validate empty date if required
+                  validateField(
+                    "date",
+                    "",
+                    validationRules.date,
+                    formErrors,
+                    setFormErrors
+                  );
                 }
               }}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className={`w-full px-3 py-2 border ${formErrors.date ? "border-red-500" : "border-gray-300 dark:border-gray-600"} rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
               required
             />
-            {currentEvent.formattedDate && (
+            {!formErrors.date && currentEvent.formattedDate && (
               <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                 Display format: {currentEvent.formattedDate}
               </div>
             )}
+            {formErrors.date && (
+              <p className="mt-1 text-xs text-red-500">{formErrors.date}</p>
+            )}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Time
-            </label>
-            <input
-              type="text"
-              name="time"
-              value={currentEvent.time}
-              onChange={handleInputChange}
-              placeholder="e.g. 10:30 AM"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-              required
-            />
-          </div>
+          <FormField
+            label="Time"
+            name="time"
+            type="text"
+            value={currentEvent.time}
+            onChange={handleInputChange}
+            placeholder="e.g. 10:30 AM"
+            required={true}
+            validation={validationRules.time}
+            errors={formErrors}
+            setErrors={setFormErrors}
+            helpText="Format: HH:MM or HH:MM AM/PM"
+            className="mb-0"
+          />
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -616,19 +757,33 @@ const EventManager = () => {
             </select>
           </div>
 
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Description
-            </label>
-            <textarea
-              name="description"
-              value={currentEvent.description}
-              onChange={handleInputChange}
-              rows="3"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              required
-            ></textarea>
-          </div>
+          <FormField
+            label="Location"
+            name="location"
+            type="text"
+            value={currentEvent.location}
+            onChange={handleInputChange}
+            placeholder="Enter event location"
+            required={true}
+            validation={validationRules.location}
+            errors={formErrors}
+            setErrors={setFormErrors}
+            className="mb-0"
+          />
+
+          <FormField
+            label="Description"
+            name="description"
+            type="textarea"
+            value={currentEvent.description}
+            onChange={handleInputChange}
+            placeholder="Enter event description"
+            validation={validationRules.description}
+            errors={formErrors}
+            setErrors={setFormErrors}
+            rows="3"
+            className="md:col-span-2"
+          />
 
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -661,6 +816,34 @@ const EventManager = () => {
                   onError={handleImageError}
                 />
               </div>
+            )}
+          </div>
+
+          <div
+            className={`md:col-span-2 ${formErrors.tags ? "has-error" : ""}`}
+          >
+            <label
+              htmlFor="tags"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              Tags
+            </label>
+            <input
+              type="text"
+              id="tags"
+              name="tags"
+              value={currentEvent.tags?.join(", ") || ""}
+              onChange={handleTagsChange}
+              placeholder="e.g. worship, prayer, outreach"
+              className={`w-full px-3 py-2 border ${formErrors.tags ? "border-red-500" : "border-gray-300 dark:border-gray-600"} rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500`}
+            />
+            {!formErrors.tags && (
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Separate tags with commas (max 10 tags)
+              </p>
+            )}
+            {formErrors.tags && (
+              <p className="mt-1 text-xs text-red-500">{formErrors.tags}</p>
             )}
           </div>
         </div>
