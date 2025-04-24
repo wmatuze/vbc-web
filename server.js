@@ -1030,6 +1030,109 @@ app.get("/api/events/:id", async (req, res) => {
   }
 });
 
+// Update an event
+app.put("/api/events/:id", authMiddleware, async (req, res) => {
+  try {
+    console.log(`Updating event with ID: ${req.params.id}`);
+    console.log("Update data:", req.body);
+
+    // Prepare update data
+    const updateData = {
+      ...req.body,
+      updatedAt: new Date(),
+      type: "event", // Ensure type is set for proper categorization
+    };
+
+    // Handle date fields
+    if (updateData.startDate) {
+      updateData.startDate = new Date(updateData.startDate);
+    }
+    if (updateData.endDate) {
+      updateData.endDate = new Date(updateData.endDate);
+    }
+
+    // Remove MongoDB-specific fields that might cause issues
+    delete updateData._id;
+    delete updateData.__v;
+    delete updateData.createdAt;
+
+    console.log("Final update data:", updateData);
+
+    const event = await models.Event.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true }
+    ).populate("image");
+
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    // Format for response
+    const formattedEvent = formatObject(event);
+    console.log("Successfully updated event:", formattedEvent.title);
+
+    res.json(formattedEvent);
+  } catch (error) {
+    console.error("Error updating event:", error);
+    res.status(500).json({ error: "Failed to update event" });
+  }
+});
+
+// Also add compatibility route for updating events
+app.put("/events/:id", authMiddleware, async (req, res) => {
+  try {
+    console.log(
+      `Updating event with ID (compatibility route): ${req.params.id}`
+    );
+    console.log("Update data:", req.body);
+
+    // Prepare update data
+    const updateData = {
+      ...req.body,
+      updatedAt: new Date(),
+      type: "event", // Ensure type is set for proper categorization
+    };
+
+    // Handle date fields
+    if (updateData.startDate) {
+      updateData.startDate = new Date(updateData.startDate);
+    }
+    if (updateData.endDate) {
+      updateData.endDate = new Date(updateData.endDate);
+    }
+
+    // Remove MongoDB-specific fields that might cause issues
+    delete updateData._id;
+    delete updateData.__v;
+    delete updateData.createdAt;
+
+    console.log("Final update data (compatibility):", updateData);
+
+    const event = await models.Event.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true }
+    ).populate("image");
+
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    // Format for response
+    const formattedEvent = formatObject(event);
+    console.log(
+      "Successfully updated event (compatibility):",
+      formattedEvent.title
+    );
+
+    res.json(formattedEvent);
+  } catch (error) {
+    console.error("Error updating event (compatibility):", error);
+    res.status(500).json({ error: "Failed to update event" });
+  }
+});
+
 // Also support the old format for event IDs (numeric IDs)
 app.get("/events/:id", async (req, res) => {
   try {

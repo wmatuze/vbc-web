@@ -649,6 +649,21 @@ export const validateField = (
     case "duration":
       error = validateDuration(value, validationRules);
       break;
+    case "time":
+      error = validateTime(value, validationRules);
+      break;
+    case "email":
+      error = validateEmail(value, validationRules);
+      break;
+    case "number":
+      error = validateNumber(value, validationRules);
+      break;
+    case "phone":
+      error = validatePhone(value, validationRules);
+      break;
+    case "boolean":
+      error = validateBoolean(value, validationRules);
+      break;
     default:
       console.warn(`No validation function for type: ${validationRules.type}`);
   }
