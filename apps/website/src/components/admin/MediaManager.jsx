@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { deleteMedia, uploadFile } from "../../services/api";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
+import useErrorHandler from "../../hooks/useErrorHandler";
+import { validateField } from "../../utils/validationUtils";
+import {
+  validateMedia,
+  mediaValidationRules,
+} from "../../utils/mediaValidation";
 import {
   Squares2X2Icon as ViewGridIcon,
   ListBulletIcon as ViewListIcon,
@@ -70,15 +76,19 @@ const MediaManager = () => {
     refetch: refetchMedia,
   } = useMediaQuery();
 
+  // Use our custom error handling hook
+  const { error, errorMessage, handleError, clearError, withErrorHandling } =
+    useErrorHandler("MediaManager");
+
   // Local state for media (will be updated with mediaData)
   const [media, setMedia] = useState([]);
-  const [error, setError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("general");
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [viewMode, setViewMode] = useState("grid");
@@ -134,10 +144,10 @@ const MediaManager = () => {
         console.error("Failed to cache media data:", cacheErr);
       }
 
-      setError(null);
+      clearError();
     } else if (mediaError) {
       console.error("Error fetching media:", mediaError);
-      setError("Failed to load media. Please try again.");
+      handleError(mediaError, "Failed to load media");
 
       // Try to recover from cached data if available
       const cachedData =
@@ -231,15 +241,11 @@ const MediaManager = () => {
   const handleFileSelection = (file) => {
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.match(/^image\//)) {
-      setUploadError("Only image files are allowed (jpg, jpeg, png, gif)");
-      return;
-    }
+    // Validate file using our validation rules
+    const { isValid, errors } = validateMedia({ file });
 
-    // Check file size - limit to 5MB
-    if (file.size > 5 * 1024 * 1024) {
-      setUploadError("File is too large. Maximum size allowed is 5MB");
+    if (!isValid && errors.file) {
+      setUploadError(errors.file);
       return;
     }
 
@@ -247,6 +253,15 @@ const MediaManager = () => {
     setTitle(file.name.split(".").slice(0, -1).join("."));
     setPreviewUrl(URL.createObjectURL(file));
     setUploadError(null);
+
+    // Validate title field
+    validateField(
+      "title",
+      file.name.split(".").slice(0, -1).join("."),
+      mediaValidationRules.title,
+      formErrors,
+      setFormErrors
+    );
   };
 
   const handleFileChange = (e) => {
@@ -256,15 +271,25 @@ const MediaManager = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = withErrorHandling(
+    async (e) => {
+      e.preventDefault();
 
-    if (!selectedFile) {
-      setUploadError("Please select a file to upload.");
-      return;
-    }
+      // Validate all fields before submission
+      const { isValid, errors } = validateMedia({
+        file: selectedFile,
+        title,
+        category,
+      });
 
-    try {
+      if (!isValid) {
+        // Update form errors and stop submission
+        setFormErrors(errors);
+        setUploadError("Please fix the form errors before submitting");
+        return;
+      }
+
+      try {
       setIsUploading(true);
       setUploadProgress(0);
       setUploadError(null);
@@ -355,19 +380,24 @@ const MediaManager = () => {
       if (!isMounted.current) return;
       console.error("Upload error:", err);
       setUploadError(`Failed to upload file: ${err.message}`);
+      throw err; // Re-throw for error handler
     } finally {
       if (isMounted.current) {
         setIsUploading(false);
       }
     }
+  },
+  {
+    context: "Media Upload",
+  }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this media item?")) {
-      return;
-    }
+  const handleDelete = withErrorHandling(
+    async (id) => {
+      if (!window.confirm("Are you sure you want to delete this media item?")) {
+        return;
+      }
 
-    try {
       await deleteMedia(id);
       setMedia((prev) => prev.filter((item) => item.id !== id));
 
@@ -375,26 +405,34 @@ const MediaManager = () => {
       const updatedMedia = media.filter((item) => item.id !== id);
       sessionStorage.setItem("cachedMedia", JSON.stringify(updatedMedia));
       localStorage.setItem("mediaBackup", JSON.stringify(updatedMedia));
-    } catch (err) {
-      console.error("Delete error:", err);
-      setError("Failed to delete media item. Please try again.");
+    },
+    {
+      context: "Media Deletion",
     }
-  };
+  );
 
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text).then(
-      () => {
-        // Show success message
-        const el = document.createElement("div");
-        el.className =
-          "fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg";
-        el.textContent = "URL copied to clipboard!";
-        document.body.appendChild(el);
-        setTimeout(() => el.remove(), 2000);
-      },
-      (err) => console.error("Failed to copy:", err)
-    );
-  };
+  const copyToClipboard = withErrorHandling(
+    (text) => {
+      navigator.clipboard.writeText(text).then(
+        () => {
+          // Show success message
+          const el = document.createElement("div");
+          el.className =
+            "fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg";
+          el.textContent = "URL copied to clipboard!";
+          document.body.appendChild(el);
+          setTimeout(() => el.remove(), 2000);
+        },
+        (err) => {
+          console.error("Failed to copy:", err);
+          throw err; // Re-throw for error handler
+        }
+      );
+    },
+    {
+      context: "Copy to Clipboard",
+    }
+  );
 
   const filteredMedia = media.filter((item) => {
     if (filterCategory !== "all" && item.category !== filterCategory)
@@ -437,6 +475,32 @@ const MediaManager = () => {
   return (
     <MediaErrorBoundary>
       <div className="p-6">
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 bg-red-50 border-l-4 border-red-400 p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <ExclamationCircleIcon className="h-5 w-5 text-red-400" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-700">{errorMessage}</p>
+              </div>
+              <div className="ml-auto pl-3">
+                <div className="-mx-1.5 -my-1.5">
+                  <button
+                    type="button"
+                    onClick={clearError}
+                    className="inline-flex rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  >
+                    <span className="sr-only">Dismiss</span>
+                    <XIcon className="h-5 w-5" aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div>
@@ -748,37 +812,64 @@ const MediaManager = () => {
                               <div>
                                 <label
                                   htmlFor="title"
-                                  className="block text-sm font-medium text-gray-700"
+                                  className={`block text-sm font-medium ${formErrors.title ? "text-red-500" : "text-gray-700"}`}
                                 >
-                                  Title
+                                  Title*
                                 </label>
                                 <input
                                   type="text"
                                   id="title"
                                   value={title}
-                                  onChange={(e) => setTitle(e.target.value)}
-                                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                  onChange={(e) => {
+                                    setTitle(e.target.value);
+                                    validateField(
+                                      "title",
+                                      e.target.value,
+                                      mediaValidationRules.title,
+                                      formErrors,
+                                      setFormErrors
+                                    );
+                                  }}
+                                  className={`mt-1 block w-full border ${formErrors.title ? "border-red-500" : "border-gray-300"} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
                                 />
+                                {formErrors.title && (
+                                  <p className="mt-1 text-xs text-red-500">{formErrors.title}</p>
+                                )}
                               </div>
 
                               <div>
                                 <label
                                   htmlFor="category"
-                                  className="block text-sm font-medium text-gray-700"
+                                  className={`block text-sm font-medium ${formErrors.category ? "text-red-500" : "text-gray-700"}`}
                                 >
-                                  Category
+                                  Category*
                                 </label>
                                 <select
                                   id="category"
                                   value={category}
-                                  onChange={(e) => setCategory(e.target.value)}
-                                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                  onChange={(e) => {
+                                    setCategory(e.target.value);
+                                    validateField(
+                                      "category",
+                                      e.target.value,
+                                      mediaValidationRules.category,
+                                      formErrors,
+                                      setFormErrors
+                                    );
+                                  }}
+                                  className={`mt-1 block w-full border ${formErrors.category ? "border-red-500" : "border-gray-300"} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
                                 >
                                   <option value="general">General</option>
-                                  <option value="sermon">Sermon</option>
-                                  <option value="event">Event</option>
-                                  <option value="ministry">Ministry</option>
+                                  <option value="sermons">Sermons</option>
+                                  <option value="events">Events</option>
+                                  <option value="leadership">Leadership</option>
+                                  <option value="cell-groups">Cell Groups</option>
+                                  <option value="banners">Banners</option>
+                                  <option value="gallery">Gallery</option>
                                 </select>
+                                {formErrors.category && (
+                                  <p className="mt-1 text-xs text-red-500">{formErrors.category}</p>
+                                )}
                               </div>
                             </div>
                           </div>
