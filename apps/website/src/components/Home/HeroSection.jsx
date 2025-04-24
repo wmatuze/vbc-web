@@ -22,6 +22,104 @@ const HeroSection = forwardRef((props, ref) => {
     setIsVisible(true);
   }, []);
 
+  // Helper function to parse event dates consistently
+  const parseEventDate = (event) => {
+    // Log the event data for debugging
+    console.log("Parsing date for event:", {
+      id: event?.id,
+      title: event?.title,
+      date: event?.date,
+      startDate: event?.startDate,
+      type: typeof event?.startDate,
+    });
+
+    try {
+      // First priority: use startDate if it's a valid date object or ISO string
+      if (event?.startDate) {
+        // If startDate is a Date object
+        if (event.startDate instanceof Date) {
+          return event.startDate;
+        }
+
+        // If startDate is a string in ISO format
+        const parsedDate = new Date(event.startDate);
+        if (!isNaN(parsedDate.getTime())) {
+          console.log(
+            `Successfully parsed ISO date from startDate: ${parsedDate}`
+          );
+          return parsedDate;
+        }
+
+        // If startDate is a string like "April 30, 2025"
+        if (
+          typeof event.startDate === "string" &&
+          event.startDate.includes(",")
+        ) {
+          const parts = event.startDate.split(",");
+          if (parts.length === 2) {
+            const monthDay = parts[0].trim().split(" ");
+            const year = parts[1].trim();
+            if (monthDay.length === 2) {
+              const month = monthDay[0];
+              const day = parseInt(monthDay[1]);
+              const parsedDate = new Date(`${month} ${day}, ${year}`);
+              if (!isNaN(parsedDate.getTime())) {
+                console.log(
+                  `Successfully parsed formatted date from startDate: ${parsedDate}`
+                );
+                return parsedDate;
+              }
+            }
+          }
+        }
+      }
+
+      // Second priority: use date field if it's in the expected format
+      if (event?.date) {
+        // If date is a Date object
+        if (event.date instanceof Date) {
+          return event.date;
+        }
+
+        // If date is a string like "April 30, 2025"
+        if (typeof event.date === "string" && event.date.includes(",")) {
+          const parts = event.date.split(",");
+          if (parts.length === 2) {
+            const monthDay = parts[0].trim().split(" ");
+            const year = parts[1].trim();
+            if (monthDay.length === 2) {
+              const month = monthDay[0];
+              const day = parseInt(monthDay[1]);
+              const parsedDate = new Date(`${month} ${day}, ${year}`);
+              if (!isNaN(parsedDate.getTime())) {
+                console.log(
+                  `Successfully parsed formatted date from date field: ${parsedDate}`
+                );
+                return parsedDate;
+              }
+            }
+          }
+        }
+
+        // Try standard date parsing for date field
+        const parsedDate = new Date(event.date);
+        if (!isNaN(parsedDate.getTime())) {
+          console.log(
+            `Successfully parsed date from date field: ${parsedDate}`
+          );
+          return parsedDate;
+        }
+      }
+
+      // If we get here, we couldn't parse a valid date
+      console.warn(`Could not parse a valid date for event: ${event?.title}`);
+      return new Date(); // Fallback to current date
+    } catch (err) {
+      console.error(`Error parsing date for event:`, err, event);
+      return new Date(); // Fallback to current date
+    }
+  };
+
   // Process events data when it changes
   useEffect(() => {
     try {
@@ -36,98 +134,33 @@ const HeroSection = forwardRef((props, ref) => {
         today.setHours(0, 0, 0, 0);
         console.log("Today's date for comparison:", today);
 
-        const upcomingOnly = events
+        // First, parse all event dates and add a parsedDate property
+        const eventsWithParsedDates = events.map((event) => {
+          const parsedDate = parseEventDate(event);
+          return {
+            ...event,
+            parsedDate,
+          };
+        });
+
+        // Filter for upcoming events (today or later)
+        const upcomingOnly = eventsWithParsedDates
           .filter((event) => {
-            // Check if we should use startDate (API format) or date (legacy format)
-            let eventDate;
-
-            try {
-              // Try parsing the date in different formats
-              if (event.startDate) {
-                // If it's a string like "April 30, 2025", parse it properly
-                if (
-                  typeof event.startDate === "string" &&
-                  event.startDate.includes(",")
-                ) {
-                  const parts = event.startDate.split(",");
-                  if (parts.length === 2) {
-                    const monthDay = parts[0].trim().split(" ");
-                    const year = parts[1].trim();
-                    if (monthDay.length === 2) {
-                      const month = monthDay[0];
-                      const day = parseInt(monthDay[1]);
-                      eventDate = new Date(`${month} ${day}, ${year}`);
-                    }
-                  }
-                } else {
-                  // Try standard date parsing
-                  eventDate = new Date(event.startDate);
-                }
-              } else if (event.date) {
-                // If it's a string like "April 30, 2025", parse it properly
-                if (
-                  typeof event.date === "string" &&
-                  event.date.includes(",")
-                ) {
-                  const parts = event.date.split(",");
-                  if (parts.length === 2) {
-                    const monthDay = parts[0].trim().split(" ");
-                    const year = parts[1].trim();
-                    if (monthDay.length === 2) {
-                      const month = monthDay[0];
-                      const day = parseInt(monthDay[1]);
-                      eventDate = new Date(`${month} ${day}, ${year}`);
-                    }
-                  }
-                } else {
-                  // Try standard date parsing
-                  eventDate = new Date(event.date);
-                }
-              } else {
-                // Fallback to current date
-                eventDate = new Date();
-              }
-
-              // Check if the date is valid
-              if (isNaN(eventDate.getTime())) {
-                console.error(
-                  `Invalid date for event: ${event.title}`,
-                  event.startDate || event.date
-                );
-                eventDate = new Date(); // Fallback to current date
-              }
-            } catch (err) {
-              console.error(
-                `Error parsing date for event: ${event.title}`,
-                err
-              );
-              eventDate = new Date(); // Fallback to current date
-            }
-
+            const isUpcoming = event.parsedDate >= today;
             console.log(
-              `Event: ${event.title}, Date: ${eventDate.toISOString()}, Original: ${event.startDate || event.date}, Is upcoming: ${eventDate >= today}`
+              `Event: ${event.title}, Date: ${event.parsedDate.toISOString()}, Original: ${event.startDate || event.date}, Is upcoming: ${isUpcoming}`
             );
-            return eventDate >= today;
+            return isUpcoming;
           })
-          .sort((a, b) => {
-            // Sort by date, using the appropriate field with robust parsing
-            const parseEventDate = (event) => {
-              try {
-                if (event.startDate) {
-                  return new Date(event.startDate);
-                } else if (event.date) {
-                  return new Date(event.date);
-                }
-              } catch (err) {
-                console.error(`Error parsing date for sorting:`, err);
-              }
-              return new Date(); // Fallback
-            };
+          // Sort by date (closest first)
+          .sort((a, b) => a.parsedDate - b.parsedDate);
 
-            return parseEventDate(a) - parseEventDate(b);
-          });
+        console.log(
+          "Upcoming events after filtering and sorting:",
+          upcomingOnly
+        );
 
-        console.log("Upcoming events after filtering:", upcomingOnly);
+        // Take the first 4 events (closest upcoming events)
         setUpcomingEvents(upcomingOnly.slice(0, 4));
       } else if (!loading && (!events || events.length === 0)) {
         // If no events are available and we're not loading, use fallback data

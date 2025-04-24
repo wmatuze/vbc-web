@@ -117,14 +117,96 @@ const ChurchCalendar = () => {
     return FallbackImage;
   };
 
-  // Format events for FullCalendar
+  // Format events for FullCalendar with robust date parsing
   const calendarEvents = events.map((event) => {
-    // Use startDate (API format) if available, otherwise use legacy date field
-    const eventDate = event?.startDate
-      ? new Date(event.startDate)
-      : event?.date
-        ? new Date(event.date + " " + (event.time || "00:00"))
-        : new Date();
+    // Log the event data for debugging
+    console.log("Processing event for calendar:", {
+      id: event?.id,
+      title: event?.title,
+      date: event?.date,
+      startDate: event?.startDate,
+      time: event?.time,
+    });
+
+    let eventDate;
+
+    // First try to use startDate if it's a valid date
+    if (event?.startDate) {
+      try {
+        const parsedDate = new Date(event.startDate);
+        if (!isNaN(parsedDate.getTime())) {
+          eventDate = parsedDate;
+          console.log(`Using startDate for calendar event: ${eventDate}`);
+        }
+      } catch (err) {
+        console.error(
+          `Error parsing startDate for calendar:`,
+          err,
+          event.startDate
+        );
+      }
+    }
+
+    // If startDate didn't work, try to use date + time
+    if (!eventDate && event?.date) {
+      try {
+        // If date is in format "April 30, 2025"
+        if (typeof event.date === "string" && event.date.includes(",")) {
+          const parts = event.date.split(",");
+          if (parts.length === 2) {
+            const monthDay = parts[0].trim().split(" ");
+            const year = parts[1].trim();
+            if (monthDay.length === 2) {
+              const month = monthDay[0];
+              const day = parseInt(monthDay[1]);
+              const dateStr = `${month} ${day}, ${year}`;
+
+              // Add time if available
+              if (event.time) {
+                eventDate = new Date(`${dateStr} ${event.time}`);
+              } else {
+                eventDate = new Date(dateStr);
+              }
+
+              if (!isNaN(eventDate.getTime())) {
+                console.log(
+                  `Using formatted date+time for calendar event: ${eventDate}`
+                );
+              } else {
+                eventDate = undefined; // Reset if invalid
+              }
+            }
+          }
+        } else {
+          // Try standard date parsing
+          const dateStr =
+            event.date + (event.time ? ` ${event.time}` : " 00:00");
+          eventDate = new Date(dateStr);
+          if (!isNaN(eventDate.getTime())) {
+            console.log(
+              `Using standard date+time for calendar event: ${eventDate}`
+            );
+          } else {
+            eventDate = undefined; // Reset if invalid
+          }
+        }
+      } catch (err) {
+        console.error(
+          `Error parsing date+time for calendar:`,
+          err,
+          event.date,
+          event.time
+        );
+      }
+    }
+
+    // Fallback to current date if all parsing failed
+    if (!eventDate || isNaN(eventDate.getTime())) {
+      eventDate = new Date();
+      console.warn(
+        `Using fallback current date for calendar event: ${event?.title}`
+      );
+    }
 
     return {
       id: event.id,
@@ -142,7 +224,69 @@ const ChurchCalendar = () => {
 
   // Helper function to get the event date, handling both API and legacy formats
   const getEventDate = (event) => {
-    return new Date(event?.startDate || event?.date || Date.now());
+    // Log the event data for debugging
+    console.log("Getting event date for display:", {
+      id: event?.id,
+      title: event?.title,
+      date: event?.date,
+      startDate: event?.startDate,
+    });
+
+    try {
+      // First priority: use the date field if it's in the expected format
+      if (
+        event?.date &&
+        typeof event.date === "string" &&
+        event.date.includes(",")
+      ) {
+        const parts = event.date.split(",");
+        if (parts.length === 2) {
+          const monthDay = parts[0].trim().split(" ");
+          const year = parts[1].trim();
+          if (monthDay.length === 2) {
+            const month = monthDay[0];
+            const day = parseInt(monthDay[1]);
+            const parsedDate = new Date(`${month} ${day}, ${year}`);
+            if (!isNaN(parsedDate.getTime())) {
+              console.log(
+                `Successfully parsed date from event.date: ${parsedDate}`
+              );
+              return parsedDate;
+            }
+          }
+        }
+      }
+
+      // Second priority: use startDate if it's a valid date
+      if (event?.startDate) {
+        // If startDate is a string in ISO format or similar
+        const parsedDate = new Date(event.startDate);
+        if (!isNaN(parsedDate.getTime())) {
+          console.log(
+            `Successfully parsed date from event.startDate: ${parsedDate}`
+          );
+          return parsedDate;
+        }
+      }
+
+      // Third priority: try to parse date field even if it's not in the expected format
+      if (event?.date) {
+        const parsedDate = new Date(event.date);
+        if (!isNaN(parsedDate.getTime())) {
+          console.log(
+            `Successfully parsed date from event.date fallback: ${parsedDate}`
+          );
+          return parsedDate;
+        }
+      }
+    } catch (err) {
+      console.error(`Error parsing date for event:`, err, event);
+    }
+
+    // Fallback to current date if parsing fails
+    const today = new Date();
+    console.log(`Using fallback current date: ${today}`);
+    return today;
   };
 
   return (

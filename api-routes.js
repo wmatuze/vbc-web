@@ -136,13 +136,101 @@ router.post("/events", authMiddleware, async (req, res) => {
     // Create a new event from the request body
     const eventData = {
       ...req.body,
-      // Ensure dates are properly converted to Date objects
-      startDate: req.body.startDate ? new Date(req.body.startDate) : new Date(),
-      endDate: req.body.endDate ? new Date(req.body.endDate) : new Date(),
-      // Set default values if not provided
+      type: "event", // Ensure type is set for proper categorization
       createdAt: new Date(),
       updatedAt: new Date(),
     };
+
+    // Handle date conversion properly
+    if (req.body.startDate) {
+      // If startDate is provided, use it
+      eventData.startDate = new Date(req.body.startDate);
+    } else if (req.body.date) {
+      // If only date string is provided (e.g., "April 30, 2025")
+      try {
+        // Try to parse the date string
+        const dateStr = req.body.date;
+        // Handle different date formats
+        let parsedDate;
+
+        if (dateStr.includes(",")) {
+          // Format like "April 30, 2025"
+          const parts = dateStr.split(",");
+          if (parts.length === 2) {
+            const monthDay = parts[0].trim().split(" ");
+            const year = parts[1].trim();
+            if (monthDay.length === 2) {
+              parsedDate = new Date(`${monthDay[0]} ${monthDay[1]}, ${year}`);
+            }
+          }
+        } else {
+          // Try standard date parsing
+          parsedDate = new Date(dateStr);
+        }
+
+        // If we have a valid date, use it
+        if (parsedDate && !isNaN(parsedDate.getTime())) {
+          eventData.startDate = parsedDate;
+
+          // If time is provided, incorporate it
+          if (req.body.time) {
+            const timeStr = req.body.time;
+            const timeParts = timeStr.match(/([0-9]+):([0-9]+)\s*(AM|PM)?/i);
+            if (timeParts) {
+              let hours = parseInt(timeParts[1]);
+              const minutes = parseInt(timeParts[2]);
+              const ampm = timeParts[3] ? timeParts[3].toUpperCase() : null;
+
+              // Convert to 24-hour format if needed
+              if (ampm === "PM" && hours < 12) hours += 12;
+              if (ampm === "AM" && hours === 12) hours = 0;
+
+              parsedDate.setHours(hours, minutes, 0, 0);
+              eventData.startDate = parsedDate;
+            }
+          }
+        } else {
+          // Fallback to current date
+          console.warn(
+            `Could not parse date string: ${dateStr}, using current date`
+          );
+          eventData.startDate = new Date();
+        }
+      } catch (err) {
+        console.error("Error parsing date:", err);
+        eventData.startDate = new Date();
+      }
+    } else {
+      // No date provided, use current date
+      eventData.startDate = new Date();
+    }
+
+    // Set endDate (default to 2 hours after startDate if not provided)
+    if (req.body.endDate) {
+      eventData.endDate = new Date(req.body.endDate);
+    } else {
+      eventData.endDate = new Date(
+        eventData.startDate.getTime() + 2 * 60 * 60 * 1000
+      );
+    }
+
+    // Store the formatted date and time strings for frontend compatibility
+    if (!eventData.date) {
+      const month = eventData.startDate.toLocaleString("default", {
+        month: "long",
+      });
+      const day = eventData.startDate.getDate();
+      const year = eventData.startDate.getFullYear();
+      eventData.date = `${month} ${day}, ${year}`;
+    }
+
+    if (!eventData.time) {
+      eventData.time = eventData.startDate.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      });
+    }
 
     // If imageUrl is provided but no image object, use the imageUrl
     if (req.body.imageUrl && !req.body.image) {
@@ -172,14 +260,91 @@ router.put("/events/:id", authMiddleware, async (req, res) => {
     console.log("Update data:", req.body);
 
     // Prepare update data
-    const updateData = { ...req.body, updatedAt: new Date() };
+    const updateData = {
+      ...req.body,
+      updatedAt: new Date(),
+      type: "event", // Ensure type is set for proper categorization
+    };
 
-    // Convert date strings to Date objects if present
-    if (updateData.startDate) {
-      updateData.startDate = new Date(updateData.startDate);
+    // Handle date conversion properly
+    if (req.body.startDate) {
+      // If startDate is provided, use it
+      updateData.startDate = new Date(req.body.startDate);
+    } else if (req.body.date) {
+      // If only date string is provided (e.g., "April 30, 2025")
+      try {
+        // Try to parse the date string
+        const dateStr = req.body.date;
+        // Handle different date formats
+        let parsedDate;
+
+        if (dateStr.includes(",")) {
+          // Format like "April 30, 2025"
+          const parts = dateStr.split(",");
+          if (parts.length === 2) {
+            const monthDay = parts[0].trim().split(" ");
+            const year = parts[1].trim();
+            if (monthDay.length === 2) {
+              parsedDate = new Date(`${monthDay[0]} ${monthDay[1]}, ${year}`);
+            }
+          }
+        } else {
+          // Try standard date parsing
+          parsedDate = new Date(dateStr);
+        }
+
+        // If we have a valid date, use it
+        if (parsedDate && !isNaN(parsedDate.getTime())) {
+          updateData.startDate = parsedDate;
+
+          // If time is provided, incorporate it
+          if (req.body.time) {
+            const timeStr = req.body.time;
+            const timeParts = timeStr.match(/([0-9]+):([0-9]+)\s*(AM|PM)?/i);
+            if (timeParts) {
+              let hours = parseInt(timeParts[1]);
+              const minutes = parseInt(timeParts[2]);
+              const ampm = timeParts[3] ? timeParts[3].toUpperCase() : null;
+
+              // Convert to 24-hour format if needed
+              if (ampm === "PM" && hours < 12) hours += 12;
+              if (ampm === "AM" && hours === 12) hours = 0;
+
+              parsedDate.setHours(hours, minutes, 0, 0);
+              updateData.startDate = parsedDate;
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Error parsing date:", err);
+        // Don't update startDate if parsing fails
+      }
     }
-    if (updateData.endDate) {
-      updateData.endDate = new Date(updateData.endDate);
+
+    // Set endDate if provided
+    if (req.body.endDate) {
+      updateData.endDate = new Date(req.body.endDate);
+    } else if (updateData.startDate && !updateData.endDate) {
+      // Default to 2 hours after startDate if not provided
+      updateData.endDate = new Date(
+        updateData.startDate.getTime() + 2 * 60 * 60 * 1000
+      );
+    }
+
+    // Store the formatted date and time strings for frontend compatibility
+    if (updateData.startDate) {
+      const month = updateData.startDate.toLocaleString("default", {
+        month: "long",
+      });
+      const day = updateData.startDate.getDate();
+      const year = updateData.startDate.getFullYear();
+      updateData.date = `${month} ${day}, ${year}`;
+
+      updateData.time = updateData.startDate.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      });
     }
 
     // Handle image properly

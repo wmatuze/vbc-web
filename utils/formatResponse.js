@@ -30,6 +30,22 @@ const formatObject = (item) => {
     obj.id = obj._id.toString();
   }
 
+  // Determine the object type based on schema or collection
+  if (!obj.type && !obj.category) {
+    // Try to infer type from the object structure
+    if (obj.startDate && obj.title) {
+      obj.type = "event";
+    } else if (obj.preacher && obj.title) {
+      obj.type = "sermon";
+    } else if (obj.position && obj.name) {
+      obj.type = "leader";
+    } else if (obj.meetingDay && obj.meetingTime) {
+      obj.type = "cell-group";
+    } else if (obj.zoneLeader && obj.zoneName) {
+      obj.type = "zone";
+    }
+  }
+
   // Handle image/imageUrl
   if (obj.image) {
     // If image is a populated object with path
@@ -88,7 +104,10 @@ const formatObject = (item) => {
     }
   }
   // No coverImage reference but need coverImageUrl for zones
-  else if (!obj.coverImageUrl && (obj.type === "zone" || obj.category === "zone")) {
+  else if (
+    !obj.coverImageUrl &&
+    (obj.type === "zone" || obj.category === "zone")
+  ) {
     obj.coverImageUrl = "/assets/zones/default-zone.jpg";
   }
 
@@ -107,13 +126,55 @@ const formatObject = (item) => {
     }
   }
   // No leaderImage reference but need leaderImageUrl for cell groups
-  else if (!obj.leaderImageUrl && (obj.type === "cell-group" || obj.category === "cell-group")) {
+  else if (
+    !obj.leaderImageUrl &&
+    (obj.type === "cell-group" || obj.category === "cell-group")
+  ) {
     obj.leaderImageUrl = "/assets/leadership/default-leader.jpg";
+  }
+
+  // Ensure events have date and time fields for frontend compatibility
+  if (obj.type === "event" || (obj.startDate && obj.title)) {
+    // Make sure we have a date field (frontend expects this)
+    if (obj.startDate && !obj.date) {
+      // Format the date as a string in the format the frontend expects
+      try {
+        const startDate = new Date(obj.startDate);
+        if (!isNaN(startDate.getTime())) {
+          // Format as "Month Day, Year" (e.g., "April 30, 2025")
+          const month = startDate.toLocaleString("default", { month: "long" });
+          const day = startDate.getDate();
+          const year = startDate.getFullYear();
+          obj.date = `${month} ${day}, ${year}`;
+
+          // Also add time field if not present
+          if (!obj.time) {
+            obj.time = startDate.toLocaleTimeString("en-US", {
+              hour: "numeric",
+              minute: "numeric",
+              hour12: true,
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Error formatting date:", err);
+      }
+    }
+
+    // Ensure we have a ministry field (even if empty)
+    if (!obj.hasOwnProperty("ministry")) {
+      obj.ministry = "";
+    }
   }
 
   // Recursively format nested objects
   Object.keys(obj).forEach((key) => {
-    if (obj[key] && typeof obj[key] === "object" && !Array.isArray(obj[key]) && key !== "_id") {
+    if (
+      obj[key] &&
+      typeof obj[key] === "object" &&
+      !Array.isArray(obj[key]) &&
+      key !== "_id"
+    ) {
       obj[key] = formatObject(obj[key]);
     } else if (Array.isArray(obj[key])) {
       obj[key] = obj[key].map((item) => {
