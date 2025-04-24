@@ -21,7 +21,7 @@ import Media from "./pages/Media";
 import Missions from "./pages/Missions";
 import AboutUs from "./pages/AboutUs";
 import Sermons from "./pages/Sermons";
-import SermonsDebug from "./pages/SermonsDebug"; // Import debug component
+// SermonsDebug component has been removed
 import Videos from "./pages/Videos";
 import Resources from "./pages/Resources";
 import Podcasts from "./pages/Podcasts";
@@ -392,15 +392,7 @@ const AppContent = () => {
               }
             />
 
-            {/* Sermons Debug */}
-            <Route
-              path="/sermons-debug"
-              element={
-                <PageWrapper>
-                  <SermonsDebug />
-                </PageWrapper>
-              }
-            />
+            {/* Sermons Debug route removed */}
 
             {/* Error Boundary Test */}
             <Route
