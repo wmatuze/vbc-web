@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createLeader, updateLeader, deleteLeader } from "../../services/api";
 import { useLeadersQuery } from "../../hooks/useLeadersQuery";
+import useErrorHandler from "../../hooks/useErrorHandler";
+import { validateField } from "../../utils/validationUtils";
+import {
+  validateLeader,
+  leaderValidationRules,
+} from "../../utils/leaderValidation";
 import {
   PlusIcon,
   UserIcon,
@@ -42,6 +48,10 @@ const placeholderImage =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAADICAYAAADGFbfiAAAACXBIWXMAAAsTAAALEwEAmpwYAAAFyGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDUgNzkuMTYzNDk5LCAyMDE4LzA4LzEzLTE2OjQwOjIyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDIwLTAzLTA1VDIyOjMzOjMwLTA4OjAwIiB4bXA6TW9kaWZ5RGF0ZT0iMjAyMC0wMy0xM1QxMDowNTozOC0wNzowMCIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAyMC0wMy0xM1QxMDowNTozOC0wNzowMCIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiIHBob3Rvc2hvcDpJQ0NQcm9maWxlPSJzUkdCIElFQzYxOTY2LTIuMSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDpmYjRjYzkwZC1mNWRhLTRiNGMtOWVjYi0wYjgyODM0YzUxMmMiIHhtcE1NOkRvY3VtZW50SUQ9ImFkb2JlOmRvY2lkOnBob3Rvc2hvcDo0ZGYyZjI5Yi1iOGNiLTZlNDktYWE4Ni0yYzAzODJjY2M5YjkiIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo2ZWJiZDlkOS0zYTVkLWM5NGMtOTVjNS0wNmM1Mzc0YmJhOTgiPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjcmVhdGVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjZlYmJkOWQ5LTNhNWQtYzk0Yy05NWM1LTA2YzUzNzRiYmE5OCIgc3RFdnQ6d2hlbj0iMjAyMC0wMy0wNVQyMjozMzozMC0wODowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKFdpbmRvd3MpIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJzYXZlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDpmYjRjYzkwZC1mNWRhLTRiNGMtOWVjYi0wYjgyODM0YzUxMmMiIHN0RXZ0OndoZW49IjIwMjAtMDMtMTNUMTA6MDU6MzgtMDc6MDAiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBDQyAyMDE5IChXaW5kb3dzKSIgc3RFdnQ6Y2hhbmdlZD0iLyIvPiA8L3JkZjpTZXE+IDwveG1wTU06SGlzdG9yeT4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7JL8VBAAAF/UlEQVR4nO3dMW4bSRRA0TbgDbiJl+MluONGK3DGJVfoNbgEL8GdOzCgDowBDDPkkGxO/ycwGAgEWU3d4qtXPZ+engAAe/3v1QcAAO9JQAAgEhAA";
 
 const LeaderManager = () => {
+  // Use our custom error handling hook
+  const { error, errorMessage, handleError, clearError, withErrorHandling } =
+    useErrorHandler("LeaderManager");
+
   // Core state
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -52,9 +62,6 @@ const LeaderManager = () => {
     error: queryError,
     refetch: refetchLeaders,
   } = useLeadersQuery();
-
-  // Local error state for operations other than fetching
-  const [error, setError] = useState(null);
 
   // UI state
   const [showForm, setShowForm] = useState(false);
@@ -140,36 +147,14 @@ const LeaderManager = () => {
   // Display any query errors
   useEffect(() => {
     if (queryError) {
-      setError("Failed to load leaders. Please try again.");
+      handleError(queryError, "Failed to load leaders");
     }
-  }, [queryError]);
+  }, [queryError, handleError]);
 
   // Form validation
   const validateForm = (data) => {
-    const errors = {};
-
-    if (!data.name.trim()) {
-      errors.name = "Name is required";
-    }
-
-    if (!data.title.trim()) {
-      errors.title = "Title is required";
-    }
-
-    if (!data.email.trim()) {
-      errors.email = "Email is required";
-    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(data.email)) {
-      errors.email = "Invalid email address";
-    }
-
-    if (!data.bio.trim()) {
-      errors.bio = "Bio is required";
-    }
-
-    if (data.phone && !/^\+?[\d\s-()]{10,}$/.test(data.phone)) {
-      errors.phone = "Invalid phone number";
-    }
-
+    // Use our validation rules
+    const { isValid, errors } = validateLeader(data);
     return errors;
   };
 
@@ -177,6 +162,7 @@ const LeaderManager = () => {
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
 
+    // Clear the specific error when the user starts typing
     setFormErrors((prev) => ({ ...prev, [name]: "" }));
 
     if (name.startsWith("social-")) {
@@ -188,40 +174,75 @@ const LeaderManager = () => {
           [platform]: value,
         },
       }));
+
+      // Validate social media field
+      if (leaderValidationRules.socialMedia.properties[platform]) {
+        validateField(
+          `socialMedia.${platform}`,
+          value,
+          leaderValidationRules.socialMedia.properties[platform],
+          formErrors,
+          setFormErrors
+        );
+      }
     } else if (name === "ministryFocus") {
       const items = value
         .split(",")
         .map((item) => item.trim())
         .filter(Boolean);
       setCurrentLeader((prev) => ({ ...prev, [name]: items }));
+
+      // Validate ministry focus field
+      validateField(
+        name,
+        items,
+        leaderValidationRules.ministryFocus,
+        formErrors,
+        setFormErrors
+      );
     } else {
       setCurrentLeader((prev) => ({
         ...prev,
         [name]: type === "checkbox" ? checked : value,
       }));
+
+      // Validate the field if it has validation rules
+      if (leaderValidationRules[name]) {
+        validateField(
+          name,
+          type === "checkbox" ? checked : value,
+          leaderValidationRules[name],
+          formErrors,
+          setFormErrors
+        );
+      }
     }
   };
 
   // Handle image upload
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const handleImageUpload = withErrorHandling(
+    async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
 
-    // Validate file type and size
-    const validTypes = ["image/jpeg", "image/png", "image/gif"];
-    if (!validTypes.includes(file.type)) {
-      setError("Please upload a valid image file (JPEG, PNG, or GIF)");
-      return;
-    }
+      // Validate file type and size
+      const validTypes = ["image/jpeg", "image/png", "image/gif"];
+      if (!validTypes.includes(file.type)) {
+        handleError(
+          new Error("Please upload a valid image file (JPEG, PNG, or GIF)"),
+          "File Type Validation"
+        );
+        return;
+      }
 
-    if (file.size > 5 * 1024 * 1024) {
-      // 5MB limit
-      setError("Image size should be less than 5MB");
-      return;
-    }
-
-    try {
-      // Show loading state in UI
+      if (file.size > 5 * 1024 * 1024) {
+        // 5MB limit
+        handleError(
+          new Error("Image size should be less than 5MB"),
+          "File Size Validation"
+        );
+        return;
+      }
 
       // Create FormData for upload
       const formData = new FormData();
@@ -250,28 +271,32 @@ const LeaderManager = () => {
       const data = await response.json();
       console.log("Upload success:", data);
       setCurrentLeader((prev) => ({ ...prev, imageUrl: data.path }));
-      setError(null); // Clear any previous errors
-    } catch (err) {
-      console.error("Error uploading image:", err);
-      setError("Failed to upload image. Please try again.");
-    } finally {
-      // Loading complete
+      clearError(); // Clear any previous errors
+      setSuccessMessage("Image uploaded successfully!");
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(""), 3000);
+    },
+    {
+      context: "Image Upload",
     }
-  };
+  );
 
   // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = withErrorHandling(
+    async (e) => {
+      e.preventDefault();
 
-    // Validate form
-    const errors = validateForm(currentLeader);
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
-      return;
-    }
-
-    try {
-      // Show loading state in UI
+      // Validate form
+      const { isValid, errors } = validateLeader(currentLeader);
+      if (!isValid) {
+        setFormErrors(errors);
+        handleError(
+          new Error("Please fix the form errors before submitting"),
+          "Form Validation"
+        );
+        return;
+      }
 
       if (formMode === "add") {
         // Set order to be last in the list
@@ -293,38 +318,32 @@ const LeaderManager = () => {
 
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(""), 3000);
-    } catch (err) {
-      console.error("Error saving leader:", err);
-      setError("Failed to save leader. Please try again.");
-    } finally {
-      // Loading complete
+    },
+    {
+      context: "Leader Form Submission",
     }
-  };
+  );
 
   // Handle delete
-  const handleDelete = async (id) => {
-    try {
-      // Show loading state in UI
+  const handleDelete = withErrorHandling(
+    async (id) => {
       await deleteLeader(id);
       setSuccessMessage("Leader deleted successfully!");
       await refetchLeaders();
 
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(""), 3000);
-    } catch (err) {
-      console.error("Error deleting leader:", err);
-      setError("Failed to delete leader. Please try again.");
-    } finally {
-      // Loading complete
+    },
+    {
+      context: "Leader Deletion",
     }
-  };
+  );
 
   // Handle bulk delete
-  const handleBulkDelete = async () => {
-    if (selectedLeaders.size === 0) return;
+  const handleBulkDelete = withErrorHandling(
+    async () => {
+      if (selectedLeaders.size === 0) return;
 
-    try {
-      // Show loading state in UI
       await Promise.all(
         Array.from(selectedLeaders).map((id) => deleteLeader(id))
       );
@@ -333,43 +352,47 @@ const LeaderManager = () => {
       );
       setSelectedLeaders(new Set());
       await refetchLeaders();
-    } catch (err) {
-      console.error("Error deleting leaders:", err);
-      setError("Failed to delete some leaders. Please try again.");
-    } finally {
-      // Loading complete
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(""), 3000);
+    },
+    {
+      context: "Bulk Leader Deletion",
     }
-  };
+  );
 
   // Handle drag and drop reordering
-  const handleDragEnd = async (result) => {
-    if (!result.destination) return;
+  const handleDragEnd = withErrorHandling(
+    async (result) => {
+      if (!result.destination) return;
 
-    const items = Array.from(leaders);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
+      const items = Array.from(leaders);
+      const [reorderedItem] = items.splice(result.source.index, 1);
+      items.splice(result.destination.index, 0, reorderedItem);
 
-    // Update order values
-    const updatedItems = items.map((item, index) => ({
-      ...item,
-      order: index,
-    }));
+      // Update order values
+      const updatedItems = items.map((item, index) => ({
+        ...item,
+        order: index,
+      }));
 
-    // Update local state temporarily until refetch completes
-    // This will be overwritten when refetchLeaders() completes
+      // Update local state temporarily until refetch completes
+      // This will be overwritten when refetchLeaders() completes
 
-    try {
       await Promise.all(
         updatedItems.map((leader) => updateLeader(leader.id, leader))
       );
       setSuccessMessage("Leader order updated successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);
-    } catch (err) {
-      console.error("Error updating leader order:", err);
-      setError("Failed to update leader order. Please try again.");
-      refetchLeaders(); // Revert to original order
+    },
+    {
+      context: "Leader Reordering",
+      onError: () => {
+        // Revert to original order on error
+        refetchLeaders();
+      },
     }
-  };
+  );
 
   // Handle export
   const handleExport = () => {
@@ -544,7 +567,19 @@ const LeaderManager = () => {
               <ExclamationCircleIcon className="h-5 w-5 text-red-400" />
             </div>
             <div className="ml-3">
-              <p className="text-sm text-red-700">{error}</p>
+              <p className="text-sm text-red-700">{errorMessage}</p>
+            </div>
+            <div className="ml-auto pl-3">
+              <div className="-mx-1.5 -my-1.5">
+                <button
+                  type="button"
+                  onClick={clearError}
+                  className="inline-flex rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  <span className="sr-only">Dismiss</span>
+                  <XMarkIcon className="h-5 w-5" aria-hidden="true" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
