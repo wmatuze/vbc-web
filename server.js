@@ -1043,6 +1043,12 @@ app.put("/api/events/:id", authMiddleware, async (req, res) => {
       type: "event", // Ensure type is set for proper categorization
     };
 
+    // Ensure time field is preserved
+    if (req.body.time) {
+      console.log(`Preserving time field: ${req.body.time}`);
+      updateData.time = req.body.time;
+    }
+
     // Handle date fields
     if (updateData.startDate) {
       updateData.startDate = new Date(updateData.startDate);
@@ -1056,7 +1062,8 @@ app.put("/api/events/:id", authMiddleware, async (req, res) => {
     delete updateData.__v;
     delete updateData.createdAt;
 
-    console.log("Final update data:", updateData);
+    console.log("Final update data:", JSON.stringify(updateData, null, 2));
+    console.log("Time field value:", updateData.time);
 
     const event = await models.Event.findByIdAndUpdate(
       req.params.id,
@@ -1094,6 +1101,12 @@ app.put("/events/:id", authMiddleware, async (req, res) => {
       type: "event", // Ensure type is set for proper categorization
     };
 
+    // Ensure time field is preserved
+    if (req.body.time) {
+      console.log(`Preserving time field (compatibility): ${req.body.time}`);
+      updateData.time = req.body.time;
+    }
+
     // Handle date fields
     if (updateData.startDate) {
       updateData.startDate = new Date(updateData.startDate);
@@ -1107,7 +1120,11 @@ app.put("/events/:id", authMiddleware, async (req, res) => {
     delete updateData.__v;
     delete updateData.createdAt;
 
-    console.log("Final update data (compatibility):", updateData);
+    console.log(
+      "Final update data (compatibility):",
+      JSON.stringify(updateData, null, 2)
+    );
+    console.log("Time field value (compatibility):", updateData.time);
 
     const event = await models.Event.findByIdAndUpdate(
       req.params.id,
@@ -1428,6 +1445,13 @@ const formatResponse = (data) => {
 const formatObject = (item) => {
   // If item is a Mongoose document, convert to plain object
   const obj = item && item.toObject ? item.toObject() : { ...item };
+
+  // Log time field if it exists
+  if (obj.time) {
+    console.log(`formatObject: time field found: ${obj.time}`);
+  } else {
+    console.log(`formatObject: time field not found in object`);
+  }
 
   // Add id property (frontend expects this)
   if (obj._id) {
