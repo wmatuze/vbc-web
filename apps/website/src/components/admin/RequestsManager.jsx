@@ -19,6 +19,12 @@ import RequestsService from "../../services/requestsService";
 import NotificationService from "../../services/notificationService";
 import { toast } from "react-toastify";
 import { getAuthToken } from "../../services/config";
+import {
+  validateMembershipRenewal,
+  validateFoundationClassRegistration,
+  validateMembershipStatusChange,
+  validateFoundationClassStatusChange,
+} from "../../utils/requestsValidation";
 
 const RequestsManager = () => {
   const navigate = useNavigate();
@@ -101,6 +107,13 @@ const RequestsManager = () => {
 
   // Handle membership renewal status change
   const handleRenewalStatusChange = async (id, newStatus) => {
+    // Validate the status value
+    const { isValid, error } = validateMembershipStatusChange(newStatus);
+    if (!isValid) {
+      toast.error(`Validation error: ${error}`);
+      return;
+    }
+
     try {
       // Update the status on the server
       await RequestsService.updateMembershipRenewalStatus(id, newStatus);
@@ -131,6 +144,13 @@ const RequestsManager = () => {
 
   // Handle foundation class enrollment status change
   const handleEnrollmentStatusChange = async (id, newStatus) => {
+    // Validate the status value
+    const { isValid, error } = validateFoundationClassStatusChange(newStatus);
+    if (!isValid) {
+      toast.error(`Validation error: ${error}`);
+      return;
+    }
+
     try {
       // Update the status on the server
       await RequestsService.updateFoundationClassStatus(id, newStatus);
@@ -165,6 +185,15 @@ const RequestsManager = () => {
   const approveAndNotifyMember = async (member) => {
     try {
       setActionLoading(true);
+
+      // Validate the member data before proceeding
+      const { isValid, errors } = validateMembershipRenewal(member);
+      if (!isValid) {
+        const errorMessages = Object.values(errors).join(", ");
+        toast.error(`Validation failed: ${errorMessages}`);
+        return;
+      }
+
       // First update status
       await handleRenewalStatusChange(member.id, "approved");
 
@@ -188,6 +217,15 @@ const RequestsManager = () => {
   const declineAndNotifyMember = async (member) => {
     try {
       setActionLoading(true);
+
+      // Validate the member data before proceeding
+      const { isValid, errors } = validateMembershipRenewal(member);
+      if (!isValid) {
+        const errorMessages = Object.values(errors).join(", ");
+        toast.error(`Validation failed: ${errorMessages}`);
+        return;
+      }
+
       // First update status
       await handleRenewalStatusChange(member.id, "declined");
 
@@ -211,6 +249,15 @@ const RequestsManager = () => {
   const approveAndSendSchedule = async (enrollee) => {
     try {
       setActionLoading(true);
+
+      // Validate the enrollee data before proceeding
+      const { isValid, errors } = validateFoundationClassRegistration(enrollee);
+      if (!isValid) {
+        const errorMessages = Object.values(errors).join(", ");
+        toast.error(`Validation failed: ${errorMessages}`);
+        return;
+      }
+
       // First update status
       await handleEnrollmentStatusChange(enrollee.id, "attending");
 
@@ -234,6 +281,15 @@ const RequestsManager = () => {
   const cancelAndNotifyEnrollee = async (enrollee) => {
     try {
       setActionLoading(true);
+
+      // Validate the enrollee data before proceeding
+      const { isValid, errors } = validateFoundationClassRegistration(enrollee);
+      if (!isValid) {
+        const errorMessages = Object.values(errors).join(", ");
+        toast.error(`Validation failed: ${errorMessages}`);
+        return;
+      }
+
       // First update status
       await handleEnrollmentStatusChange(enrollee.id, "cancelled");
 
@@ -257,6 +313,15 @@ const RequestsManager = () => {
   const completeAndNotifyMember = async (enrollee) => {
     try {
       setActionLoading(true);
+
+      // Validate the enrollee data before proceeding
+      const { isValid, errors } = validateFoundationClassRegistration(enrollee);
+      if (!isValid) {
+        const errorMessages = Object.values(errors).join(", ");
+        toast.error(`Validation failed: ${errorMessages}`);
+        return;
+      }
+
       // First update status
       await handleEnrollmentStatusChange(enrollee.id, "completed");
 
@@ -280,6 +345,14 @@ const RequestsManager = () => {
 
   // Delete a membership renewal
   const deleteMembershipRenewal = async (renewal) => {
+    // Validate the renewal data before proceeding
+    const { isValid, errors } = validateMembershipRenewal(renewal);
+    if (!isValid) {
+      const errorMessages = Object.values(errors).join(", ");
+      toast.error(`Cannot delete invalid renewal: ${errorMessages}`);
+      return;
+    }
+
     if (
       !window.confirm(
         `Are you sure you want to delete ${renewal.fullName}'s membership renewal request?`
@@ -314,6 +387,15 @@ const RequestsManager = () => {
 
   // Delete a foundation class registration
   const deleteFoundationClassRegistration = async (registration) => {
+    // Validate the registration data before proceeding
+    const { isValid, errors } =
+      validateFoundationClassRegistration(registration);
+    if (!isValid) {
+      const errorMessages = Object.values(errors).join(", ");
+      toast.error(`Cannot delete invalid registration: ${errorMessages}`);
+      return;
+    }
+
     if (
       !window.confirm(
         `Are you sure you want to delete ${registration.fullName}'s foundation class registration?`

@@ -1,6 +1,6 @@
 import React from "react";
 import config from "../../config";
-import FallbackImage from "../../assets/fallback-image.png"; // Import fallback image
+import eventPlaceholderImage from "../../assets/placeholders/default-event.svg";
 
 // API base URL for image paths
 const API_URL = config.API_URL;
@@ -8,7 +8,7 @@ const API_URL = config.API_URL;
 const EventCard = ({ event, highlight, compact = false }) => {
   // Get image URL with fallback
   const getImageUrl = (event) => {
-    if (!event?.imageUrl && !event?.image) return FallbackImage;
+    if (!event?.imageUrl && !event?.image) return eventPlaceholderImage;
 
     if (event.imageUrl) {
       // Add console log to debug image URL
@@ -41,7 +41,7 @@ const EventCard = ({ event, highlight, compact = false }) => {
       return event.image;
     }
 
-    return FallbackImage;
+    return eventPlaceholderImage;
   };
 
   // Get the image URL for the event
@@ -214,14 +214,14 @@ const EventCard = ({ event, highlight, compact = false }) => {
         {/* Compact horizontal layout */}
         <div className="flex h-24">
           {/* Optional image section - only if image is available */}
-          {imageUrl && imageUrl !== FallbackImage && (
+          {imageUrl && imageUrl !== eventPlaceholderImage && (
             <div className="relative w-24 overflow-hidden flex-shrink-0">
               <img
                 src={imageUrl}
                 alt={event?.title || "Event"}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  e.target.src = FallbackImage;
+                  e.target.src = eventPlaceholderImage;
                   e.target.onerror = null;
                 }}
               />
@@ -310,7 +310,7 @@ const EventCard = ({ event, highlight, compact = false }) => {
           alt={event?.title || "Event"}
           className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
           onError={(e) => {
-            e.target.src = FallbackImage; // Set fallback on error
+            e.target.src = eventPlaceholderImage; // Set fallback on error
             e.target.onerror = null; // Prevent infinite loop
           }}
         />

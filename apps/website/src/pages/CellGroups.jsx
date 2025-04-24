@@ -13,7 +13,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import JoinGroupModal from "../components/JoinGroupModal";
 import PlaceHolderbanner from "../assets/ministry-banners/ph.png";
-import FallbackImage from "../assets/fallback-image.png";
+import cellGroupPlaceholderImage from "../assets/placeholders/default-cell-group.svg";
 import { Helmet } from "react-helmet-async";
 import { getCellGroups } from "../services/api";
 import config from "../config";
@@ -94,10 +94,10 @@ const CellGroups = () => {
     // Use a more reliable way to get fallback images
     const index = (group.id ? group.id % 4 : 0) + 1;
     try {
-      return fallbackImages[index] || FallbackImage;
+      return fallbackImages[index] || cellGroupPlaceholderImage;
     } catch (error) {
       console.error("Error loading fallback image:", error);
-      return FallbackImage;
+      return cellGroupPlaceholderImage;
     }
   };
 
@@ -198,7 +198,7 @@ const CellGroups = () => {
           }`}
           style={{
             backgroundImage: `url(${
-              isImageLoaded ? PlaceHolderbanner : FallbackImage
+              isImageLoaded ? PlaceHolderbanner : cellGroupPlaceholderImage
             })`,
             backgroundSize: "cover",
             backgroundPosition: "center",

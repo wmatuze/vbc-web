@@ -175,7 +175,7 @@ const HeroSection = forwardRef((props, ref) => {
             startDate: new Date(Date.now() + 86400000 * 3),
             time: "10:00 AM",
             location: "Main Sanctuary",
-            imageUrl: "/assets/events/default-event.jpg",
+            imageUrl: "/assets/placeholders/default-event.svg",
           },
           {
             id: "static2",
@@ -184,7 +184,7 @@ const HeroSection = forwardRef((props, ref) => {
             startDate: new Date(Date.now() + 86400000 * 5),
             time: "7:00 PM",
             location: "Prayer Room",
-            imageUrl: "/assets/events/default-event.jpg",
+            imageUrl: "/assets/placeholders/default-event.svg",
           },
           {
             id: "static3",
@@ -193,7 +193,7 @@ const HeroSection = forwardRef((props, ref) => {
             startDate: new Date(Date.now() + 86400000 * 7),
             time: "6:30 PM",
             location: "Fellowship Hall",
-            imageUrl: "/assets/events/default-event.jpg",
+            imageUrl: "/assets/placeholders/default-event.svg",
           },
           {
             id: "static4",
@@ -202,7 +202,7 @@ const HeroSection = forwardRef((props, ref) => {
             startDate: new Date(Date.now() + 86400000 * 6),
             time: "5:00 PM",
             location: "Youth Center",
-            imageUrl: "/assets/events/default-event.jpg",
+            imageUrl: "/assets/placeholders/default-event.svg",
           },
         ];
 

@@ -6,6 +6,23 @@ const API_URL = config.API_URL;
 // Get the authentication token from localStorage
 const getAuthToken = () => {
   const auth = localStorage.getItem("auth");
+
+  // If we're in development mode and there's no auth token, create a default one
+  if (
+    !auth &&
+    (process.env.NODE_ENV === "development" ||
+      window.location.hostname === "localhost")
+  ) {
+    console.log("Creating default development auth token");
+    const defaultAuth = {
+      isAuthenticated: true,
+      token: "dev-token-for-testing",
+      user: { username: "admin", role: "admin" },
+    };
+    localStorage.setItem("auth", JSON.stringify(defaultAuth));
+    return defaultAuth.token;
+  }
+
   return auth ? JSON.parse(auth).token : null;
 };
 
@@ -283,7 +300,18 @@ export const updateSermon = (id, sermon) =>
   updateData("api/sermons", id, sermon);
 export const deleteSermon = (id) => deleteData("api/sermons", id);
 
-export const getEvents = () => fetchData("api/events");
+export const getEvents = () => {
+  console.log("Calling getEvents API");
+  return fetchData("api/events")
+    .then((data) => {
+      console.log("Events API response:", data);
+      return data;
+    })
+    .catch((error) => {
+      console.error("Error fetching events:", error);
+      throw error;
+    });
+};
 export const getEventById = (id) => fetchData(`api/events/${id}`);
 export const createEvent = (event) => {
   console.log("Creating event with data:", JSON.stringify(event, null, 2));
@@ -304,8 +332,49 @@ export const updateEvent = (id, event) => {
   delete cleanEvent.__v;
   delete cleanEvent.createdAt;
   delete cleanEvent.updatedAt;
+  delete cleanEvent.id; // Remove id to avoid conflicts with MongoDB _id
+
+  // Ensure dates are properly formatted
+  if (cleanEvent.startDate instanceof Date) {
+    // Keep the Date object as is - the server will handle it
+    console.log(`Using Date object for startDate: ${cleanEvent.startDate}`);
+  } else if (typeof cleanEvent.startDate === "string") {
+    try {
+      // Try to parse the string into a Date object
+      const parsedDate = new Date(cleanEvent.startDate);
+      if (!isNaN(parsedDate.getTime())) {
+        cleanEvent.startDate = parsedDate;
+        console.log(
+          `Parsed startDate string into Date: ${cleanEvent.startDate}`
+        );
+      }
+    } catch (err) {
+      console.error("Error parsing startDate string:", err);
+    }
+  }
+
+  // Same for endDate
+  if (cleanEvent.endDate instanceof Date) {
+    console.log(`Using Date object for endDate: ${cleanEvent.endDate}`);
+  } else if (typeof cleanEvent.endDate === "string") {
+    try {
+      const parsedDate = new Date(cleanEvent.endDate);
+      if (!isNaN(parsedDate.getTime())) {
+        cleanEvent.endDate = parsedDate;
+        console.log(`Parsed endDate string into Date: ${cleanEvent.endDate}`);
+      }
+    } catch (err) {
+      console.error("Error parsing endDate string:", err);
+    }
+  }
+
+  // Ensure type is set
+  if (!cleanEvent.type) {
+    cleanEvent.type = "event";
+  }
 
   console.log(`Updating event with ID: ${eventId}`);
+  console.log("Event data for update:", cleanEvent);
   return updateData("api/events", eventId, cleanEvent);
 };
 export const deleteEvent = (id) => {

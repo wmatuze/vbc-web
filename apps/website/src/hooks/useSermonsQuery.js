@@ -13,19 +13,52 @@ export const useSermonsQuery = (options = {}) => {
       const sermons = await getSermons();
 
       // Process sermons to ensure no objects are rendered directly
-      return sermons.map((sermon) => ({
-        ...sermon,
-        // Convert description to string if it's an object
-        description:
-          typeof sermon.description === "object"
+      return sermons.map((sermon) => {
+        // Create a safe copy of the sermon
+        const safeSermom = { ...sermon };
+
+        // Process all properties to ensure they're safe for rendering
+        Object.keys(safeSermom).forEach((key) => {
+          const value = safeSermom[key];
+
+          // Handle null or undefined
+          if (value === null || value === undefined) {
+            safeSermom[key] = "";
+          }
+          // Handle objects (except arrays)
+          else if (typeof value === "object" && !Array.isArray(value)) {
+            // For image objects, extract the path
+            if (key === "image" && value.path) {
+              safeSermom.imageUrl = value.path;
+            } else {
+              // Convert other objects to string to prevent rendering issues
+              safeSermom[key] = JSON.stringify(value);
+            }
+          }
+          // Handle arrays - ensure each item is safe
+          else if (Array.isArray(value)) {
+            safeSermom[key] = value.map((item) =>
+              typeof item === "object" ? JSON.stringify(item) : String(item)
+            );
+          }
+        });
+
+        // Ensure these specific fields are always strings
+        safeSermom.description =
+          typeof safeSermom.description === "object"
             ? "View sermon details"
-            : sermon.description,
-        // Convert imageUrl to string if it's an object
-        imageUrl:
-          typeof sermon.imageUrl === "object"
+            : String(safeSermom.description || "");
+
+        safeSermom.imageUrl =
+          typeof safeSermom.imageUrl === "object"
             ? "/assets/media/default-image.jpg"
-            : sermon.imageUrl,
-      }));
+            : String(safeSermom.imageUrl || "/assets/media/default-image.jpg");
+
+        safeSermom.title = String(safeSermom.title || "Untitled Sermon");
+        safeSermom.speaker = String(safeSermom.speaker || "Unknown Speaker");
+
+        return safeSermom;
+      });
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
@@ -48,20 +81,50 @@ export const useSermonByIdQuery = (id) => {
     queryFn: async () => {
       const sermon = await getSermonById(id);
 
-      // Process sermon to ensure no objects are rendered directly
-      return {
-        ...sermon,
-        // Convert description to string if it's an object
-        description:
-          typeof sermon.description === "object"
-            ? "View sermon details"
-            : sermon.description,
-        // Convert imageUrl to string if it's an object
-        imageUrl:
-          typeof sermon.imageUrl === "object"
-            ? "/assets/media/default-image.jpg"
-            : sermon.imageUrl,
-      };
+      // Create a safe copy of the sermon
+      const safeSermom = { ...sermon };
+
+      // Process all properties to ensure they're safe for rendering
+      Object.keys(safeSermom).forEach((key) => {
+        const value = safeSermom[key];
+
+        // Handle null or undefined
+        if (value === null || value === undefined) {
+          safeSermom[key] = "";
+        }
+        // Handle objects (except arrays)
+        else if (typeof value === "object" && !Array.isArray(value)) {
+          // For image objects, extract the path
+          if (key === "image" && value.path) {
+            safeSermom.imageUrl = value.path;
+          } else {
+            // Convert other objects to string to prevent rendering issues
+            safeSermom[key] = JSON.stringify(value);
+          }
+        }
+        // Handle arrays - ensure each item is safe
+        else if (Array.isArray(value)) {
+          safeSermom[key] = value.map((item) =>
+            typeof item === "object" ? JSON.stringify(item) : String(item)
+          );
+        }
+      });
+
+      // Ensure these specific fields are always strings
+      safeSermom.description =
+        typeof safeSermom.description === "object"
+          ? "View sermon details"
+          : String(safeSermom.description || "");
+
+      safeSermom.imageUrl =
+        typeof safeSermom.imageUrl === "object"
+          ? "/assets/media/default-image.jpg"
+          : String(safeSermom.imageUrl || "/assets/media/default-image.jpg");
+
+      safeSermom.title = String(safeSermom.title || "Untitled Sermon");
+      safeSermom.speaker = String(safeSermom.speaker || "Unknown Speaker");
+
+      return safeSermom;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,

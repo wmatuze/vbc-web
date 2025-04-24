@@ -1,5 +1,11 @@
 import axios from "axios";
 import { getApiUrl, getAuthHeaders } from "./config";
+import {
+  validateMembershipRenewal,
+  validateFoundationClassRegistration,
+  validateMembershipStatusChange,
+  validateFoundationClassStatusChange,
+} from "../utils/requestsValidation";
 
 /**
  * Requests Service for handling API requests related to membership and foundation classes
@@ -62,6 +68,12 @@ class RequestsService {
    */
   static async updateMembershipRenewalStatus(id, status) {
     try {
+      // Validate the status value
+      const { isValid, error } = validateMembershipStatusChange(status);
+      if (!isValid) {
+        throw new Error(`Validation error: ${error}`);
+      }
+
       const axios = this.getAxiosInstance();
       const response = await axios.put(
         `/api/membership/renewals/${id}`,
@@ -126,6 +138,12 @@ class RequestsService {
    */
   static async updateFoundationClassStatus(id, status) {
     try {
+      // Validate the status value
+      const { isValid, error } = validateFoundationClassStatusChange(status);
+      if (!isValid) {
+        throw new Error(`Validation error: ${error}`);
+      }
+
       const axios = this.getAxiosInstance();
       const response = await axios.put(
         `/api/foundation-classes/registrations/${id}`,
@@ -215,6 +233,11 @@ class RequestsService {
    */
   static async deleteMembershipRenewal(id) {
     try {
+      // Validate the ID
+      if (!id) {
+        throw new Error("Membership renewal ID is required");
+      }
+
       const response = await this.getAxiosInstance().delete(
         `/api/membership/renewals/${id}`,
         { headers: getAuthHeaders() }
@@ -233,6 +256,11 @@ class RequestsService {
    */
   static async deleteFoundationClassRegistration(id) {
     try {
+      // Validate the ID
+      if (!id) {
+        throw new Error("Foundation class registration ID is required");
+      }
+
       const response = await this.getAxiosInstance().delete(
         `/api/foundation-classes/registrations/${id}`,
         { headers: getAuthHeaders() }

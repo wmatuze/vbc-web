@@ -29,8 +29,8 @@ import config from "../../config";
 
 const API_URL = config.API_URL;
 
-const placeholderImage =
-  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAADICAYAAADGFbfiAAAACXBIWXMAAAsTAAALEwEAmpwYAAAFyGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDUgNzkuMTYzNDk5LCAyMDE4LzA4LzEzLTE2OjQwOjIyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDIwLTAzLTA1VDIyOjMzOjMwLTA4OjAwIiB4bXA6TW9kaWZ5RGF0ZT0iMjAyMC0wMy0xM1QxMDowNTozOC0wNzowMCIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAyMC0wMy0xM1QxMDowNTozOC0wNzowMCIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiIHBob3Rvc2hvcDpJQ0NQcm9maWxlPSJzUkdCIElFQzYxOTY2LTIuMSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDpmYjRjYzkwZC1mNWRhLTRiNGMtOWVjYi0wYjgyODM0YzUxMmMiIHhtcE1NOkRvY3VtZW50SUQ9ImFkb2JlOmRvY2lkOnBob3Rvc2hvcDo0ZGYyZjI5Yi1iOGNiLTZlNDktYWE4Ni0yYzAzODJjY2M5YjkiIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo2ZWJiZDlkOS0zYTVkLWM5NGMtOTVjNS0wNmM1Mzc0YmJhOTgiPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjcmVhdGVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjZlYmJkOWQ5LTNhNWQtYzk0Yy05NWM1LTA2YzUzNzRiYmE5OCIgc3RFdnQ6d2hlbj0iMjAyMC0wMy0wNVQyMjozMzozMC0wODowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKFdpbmRvd3MpIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJzYXZlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDpmYjRjYzkwZC1mNWRhLTRiNGMtOWVjYi0wYjgyODM0YzUxMmMiIHN0RXZ0OndoZW49IjIwMjAtMDMtMTNUMTA6MDU6MzgtMDc6MDAiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBDQyAyMDE5IChXaW5kb3dzKSIgc3RFdnQ6Y2hhbmdlZD0iLyIvPiA8L3JkZjpTZXE+IDwveG1wTU06SGlzdG9yeT4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7JL8VBAAAF/UlEQVR4nO3dMW4bSRRA0TbgDbiJl+MluONGK3DGJVfoNbgEL8GdOzCgDowBDDPkkGxO/ycwGAgEWU3d4qtXPZ+engAAe/3v1QcAAO9JQAAgEhAA";
+// Import placeholder image for events
+import eventPlaceholderImage from "../../assets/placeholders/default-event.svg";
 
 const EventManager = () => {
   // Use React Query for fetching events
@@ -243,26 +243,66 @@ const EventManager = () => {
 
       // Format the date properly
       let eventDate;
+      let eventStartDate;
       try {
         // Use the formattedDate if available, otherwise format the date input
         if (cleanEvent.formattedDate) {
           eventDate = cleanEvent.formattedDate;
           console.log(`Using pre-formatted date: ${eventDate}`);
+
+          // Also create a proper Date object for startDate
+          try {
+            if (eventDate.includes(",")) {
+              // Parse "Month Day, Year" format
+              const parts = eventDate.split(",");
+              if (parts.length === 2) {
+                const monthDay = parts[0].trim().split(" ");
+                const year = parts[1].trim();
+                if (monthDay.length === 2) {
+                  const month = monthDay[0];
+                  const day = parseInt(monthDay[1]);
+                  eventStartDate = new Date(`${month} ${day}, ${year}`);
+                  console.log(
+                    `Parsed startDate from formattedDate: ${eventStartDate}`
+                  );
+                }
+              }
+            }
+          } catch (err) {
+            console.error("Error parsing formattedDate into startDate:", err);
+          }
         } else if (cleanEvent.date) {
           // Ensure date is in a consistent format (MMMM d, yyyy)
           const parsedDate = parseISO(cleanEvent.date);
           eventDate = format(parsedDate, "MMMM d, yyyy");
+          eventStartDate = parsedDate;
           console.log(
             `Formatted date for event: ${eventDate} (from ${cleanEvent.date})`
           );
         } else {
           // Fallback to current date
-          eventDate = format(new Date(), "MMMM d, yyyy");
+          const today = new Date();
+          eventDate = format(today, "MMMM d, yyyy");
+          eventStartDate = today;
           console.warn("No date provided for event, using current date");
+        }
+
+        // If we still don't have a valid eventStartDate, create one from eventDate
+        if (!eventStartDate || isNaN(eventStartDate.getTime())) {
+          eventStartDate = new Date(eventDate);
+          if (isNaN(eventStartDate.getTime())) {
+            // Last resort fallback
+            eventStartDate = new Date();
+            console.warn(
+              "Using current date as fallback for invalid startDate"
+            );
+          }
         }
       } catch (dateError) {
         console.error("Date parsing error:", dateError, cleanEvent.date);
-        eventDate = format(new Date(), "MMMM d, yyyy"); // Fallback to current date
+        const today = new Date();
+        eventDate = format(today, "MMMM d, yyyy"); // Fallback to current date
+        eventStartDate = today;
       }
 
       // Prepare the data for saving
@@ -273,9 +313,9 @@ const EventManager = () => {
         time: cleanEvent.time,
         location: cleanEvent.location,
         ministry: cleanEvent.ministry,
-        // Add server model fields
-        startDate: eventDate,
-        endDate: eventDate,
+        // Add server model fields with proper Date objects
+        startDate: eventStartDate,
+        endDate: eventStartDate,
         // Optional fields
         capacity: cleanEvent.capacity,
         registrationUrl: cleanEvent.registrationUrl,
@@ -285,7 +325,15 @@ const EventManager = () => {
         contactEmail: cleanEvent.contactEmail,
         featured: cleanEvent.featured,
         tags: cleanEvent.tags,
+        // Ensure type is set for proper categorization
+        type: "event",
       };
+
+      console.log("Prepared server event data:", {
+        ...serverEvent,
+        startDate: serverEvent.startDate.toString(),
+        endDate: serverEvent.endDate.toString(),
+      });
 
       // Handle image paths properly
       if (cleanEvent.image && typeof cleanEvent.image === "object") {
@@ -345,16 +393,57 @@ const EventManager = () => {
 
   const handleEdit = withErrorHandling(
     (event) => {
+      console.log("Original event data for editing:", event);
+
       // Convert display date to ISO format for input
       let isoDate;
+      let formattedDate = event.date; // Default to existing date string
+
       try {
-        // Try to parse the date string
-        const dateObj = new Date(event.date);
-        isoDate = format(dateObj, "yyyy-MM-dd");
+        // First try to use startDate if available (more reliable)
+        if (event.startDate) {
+          const startDateObj = new Date(event.startDate);
+          if (!isNaN(startDateObj.getTime())) {
+            isoDate = format(startDateObj, "yyyy-MM-dd");
+            // Also generate a properly formatted date string
+            formattedDate = format(startDateObj, "MMMM d, yyyy");
+            console.log(
+              `Parsed date from startDate: ${isoDate} (${formattedDate})`
+            );
+          }
+        }
+        // If startDate parsing failed or doesn't exist, try date field
+        else if (event.date) {
+          // Try to parse the date string
+          const dateObj = new Date(event.date);
+          if (!isNaN(dateObj.getTime())) {
+            isoDate = format(dateObj, "yyyy-MM-dd");
+            // Also generate a properly formatted date string if it's not already in that format
+            if (!event.date.includes(",")) {
+              formattedDate = format(dateObj, "MMMM d, yyyy");
+            }
+            console.log(
+              `Parsed date from date field: ${isoDate} (${formattedDate})`
+            );
+          }
+        }
       } catch (err) {
-        // Fallback to current date if parsing fails
-        console.error("Failed to parse date:", event.date);
-        isoDate = format(new Date(), "yyyy-MM-dd");
+        console.error(
+          "Failed to parse date:",
+          err,
+          event.date,
+          event.startDate
+        );
+      }
+
+      // Fallback to current date if parsing fails
+      if (!isoDate) {
+        const today = new Date();
+        isoDate = format(today, "yyyy-MM-dd");
+        formattedDate = format(today, "MMMM d, yyyy");
+        console.warn(
+          `Using fallback current date: ${isoDate} (${formattedDate})`
+        );
       }
 
       // Map the MongoDB _id to id for the API
@@ -363,10 +452,10 @@ const EventManager = () => {
         // Use _id as id if id doesn't exist
         id: event.id || event._id,
         date: isoDate,
-        formattedDate: event.date, // Store original formatted date
+        formattedDate: formattedDate, // Store properly formatted date
       };
 
-      console.log("Editing event with mapped ID:", eventData.id);
+      console.log("Prepared event data for editing:", eventData);
 
       setCurrentEvent(eventData);
       setFormMode("edit");
@@ -427,34 +516,12 @@ const EventManager = () => {
     ? existingMinistries
     : ["General", ...existingMinistries];
 
-  // Format data for display
-  const formatEventDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString();
-  };
-
-  // Ensure image URLs have proper domain
-  const getFullImageUrl = (url) => {
-    if (!url) return "";
-
-    // Handle absolute URLs that already include http/https
-    if (url.startsWith("http")) {
-      return url;
-    }
-
-    // Handle local server paths
-    if (url.startsWith("/")) {
-      return `${API_URL}${url}`;
-    }
-
-    // Handle relative paths
-    return `${API_URL}/${url}`;
-  };
+  // Helper functions for date and image handling are used in the component
 
   // Helper function to get image preview URL with cache busting
   const getImagePreviewUrl = (imageUrl) => {
-    if (!imageUrl) return null;
+    // If no image URL is provided, return the imported SVG placeholder directly
+    if (!imageUrl) return eventPlaceholderImage;
 
     // Add cache busting parameter
     const cacheBuster = `?t=${Date.now()}`;
@@ -478,8 +545,8 @@ const EventManager = () => {
   // Add the handleImageError function after getImagePreviewUrl
   const handleImageError = (e) => {
     console.error("Failed to load image:", e.target.src);
-    // Use the base64 encoded placeholder image that's already defined above
-    e.target.src = placeholderImage;
+    // Use the imported SVG placeholder directly (not as a URL)
+    e.target.src = eventPlaceholderImage;
     e.target.onerror = null; // Prevent infinite error loop
   };
 
@@ -1213,7 +1280,7 @@ const EventManager = () => {
                                       console.error(
                                         `Failed to load image: ${item.path || item.filename}`
                                       );
-                                      e.target.src = placeholderImage;
+                                      e.target.src = eventPlaceholderImage;
                                     }}
                                   />
                                 </div>

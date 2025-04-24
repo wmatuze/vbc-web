@@ -22,6 +22,7 @@ import {
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 import config from "../../config";
+import placeholderImage from "../../assets/placeholders/default-image.svg";
 
 const API_URL = config.API_URL;
 
@@ -290,107 +291,107 @@ const MediaManager = () => {
       }
 
       try {
-      setIsUploading(true);
-      setUploadProgress(0);
-      setUploadError(null);
+        setIsUploading(true);
+        setUploadProgress(0);
+        setUploadError(null);
 
-      const uploadedMedia = await uploadFile(
-        selectedFile,
-        title || selectedFile.name,
-        category,
-        (progress) => {
-          // Handle the new progress object format
-          if (progress && typeof progress.percent === "number") {
-            setUploadProgress(progress.percent);
-          } else if (progress && progress.total) {
-            // Fallback for old format
-            setUploadProgress(
-              Math.round((progress.loaded / progress.total) * 100)
-            );
-          } else if (progress && progress.lengthComputable) {
-            // Fallback for XMLHttpRequest event format
-            setUploadProgress(
-              Math.round((progress.loaded / progress.total) * 100)
+        const uploadedMedia = await uploadFile(
+          selectedFile,
+          title || selectedFile.name,
+          category,
+          (progress) => {
+            // Handle the new progress object format
+            if (progress && typeof progress.percent === "number") {
+              setUploadProgress(progress.percent);
+            } else if (progress && progress.total) {
+              // Fallback for old format
+              setUploadProgress(
+                Math.round((progress.loaded / progress.total) * 100)
+              );
+            } else if (progress && progress.lengthComputable) {
+              // Fallback for XMLHttpRequest event format
+              setUploadProgress(
+                Math.round((progress.loaded / progress.total) * 100)
+              );
+            }
+          }
+        );
+
+        if (!isMounted.current) return;
+
+        console.log("Media upload successful:", uploadedMedia);
+
+        // Ensure the path is properly set
+        if (!uploadedMedia.path && uploadedMedia.filename) {
+          uploadedMedia.path = `/uploads/${uploadedMedia.filename}`;
+        }
+
+        // Add to media state with proper preview URLs
+        const mediaWithUrls = {
+          ...uploadedMedia,
+          // Add upload date for sorting
+          uploadDate: new Date().toISOString(),
+          // Ensure fileUrl and thumbnailUrl are properly set
+          fileUrl: uploadedMedia.path.startsWith("http")
+            ? uploadedMedia.path
+            : `${API_URL}${uploadedMedia.path}`,
+          thumbnailUrl: uploadedMedia.path.startsWith("http")
+            ? uploadedMedia.path
+            : `${API_URL}${uploadedMedia.path}`,
+        };
+
+        // Update state with new media at the beginning of the array
+        setMedia((prev) => {
+          // Check if we already have this media item (by id)
+          const exists = prev.some((item) => item.id === mediaWithUrls.id);
+          if (exists) {
+            // Replace the existing item
+            return prev.map((item) =>
+              item.id === mediaWithUrls.id ? mediaWithUrls : item
             );
           }
+          // Add new item to beginning
+          return [mediaWithUrls, ...prev];
+        });
+
+        setSelectedFile(null);
+        setTitle("");
+        setPreviewUrl(null);
+        setUploadProgress(0);
+        setUploadSuccess(true);
+
+        // Update cache with new media included
+        const updatedMedia = [
+          mediaWithUrls,
+          ...media.filter((item) => item.id !== mediaWithUrls.id),
+        ];
+        sessionStorage.setItem("cachedMedia", JSON.stringify(updatedMedia));
+        localStorage.setItem("mediaBackup", JSON.stringify(updatedMedia));
+        console.log(
+          "Updated media cache with new upload:",
+          mediaWithUrls.title || mediaWithUrls.filename
+        );
+
+        // Close modal after short delay
+        setTimeout(() => {
+          setShowUploadModal(false);
+          setUploadSuccess(false);
+        }, 1500);
+      } catch (err) {
+        if (!isMounted.current) return;
+        console.error("Upload error:", err);
+        setUploadError(`Failed to upload file: ${err.message}`);
+        throw err; // Re-throw for error handler
+      } finally {
+        if (isMounted.current) {
+          setIsUploading(false);
         }
-      );
-
-      if (!isMounted.current) return;
-
-      console.log("Media upload successful:", uploadedMedia);
-
-      // Ensure the path is properly set
-      if (!uploadedMedia.path && uploadedMedia.filename) {
-        uploadedMedia.path = `/uploads/${uploadedMedia.filename}`;
       }
-
-      // Add to media state with proper preview URLs
-      const mediaWithUrls = {
-        ...uploadedMedia,
-        // Add upload date for sorting
-        uploadDate: new Date().toISOString(),
-        // Ensure fileUrl and thumbnailUrl are properly set
-        fileUrl: uploadedMedia.path.startsWith("http")
-          ? uploadedMedia.path
-          : `${API_URL}${uploadedMedia.path}`,
-        thumbnailUrl: uploadedMedia.path.startsWith("http")
-          ? uploadedMedia.path
-          : `${API_URL}${uploadedMedia.path}`,
-      };
-
-      // Update state with new media at the beginning of the array
-      setMedia((prev) => {
-        // Check if we already have this media item (by id)
-        const exists = prev.some((item) => item.id === mediaWithUrls.id);
-        if (exists) {
-          // Replace the existing item
-          return prev.map((item) =>
-            item.id === mediaWithUrls.id ? mediaWithUrls : item
-          );
-        }
-        // Add new item to beginning
-        return [mediaWithUrls, ...prev];
-      });
-
-      setSelectedFile(null);
-      setTitle("");
-      setPreviewUrl(null);
-      setUploadProgress(0);
-      setUploadSuccess(true);
-
-      // Update cache with new media included
-      const updatedMedia = [
-        mediaWithUrls,
-        ...media.filter((item) => item.id !== mediaWithUrls.id),
-      ];
-      sessionStorage.setItem("cachedMedia", JSON.stringify(updatedMedia));
-      localStorage.setItem("mediaBackup", JSON.stringify(updatedMedia));
-      console.log(
-        "Updated media cache with new upload:",
-        mediaWithUrls.title || mediaWithUrls.filename
-      );
-
-      // Close modal after short delay
-      setTimeout(() => {
-        setShowUploadModal(false);
-        setUploadSuccess(false);
-      }, 1500);
-    } catch (err) {
-      if (!isMounted.current) return;
-      console.error("Upload error:", err);
-      setUploadError(`Failed to upload file: ${err.message}`);
-      throw err; // Re-throw for error handler
-    } finally {
-      if (isMounted.current) {
-        setIsUploading(false);
-      }
+    },
+    {
+      context: "Media Upload",
     }
-  },
-  {
-    context: "Media Upload",
-  }
-  };
+  );
 
   const handleDelete = withErrorHandling(
     async (id) => {
@@ -614,7 +615,7 @@ const MediaManager = () => {
                     loading="lazy"
                     onError={(e) => {
                       console.error("Image load error:", item);
-                      e.target.src = `${API_URL}/assets/media/placeholder.jpg`;
+                      e.target.src = placeholderImage;
                       e.target.alt = "Image not found";
                     }}
                   />
@@ -833,7 +834,9 @@ const MediaManager = () => {
                                   className={`mt-1 block w-full border ${formErrors.title ? "border-red-500" : "border-gray-300"} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
                                 />
                                 {formErrors.title && (
-                                  <p className="mt-1 text-xs text-red-500">{formErrors.title}</p>
+                                  <p className="mt-1 text-xs text-red-500">
+                                    {formErrors.title}
+                                  </p>
                                 )}
                               </div>
 
@@ -863,12 +866,16 @@ const MediaManager = () => {
                                   <option value="sermons">Sermons</option>
                                   <option value="events">Events</option>
                                   <option value="leadership">Leadership</option>
-                                  <option value="cell-groups">Cell Groups</option>
+                                  <option value="cell-groups">
+                                    Cell Groups
+                                  </option>
                                   <option value="banners">Banners</option>
                                   <option value="gallery">Gallery</option>
                                 </select>
                                 {formErrors.category && (
-                                  <p className="mt-1 text-xs text-red-500">{formErrors.category}</p>
+                                  <p className="mt-1 text-xs text-red-500">
+                                    {formErrors.category}
+                                  </p>
                                 )}
                               </div>
                             </div>
@@ -967,7 +974,7 @@ const MediaManager = () => {
                     alt={selectedMedia.title || selectedMedia.filename}
                     className="w-full h-auto rounded-lg"
                     onError={(e) => {
-                      e.target.src = `${API_URL}/assets/media/placeholder.jpg`;
+                      e.target.src = placeholderImage;
                       e.target.alt = "Image not found";
                     }}
                   />

@@ -191,15 +191,17 @@ const ZoneDetailPage = () => {
   useEffect(() => {
     if ((zoneError || !zone) && !isLoading) {
       console.log("Using fallback zone data for", zoneId);
-      // Find the zone in the mock data
-      const mockZone = zonesData.find((z) => z.id === zoneId);
+      // Find the zone in the mock data - try both id and _id
+      const mockZone = zonesData.find(
+        (z) => z.id === zoneId || z._id === zoneId
+      );
       if (mockZone) {
         console.log("Found fallback zone:", mockZone.name);
         setFallbackZone(mockZone);
 
-        // Find cell groups for this zone
+        // Find cell groups for this zone - try both zoneId and zone
         const mockCellGroups = cellGroupsData.filter(
-          (group) => group.zoneId === zoneId
+          (group) => group.zoneId === zoneId || group.zone === zoneId
         );
         console.log(`Found ${mockCellGroups.length} fallback cell groups`);
         setFallbackCellGroups(mockCellGroups);

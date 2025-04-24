@@ -161,12 +161,13 @@ const seedZones = async () => {
     if (zonesCount === 0) {
       console.log("Seeding zones...");
 
-      // Use hardcoded zones data
+      // Create a map to store the mapping between frontend IDs and MongoDB ObjectIds
+      const zoneIdMap = new Map();
 
       // Create zones from data
       for (const zoneData of zonesData) {
         const zone = new models.Zone({
-          _id: zoneData.id, // Use the same ID as in the frontend data
+          // Let MongoDB generate the _id
           name: zoneData.name,
           location: zoneData.location,
           description: zoneData.description,
@@ -182,12 +183,32 @@ const seedZones = async () => {
           updatedAt: new Date(),
         });
 
-        await zone.save();
+        const savedZone = await zone.save();
+
+        // Store the mapping between frontend ID and MongoDB ObjectId
+        zoneIdMap.set(zoneData.id, savedZone._id);
       }
+
+      // Store the zone ID mapping in global scope for use in seedCellGroups
+      global.zoneIdMap = zoneIdMap;
 
       console.log("Zones created successfully");
     } else {
       console.log("Zones already exist, skipping...");
+
+      // If zones already exist, create a mapping for existing zones
+      const zones = await models.Zone.find();
+      const zoneIdMap = new Map();
+
+      // Create a mapping based on zone names
+      for (const zone of zones) {
+        const frontendZone = zonesData.find((z) => z.name === zone.name);
+        if (frontendZone) {
+          zoneIdMap.set(frontendZone.id, zone._id);
+        }
+      }
+
+      global.zoneIdMap = zoneIdMap;
     }
   } catch (error) {
     console.error("Error seeding zones:", error);
@@ -203,16 +224,32 @@ const seedCellGroups = async () => {
     if (cellGroupsCount === 0) {
       console.log("Seeding cell groups...");
 
-      // Use hardcoded cell groups data
+      // Make sure we have the zone ID mapping
+      if (!global.zoneIdMap || global.zoneIdMap.size === 0) {
+        console.log(
+          "Zone ID mapping not found. Make sure to run seedZones first."
+        );
+        return;
+      }
 
       // Create cell groups from data
       for (const cellGroupData of cellGroupsData) {
+        // Get the MongoDB ObjectId for this zone
+        const zoneId = global.zoneIdMap.get(cellGroupData.zoneId);
+
+        if (!zoneId) {
+          console.log(
+            `Zone ID ${cellGroupData.zoneId} not found in mapping. Skipping cell group ${cellGroupData.name}.`
+          );
+          continue;
+        }
+
         const cellGroup = new models.CellGroup({
           name: cellGroupData.name,
           leader: cellGroupData.leader,
           leaderContact: cellGroupData.leaderContact,
           location: cellGroupData.location,
-          zone: cellGroupData.zoneId, // Use the zoneId from the frontend data
+          zone: zoneId, // Use the MongoDB ObjectId from our mapping
           meetingDay: cellGroupData.meetingDay,
           meetingTime: cellGroupData.meetingTime,
           description: cellGroupData.description,

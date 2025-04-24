@@ -4,13 +4,14 @@ import { useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet"; // Added Helmet for SEO
 import config from "../config"; // Import centralized config
 import { useSermonsQuery } from "../hooks/useSermonsQuery";
+import placeholderImage from "../assets/placeholders/default-image.svg";
 
 const API_URL = config.API_URL;
 
 // Function to check if YouTube is accessible
 const checkYouTubeConnectivity = async () => {
   try {
-    const response = await fetch("https://www.youtube.com/favicon.ico", {
+    await fetch("https://www.youtube.com/favicon.ico", {
       mode: "no-cors",
       cache: "no-store",
       method: "HEAD",
@@ -69,9 +70,7 @@ const staticSermons = [
   },
 ];
 
-// Base64 encoded small gray placeholder image
-const placeholderImage =
-  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAADICAYAAADGFbfiAAAACXBIWXMAAAsTAAALEwEAmpwYAAAFyGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDUgNzkuMTYzNDk5LCAyMDE4LzA4LzEzLTE2OjQwOjIyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDIwLTAzLTA1VDIyOjMzOjMwLTA4OjAwIiB4bXA6TW9kaWZ5RGF0ZT0iMjAyMC0wMy0xM1QxMDowNTozOC0wNzowMCIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAyMC0wMy0xM1QxMDowNTozOC0wNzowMCIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiIHBob3Rvc2hvcDpJQ0NQcm9maWxlPSJzUkdCIElFQzYxOTY2LTIuMSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDpmYjRjYzkwZC1mNWRhLTRiNGMtOWVjYi0wYjgyODM0YzUxMmMiIHhtcE1NOkRvY3VtZW50SUQ9ImFkb2JlOmRvY2lkOnBob3Rvc2hvcDo0ZGYyZjI5Yi1iOGNiLTZlNDktYWE4Ni0yYzAzODJjY2M5YjkiIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo2ZWJiZDlkOS0zYTVkLWM5NGMtOTVjNS0wNmM1Mzc0YmJhOTgiPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjcmVhdGVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjZlYmJkOWQ5LTNhNWQtYzk0Yy05NWM1LTA2YzUzNzRiYmE5OCIgc3RFdnQ6d2hlbj0iMjAyMC0wMy0wNVQyMjozMzozMC0wODowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKFdpbmRvd3MpIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJzYXZlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDpmYjRjYzkwZC1mNWRhLTRiNGMtOWVjYi0wYjgyODM0YzUxMmMiIHN0RXZ0OndoZW49IjIwMjAtMDMtMTNUMTA6MDU6MzgtMDc6MDAiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBDQyAyMDE5IChXaW5kb3dzKSIgc3RFdnQ6Y2hhbmdlZD0iLyIvPiA8L3JkZjpTZXE+IDwveG1wTU06SGlzdG9yeT4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7JL8VBAAAF/UlEQVR4nO3dMW4bSRRA0TbgDbiJl+MluONGK3DGJVfoNbgEL8GdOzCgDowBDDPkkGxO/ycwGAgEWU3d4qtXPZ+engAAe/3v1QcAAO9JQAAgEhAA";
+// Using SVG placeholder image imported at the top
 
 const Sermons = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -82,7 +81,6 @@ const Sermons = () => {
     data: sermons = [],
     isLoading: sermonsLoading,
     error: sermonsError,
-    refetch: refetchSermons,
   } = useSermonsQuery();
 
   const [selectedSermon, setSelectedSermon] = useState(null);
@@ -96,11 +94,21 @@ const Sermons = () => {
 
   // Helper function to get the correct image URL
   const getSermonImageUrl = (sermon) => {
+    // Handle case where sermon might be an object with imageUrl property
+    if (
+      typeof sermon === "object" &&
+      sermon.imageUrl &&
+      typeof sermon.imageUrl === "object"
+    ) {
+      console.log("Found object imageUrl, using placeholder");
+      return placeholderImage;
+    }
+
     if (sermon.image?.path) {
       return sermon.image.path.startsWith("/")
         ? `${API_URL}${sermon.image.path}`
         : sermon.image.path;
-    } else if (sermon.imageUrl) {
+    } else if (sermon.imageUrl && typeof sermon.imageUrl === "string") {
       // Don't prepend API_URL if the URL is already absolute or a data URL
       if (
         sermon.imageUrl.startsWith("http") ||
@@ -222,6 +230,22 @@ const Sermons = () => {
   useEffect(() => {
     if (sermons && sermons.length > 0) {
       console.log("Sermons page - API data:", sermons);
+
+      // Debug: Check for objects that might be incorrectly rendered
+      sermons.forEach((sermon) => {
+        if (sermon.description && typeof sermon.description === "object") {
+          console.warn(
+            "Found object description that might cause rendering issues:",
+            sermon.description
+          );
+        }
+        if (sermon.imageUrl && typeof sermon.imageUrl === "object") {
+          console.warn(
+            "Found object imageUrl that might cause rendering issues:",
+            sermon.imageUrl
+          );
+        }
+      });
 
       // Set the initially selected sermon
       if (videoIdParam) {

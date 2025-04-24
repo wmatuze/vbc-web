@@ -356,7 +356,7 @@ const ZonesPage = () => {
 
                     {/* View Zone Button */}
                     <Link
-                      to={`/cell-groups/${zone.id}`}
+                      to={`/cell-groups/${zone._id || zone.id}`}
                       className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 px-4 rounded-lg shadow-md transition-all duration-300 flex items-center justify-center"
                     >
                       View Cell Groups

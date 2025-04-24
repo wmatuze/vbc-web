@@ -57,17 +57,17 @@ const formatObject = (item) => {
       // Keep any existing imageUrl or set default based on type
       if (!obj.imageUrl) {
         if (obj.type === "sermon" || obj.category === "sermon") {
-          obj.imageUrl = "/assets/sermons/default-sermon.jpg";
+          obj.imageUrl = "/assets/placeholders/default-sermon.svg";
         } else if (obj.type === "event" || obj.category === "event") {
-          obj.imageUrl = "/assets/events/default-event.jpg";
+          obj.imageUrl = "/assets/placeholders/default-event.svg";
         } else if (obj.type === "leader" || obj.category === "leader") {
-          obj.imageUrl = "/assets/leadership/default-leader.jpg";
+          obj.imageUrl = "/assets/placeholders/default-leader.svg";
         } else if (obj.type === "cell-group" || obj.category === "cell-group") {
-          obj.imageUrl = "/assets/cell-groups/default-cell-group.jpg";
+          obj.imageUrl = "/assets/placeholders/default-cell-group.svg";
         } else if (obj.type === "zone" || obj.category === "zone") {
-          obj.imageUrl = "/assets/zones/default-zone.jpg";
+          obj.imageUrl = "/assets/placeholders/default-zone.svg";
         } else {
-          obj.imageUrl = "/assets/media/default-image.jpg";
+          obj.imageUrl = "/assets/placeholders/default-image.svg";
         }
       }
     }
@@ -75,17 +75,17 @@ const formatObject = (item) => {
   // No image reference but need imageUrl
   else if (!obj.imageUrl) {
     if (obj.type === "sermon" || obj.category === "sermon") {
-      obj.imageUrl = "/assets/sermons/default-sermon.jpg";
+      obj.imageUrl = "/assets/placeholders/default-sermon.svg";
     } else if (obj.type === "event" || obj.category === "event") {
-      obj.imageUrl = "/assets/events/default-event.jpg";
+      obj.imageUrl = "/assets/placeholders/default-event.svg";
     } else if (obj.type === "leader" || obj.category === "leader") {
-      obj.imageUrl = "/assets/leadership/default-leader.jpg";
+      obj.imageUrl = "/assets/placeholders/default-leader.svg";
     } else if (obj.type === "cell-group" || obj.category === "cell-group") {
-      obj.imageUrl = "/assets/cell-groups/default-cell-group.jpg";
+      obj.imageUrl = "/assets/placeholders/default-cell-group.svg";
     } else if (obj.type === "zone" || obj.category === "zone") {
-      obj.imageUrl = "/assets/zones/default-zone.jpg";
+      obj.imageUrl = "/assets/placeholders/default-zone.svg";
     } else {
-      obj.imageUrl = "/assets/media/default-image.jpg";
+      obj.imageUrl = "/assets/placeholders/default-image.svg";
     }
   }
 
@@ -99,7 +99,7 @@ const formatObject = (item) => {
     else if (obj.coverImage._id || obj.coverImage.toString) {
       // Keep any existing coverImageUrl or set default
       if (!obj.coverImageUrl) {
-        obj.coverImageUrl = "/assets/zones/default-zone.jpg";
+        obj.coverImageUrl = "/assets/placeholders/default-zone.svg";
       }
     }
   }
@@ -108,7 +108,7 @@ const formatObject = (item) => {
     !obj.coverImageUrl &&
     (obj.type === "zone" || obj.category === "zone")
   ) {
-    obj.coverImageUrl = "/assets/zones/default-zone.jpg";
+    obj.coverImageUrl = "/assets/placeholders/default-zone.svg";
   }
 
   // Handle leaderImage/leaderImageUrl for cell groups
@@ -121,7 +121,7 @@ const formatObject = (item) => {
     else if (obj.leaderImage._id || obj.leaderImage.toString) {
       // Keep any existing leaderImageUrl or set default
       if (!obj.leaderImageUrl) {
-        obj.leaderImageUrl = "/assets/leadership/default-leader.jpg";
+        obj.leaderImageUrl = "/assets/placeholders/default-leader.svg";
       }
     }
   }
@@ -130,7 +130,7 @@ const formatObject = (item) => {
     !obj.leaderImageUrl &&
     (obj.type === "cell-group" || obj.category === "cell-group")
   ) {
-    obj.leaderImageUrl = "/assets/leadership/default-leader.jpg";
+    obj.leaderImageUrl = "/assets/placeholders/default-leader.svg";
   }
 
   // Ensure events have date and time fields for frontend compatibility
