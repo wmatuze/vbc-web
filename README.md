@@ -49,11 +49,11 @@ A custom Content Management System (CMS) for Victory Bible Church website.
 
 - Admin:
   - Username: admin
-  - Password: church_admin_2025
+  - Password: 
 
 - Editor:
   - Username: pastor
-  - Password: pastor_2025
+  - Password: 
 
 ### Content Types
 
