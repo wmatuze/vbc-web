@@ -8,7 +8,7 @@ import {
   XCircleIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { formatDate } from "../../../utils/requests/requestsUtils";
+import { formatDate } from "../../../utils/requests/requestsUtils.jsx";
 import StatusBadge from "./StatusBadge";
 
 /**

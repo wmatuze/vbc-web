@@ -517,7 +517,12 @@ export const deleteCellGroupJoinRequest = (id) =>
 // Event Signup Request API functions
 export const submitEventSignupRequest = (request) => {
   console.log("Submitting event signup request:", request);
-  return postData("api/event-signup-requests", request);
+  // Ensure eventId is properly formatted as a string for MongoDB
+  const requestData = { ...request };
+  if (requestData.eventId) {
+    requestData.eventId = String(requestData.eventId);
+  }
+  return postData("api/event-signup-requests", requestData);
 };
 export const getEventSignupRequests = () =>
   fetchData("api/event-signup-requests");

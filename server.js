@@ -305,6 +305,79 @@ app.post("/login", async (req, res) => {
   }
 });
 
+// Add the same login endpoint at /api/auth/login
+app.post("/api/auth/login", async (req, res) => {
+  // Log the incoming request for debugging
+  console.log("Received login request at /api/auth/login:", {
+    headers: req.headers,
+    body: req.body,
+    method: req.method,
+    path: req.path,
+  });
+
+  // Set CORS headers explicitly for this endpoint
+  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
+  res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  res.header("Access-Control-Allow-Credentials", "true");
+
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res
+      .status(400)
+      .json({ error: "Username and password are required" });
+  }
+
+  try {
+    // Find user by username
+    const user = await models.User.findOne({ username });
+
+    // Check if user exists
+    if (!user) {
+      return res.status(401).json({ error: "Invalid username or password" });
+    }
+
+    // Verify password
+    const hashedPassword = hashPassword(password);
+    if (hashedPassword !== user.hashedPassword) {
+      return res.status(401).json({ error: "Invalid username or password" });
+    }
+
+    // Generate token
+    const token = generateToken(user);
+
+    // Return user info and token
+    return res.json({
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        role: user.role,
+        name: user.name,
+      },
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Handle preflight requests explicitly for /api/auth/login
+app.options("/api/auth/login", (req, res) => {
+  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
+  res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.sendStatus(204);
+});
+
 // File upload endpoint
 app.post(
   "/api/upload",

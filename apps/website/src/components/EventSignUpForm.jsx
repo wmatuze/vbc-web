@@ -4,6 +4,8 @@ import { submitEventSignupRequest } from '../services/api';
 import FormField from './common/FormField';
 
 const EventSignUpForm = ({ event, onClose, onSubmit }) => {
+  console.log("EventSignUpForm rendered with event:", event);
+
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -26,6 +28,36 @@ const EventSignUpForm = ({ event, onClose, onSubmit }) => {
   // Determine which fields to show based on event type
   const isBaptism = event?.type === 'baptism';
   const isBabyDedication = event?.type === 'babyDedication';
+  
+  console.log("Event type detection:", { 
+    type: event?.type,
+    isBaptism,
+    isBabyDedication
+  });
+
+  // Add a useEffect hook to log event props when the component loads
+  useEffect(() => {
+    console.log("EventSignUpForm mounted with event:", event);
+    
+    if (!event) {
+      console.error("EventSignUpForm received null/undefined event");
+      setError("Event information is missing. Please try again.");
+      return;
+    }
+    
+    if (!event.id) {
+      console.warn("Event is missing ID:", event);
+    }
+    
+    // Alert about event type for debugging
+    if (event.type === 'baptism') {
+      console.log("This is a baptism event - baptism fields will be shown");
+    } else if (event.type === 'babyDedication') {
+      console.log("This is a baby dedication event - dedication fields will be shown");
+    } else {
+      console.log("This is a standard event with type:", event.type);
+    }
+  }, [event]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -64,8 +96,18 @@ const EventSignUpForm = ({ event, onClose, onSubmit }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Form submitted with data:", formData);
     
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      console.log("Form validation failed with errors:", formErrors);
+      return;
+    }
+    
+    if (!event || !event.id) {
+      setError("Event information is incomplete. Unable to submit your request.");
+      console.error("Can't submit form - event or event.id is missing:", event);
+      return;
+    }
     
     try {
       setIsSubmitting(true);
@@ -73,13 +115,33 @@ const EventSignUpForm = ({ event, onClose, onSubmit }) => {
       
       // Prepare the request data
       const requestData = {
-        eventId: event.id,
-        eventType: event.type,
-        ...formData
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        message: formData.message || '',
+        eventId: String(event.id),
+        eventType: event.type || 'event',
+        submittedAt: new Date().toISOString(),
+        status: 'pending'
       };
       
+      // Add event-specific fields
+      if (event.type === 'baptism') {
+        requestData.testimony = formData.testimony || '';
+        requestData.previousReligion = formData.previousReligion || '';
+      }
+      
+      if (event.type === 'babyDedication') {
+        requestData.childName = formData.childName || '';
+        requestData.childDateOfBirth = formData.childDateOfBirth || '';
+        requestData.parentNames = formData.parentNames || '';
+      }
+      
+      console.log("Submitting event signup request:", requestData);
+      
       // Submit the request to the API
-      await submitEventSignupRequest(requestData);
+      const response = await submitEventSignupRequest(requestData);
+      console.log("Event signup API response:", response);
       
       // Call the onSubmit callback if provided
       if (onSubmit) {
@@ -90,18 +152,22 @@ const EventSignUpForm = ({ event, onClose, onSubmit }) => {
       setStep(2);
     } catch (error) {
       console.error('Error submitting signup request:', error);
-      setError('There was an error submitting your request. Please try again.');
+      setError(`There was an error submitting your request: ${error.message || 'Unknown error'}. Please try again.`);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div 
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      onClick={onClose}
+    >
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         className="bg-white/95 backdrop-blur-md rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-xl border border-white/20"
+        onClick={e => e.stopPropagation()}
       >
         {step === 1 ? (
           <>
@@ -274,40 +340,19 @@ const EventSignUpForm = ({ event, onClose, onSubmit }) => {
               </button>
             </div>
             
-            <div className="text-center mb-6">
-              <svg
-                className="w-16 h-16 text-green-500 mx-auto mb-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-              <h3 className="text-2xl font-bold mb-2">Request Submitted!</h3>
+            <div className="text-center py-4">
+              <div className="h-16 w-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h4 className="text-xl font-bold mb-2">Registration Successful!</h4>
               <p className="text-gray-600 mb-6">
-                Your sign-up request for {event?.title} has been submitted successfully.
+                Thank you for signing up for this event. We'll be in touch with more details soon.
               </p>
-            </div>
-            
-            <div className="bg-white/80 backdrop-blur-sm p-4 rounded-lg mb-6 text-left shadow-sm">
-              <h4 className="font-medium text-gray-800 mb-2">Next Steps:</h4>
-              <ol className="list-decimal list-inside space-y-2 text-gray-700">
-                <li>Check your email for a confirmation</li>
-                <li>Our team will review your request</li>
-                <li>You'll receive further instructions once approved</li>
-              </ol>
-            </div>
-            
-            <div className="text-center">
               <button
                 onClick={onClose}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
               >
                 Close
               </button>

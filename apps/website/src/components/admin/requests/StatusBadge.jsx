@@ -2,7 +2,7 @@ import React from "react";
 import {
   getStatusBadgeClasses,
   getStatusIcon,
-} from "../../../utils/requestsUtils";
+} from "../../../utils/requests/requestsUtils.jsx";
 
 /**
  * Status badge component for displaying request statuses

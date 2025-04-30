@@ -1,6 +1,7 @@
 /**
  * Utility functions for the Requests Manager components
  */
+import React from "react";
 import { CheckCircleIcon, XCircleIcon, ClockIcon } from "@heroicons/react/24/outline";
 
 /**

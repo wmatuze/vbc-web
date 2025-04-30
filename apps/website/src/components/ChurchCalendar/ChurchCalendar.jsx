@@ -12,6 +12,10 @@ import config from "../../config";
 import { motion } from "framer-motion";
 import { Helmet } from "react-helmet"; // Added for SEO
 import EventSignUpForm from "../EventSignUpForm"; // Import the sign-up form component
+import { toast } from "react-toastify"; // Import toast notifications
+
+// Set the app element for react-modal
+Modal.setAppElement('#root');
 
 const API_URL = config.API_URL;
 
@@ -73,6 +77,7 @@ const ChurchCalendar = () => {
   const handleEventClick = (event) => {
     setSelectedEvent(event);
     setIsModalOpen(true);
+    setIsSignUpFormOpen(false); // Ensure signup form is closed when event modal opens
   };
 
   // Add to calendar function
@@ -221,7 +226,89 @@ const ChurchCalendar = () => {
   // Close modal
   const closeModal = () => {
     setIsModalOpen(false);
-    setSelectedEvent(null);
+    // Don't reset selectedEvent right away in case we need to open the signup form
+    setTimeout(() => {
+      if (!isSignUpFormOpen) {
+        setSelectedEvent(null);
+      }
+    }, 300);
+  };
+
+  // Add this function to determine the event type
+  const getEventType = (event) => {
+    // Check title for event type if not explicitly set
+    if (event.type) return event.type;
+    
+    const title = event.title?.toLowerCase() || '';
+    
+    if (title.includes('baptism')) return 'baptism';
+    if (title.includes('baby dedication') || title.includes('dedication')) return 'babyDedication';
+    
+    return 'event'; // Default type
+  };
+
+  // When opening the signup form, set the type
+  const handleOpenSignupForm = () => {
+    try {
+      console.log("handleOpenSignupForm called with event:", selectedEvent);
+      
+      // Check if we have a selected event
+      if (!selectedEvent) {
+        console.error("No event selected for sign up");
+        toast.error("No event selected. Please try again.");
+        return;
+      }
+      
+      // Add the event type if not already set
+      // If it's a baptism event but type is not set correctly
+      const eventTitle = selectedEvent.title?.toLowerCase() || '';
+      
+      // Determine event type from title if not explicitly set
+      let eventType = selectedEvent.type || 'event';
+      
+      if (eventTitle.includes('baptism')) {
+        eventType = 'baptism';
+        console.log("Detected baptism event from title");
+      } else if (eventTitle.includes('dedication') || eventTitle.includes('baby')) {
+        eventType = 'babyDedication';
+        console.log("Detected baby dedication event from title");
+      }
+      
+      // Create a copy with the explicitly set type
+      const updatedEvent = {
+        ...selectedEvent,
+        type: eventType
+      };
+      
+      console.log("Setting selected event for signup:", updatedEvent);
+      
+      // First close the modal
+      setIsModalOpen(false);
+      
+      // Then update the event and open the form in sequence
+      setSelectedEvent(updatedEvent);
+      
+      // Use a more reliable approach with a slightly longer delay
+      setTimeout(() => {
+        // Double check we still have the event
+        if (updatedEvent) {
+          console.log("Opening signup form with event:", updatedEvent);
+          setIsSignUpFormOpen(true);
+        } else {
+          console.error("Event was lost before opening signup form");
+          toast.error("Error preparing the form. Please try again.");
+        }
+      }, 500);
+    } catch (error) {
+      console.error("Error opening signup form:", error);
+      toast.error("There was a problem opening the signup form. Please try again.");
+    }
+  };
+
+  // Handle closing signup form
+  const handleCloseSignupForm = () => {
+    setIsSignUpFormOpen(false);
+    setSelectedEvent(null); // Clear selected event after closing signup form
   };
 
   // Helper function to get the event date, handling both API and legacy formats
@@ -290,6 +377,16 @@ const ChurchCalendar = () => {
     console.log(`Using fallback current date: ${today}`);
     return today;
   };
+
+  // Add this useEffect near the other useEffect hooks
+  useEffect(() => {
+    // Check for invalid state where form is open but event is null
+    if (isSignUpFormOpen && !selectedEvent) {
+      console.error("Sign-up form is open but no event is selected");
+      toast.error("Error loading form. Please try again.");
+      setIsSignUpFormOpen(false);
+    }
+  }, [isSignUpFormOpen, selectedEvent]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -703,31 +800,33 @@ const ChurchCalendar = () => {
 
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-3">
-                {selectedEvent?.signupRequired && (
-                  <button
-                    onClick={() => {
-                      closeModal();
-                      setIsSignUpFormOpen(true);
-                    }}
-                    className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setIsModalOpen(false);
+                    // Give time for the modal to close before opening the signup form
+                    setTimeout(() => {
+                      handleOpenSignupForm();
+                    }, 300);
+                  }}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-                      />
-                    </svg>
-                    Sign Up
-                  </button>
-                )}
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                    />
+                  </svg>
+                  Sign Up
+                </button>
                 <button
                   onClick={() => addToCalendar(selectedEvent)}
                   className="flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
@@ -764,9 +863,10 @@ const ChurchCalendar = () => {
       {isSignUpFormOpen && selectedEvent && (
         <EventSignUpForm
           event={selectedEvent}
-          onClose={() => setIsSignUpFormOpen(false)}
+          onClose={handleCloseSignupForm}
           onSubmit={() => {
-            setIsSignUpFormOpen(false);
+            handleCloseSignupForm();
+            toast.success("Registration submitted successfully!");
             // Optionally refetch events if needed
             // refetchEvents();
           }}
