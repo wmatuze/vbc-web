@@ -37,6 +37,12 @@ const EventSchema = new mongoose.Schema({
   type: {
     type: String,
     default: "event",
+    enum: ["event", "baptism", "babyDedication", "other"],
+  },
+  // Whether this event requires sign-up
+  signupRequired: {
+    type: Boolean,
+    default: false,
   },
   image: {
     type: mongoose.Schema.Types.ObjectId,

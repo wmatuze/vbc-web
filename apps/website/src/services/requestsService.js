@@ -5,10 +5,12 @@ import {
   validateFoundationClassRegistration,
   validateMembershipStatusChange,
   validateFoundationClassStatusChange,
+  validateEventSignupRequest,
+  validateEventSignupStatusChange,
 } from "../utils/requestsValidation";
 
 /**
- * Requests Service for handling API requests related to membership and foundation classes
+ * Requests Service for handling API requests related to membership, foundation classes, and event sign-up requests
  */
 class RequestsService {
   /**
@@ -271,6 +273,173 @@ class RequestsService {
         `Failed to delete foundation class registration ${id}:`,
         error
       );
+      throw error;
+    }
+  }
+
+  /* EVENT SIGNUP REQUESTS API */
+
+  /**
+   * Fetch all event signup requests
+   * @returns {Promise} Promise that resolves to array of event signup requests
+   */
+  static async getEventSignupRequests() {
+    try {
+      const axios = this.getAxiosInstance();
+      const response = await axios.get("/api/event-signup-requests", {
+        headers: getAuthHeaders(),
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch event signup requests:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Fetch event signup requests by event type
+   * @param {String} eventType - The type of event (baptism, babyDedication, etc.)
+   * @returns {Promise} Promise that resolves to array of event signup requests
+   */
+  static async getEventSignupRequestsByType(eventType) {
+    try {
+      const axios = this.getAxiosInstance();
+      const response = await axios.get(
+        `/api/event-signup-requests/type/${eventType}`,
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch ${eventType} signup requests:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Fetch event signup requests for a specific event
+   * @param {String} eventId - The ID of the event
+   * @returns {Promise} Promise that resolves to array of event signup requests
+   */
+  static async getEventSignupRequestsByEvent(eventId) {
+    try {
+      const axios = this.getAxiosInstance();
+      const response = await axios.get(
+        `/api/event-signup-requests/event/${eventId}`,
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error(
+        `Failed to fetch signup requests for event ${eventId}:`,
+        error
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Update the status of an event signup request
+   * @param {String} id - The request ID
+   * @param {String} status - The new status (pending, approved, declined)
+   * @returns {Promise} Promise that resolves to updated request
+   */
+  static async updateEventSignupRequestStatus(id, status) {
+    try {
+      // Validate the status value
+      const { isValid, error } = validateEventSignupStatusChange(status);
+      if (!isValid) {
+        throw new Error(`Validation error: ${error}`);
+      }
+
+      const axios = this.getAxiosInstance();
+      const response = await axios.put(
+        `/api/event-signup-requests/${id}`,
+        { status },
+        { headers: getAuthHeaders() }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error(
+        `Failed to update event signup request status to ${status}:`,
+        error
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Delete an event signup request
+   * @param {String} id - The ID of the event signup request to delete
+   * @returns {Promise} - Promise that resolves with the API response
+   */
+  static async deleteEventSignupRequest(id) {
+    try {
+      // Validate the ID
+      if (!id) {
+        throw new Error("Event signup request ID is required");
+      }
+
+      const response = await this.getAxiosInstance().delete(
+        `/api/event-signup-requests/${id}`,
+        { headers: getAuthHeaders() }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to delete event signup request ${id}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Export approved event signup requests as CSV
+   * @param {String} eventType - The type of event (baptism, babyDedication, etc.)
+   * @returns {Promise} Promise that resolves to CSV content
+   */
+  static async exportApprovedEventSignups(eventType) {
+    try {
+      const axios = this.getAxiosInstance();
+      const response = await axios.get(
+        `/api/export/event-signups/${eventType}/approved`,
+        {
+          headers: getAuthHeaders(),
+          responseType: "blob", // Important for file downloading
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to export approved ${eventType} signups:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete an event signup request
+   * @param {String} id - The ID of the event signup request to delete
+   * @returns {Promise} - Promise that resolves with the API response
+   */
+  static async deleteEventSignupRequest(id) {
+    try {
+      // Validate the ID
+      if (!id) {
+        throw new Error("Event signup request ID is required");
+      }
+
+      const response = await this.getAxiosInstance().delete(
+        `/api/event-signup-requests/${id}`,
+        { headers: getAuthHeaders() }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to delete event signup request ${id}:`, error);
       throw error;
     }
   }

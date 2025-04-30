@@ -11,6 +11,7 @@ import FallbackImage from "../../assets/fallback-image.png"; // Import fallback 
 import config from "../../config";
 import { motion } from "framer-motion";
 import { Helmet } from "react-helmet"; // Added for SEO
+import EventSignUpForm from "../EventSignUpForm"; // Import the sign-up form component
 
 const API_URL = config.API_URL;
 
@@ -18,6 +19,7 @@ const ChurchCalendar = () => {
   const [viewMode, setViewMode] = useState("grid"); // Default to grid view
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSignUpFormOpen, setIsSignUpFormOpen] = useState(false);
   // Use React Query for fetching events
   const {
     data: events = [],
@@ -701,6 +703,31 @@ const ChurchCalendar = () => {
 
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-3">
+                {selectedEvent?.signupRequired && (
+                  <button
+                    onClick={() => {
+                      closeModal();
+                      setIsSignUpFormOpen(true);
+                    }}
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                      />
+                    </svg>
+                    Sign Up
+                  </button>
+                )}
                 <button
                   onClick={() => addToCalendar(selectedEvent)}
                   className="flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
@@ -732,6 +759,19 @@ const ChurchCalendar = () => {
           </div>
         )}
       </Modal>
+
+      {/* Event Sign-up Form */}
+      {isSignUpFormOpen && selectedEvent && (
+        <EventSignUpForm
+          event={selectedEvent}
+          onClose={() => setIsSignUpFormOpen(false)}
+          onSubmit={() => {
+            setIsSignUpFormOpen(false);
+            // Optionally refetch events if needed
+            // refetchEvents();
+          }}
+        />
+      )}
     </div>
   );
 };

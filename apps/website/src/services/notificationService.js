@@ -199,6 +199,101 @@ class NotificationService {
       throw error;
     }
   }
+
+  /**
+   * Send an event signup request approval notification
+   * @param {Object} request - The signup request object with contact details
+   * @returns {Promise} - Promise that resolves when notification is sent
+   */
+  static async sendEventSignupApprovalNotification(request) {
+    try {
+      const token = getAuthToken();
+
+      const response = await axios.post(
+        `${getApiUrl()}/api/notifications/send`,
+        {
+          type: `${request.eventType}_signup_approved`,
+          recipient: {
+            email: request.email,
+            phone: request.phone,
+            name: request.fullName,
+          },
+          data: {
+            eventTitle: request.eventId?.title || "Event",
+            eventDate: request.eventId?.date || "TBD",
+            eventTime: request.eventId?.time || "TBD",
+            eventLocation: request.eventId?.location || "TBD",
+            // Include event-specific data
+            ...(request.eventType === "baptism" && {
+              testimony: request.testimony,
+              previousReligion: request.previousReligion,
+            }),
+            ...(request.eventType === "babyDedication" && {
+              childName: request.childName,
+              childDateOfBirth: request.childDateOfBirth,
+              parentNames: request.parentNames,
+            }),
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Failed to send event signup approval notification:",
+        error
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Send an event signup request declined notification
+   * @param {Object} request - The signup request object with contact details
+   * @param {String} reason - Optional reason for declining
+   * @returns {Promise} - Promise that resolves when notification is sent
+   */
+  static async sendEventSignupDeclinedNotification(request, reason = "") {
+    try {
+      const token = getAuthToken();
+
+      const response = await axios.post(
+        `${getApiUrl()}/api/notifications/send`,
+        {
+          type: `${request.eventType}_signup_declined`,
+          recipient: {
+            email: request.email,
+            phone: request.phone,
+            name: request.fullName,
+          },
+          data: {
+            eventTitle: request.eventId?.title || "Event",
+            reason: reason,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Failed to send event signup declined notification:",
+        error
+      );
+      throw error;
+    }
+  }
 }
 
 export default NotificationService;

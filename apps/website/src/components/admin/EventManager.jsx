@@ -68,6 +68,8 @@ const EventManager = () => {
     organizer: "",
     contactEmail: "",
     featured: false,
+    type: "event",
+    signupRequired: false,
   });
   const [searchTerm, setSearchTerm] = useState("");
   const [filterMinistry, setFilterMinistry] = useState("all");
@@ -210,6 +212,8 @@ const EventManager = () => {
       organizer: "",
       contactEmail: "",
       featured: false,
+      type: "event",
+      signupRequired: false,
     });
     setFormMode("add");
     setFormErrors({});
@@ -325,9 +329,13 @@ const EventManager = () => {
         contactEmail: cleanEvent.contactEmail,
         featured: cleanEvent.featured,
         tags: cleanEvent.tags,
-        // Ensure type is set for proper categorization
-        type: "event",
+        // Event type and signup settings
+        type: cleanEvent.type || "event",
+        signupRequired: cleanEvent.signupRequired || false,
       };
+
+      // Log the time field to ensure it's being included
+      console.log(`Time field being sent to server: ${serverEvent.time}`);
 
       console.log("Prepared server event data:", {
         ...serverEvent,
@@ -446,6 +454,10 @@ const EventManager = () => {
         );
       }
 
+      // Ensure time field is preserved
+      const time = event.time || "";
+      console.log(`Preserving time field for editing: ${time}`);
+
       // Map the MongoDB _id to id for the API
       const eventData = {
         ...event,
@@ -453,6 +465,7 @@ const EventManager = () => {
         id: event.id || event._id,
         date: isoDate,
         formattedDate: formattedDate, // Store properly formatted date
+        time: time, // Explicitly set the time field
       };
 
       console.log("Prepared event data for editing:", eventData);
@@ -851,6 +864,52 @@ const EventManager = () => {
             rows="3"
             className="md:col-span-2"
           />
+
+          <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Event Type
+              </label>
+              <select
+                name="type"
+                value={currentEvent.type}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value="event">General Event</option>
+                <option value="baptism">Baptism</option>
+                <option value="babyDedication">Baby Dedication</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Requires Sign-up
+              </label>
+              <div className="flex items-center mt-2">
+                <input
+                  type="checkbox"
+                  id="signupRequired"
+                  name="signupRequired"
+                  checked={currentEvent.signupRequired}
+                  onChange={(e) =>
+                    setCurrentEvent((prev) => ({
+                      ...prev,
+                      signupRequired: e.target.checked,
+                    }))
+                  }
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label
+                  htmlFor="signupRequired"
+                  className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
+                >
+                  Enable sign-up form for this event
+                </label>
+              </div>
+            </div>
+          </div>
 
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

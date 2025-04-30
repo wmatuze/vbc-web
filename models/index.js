@@ -8,6 +8,7 @@ const CellGroup = require("./CellGroup");
 const CellGroupJoinRequest = require("./CellGroupJoinRequest");
 const MemberRenewal = require("./MemberRenewal");
 const FoundationClassRegistration = require("./FoundationClassRegistration");
+const EventSignupRequest = require("./EventSignupRequest");
 
 module.exports = {
   User,
@@ -20,4 +21,5 @@ module.exports = {
   CellGroupJoinRequest,
   MemberRenewal,
   FoundationClassRegistration,
+  EventSignupRequest,
 };

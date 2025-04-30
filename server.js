@@ -149,9 +149,15 @@ app.use(
     setHeaders: (res) => {
       res.setHeader("Cache-Control", "max-age=86400"); // 24 hours
       res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-      res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+      res.setHeader("Access-Control-Allow-Origin", "*"); // Allow any origin to access assets
       res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
       res.setHeader("Access-Control-Allow-Credentials", "true");
+
+      // Add specific headers for SVG files
+      const url = res.req.url;
+      if (url.endsWith(".svg")) {
+        res.setHeader("Content-Type", "image/svg+xml");
+      }
     },
   })
 );
@@ -1394,6 +1400,49 @@ app.get("/assets/hero-bg.jpg", (req, res) => {
   }
 });
 
+// Add specific route for default-event.svg with proper CORS headers
+app.get("/assets/placeholders/default-event.svg", (req, res) => {
+  const svgPath = path.join(
+    __dirname,
+    "assets",
+    "placeholders",
+    "default-event.svg"
+  );
+
+  // Check if the file exists
+  if (fs.existsSync(svgPath)) {
+    res.setHeader("Cache-Control", "max-age=86400"); // 24 hours
+    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Content-Type", "image/svg+xml");
+    res.sendFile(svgPath);
+  } else {
+    // If file doesn't exist, create the directory and a simple SVG
+    try {
+      const placeholdersDir = path.join(__dirname, "assets", "placeholders");
+      if (!fs.existsSync(placeholdersDir)) {
+        fs.mkdirSync(placeholdersDir, { recursive: true });
+      }
+
+      // Create a simple SVG placeholder
+      const simpleSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+        <rect width="200" height="200" fill="#f0f0f0"/>
+        <text x="50%" y="50%" font-family="Arial" font-size="20" text-anchor="middle" fill="#888">Event</text>
+      </svg>`;
+
+      fs.writeFileSync(svgPath, simpleSvg);
+      res.setHeader("Cache-Control", "max-age=86400");
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Content-Type", "image/svg+xml");
+      res.sendFile(svgPath);
+    } catch (error) {
+      console.error("Error serving default-event.svg:", error);
+      res.status(404).send("Image not found");
+    }
+  }
+});
+
 // Function to seed initial users
 const seedUsers = async () => {
   try {
@@ -1451,6 +1500,23 @@ const formatObject = (item) => {
     console.log(`formatObject: time field found: ${obj.time}`);
   } else {
     console.log(`formatObject: time field not found in object`);
+
+    // If this is an event and has startDate but no time field, generate one
+    if (obj.type === "event" && obj.startDate) {
+      try {
+        const startDate = new Date(obj.startDate);
+        if (!isNaN(startDate.getTime())) {
+          obj.time = startDate.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "numeric",
+            hour12: true,
+          });
+          console.log(`Generated time field from startDate: ${obj.time}`);
+        }
+      } catch (err) {
+        console.error("Error generating time from startDate:", err);
+      }
+    }
   }
 
   // Add id property (frontend expects this)

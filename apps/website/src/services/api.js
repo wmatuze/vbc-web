@@ -368,6 +368,13 @@ export const updateEvent = (id, event) => {
     }
   }
 
+  // Ensure time field is preserved
+  if (cleanEvent.time) {
+    console.log(`Preserving time field in API call: ${cleanEvent.time}`);
+  } else {
+    console.warn("Time field is missing in update data");
+  }
+
   // Ensure type is set
   if (!cleanEvent.type) {
     cleanEvent.type = "event";
@@ -506,6 +513,22 @@ export const updateCellGroupJoinRequest = (id, status) =>
   updateData("api/cell-group-join-requests", id, { status });
 export const deleteCellGroupJoinRequest = (id) =>
   deleteData("api/cell-group-join-requests", id);
+
+// Event Signup Request API functions
+export const submitEventSignupRequest = (request) => {
+  console.log("Submitting event signup request:", request);
+  return postData("api/event-signup-requests", request);
+};
+export const getEventSignupRequests = () =>
+  fetchData("api/event-signup-requests");
+export const getEventSignupRequestsByType = (eventType) =>
+  fetchData(`api/event-signup-requests/type/${eventType}`);
+export const getEventSignupRequestsByEvent = (eventId) =>
+  fetchData(`api/event-signup-requests/event/${eventId}`);
+export const updateEventSignupRequest = (id, status) =>
+  updateData("api/event-signup-requests", id, { status });
+export const deleteEventSignupRequest = (id) =>
+  deleteData("api/event-signup-requests", id);
 
 // Enhanced media functions with cache busting
 export const getMedia = async () => {

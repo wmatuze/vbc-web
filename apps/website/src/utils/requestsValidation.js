@@ -1,5 +1,5 @@
 /**
- * Validation rules and functions for membership renewals and foundation class registrations
+ * Validation rules and functions for membership renewals, foundation class registrations, and event sign-up requests
  */
 
 // Membership renewal validation rules
@@ -107,23 +107,33 @@ export const validateMembershipRenewal = (renewal) => {
   // Validate each field according to its rules
   Object.entries(membershipRenewalValidationRules).forEach(([field, rules]) => {
     const value = renewal[field];
-    
+
     // Skip validation for optional fields that are empty
-    if (!rules.required && (value === undefined || value === null || value === "")) {
+    if (
+      !rules.required &&
+      (value === undefined || value === null || value === "")
+    ) {
       return;
     }
 
     // Required field validation
-    if (rules.required && (value === undefined || value === null || value === "")) {
+    if (
+      rules.required &&
+      (value === undefined || value === null || value === "")
+    ) {
       errors[field] = `${rules.fieldName} is required`;
       isValid = false;
       return;
     }
 
     // Conditional required validation
-    if (rules.conditionalRequired && rules.conditionalRequired(renewal) && 
-        (value === undefined || value === null || value === "")) {
-      errors[field] = `${rules.fieldName} is required when address change is selected`;
+    if (
+      rules.conditionalRequired &&
+      rules.conditionalRequired(renewal) &&
+      (value === undefined || value === null || value === "")
+    ) {
+      errors[field] =
+        `${rules.fieldName} is required when address change is selected`;
       isValid = false;
       return;
     }
@@ -136,15 +146,18 @@ export const validateMembershipRenewal = (renewal) => {
           isValid = false;
         } else if (value) {
           if (rules.minLength && value.length < rules.minLength) {
-            errors[field] = `${rules.fieldName} must be at least ${rules.minLength} characters`;
+            errors[field] =
+              `${rules.fieldName} must be at least ${rules.minLength} characters`;
             isValid = false;
           }
           if (rules.maxLength && value.length > rules.maxLength) {
-            errors[field] = `${rules.fieldName} must be less than ${rules.maxLength} characters`;
+            errors[field] =
+              `${rules.fieldName} must be less than ${rules.maxLength} characters`;
             isValid = false;
           }
           if (rules.enum && !rules.enum.includes(value)) {
-            errors[field] = `${rules.fieldName} must be one of: ${rules.enum.join(", ")}`;
+            errors[field] =
+              `${rules.fieldName} must be one of: ${rules.enum.join(", ")}`;
             isValid = false;
           }
         }
@@ -158,7 +171,10 @@ export const validateMembershipRenewal = (renewal) => {
         break;
 
       case "phone":
-        if (value && !/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/.test(value)) {
+        if (
+          value &&
+          !/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/.test(value)
+        ) {
           errors[field] = `${rules.fieldName} must be a valid phone number`;
           isValid = false;
         }
@@ -205,14 +221,20 @@ export const validateFoundationClassRegistration = (registration) => {
   // Validate each field according to its rules
   Object.entries(foundationClassValidationRules).forEach(([field, rules]) => {
     const value = registration[field];
-    
+
     // Skip validation for optional fields that are empty
-    if (!rules.required && (value === undefined || value === null || value === "")) {
+    if (
+      !rules.required &&
+      (value === undefined || value === null || value === "")
+    ) {
       return;
     }
 
     // Required field validation
-    if (rules.required && (value === undefined || value === null || value === "")) {
+    if (
+      rules.required &&
+      (value === undefined || value === null || value === "")
+    ) {
       errors[field] = `${rules.fieldName} is required`;
       isValid = false;
       return;
@@ -226,15 +248,18 @@ export const validateFoundationClassRegistration = (registration) => {
           isValid = false;
         } else if (value) {
           if (rules.minLength && value.length < rules.minLength) {
-            errors[field] = `${rules.fieldName} must be at least ${rules.minLength} characters`;
+            errors[field] =
+              `${rules.fieldName} must be at least ${rules.minLength} characters`;
             isValid = false;
           }
           if (rules.maxLength && value.length > rules.maxLength) {
-            errors[field] = `${rules.fieldName} must be less than ${rules.maxLength} characters`;
+            errors[field] =
+              `${rules.fieldName} must be less than ${rules.maxLength} characters`;
             isValid = false;
           }
           if (rules.enum && !rules.enum.includes(value)) {
-            errors[field] = `${rules.fieldName} must be one of: ${rules.enum.join(", ")}`;
+            errors[field] =
+              `${rules.fieldName} must be one of: ${rules.enum.join(", ")}`;
             isValid = false;
           }
         }
@@ -248,7 +273,10 @@ export const validateFoundationClassRegistration = (registration) => {
         break;
 
       case "phone":
-        if (value && !/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/.test(value)) {
+        if (
+          value &&
+          !/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/.test(value)
+        ) {
           errors[field] = `${rules.fieldName} must be a valid phone number`;
           isValid = false;
         }
@@ -269,14 +297,14 @@ export const validateFoundationClassRegistration = (registration) => {
  */
 export const validateMembershipStatusChange = (status) => {
   const validStatuses = ["pending", "approved", "declined"];
-  
+
   if (!status || !validStatuses.includes(status)) {
     return {
       isValid: false,
-      error: `Status must be one of: ${validStatuses.join(", ")}`
+      error: `Status must be one of: ${validStatuses.join(", ")}`,
     };
   }
-  
+
   return { isValid: true, error: null };
 };
 
@@ -287,13 +315,211 @@ export const validateMembershipStatusChange = (status) => {
  */
 export const validateFoundationClassStatusChange = (status) => {
   const validStatuses = ["registered", "attending", "completed", "cancelled"];
-  
+
   if (!status || !validStatuses.includes(status)) {
     return {
       isValid: false,
-      error: `Status must be one of: ${validStatuses.join(", ")}`
+      error: `Status must be one of: ${validStatuses.join(", ")}`,
     };
   }
-  
+
+  return { isValid: true, error: null };
+};
+
+// Event signup request validation rules
+export const eventSignupRequestValidationRules = {
+  eventId: {
+    type: "string",
+    required: true,
+    fieldName: "Event ID",
+  },
+  eventType: {
+    type: "string",
+    required: true,
+    enum: ["baptism", "babyDedication", "other"],
+    fieldName: "Event Type",
+  },
+  fullName: {
+    type: "string",
+    required: true,
+    minLength: 3,
+    maxLength: 100,
+    fieldName: "Full Name",
+  },
+  email: {
+    type: "email",
+    required: true,
+    fieldName: "Email",
+  },
+  phone: {
+    type: "phone",
+    required: true,
+    fieldName: "Phone Number",
+  },
+  // Baptism-specific fields
+  testimony: {
+    type: "string",
+    maxLength: 2000,
+    fieldName: "Testimony",
+    conditionalRequired: (data) => data.eventType === "baptism",
+  },
+  previousReligion: {
+    type: "string",
+    maxLength: 100,
+    fieldName: "Previous Religious Background",
+  },
+  // Baby dedication-specific fields
+  childName: {
+    type: "string",
+    maxLength: 100,
+    fieldName: "Child's Name",
+    conditionalRequired: (data) => data.eventType === "babyDedication",
+  },
+  childDateOfBirth: {
+    type: "date",
+    fieldName: "Child's Date of Birth",
+    conditionalRequired: (data) => data.eventType === "babyDedication",
+  },
+  parentNames: {
+    type: "string",
+    maxLength: 200,
+    fieldName: "Parents' Names",
+    conditionalRequired: (data) => data.eventType === "babyDedication",
+  },
+  // General fields
+  message: {
+    type: "string",
+    maxLength: 1000,
+    fieldName: "Message",
+  },
+  status: {
+    type: "string",
+    enum: ["pending", "approved", "declined"],
+    fieldName: "Status",
+  },
+};
+
+/**
+ * Validate an event signup request object against the validation rules
+ * @param {Object} request - The event signup request object to validate
+ * @returns {Object} - Object with isValid flag and errors object
+ */
+export const validateEventSignupRequest = (request) => {
+  const errors = {};
+  let isValid = true;
+
+  // Validate each field according to its rules
+  Object.entries(eventSignupRequestValidationRules).forEach(
+    ([field, rules]) => {
+      const value = request[field];
+
+      // Skip validation for optional fields that are empty
+      if (
+        !rules.required &&
+        !rules.conditionalRequired &&
+        (value === undefined || value === null || value === "")
+      ) {
+        return;
+      }
+
+      // Required field validation
+      if (
+        rules.required &&
+        (value === undefined || value === null || value === "")
+      ) {
+        errors[field] = `${rules.fieldName} is required`;
+        isValid = false;
+        return;
+      }
+
+      // Conditional required validation
+      if (
+        rules.conditionalRequired &&
+        rules.conditionalRequired(request) &&
+        (value === undefined || value === null || value === "")
+      ) {
+        errors[field] = `${rules.fieldName} is required for this event type`;
+        isValid = false;
+        return;
+      }
+
+      // Type-specific validation
+      switch (rules.type) {
+        case "string":
+          if (value && typeof value !== "string") {
+            errors[field] = `${rules.fieldName} must be text`;
+            isValid = false;
+          } else if (value) {
+            if (rules.minLength && value.length < rules.minLength) {
+              errors[field] =
+                `${rules.fieldName} must be at least ${rules.minLength} characters`;
+              isValid = false;
+            }
+            if (rules.maxLength && value.length > rules.maxLength) {
+              errors[field] =
+                `${rules.fieldName} must be less than ${rules.maxLength} characters`;
+              isValid = false;
+            }
+            if (rules.enum && !rules.enum.includes(value)) {
+              errors[field] =
+                `${rules.fieldName} must be one of: ${rules.enum.join(", ")}`;
+              isValid = false;
+            }
+          }
+          break;
+
+        case "email":
+          if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+            errors[field] = `${rules.fieldName} must be a valid email address`;
+            isValid = false;
+          }
+          break;
+
+        case "phone":
+          if (
+            value &&
+            !/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/.test(
+              value
+            )
+          ) {
+            errors[field] = `${rules.fieldName} must be a valid phone number`;
+            isValid = false;
+          }
+          break;
+
+        case "date":
+          if (value) {
+            const date = new Date(value);
+            if (isNaN(date.getTime())) {
+              errors[field] = `${rules.fieldName} must be a valid date`;
+              isValid = false;
+            }
+          }
+          break;
+
+        default:
+          break;
+      }
+    }
+  );
+
+  return { isValid, errors };
+};
+
+/**
+ * Validate a status change for event signup request
+ * @param {String} status - The new status value
+ * @returns {Object} - Object with isValid flag and error message
+ */
+export const validateEventSignupStatusChange = (status) => {
+  const validStatuses = ["pending", "approved", "declined"];
+
+  if (!status || !validStatuses.includes(status)) {
+    return {
+      isValid: false,
+      error: `Status must be one of: ${validStatuses.join(", ")}`,
+    };
+  }
+
   return { isValid: true, error: null };
 };
