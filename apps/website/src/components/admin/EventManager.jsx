@@ -1,8 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import useErrorHandler from "../../hooks/useErrorHandler";
-import { validateEvent, validateField } from "../../utils/validationUtils";
+import { useEventForm } from "../../hooks/useEventForm";
 import FormField from "../common/FormField";
-import { createEvent, updateEvent, deleteEvent } from "../../services/api";
+import MediaSelector from "../common/MediaSelector";
+import ImagePreview from "../common/ImagePreview";
+import EventAdminCard from "./EventAdminCard";
+import { deleteEvent } from "../../services/api";
 import { useEventsQuery } from "../../hooks/useEventsQuery";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import {
@@ -24,10 +27,11 @@ import {
   PencilIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { format, parseISO, isFuture, isPast } from "date-fns";
+import { format, parseISO, isValid } from "date-fns";
 import config from "../../config";
-
-const API_URL = config.API_URL;
+import { EVENT_VALIDATION_RULES, EVENT_TYPES } from "../../constants/eventConstants";
+import { normalizeEventDate, parseEventFromAPI } from "../../utils/dateUtils";
+import { getImageUrl, processMediaItem } from "../../utils/imageUtils";
 
 // Import placeholder image for events
 import eventPlaceholderImage from "../../assets/placeholders/default-event.svg";
@@ -41,36 +45,41 @@ const EventManager = () => {
     refetch: refetchEvents,
   } = useEventsQuery();
 
-  // Local state for operations other than fetching
   // Use our custom error handling hook
   const { error, errorMessage, handleError, clearError, withErrorHandling } =
     useErrorHandler("EventManager");
 
-  // Form validation errors
-  const [formErrors, setFormErrors] = useState({});
-  const [showForm, setShowForm] = useState(false);
-  const [formMode, setFormMode] = useState("add");
-  const [currentEvent, setCurrentEvent] = useState({
-    title: "",
-    date: format(new Date(), "yyyy-MM-dd"),
-    formattedDate: format(new Date(), "MMMM d, yyyy"),
-    time: "",
-    description: "",
-    location: "",
-    capacity: "",
-    ministry: "",
-    imageUrl: "",
-    image: null,
-    registrationUrl: "",
-    tags: [],
-    recurring: false,
-    recurringPattern: "",
-    organizer: "",
-    contactEmail: "",
-    featured: false,
-    type: "event",
-    signupRequired: false,
+  // Use our custom form handling hook
+  const {
+    currentEvent,
+    formErrors,
+    formMode,
+    showForm,
+    isSubmitting,
+    setCurrentEvent,
+    setFormErrors,
+    handleInputChange,
+    handleCheckboxChange,
+    handleTagsChange,
+    resetForm,
+    editEvent,
+    addEvent,
+    duplicateEvent,
+    submitForm,
+  } = useEventForm({
+    onSuccess: (savedEvent, action) => {
+      setSuccessMessage(`Event ${action} successfully!`);
+      refetchEvents();
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(""), 3000);
+    },
+    onError: (error) => {
+      handleError(error, "Event Form Submission");
+    }
   });
+
+  // UI state
   const [searchTerm, setSearchTerm] = useState("");
   const [filterMinistry, setFilterMinistry] = useState("all");
   const [viewMode, setViewMode] = useState("grid");
@@ -80,399 +89,40 @@ const EventManager = () => {
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [eventFilter, setEventFilter] = useState("all"); // 'all', 'upcoming', 'past'
+  
+  // Media selector state
   const [isMediaSelectorOpen, setIsMediaSelectorOpen] = useState(false);
-  const [mediaSearchTerm, setMediaSearchTerm] = useState("");
-  const [isLoadingMedia, setIsLoadingMedia] = useState(false);
-  const [mediaItems, setMediaItems] = useState([]);
-  const [selectedMediaItem, setSelectedMediaItem] = useState(null);
 
   // Display any query errors
   useEffect(() => {
     if (eventsError) {
-      setError("Failed to load events. Please try again.");
+      handleError(eventsError, "Failed to load events");
     }
-  }, [eventsError]);
+  }, [eventsError, handleError]);
 
   // Use React Query for fetching media
   const {
-    data: mediaData = [],
+    data: mediaItems = [],
     isLoading: mediaLoading,
-    refetch: refetchMedia,
   } = useMediaQuery({
     enabled: isMediaSelectorOpen, // Only fetch when media selector is open
-    onSuccess: (data) => {
-      console.log("Fetched media items:", data);
-      setMediaItems(data);
-    },
-    onError: (error) => {
-      console.error("Error fetching media:", error);
-    },
   });
 
-  // Update media items when mediaData changes
-  useEffect(() => {
-    if (mediaData.length > 0) {
-      setMediaItems(mediaData);
-    }
-  }, [mediaData]);
-
-  // Define validation rules for event fields
-  const validationRules = {
-    title: {
-      type: "string",
-      required: true,
-      minLength: 3,
-      maxLength: 100,
-      fieldName: "Title",
-    },
-    date: { type: "date", required: true, fieldName: "Date" },
-    time: { type: "time", required: true, fieldName: "Time" },
-    location: {
-      type: "string",
-      required: true,
-      minLength: 3,
-      maxLength: 100,
-      fieldName: "Location",
-    },
-    description: { type: "string", maxLength: 1000, fieldName: "Description" },
-    capacity: { type: "number", integer: true, min: 1, fieldName: "Capacity" },
-    ministry: { type: "string", maxLength: 50, fieldName: "Ministry" },
-    registrationUrl: { type: "url", fieldName: "Registration URL" },
-    organizer: { type: "string", maxLength: 50, fieldName: "Organizer" },
-    contactEmail: { type: "email", fieldName: "Contact Email" },
-    recurringPattern: {
-      type: "string",
-      maxLength: 50,
-      fieldName: "Recurring Pattern",
-    },
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await submitForm();
   };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setCurrentEvent((prev) => ({ ...prev, [name]: value }));
-
-    // Validate the field if it has validation rules
-    if (validationRules[name]) {
-      validateField(
-        name,
-        value,
-        validationRules[name],
-        formErrors,
-        setFormErrors
-      );
-    }
-  };
-
-  // Handle tags input with validation
-  const handleTagsChange = (e) => {
-    const tags = e.target.value
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter(Boolean);
-    setCurrentEvent((prev) => ({ ...prev, tags }));
-
-    // Validate tags
-    validateField(
-      "tags",
-      tags,
-      {
-        type: "array",
-        maxLength: 10,
-        itemValidator: (tag) =>
-          validateField(
-            "tag",
-            tag,
-            { type: "string", maxLength: 20, fieldName: "Tag" },
-            {},
-            () => {}
-          ),
-        fieldName: "Tags",
-      },
-      formErrors,
-      setFormErrors
-    );
-  };
-
-  const resetForm = () => {
-    setCurrentEvent({
-      title: "",
-      date: format(new Date(), "yyyy-MM-dd"),
-      formattedDate: format(new Date(), "MMMM d, yyyy"),
-      time: "",
-      description: "",
-      location: "",
-      capacity: "",
-      ministry: "",
-      imageUrl: "",
-      image: null,
-      registrationUrl: "",
-      tags: [],
-      recurring: false,
-      recurringPattern: "",
-      organizer: "",
-      contactEmail: "",
-      featured: false,
-      type: "event",
-      signupRequired: false,
-    });
-    setFormMode("add");
-    setFormErrors({});
-  };
-
-  const handleSubmit = withErrorHandling(
-    async (e) => {
-      e.preventDefault();
-
-      // Validate all fields before submission
-      const { isValid, errors } = validateEvent(currentEvent);
-
-      if (!isValid) {
-        // Update form errors and stop submission
-        setFormErrors(errors);
-        // Show error message
-        handleError(
-          new Error("Please fix the form errors before submitting"),
-          "Form Validation"
-        );
-        return;
-      }
-
-      // Show loading state in UI
-
-      // Create a clean copy of the event data
-      const cleanEvent = { ...currentEvent };
-
-      // Log current event data for debugging
-      console.log("Original event data:", cleanEvent);
-
-      // Format the date properly
-      let eventDate;
-      let eventStartDate;
-      try {
-        // Use the formattedDate if available, otherwise format the date input
-        if (cleanEvent.formattedDate) {
-          eventDate = cleanEvent.formattedDate;
-          console.log(`Using pre-formatted date: ${eventDate}`);
-
-          // Also create a proper Date object for startDate
-          try {
-            if (eventDate.includes(",")) {
-              // Parse "Month Day, Year" format
-              const parts = eventDate.split(",");
-              if (parts.length === 2) {
-                const monthDay = parts[0].trim().split(" ");
-                const year = parts[1].trim();
-                if (monthDay.length === 2) {
-                  const month = monthDay[0];
-                  const day = parseInt(monthDay[1]);
-                  eventStartDate = new Date(`${month} ${day}, ${year}`);
-                  console.log(
-                    `Parsed startDate from formattedDate: ${eventStartDate}`
-                  );
-                }
-              }
-            }
-          } catch (err) {
-            console.error("Error parsing formattedDate into startDate:", err);
-          }
-        } else if (cleanEvent.date) {
-          // Ensure date is in a consistent format (MMMM d, yyyy)
-          const parsedDate = parseISO(cleanEvent.date);
-          eventDate = format(parsedDate, "MMMM d, yyyy");
-          eventStartDate = parsedDate;
-          console.log(
-            `Formatted date for event: ${eventDate} (from ${cleanEvent.date})`
-          );
-        } else {
-          // Fallback to current date
-          const today = new Date();
-          eventDate = format(today, "MMMM d, yyyy");
-          eventStartDate = today;
-          console.warn("No date provided for event, using current date");
-        }
-
-        // If we still don't have a valid eventStartDate, create one from eventDate
-        if (!eventStartDate || isNaN(eventStartDate.getTime())) {
-          eventStartDate = new Date(eventDate);
-          if (isNaN(eventStartDate.getTime())) {
-            // Last resort fallback
-            eventStartDate = new Date();
-            console.warn(
-              "Using current date as fallback for invalid startDate"
-            );
-          }
-        }
-      } catch (dateError) {
-        console.error("Date parsing error:", dateError, cleanEvent.date);
-        const today = new Date();
-        eventDate = format(today, "MMMM d, yyyy"); // Fallback to current date
-        eventStartDate = today;
-      }
-
-      // Prepare the data for saving
-      const serverEvent = {
-        title: cleanEvent.title,
-        description: cleanEvent.description,
-        date: eventDate,
-        time: cleanEvent.time,
-        location: cleanEvent.location,
-        ministry: cleanEvent.ministry,
-        // Add server model fields with proper Date objects
-        startDate: eventStartDate,
-        endDate: eventStartDate,
-        // Optional fields
-        capacity: cleanEvent.capacity,
-        registrationUrl: cleanEvent.registrationUrl,
-        recurring: cleanEvent.recurring,
-        recurringPattern: cleanEvent.recurringPattern,
-        organizer: cleanEvent.organizer,
-        contactEmail: cleanEvent.contactEmail,
-        featured: cleanEvent.featured,
-        tags: cleanEvent.tags,
-        // Event type and signup settings
-        type: cleanEvent.type || "event",
-        signupRequired: cleanEvent.signupRequired || false,
-      };
-
-      // Log the time field to ensure it's being included
-      console.log(`Time field being sent to server: ${serverEvent.time}`);
-
-      console.log("Prepared server event data:", {
-        ...serverEvent,
-        startDate: serverEvent.startDate.toString(),
-        endDate: serverEvent.endDate.toString(),
-      });
-
-      // Handle image paths properly
-      if (cleanEvent.image && typeof cleanEvent.image === "object") {
-        // If we have an image object from the media selector
-        if (cleanEvent.image.id) {
-          // Use the ID for direct reference
-          serverEvent.image = cleanEvent.image.id;
-        } else if (cleanEvent.image.path) {
-          // If it has a path but no ID, use the path
-          serverEvent.imageUrl = cleanEvent.image.path;
-        } else if (cleanEvent.image.filename) {
-          // If it just has a filename, construct the path
-          serverEvent.imageUrl = `/uploads/${cleanEvent.image.filename}`;
-        }
-      } else if (cleanEvent.imageUrl) {
-        // If only the URL was entered manually, use that
-        serverEvent.imageUrl = cleanEvent.imageUrl;
-      }
-
-      console.log("Prepared event data for saving:", serverEvent);
-
-      let savedEvent;
-      if (formMode === "add") {
-        // Create a new event
-        console.log("Creating new event...");
-        savedEvent = await createEvent(serverEvent);
-        console.log("Event created successfully:", savedEvent);
-        setSuccessMessage("Event added successfully!");
-      } else {
-        // Update an existing event
-        // Get the correct ID (could be id, _id, or both)
-        const eventId = cleanEvent.id || cleanEvent._id;
-        console.log(`Updating event with ID: ${eventId}`);
-
-        if (!eventId) {
-          throw new Error("Cannot update event: Missing event ID");
-        }
-
-        savedEvent = await updateEvent(eventId, serverEvent);
-        console.log("Event updated successfully:", savedEvent);
-        setSuccessMessage("Event updated successfully!");
-      }
-
-      // Refresh the events list
-      await refetchEvents();
-      resetForm();
-
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccessMessage(""), 3000);
-    },
-    {
-      showLoading: false, // We're handling loading state manually
-      showSuccess: false, // We're handling success messages manually
-      context: "Event Form Submission",
-    }
-  );
 
   const handleEdit = withErrorHandling(
     (event) => {
-      console.log("Original event data for editing:", event);
-
-      // Convert display date to ISO format for input
-      let isoDate;
-      let formattedDate = event.date; // Default to existing date string
-
-      try {
-        // First try to use startDate if available (more reliable)
-        if (event.startDate) {
-          const startDateObj = new Date(event.startDate);
-          if (!isNaN(startDateObj.getTime())) {
-            isoDate = format(startDateObj, "yyyy-MM-dd");
-            // Also generate a properly formatted date string
-            formattedDate = format(startDateObj, "MMMM d, yyyy");
-            console.log(
-              `Parsed date from startDate: ${isoDate} (${formattedDate})`
-            );
-          }
-        }
-        // If startDate parsing failed or doesn't exist, try date field
-        else if (event.date) {
-          // Try to parse the date string
-          const dateObj = new Date(event.date);
-          if (!isNaN(dateObj.getTime())) {
-            isoDate = format(dateObj, "yyyy-MM-dd");
-            // Also generate a properly formatted date string if it's not already in that format
-            if (!event.date.includes(",")) {
-              formattedDate = format(dateObj, "MMMM d, yyyy");
-            }
-            console.log(
-              `Parsed date from date field: ${isoDate} (${formattedDate})`
-            );
-          }
-        }
-      } catch (err) {
-        console.error(
-          "Failed to parse date:",
-          err,
-          event.date,
-          event.startDate
-        );
-      }
-
-      // Fallback to current date if parsing fails
-      if (!isoDate) {
-        const today = new Date();
-        isoDate = format(today, "yyyy-MM-dd");
-        formattedDate = format(today, "MMMM d, yyyy");
-        console.warn(
-          `Using fallback current date: ${isoDate} (${formattedDate})`
-        );
-      }
-
-      // Ensure time field is preserved
-      const time = event.time || "";
-      console.log(`Preserving time field for editing: ${time}`);
-
-      // Map the MongoDB _id to id for the API
-      const eventData = {
-        ...event,
-        // Use _id as id if id doesn't exist
-        id: event.id || event._id,
-        date: isoDate,
-        formattedDate: formattedDate, // Store properly formatted date
-        time: time, // Explicitly set the time field
-      };
-
-      console.log("Prepared event data for editing:", eventData);
-
-      setCurrentEvent(eventData);
-      setFormMode("edit");
-      setShowForm(true);
+      // Parse and normalize the event data
+      const normalizedEvent = parseEventFromAPI(event);
+      
+      // Log the event data before and after normalization for debugging
+      console.log("Original event data:", event);
+      console.log("Normalized event data:", normalizedEvent);
+      
+      editEvent(normalizedEvent);
     },
     {
       context: "Event Editing",
@@ -489,8 +139,6 @@ const EventManager = () => {
           throw new Error("Cannot delete event: Missing event ID");
         }
 
-        console.log(`Deleting event with ID: ${eventId}`);
-
         await deleteEvent(eventId);
         setSuccessMessage("Event deleted successfully!");
         await refetchEvents();
@@ -504,103 +152,89 @@ const EventManager = () => {
     }
   );
 
-  const handleDuplicate = (event) => {
-    const duplicatedEvent = {
-      ...event,
-      id: undefined,
-      title: `Copy of ${event.title}`,
-      date: format(new Date(), "yyyy-MM-dd"),
-    };
-    setCurrentEvent(duplicatedEvent);
-    setFormMode("add");
-    setShowForm(true);
-  };
-
   const handleImagePreview = (imageUrl) => {
-    setSelectedImage(getImagePreviewUrl(imageUrl));
+    setSelectedImage(getImageUrl(imageUrl, eventPlaceholderImage));
     setShowImagePreview(true);
   };
 
-  // Get unique ministry options from existing events
-  const existingMinistries = [
-    ...new Set(events.map((event) => event.ministry).filter(Boolean)),
-  ];
-  const ministryOptions = existingMinistries.includes("General")
-    ? existingMinistries
-    : ["General", ...existingMinistries];
-
-  // Helper functions for date and image handling are used in the component
-
-  // Helper function to get image preview URL with cache busting
-  const getImagePreviewUrl = (imageUrl) => {
-    // If no image URL is provided, return the imported SVG placeholder directly
-    if (!imageUrl) return eventPlaceholderImage;
-
-    // Add cache busting parameter
-    const cacheBuster = `?t=${Date.now()}`;
-
-    // Handle absolute URLs that already include http/https
-    if (imageUrl.startsWith("http")) {
-      // Add cache buster to URL
-      const hasParams = imageUrl.includes("?");
-      return `${imageUrl}${hasParams ? "&" : "?"}t=${Date.now()}`;
-    }
-
-    // Handle local server paths
-    if (imageUrl.startsWith("/")) {
-      return `${API_URL}${imageUrl}${cacheBuster}`;
-    }
-
-    // Handle relative paths
-    return `${API_URL}/${imageUrl}${cacheBuster}`;
-  };
-
-  // Add the handleImageError function after getImagePreviewUrl
   const handleImageError = (e) => {
-    console.error("Failed to load image:", e.target.src);
     // Use the imported SVG placeholder directly (not as a URL)
     e.target.src = eventPlaceholderImage;
     e.target.onerror = null; // Prevent infinite error loop
   };
 
   // Handle media selection from the media library
-  const handleMediaSelection = () => {
-    if (selectedMediaItem) {
-      // Ensure proper path construction
-      let imagePath;
-
-      if (selectedMediaItem.path) {
-        // If path exists, use it directly
-        imagePath = selectedMediaItem.path;
-      } else if (selectedMediaItem.filename) {
-        // If only filename exists, construct path
-        imagePath = `/uploads/${selectedMediaItem.filename}`;
-      }
-
-      console.log("Selected media item:", selectedMediaItem);
-      console.log("Using image path:", imagePath);
-
-      // Set imageUrl and image reference in the form data
-      // Make sure we're passing the ID for proper MongoDB reference
+  const handleMediaSelection = (selectedItem) => {
+    if (selectedItem) {
+      const processedItem = processMediaItem(selectedItem);
+      
+      // Update the event with the processed media item
       setCurrentEvent((prev) => ({
         ...prev,
-        imageUrl: imagePath,
-        // Store the full media object with ID for proper reference
-        image: {
-          id: selectedMediaItem._id || selectedMediaItem.id,
-          path: imagePath,
-          filename: selectedMediaItem.filename,
-          title: selectedMediaItem.title,
-        },
+        imageUrl: processedItem.path,
+        image: processedItem,
       }));
+    }
+  };
 
-      console.log("Updated event with image reference:", {
-        id: selectedMediaItem._id || selectedMediaItem.id,
-        path: imagePath,
-      });
-
-      setSelectedMediaItem(null);
-      setIsMediaSelectorOpen(false);
+  // Enhanced date change handler to ensure date updates work correctly
+  const handleDateChange = (e) => {
+    const inputDate = e.target.value;
+    
+    if (inputDate) {
+      try {
+        // Parse the date and ensure it's valid
+        const dateObj = parseISO(inputDate);
+        
+        if (!isValid(dateObj)) {
+          throw new Error("Invalid date format");
+        }
+        
+        // Format the date properly for display and API
+        const formattedDate = format(dateObj, "MMMM d, yyyy");
+        
+        // Update the date fields in the event
+        setCurrentEvent((prev) => ({
+          ...prev,
+          date: inputDate, // ISO format for the input field (yyyy-MM-dd)
+          formattedDate: formattedDate, // Human-readable format
+          startDate: dateObj, // Date object for the API
+        }));
+        
+        console.log("Date updated successfully:", {
+          date: inputDate,
+          formattedDate,
+          startDate: dateObj,
+        });
+        
+        // Clear any previous errors
+        if (formErrors.date) {
+          setFormErrors((prev) => ({ ...prev, date: null }));
+        }
+      } catch (err) {
+        console.error("Error formatting date:", err);
+        
+        // Set validation error
+        setFormErrors((prev) => ({
+          ...prev,
+          date: "Invalid date format. Please use the date picker.",
+        }));
+      }
+    } else {
+      // Handle empty date
+      setCurrentEvent((prev) => ({
+        ...prev,
+        date: "",
+        formattedDate: "",
+      }));
+      
+      // Set validation error for required field
+      if (EVENT_VALIDATION_RULES.date.required) {
+        setFormErrors((prev) => ({
+          ...prev,
+          date: "Date is required",
+        }));
+      }
     }
   };
 
@@ -696,7 +330,6 @@ const EventManager = () => {
         </div>
       )}
 
-      {/* Form for adding/editing events */}
       <form
         onSubmit={handleSubmit}
         className="mb-8 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg shadow-sm"
@@ -714,7 +347,7 @@ const EventManager = () => {
             onChange={handleInputChange}
             placeholder="Enter event title"
             required={true}
-            validation={validationRules.title}
+            validation={EVENT_VALIDATION_RULES.title}
             errors={formErrors}
             setErrors={setFormErrors}
             className="mb-0"
@@ -728,60 +361,7 @@ const EventManager = () => {
               type="date"
               name="date"
               value={currentEvent.date || ""}
-              onChange={(e) => {
-                const inputDate = e.target.value;
-                if (inputDate) {
-                  try {
-                    // Keep the raw date for the input
-                    // Format a readable version for display/submission
-                    const date = new Date(inputDate);
-                    const formattedDate = format(date, "MMMM d, yyyy");
-
-                    setCurrentEvent((prev) => ({
-                      ...prev,
-                      date: inputDate,
-                      formattedDate: formattedDate,
-                    }));
-
-                    // Validate the date field
-                    validateField(
-                      "date",
-                      inputDate,
-                      validationRules.date,
-                      formErrors,
-                      setFormErrors
-                    );
-                  } catch (err) {
-                    console.error("Error formatting date:", err);
-                    setCurrentEvent((prev) => ({
-                      ...prev,
-                      date: inputDate,
-                      formattedDate: inputDate,
-                    }));
-
-                    // Show validation error
-                    setFormErrors((prev) => ({
-                      ...prev,
-                      date: "Invalid date format",
-                    }));
-                  }
-                } else {
-                  setCurrentEvent((prev) => ({
-                    ...prev,
-                    date: "",
-                    formattedDate: "",
-                  }));
-
-                  // Validate empty date if required
-                  validateField(
-                    "date",
-                    "",
-                    validationRules.date,
-                    formErrors,
-                    setFormErrors
-                  );
-                }
-              }}
+              onChange={handleDateChange}
               className={`w-full px-3 py-2 border ${formErrors.date ? "border-red-500" : "border-gray-300 dark:border-gray-600"} rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
               required
             />
@@ -803,39 +383,12 @@ const EventManager = () => {
             onChange={handleInputChange}
             placeholder="e.g. 10:30 AM"
             required={true}
-            validation={validationRules.time}
+            validation={EVENT_VALIDATION_RULES.time}
             errors={formErrors}
             setErrors={setFormErrors}
             helpText="Format: HH:MM or HH:MM AM/PM"
             className="mb-0"
           />
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Ministry
-            </label>
-            <select
-              name="ministry"
-              value={currentEvent.ministry}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              required
-            >
-              <option value="">Select Ministry</option>
-              {ministryOptions.map((ministry, index) => (
-                <option key={index} value={ministry}>
-                  {ministry}
-                </option>
-              ))}
-              {/* Allow custom input if ministry not in list */}
-              {currentEvent.ministry &&
-                !ministryOptions.includes(currentEvent.ministry) && (
-                  <option value={currentEvent.ministry}>
-                    {currentEvent.ministry}
-                  </option>
-                )}
-            </select>
-          </div>
 
           <FormField
             label="Location"
@@ -845,7 +398,7 @@ const EventManager = () => {
             onChange={handleInputChange}
             placeholder="Enter event location"
             required={true}
-            validation={validationRules.location}
+            validation={EVENT_VALIDATION_RULES.location}
             errors={formErrors}
             setErrors={setFormErrors}
             className="mb-0"
@@ -858,7 +411,7 @@ const EventManager = () => {
             value={currentEvent.description}
             onChange={handleInputChange}
             placeholder="Enter event description"
-            validation={validationRules.description}
+            validation={EVENT_VALIDATION_RULES.description}
             errors={formErrors}
             setErrors={setFormErrors}
             rows="3"
@@ -876,10 +429,9 @@ const EventManager = () => {
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
-                <option value="event">General Event</option>
-                <option value="baptism">Baptism</option>
-                <option value="babyDedication">Baby Dedication</option>
-                <option value="other">Other</option>
+                {EVENT_TYPES.map(type => (
+                  <option key={type.value} value={type.value}>{type.label}</option>
+                ))}
               </select>
             </div>
 
@@ -893,12 +445,7 @@ const EventManager = () => {
                   id="signupRequired"
                   name="signupRequired"
                   checked={currentEvent.signupRequired}
-                  onChange={(e) =>
-                    setCurrentEvent((prev) => ({
-                      ...prev,
-                      signupRequired: e.target.checked,
-                    }))
-                  }
+                  onChange={handleCheckboxChange}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <label
@@ -936,7 +483,7 @@ const EventManager = () => {
             {currentEvent.imageUrl && (
               <div className="mt-2">
                 <img
-                  src={getImagePreviewUrl(currentEvent.imageUrl)}
+                  src={getImageUrl(currentEvent.imageUrl, eventPlaceholderImage)}
                   alt="Event preview"
                   className="h-20 object-cover rounded"
                   onError={handleImageError}
@@ -974,28 +521,40 @@ const EventManager = () => {
           </div>
         </div>
 
-        <div className="flex items-center">
+        {!showForm && (
           <button
-            type="submit"
-            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white py-2 px-4 rounded-md transition-colors"
-            disabled={eventsLoading}
+            type="button"
+            onClick={addEvent}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
-            {eventsLoading ? "Saving..." : "Save Event"}
+            <PlusIcon className="h-5 w-5 mr-2" />
+            Add New Event
           </button>
+        )}
 
-          {formMode === "edit" && (
+        {showForm && (
+          <div className="flex items-center">
             <button
-              type="button"
-              onClick={resetForm}
-              className="ml-2 py-2 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white py-2 px-4 rounded-md transition-colors"
+              disabled={isSubmitting}
             >
-              Cancel
+              {isSubmitting ? "Saving..." : "Save Event"}
             </button>
-          )}
-        </div>
+
+            {formMode === "edit" && (
+              <button
+                type="button"
+                onClick={resetForm}
+                className="ml-2 py-2 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+        )}
       </form>
 
-      {/* Events Display */}
       <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
         <div className="flex items-center space-x-2">
           <label className="text-sm text-gray-700 dark:text-gray-300">
@@ -1032,94 +591,14 @@ const EventManager = () => {
       ) : viewMode === "grid" ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filteredEvents.map((event) => (
-            <div
-              key={event.id}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200 border border-gray-200 dark:border-gray-700"
-            >
-              {event.imageUrl ? (
-                <div className="relative h-48 bg-gray-200 dark:bg-gray-700">
-                  <img
-                    src={getImagePreviewUrl(event.imageUrl)}
-                    alt={event.title}
-                    className="w-full h-full object-cover"
-                    onClick={() => handleImagePreview(event.imageUrl)}
-                    onError={handleImageError}
-                  />
-                  {event.featured && (
-                    <span className="absolute top-2 right-2 px-2 py-1 bg-yellow-400 dark:bg-yellow-500 text-xs font-medium rounded-full">
-                      Featured
-                    </span>
-                  )}
-                </div>
-              ) : (
-                <div className="h-48 bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                  <CalendarIcon className="h-12 w-12 text-gray-400 dark:text-gray-500" />
-                </div>
-              )}
-
-              <div className="p-4">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white truncate">
-                  {event.title}
-                </h3>
-
-                <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
-                  <CalendarIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400 dark:text-gray-500" />
-                  <span>{event.date}</span>
-                  <ClockIcon className="flex-shrink-0 ml-4 mr-1.5 h-5 w-5 text-gray-400 dark:text-gray-500" />
-                  <span>{event.time}</span>
-                </div>
-
-                {event.location && (
-                  <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
-                    <LocationMarkerIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400 dark:text-gray-500" />
-                    <span className="truncate">{event.location}</span>
-                  </div>
-                )}
-
-                {event.ministry && (
-                  <span className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
-                    {event.ministry}
-                  </span>
-                )}
-
-                {event.tags && event.tags.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {event.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                <div className="mt-4 flex justify-end space-x-2">
-                  <button
-                    onClick={() => handleDuplicate(event)}
-                    className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400"
-                    title="Duplicate"
-                  >
-                    <DuplicateIcon className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={() => handleEdit(event)}
-                    className="p-2 text-blue-400 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300"
-                    title="Edit"
-                  >
-                    <PencilIcon className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(event)}
-                    className="p-2 text-red-400 dark:text-red-400 hover:text-red-500 dark:hover:text-red-300"
-                    title="Delete"
-                  >
-                    <TrashIcon className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-            </div>
+            <EventAdminCard 
+              key={event.id || event._id}
+              event={event}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onDuplicate={duplicateEvent}
+              onImageClick={handleImagePreview}
+            />
           ))}
         </div>
       ) : (
@@ -1162,14 +641,14 @@ const EventManager = () => {
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {filteredEvents.map((event) => (
                 <tr
-                  key={event.id}
+                  key={event.id || event._id}
                   className="hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center">
                       {event.imageUrl ? (
                         <img
-                          src={getImagePreviewUrl(event.imageUrl)}
+                          src={getImageUrl(event.imageUrl, eventPlaceholderImage)}
                           alt=""
                           className="h-10 w-10 rounded-full object-cover cursor-pointer"
                           onClick={() => handleImagePreview(event.imageUrl)}
@@ -1218,7 +697,7 @@ const EventManager = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     <div className="flex items-center space-x-2">
                       <button
-                        onClick={() => handleDuplicate(event)}
+                        onClick={() => duplicateEvent(event)}
                         className="text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400"
                         title="Duplicate"
                       >
@@ -1247,136 +726,17 @@ const EventManager = () => {
         </div>
       )}
 
-      {/* Image Preview Modal */}
-      {showImagePreview && selectedImage && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-75 flex items-center justify-center">
-          <div className="relative max-w-5xl mx-auto">
-            <button
-              onClick={() => setShowImagePreview(false)}
-              className="absolute top-4 right-4 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 z-10"
-            >
-              <XIcon className="h-6 w-6" />
-            </button>
-            <img
-              src={selectedImage}
-              alt="Preview"
-              className="max-h-[90vh] max-w-full object-contain"
-              onError={handleImageError}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Media Selector Modal */}
-      {isMediaSelectorOpen && (
-        <div className="fixed inset-0 overflow-y-auto z-50">
-          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div
-              className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-              onClick={() => setIsMediaSelectorOpen(false)}
-            ></div>
-
-            <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
-              <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <div className="sm:flex sm:items-start">
-                  <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                      Select Event Image
-                    </h3>
-                    <div className="mt-4">
-                      {/* Search bar */}
-                      <div className="relative mb-4">
-                        <input
-                          type="text"
-                          placeholder="Search media..."
-                          value={mediaSearchTerm}
-                          onChange={(e) => setMediaSearchTerm(e.target.value)}
-                          className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        />
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <SearchIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
-                        </div>
-                      </div>
-
-                      {/* Loading indicator */}
-                      {isLoadingMedia ? (
-                        <div className="flex justify-center p-12">
-                          <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-500 border-t-transparent"></div>
-                        </div>
-                      ) : mediaItems.length === 0 ? (
-                        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                          No media items found
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 max-h-96 overflow-y-auto p-2">
-                          {mediaItems
-                            .filter(
-                              (item) =>
-                                !mediaSearchTerm ||
-                                item.title
-                                  ?.toLowerCase()
-                                  .includes(mediaSearchTerm.toLowerCase()) ||
-                                item.filename
-                                  ?.toLowerCase()
-                                  .includes(mediaSearchTerm.toLowerCase())
-                            )
-                            .map((item) => (
-                              <div
-                                key={item.id}
-                                className={`cursor-pointer rounded-lg overflow-hidden border-2 ${selectedMediaItem?.id === item.id ? "border-blue-500" : "border-transparent"} hover:border-blue-300`}
-                                onClick={() => setSelectedMediaItem(item)}
-                              >
-                                <div className="relative aspect-w-1 aspect-h-1 bg-gray-200 dark:bg-gray-700">
-                                  <img
-                                    src={
-                                      item.path
-                                        ? `${API_URL}${item.path}`
-                                        : `${API_URL}/uploads/${item.filename}`
-                                    }
-                                    alt={item.title || item.filename}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                      console.error(
-                                        `Failed to load image: ${item.path || item.filename}`
-                                      );
-                                      e.target.src = eventPlaceholderImage;
-                                    }}
-                                  />
-                                </div>
-                                <div className="p-1 text-xs text-center truncate">
-                                  {item.title || item.filename}
-                                </div>
-                              </div>
-                            ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button
-                  type="button"
-                  disabled={!selectedMediaItem}
-                  className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm ${
-                    !selectedMediaItem ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
-                  onClick={handleMediaSelection}
-                >
-                  Select Image
-                </button>
-                <button
-                  type="button"
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                  onClick={() => setIsMediaSelectorOpen(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <MediaSelector 
+        isOpen={isMediaSelectorOpen}
+        onClose={() => setIsMediaSelectorOpen(false)}
+        onSelect={handleMediaSelection}
+      />
+      
+      <ImagePreview
+        isOpen={showImagePreview}
+        imageUrl={selectedImage}
+        onClose={() => setShowImagePreview(false)}
+      />
     </div>
   );
 };

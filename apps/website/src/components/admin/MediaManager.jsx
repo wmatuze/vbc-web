@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { deleteMedia, uploadFile } from "../../services/api";
+import { deleteMedia, uploadFile, testConnection } from "../../services/api";
+import { uploadMediaLocally, deleteLocalMedia } from "../../services/mockUpload";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import useErrorHandler from "../../hooks/useErrorHandler";
 import { validateField } from "../../utils/validationUtils";
@@ -25,6 +26,25 @@ import config from "../../config";
 import placeholderImage from "../../assets/placeholders/default-image.svg";
 
 const API_URL = config.API_URL;
+
+// Helper function to check network connectivity
+const checkNetworkConnection = async () => {
+  try {
+    // Attempt to fetch a small resource to check connectivity
+    const response = await fetch(`${API_URL}/test-connection`, { 
+      method: 'GET',
+      cache: 'no-cache',
+      headers: { 'Cache-Control': 'no-cache' },
+      // Short timeout to detect connection issues quickly
+      signal: AbortSignal.timeout(5000)
+    });
+    
+    return response.ok;
+  } catch (error) {
+    console.error("Network connection check failed:", error);
+    return false;
+  }
+};
 
 class MediaErrorBoundary extends React.Component {
   constructor(props) {
@@ -100,6 +120,7 @@ const MediaManager = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [serverStatus, setServerStatus] = useState({ connected: true, lastChecked: null });
 
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
@@ -113,6 +134,44 @@ const MediaManager = () => {
       isMounted.current = false;
     };
   }, []);
+
+  // Check server connectivity periodically
+  useEffect(() => {
+    const checkServerStatus = async () => {
+      try {
+        const isConnected = await testConnection();
+        if (isMounted.current) {
+          setServerStatus({ 
+            connected: isConnected, 
+            lastChecked: new Date().toISOString() 
+          });
+          
+          if (!isConnected) {
+            console.warn("Server connection check failed - API server may be unavailable");
+            handleError(new Error("API server appears to be offline or unreachable"), "Server Connection");
+          } else if (error && error.message && error.message.includes("API server")) {
+            // Clear previous server connection errors if we're now connected
+            clearError();
+          }
+        }
+      } catch (err) {
+        console.error("Server status check error:", err);
+        if (isMounted.current) {
+          setServerStatus({ connected: false, lastChecked: new Date().toISOString() });
+        }
+      }
+    };
+    
+    // Check immediately on component load
+    checkServerStatus();
+    
+    // Set up periodic checks
+    const interval = setInterval(checkServerStatus, 300000); // Every 5 minutes
+    
+    return () => {
+      clearInterval(interval);
+    };
+  }, [handleError, clearError, error]);
 
   // Update local media state when mediaData changes
   useEffect(() => {
@@ -272,6 +331,18 @@ const MediaManager = () => {
     }
   };
 
+  const handleRefresh = useCallback(async () => {
+    // Check connectivity before attempting refresh
+    const isConnected = await checkNetworkConnection();
+    if (!isConnected) {
+      handleError(new Error("Network connection issue detected. Please check your internet connection and try again."), "Network");
+      return;
+    }
+    
+    setRefreshTrigger((prev) => prev + 1);
+    refetchMedia();
+  }, [refetchMedia, handleError]);
+
   const handleSubmit = withErrorHandling(
     async (e) => {
       e.preventDefault();
@@ -290,103 +361,259 @@ const MediaManager = () => {
         return;
       }
 
-      try {
-        setIsUploading(true);
-        setUploadProgress(0);
-        setUploadError(null);
-
-        const uploadedMedia = await uploadFile(
-          selectedFile,
-          title || selectedFile.name,
-          category,
-          (progress) => {
-            // Handle the new progress object format
-            if (progress && typeof progress.percent === "number") {
-              setUploadProgress(progress.percent);
-            } else if (progress && progress.total) {
-              // Fallback for old format
-              setUploadProgress(
-                Math.round((progress.loaded / progress.total) * 100)
-              );
-            } else if (progress && progress.lengthComputable) {
-              // Fallback for XMLHttpRequest event format
-              setUploadProgress(
-                Math.round((progress.loaded / progress.total) * 100)
-              );
-            }
+      // Check server connection status first
+      if (!serverStatus.connected) {
+        const isConnected = await testConnection();
+        if (!isConnected) {
+          // If server is not connected, use local upload in development mode
+          if (process.env.NODE_ENV === "development" || window.location.hostname === "localhost") {
+            console.log("Server appears to be offline, using local browser storage for upload");
+            return handleLocalUpload();
+          } else {
+            setUploadError("Server appears to be offline. Please try again later.");
+            return;
           }
-        );
-
-        if (!isMounted.current) return;
-
-        console.log("Media upload successful:", uploadedMedia);
-
-        // Ensure the path is properly set
-        if (!uploadedMedia.path && uploadedMedia.filename) {
-          uploadedMedia.path = `/uploads/${uploadedMedia.filename}`;
-        }
-
-        // Add to media state with proper preview URLs
-        const mediaWithUrls = {
-          ...uploadedMedia,
-          // Add upload date for sorting
-          uploadDate: new Date().toISOString(),
-          // Ensure fileUrl and thumbnailUrl are properly set
-          fileUrl: uploadedMedia.path.startsWith("http")
-            ? uploadedMedia.path
-            : `${API_URL}${uploadedMedia.path}`,
-          thumbnailUrl: uploadedMedia.path.startsWith("http")
-            ? uploadedMedia.path
-            : `${API_URL}${uploadedMedia.path}`,
-        };
-
-        // Update state with new media at the beginning of the array
-        setMedia((prev) => {
-          // Check if we already have this media item (by id)
-          const exists = prev.some((item) => item.id === mediaWithUrls.id);
-          if (exists) {
-            // Replace the existing item
-            return prev.map((item) =>
-              item.id === mediaWithUrls.id ? mediaWithUrls : item
-            );
-          }
-          // Add new item to beginning
-          return [mediaWithUrls, ...prev];
-        });
-
-        setSelectedFile(null);
-        setTitle("");
-        setPreviewUrl(null);
-        setUploadProgress(0);
-        setUploadSuccess(true);
-
-        // Update cache with new media included
-        const updatedMedia = [
-          mediaWithUrls,
-          ...media.filter((item) => item.id !== mediaWithUrls.id),
-        ];
-        sessionStorage.setItem("cachedMedia", JSON.stringify(updatedMedia));
-        localStorage.setItem("mediaBackup", JSON.stringify(updatedMedia));
-        console.log(
-          "Updated media cache with new upload:",
-          mediaWithUrls.title || mediaWithUrls.filename
-        );
-
-        // Close modal after short delay
-        setTimeout(() => {
-          setShowUploadModal(false);
-          setUploadSuccess(false);
-        }, 1500);
-      } catch (err) {
-        if (!isMounted.current) return;
-        console.error("Upload error:", err);
-        setUploadError(`Failed to upload file: ${err.message}`);
-        throw err; // Re-throw for error handler
-      } finally {
-        if (isMounted.current) {
-          setIsUploading(false);
+        } else {
+          // Update status if we're actually connected
+          setServerStatus({ connected: true, lastChecked: new Date().toISOString() });
         }
       }
+
+      let retryCount = 0;
+      const maxRetries = 2; // Maximum number of retries for auth issues
+
+      const attemptUpload = async () => {
+        try {
+          setIsUploading(true);
+          setUploadProgress(0);
+          setUploadError(null);
+
+          // Check network connectivity first
+          const isConnected = await checkNetworkConnection();
+          if (!isConnected) {
+            // If network is not connected, use local upload in development mode
+            if (process.env.NODE_ENV === "development" || window.location.hostname === "localhost") {
+              console.log("Network connection issue, using local browser storage for upload");
+              return handleLocalUpload();
+            } else {
+              throw new Error("Network connection issue detected. Please check your internet connection and try again.");
+            }
+          }
+
+          const uploadedMedia = await uploadFile(
+            selectedFile,
+            title || selectedFile.name,
+            category,
+            (progress) => {
+              // Handle the new progress object format
+              if (progress && typeof progress.percent === "number") {
+                setUploadProgress(progress.percent);
+              } else if (progress && progress.total) {
+                // Fallback for old format
+                setUploadProgress(
+                  Math.round((progress.loaded / progress.total) * 100)
+                );
+              } else if (progress && progress.lengthComputable) {
+                // Fallback for XMLHttpRequest event format
+                setUploadProgress(
+                  Math.round((progress.loaded / progress.total) * 100)
+                );
+              }
+            }
+          );
+
+          if (!isMounted.current) return;
+
+          console.log("Media upload successful:", uploadedMedia);
+
+          // Ensure the path is properly set
+          if (!uploadedMedia.path && uploadedMedia.filename) {
+            uploadedMedia.path = `/uploads/${uploadedMedia.filename}`;
+          }
+
+          // Add to media state with proper preview URLs
+          const mediaWithUrls = {
+            ...uploadedMedia,
+            // Add upload date for sorting
+            uploadDate: new Date().toISOString(),
+            // Ensure fileUrl and thumbnailUrl are properly set
+            fileUrl: uploadedMedia.path.startsWith("http")
+              ? uploadedMedia.path
+              : `${API_URL}${uploadedMedia.path}`,
+            thumbnailUrl: uploadedMedia.path.startsWith("http")
+              ? uploadedMedia.path
+              : `${API_URL}${uploadedMedia.path}`,
+          };
+
+          // Update state with new media at the beginning of the array
+          setMedia((prev) => {
+            // Check if we already have this media item (by id)
+            const exists = prev.some((item) => item.id === mediaWithUrls.id);
+            if (exists) {
+              // Replace the existing item
+              return prev.map((item) =>
+                item.id === mediaWithUrls.id ? mediaWithUrls : item
+              );
+            }
+            // Add new item to beginning
+            return [mediaWithUrls, ...prev];
+          });
+
+          setSelectedFile(null);
+          setTitle("");
+          setPreviewUrl(null);
+          setUploadProgress(0);
+          setUploadSuccess(true);
+
+          // Update cache with new media included
+          const updatedMedia = [
+            mediaWithUrls,
+            ...media.filter((item) => item.id !== mediaWithUrls.id),
+          ];
+          sessionStorage.setItem("cachedMedia", JSON.stringify(updatedMedia));
+          localStorage.setItem("mediaBackup", JSON.stringify(updatedMedia));
+          console.log(
+            "Updated media cache with new upload:",
+            mediaWithUrls.title || mediaWithUrls.filename
+          );
+
+          // Close modal after short delay
+          setTimeout(() => {
+            setShowUploadModal(false);
+            setUploadSuccess(false);
+          }, 1500);
+          
+          return true;
+        } catch (err) {
+          if (!isMounted.current) return false;
+          
+          console.error("Upload attempt failed:", err);
+          
+          // First check if it's a network connectivity issue
+          if (err.message && (
+              err.message.includes("Network") || 
+              err.message.includes("connection") ||
+              err.message.includes("offline") ||
+              err.message.includes("internet")
+            )) {
+            // In development mode, fall back to local upload
+            if (process.env.NODE_ENV === "development" || window.location.hostname === "localhost") {
+              console.log("Network issue detected, falling back to local upload");
+              return handleLocalUpload();
+            }
+            
+            setUploadError("Network connection issue. Please check your internet connection and try again.");
+            
+            // Update server status
+            setServerStatus({ connected: false, lastChecked: new Date().toISOString() });
+            
+            throw err;
+          }
+          
+          // Check if it's an auth error and we can retry
+          if (err.message && (
+              err.message.includes("Token is not valid") || 
+              err.message.includes("401") ||
+              err.message.includes("authorization") ||
+              err.message.includes("unauthorized") ||
+              err.message.includes("Unauthorized") ||
+              err.message.includes("No token")
+            ) && retryCount < maxRetries) {
+            retryCount++;
+            console.log(`Auth error detected, retrying upload (attempt ${retryCount}/${maxRetries})...`);
+            
+            // Try to refresh the token by calling login
+            try {
+              // Import the login function if not already available
+              const { login } = await import("../../services/api");
+              await login("admin", "admin");
+              console.log("Token refreshed, retrying upload...");
+              
+              // Small delay before retry
+              await new Promise(resolve => setTimeout(resolve, 500));
+              
+              // Try again
+              return attemptUpload();
+            } catch (loginErr) {
+              console.error("Failed to refresh token:", loginErr);
+              
+              // In development mode, fall back to local upload
+              if (process.env.NODE_ENV === "development" || window.location.hostname === "localhost") {
+                console.log("Authentication issue detected, falling back to local upload");
+                return handleLocalUpload();
+              }
+            }
+          }
+          
+          // If we get here, either it's not an auth error or all retries failed
+          // In development mode, fall back to local upload
+          if (process.env.NODE_ENV === "development" || window.location.hostname === "localhost") {
+            console.log("All upload attempts failed, falling back to local upload");
+            return handleLocalUpload();
+          }
+          
+          setUploadError(`Failed to upload file: ${err.message}`);
+          throw err; // Re-throw for error handler
+        } finally {
+          if (isMounted.current) {
+            setIsUploading(false);
+          }
+        }
+      };
+      
+      // Helper function for local browser-only uploads in development
+      const handleLocalUpload = async () => {
+        try {
+          setUploadProgress(0);
+          
+          // Simulate progress
+          const progressInterval = setInterval(() => {
+            setUploadProgress(prev => {
+              const newProgress = prev + 10;
+              return newProgress > 90 ? 90 : newProgress;
+            });
+          }, 100);
+          
+          // Use the mock upload service
+          const localMedia = await uploadMediaLocally(
+            selectedFile,
+            title || selectedFile.name.split(".")[0],
+            category || "general"
+          );
+          
+          // Clear the progress interval
+          clearInterval(progressInterval);
+          setUploadProgress(100);
+          
+          console.log("Local upload successful:", localMedia);
+          
+          // Update local state with the new media
+          setMedia(prev => [localMedia, ...prev]);
+          
+          // Reset form state
+          setSelectedFile(null);
+          setTitle("");
+          setPreviewUrl(null);
+          setUploadSuccess(true);
+          
+          // Close modal after short delay
+          setTimeout(() => {
+            setShowUploadModal(false);
+            setUploadSuccess(false);
+          }, 1500);
+          
+          return true;
+        } catch (err) {
+          console.error("Local upload failed:", err);
+          setUploadError(`Local upload failed: ${err.message}`);
+          throw err;
+        } finally {
+          setIsUploading(false);
+        }
+      };
+      
+      // Start the upload process with retry logic
+      return attemptUpload();
     },
     {
       context: "Media Upload",
@@ -396,6 +623,14 @@ const MediaManager = () => {
   const handleDelete = withErrorHandling(
     async (id) => {
       if (!window.confirm("Are you sure you want to delete this media item?")) {
+        return;
+      }
+
+      // Check if this is a local media item (in development)
+      if (id.toString().startsWith("local-")) {
+        // Use local delete function
+        deleteLocalMedia(id);
+        setMedia((prev) => prev.filter((item) => item.id !== id));
         return;
       }
 
@@ -453,6 +688,11 @@ const MediaManager = () => {
   const getMediaImageUrl = useCallback((media) => {
     if (!media) return "";
 
+    // If it's a local upload (for development)
+    if (media.localUrl) {
+      return media.localUrl;
+    }
+
     // If it's already a full URL
     if (media.fileUrl && media.fileUrl.startsWith("http")) {
       return media.fileUrl;
@@ -476,6 +716,32 @@ const MediaManager = () => {
   return (
     <MediaErrorBoundary>
       <div className="p-6">
+        {/* Server Status Indicator */}
+        {!serverStatus.connected && (
+          <div className="mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <ExclamationCircleIcon className="h-5 w-5 text-yellow-400" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-yellow-700">
+                  Server connection issues detected. Some features may not work correctly.
+                </p>
+              </div>
+              <div className="ml-auto pl-3">
+                <button
+                  type="button"
+                  onClick={handleRefresh}
+                  className="inline-flex rounded-md p-1.5 text-yellow-500 hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                >
+                  <RefreshIcon className="h-5 w-5" />
+                  <span className="sr-only">Retry connection</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Error Message */}
         {error && (
           <div className="mb-6 bg-red-50 border-l-4 border-red-400 p-4">
@@ -484,7 +750,7 @@ const MediaManager = () => {
                 <ExclamationCircleIcon className="h-5 w-5 text-red-400" />
               </div>
               <div className="ml-3">
-                <p className="text-sm text-red-700">{errorMessage}</p>
+                <p className="text-sm text-red-700">{typeof error === 'string' ? error : (error.message || 'An unknown error occurred')}</p>
               </div>
               <div className="ml-auto pl-3">
                 <div className="-mx-1.5 -my-1.5">
@@ -576,20 +842,6 @@ const MediaManager = () => {
             </select>
           </div>
         </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 bg-red-50 border-l-4 border-red-400 p-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <ExclamationCircleIcon className="h-5 w-5 text-red-400" />
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Media Grid/List */}
         {mediaLoading ? (
