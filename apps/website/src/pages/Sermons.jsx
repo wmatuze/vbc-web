@@ -108,7 +108,14 @@ const Sermons = () => {
     // For debugging
     console.log("Processing sermon image:", sermon.title, sermon.imageUrl);
 
-    // 1. Try to get image from populated image object with path property
+    // 1. First priority: Use YouTube thumbnail if available (most reliable)
+    if (sermon.videoId) {
+      const youtubeThumb = `https://img.youtube.com/vi/${sermon.videoId}/hqdefault.jpg`;
+      console.log("Using auto-generated YouTube thumbnail:", youtubeThumb);
+      return youtubeThumb;
+    }
+
+    // 2. Try to get image from populated image object with path property
     if (sermon.image && typeof sermon.image === "object" && sermon.image.path) {
       const url = sermon.image.path.startsWith("/")
         ? `${API_URL}${sermon.image.path}`
@@ -117,8 +124,14 @@ const Sermons = () => {
       return url;
     }
     
-    // 2. Try to get image from imageUrl string
+    // 3. Try to get image from imageUrl string
     if (sermon.imageUrl && typeof sermon.imageUrl === "string") {
+      // Skip if it's a default image path and we have better options
+      if (sermon.imageUrl.includes('default-image')) {
+        console.log("Skipping default image path, using sermon thumbnail");
+        return "/assets/sermons/default-sermon.jpg";
+      }
+      
       // Handle JSON string that might have been passed
       if (sermon.imageUrl.includes('{"')) {
         try {
@@ -152,7 +165,7 @@ const Sermons = () => {
       return url;
     }
     
-    // 3. Try to get image from direct image string (static data)
+    // 4. Try to get image from direct image string (static data)
     if (sermon.image && typeof sermon.image === "string") {
       // Don't prepend API_URL if the URL is already absolute or a data URL
       if (sermon.image.startsWith("http") || sermon.image.startsWith("data:")) {
@@ -166,16 +179,10 @@ const Sermons = () => {
       console.log("Using sermon.image string:", url);
       return url;
     }
-    
-    // 4. Generate thumbnail from YouTube video if possible
-    if (sermon.videoId) {
-      const youtubeThumb = `https://img.youtube.com/vi/${sermon.videoId}/hqdefault.jpg`;
-      console.log("Using auto-generated YouTube thumbnail:", youtubeThumb);
-      return youtubeThumb;
-    }
 
-    console.log("No image found, using placeholder");
-    return placeholderImage;
+    // If no image is found, return a sermon-specific placeholder
+    console.log("No image found, using sermon thumbnail placeholder");
+    return "/assets/sermons/default-sermon.jpg";
   };
 
   // Helper function to format dates
@@ -669,9 +676,37 @@ const Sermons = () => {
                     console.error(
                       `Failed to load image: ${getSermonImageUrl(sermon)}`
                     );
-                    e.target.src = placeholderImage;
+                    // First try YouTube thumbnail if available
+                    if (sermon.videoId && !e.target.src.includes(sermon.videoId)) {
+                      console.log("Fallback to direct YouTube thumbnail");
+                      e.target.src = `https://img.youtube.com/vi/${sermon.videoId}/hqdefault.jpg`;
+                    } else {
+                      // Otherwise use default sermon image
+                      e.target.src = "/assets/sermons/default-sermon.jpg";
+                    }
                   }}
+                  loading="eager"
                 />
+                {sermon.videoId && (
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black bg-opacity-30">
+                    <div className="bg-red-600 text-white rounded-full p-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-8 w-8"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">

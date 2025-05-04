@@ -303,6 +303,18 @@ const Sermons = () => {
                   src={getSermonImageUrl(latestSermon)}
                   alt={latestSermon.title}
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    console.error(`Failed to load featured sermon image`);
+                    // First try YouTube thumbnail if available
+                    if (latestSermon.videoId && !e.target.src.includes(latestSermon.videoId)) {
+                      console.log("Fallback to direct YouTube thumbnail for featured sermon");
+                      e.target.src = `https://img.youtube.com/vi/${latestSermon.videoId}/hqdefault.jpg`;
+                    } else {
+                      // Otherwise use default sermon image
+                      e.target.src = "/assets/sermons/default-sermon.jpg";
+                    }
+                  }}
+                  loading="eager"
                 />
                 <div className="absolute top-4 left-4 bg-primary-500 text-white px-3 py-1 rounded-full text-sm font-medium">
                   Latest
@@ -385,6 +397,18 @@ const Sermons = () => {
                   src={getSermonImageUrl(sermon)}
                   alt={sermon.title}
                   className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                  onError={(e) => {
+                    console.error(`Failed to load recent sermon image for ${sermon.title}`);
+                    // First try YouTube thumbnail if available
+                    if (sermon.videoId && !e.target.src.includes(sermon.videoId)) {
+                      console.log("Fallback to direct YouTube thumbnail for recent sermon");
+                      e.target.src = `https://img.youtube.com/vi/${sermon.videoId}/hqdefault.jpg`;
+                    } else {
+                      // Otherwise use default sermon image
+                      e.target.src = "/assets/sermons/default-sermon.jpg";
+                    }
+                  }}
+                  loading="eager"
                 />
                 <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <Link
