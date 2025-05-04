@@ -11,11 +11,16 @@ const API_URL = config.API_URL;
 // Function to check if YouTube is accessible
 const checkYouTubeConnectivity = async () => {
   try {
-    await fetch("https://www.youtube.com/favicon.ico", {
+    // Try to fetch a YouTube image resource instead of favicon 
+    // (more reliable and less likely to be cached)
+    const response = await fetch("https://i.ytimg.com/vi/default/default.jpg", {
       mode: "no-cors",
       cache: "no-store",
       method: "HEAD",
+      timeout: 3000
     });
+    
+    console.log("YouTube connectivity check successful");
     return true;
   } catch (error) {
     console.error("YouTube connectivity check failed:", error);
@@ -94,40 +99,82 @@ const Sermons = () => {
 
   // Helper function to get the correct image URL
   const getSermonImageUrl = (sermon) => {
-    // Handle case where sermon might be an object with imageUrl property
-    if (
-      typeof sermon === "object" &&
-      sermon.imageUrl &&
-      typeof sermon.imageUrl === "object"
-    ) {
-      console.log("Found object imageUrl, using placeholder");
+    // Ensure we have a valid sermon object
+    if (!sermon || typeof sermon !== "object") {
+      console.log("Invalid sermon object, using placeholder");
       return placeholderImage;
     }
 
-    if (sermon.image?.path) {
-      return sermon.image.path.startsWith("/")
+    // For debugging
+    console.log("Processing sermon image:", sermon.title, sermon.imageUrl);
+
+    // 1. Try to get image from populated image object with path property
+    if (sermon.image && typeof sermon.image === "object" && sermon.image.path) {
+      const url = sermon.image.path.startsWith("/")
         ? `${API_URL}${sermon.image.path}`
         : sermon.image.path;
-    } else if (sermon.imageUrl && typeof sermon.imageUrl === "string") {
+      console.log("Using image.path:", url);
+      return url;
+    }
+    
+    // 2. Try to get image from imageUrl string
+    if (sermon.imageUrl && typeof sermon.imageUrl === "string") {
+      // Handle JSON string that might have been passed
+      if (sermon.imageUrl.includes('{"')) {
+        try {
+          const parsed = JSON.parse(sermon.imageUrl);
+          if (parsed && parsed.path) {
+            const url = parsed.path.startsWith("/")
+              ? `${API_URL}${parsed.path}`
+              : parsed.path;
+            console.log("Using parsed imageUrl path:", url);
+            return url;
+          }
+        } catch (e) {
+          console.error("Failed to parse imageUrl JSON:", e);
+        }
+      }
+      
       // Don't prepend API_URL if the URL is already absolute or a data URL
       if (
         sermon.imageUrl.startsWith("http") ||
         sermon.imageUrl.startsWith("data:")
       ) {
+        console.log("Using absolute imageUrl:", sermon.imageUrl);
         return sermon.imageUrl;
       }
-      return sermon.imageUrl.startsWith("/")
+      
+      // Regular imageUrl string
+      const url = sermon.imageUrl.startsWith("/")
         ? `${API_URL}${sermon.imageUrl}`
         : sermon.imageUrl;
-    } else if (typeof sermon.image === "string") {
+      console.log("Using regular imageUrl:", url);
+      return url;
+    }
+    
+    // 3. Try to get image from direct image string (static data)
+    if (sermon.image && typeof sermon.image === "string") {
       // Don't prepend API_URL if the URL is already absolute or a data URL
       if (sermon.image.startsWith("http") || sermon.image.startsWith("data:")) {
+        console.log("Using absolute image string:", sermon.image);
         return sermon.image;
       }
-      return sermon.image.startsWith("/")
+      
+      const url = sermon.image.startsWith("/")
         ? `${API_URL}${sermon.image}`
         : sermon.image;
+      console.log("Using sermon.image string:", url);
+      return url;
     }
+    
+    // 4. Generate thumbnail from YouTube video if possible
+    if (sermon.videoId) {
+      const youtubeThumb = `https://img.youtube.com/vi/${sermon.videoId}/hqdefault.jpg`;
+      console.log("Using auto-generated YouTube thumbnail:", youtubeThumb);
+      return youtubeThumb;
+    }
+
+    console.log("No image found, using placeholder");
     return placeholderImage;
   };
 
@@ -172,6 +219,7 @@ const Sermons = () => {
     // Clear any existing timeout to prevent race conditions
     if (loadingTimeout) {
       clearTimeout(loadingTimeout);
+      setLoadingTimeout(null);
     }
 
     setIsLoading(true);
@@ -181,21 +229,7 @@ const Sermons = () => {
     // Update the URL parameter to maintain history - use replace: true to fix back button
     setSearchParams({ video: sermon.videoId }, { replace: true });
 
-    // Set a timeout to prevent indefinite loading
-    const timeout = setTimeout(() => {
-      if (isLoading) {
-        console.warn("Video loading timeout - forcing completion");
-        setIsLoading(false);
-        setVideoError(true);
-        setVideoErrorMessage(
-          "Video loading timed out. Please try again or use a different player."
-        );
-      }
-    }, 8000); // 8 second timeout
-
-    setLoadingTimeout(timeout);
-
-    // Validate YouTube ID before attempting to load
+    // First validate YouTube ID before proceeding
     if (!sermon.videoId || !isValidYouTubeID(sermon.videoId)) {
       console.error("Invalid YouTube video ID:", sermon.videoId);
       setVideoError(true);
@@ -203,8 +237,24 @@ const Sermons = () => {
         `Invalid YouTube video ID: ${sermon.videoId || "missing"}`
       );
       setIsLoading(false);
-      clearTimeout(timeout);
+      return;
     }
+
+    // Set a timeout to prevent indefinite loading
+    const timeout = setTimeout(() => {
+      console.warn("Video loading timeout - forcing completion");
+      setIsLoading(false);
+      
+      // Only set error if we're still in loading state
+      if (isLoading) {
+        setVideoError(true);
+        setVideoErrorMessage(
+          "Video loading timed out. Please try again or use a different player."
+        );
+      }
+    }, 10000); // 10 second timeout (increased for slower connections)
+
+    setLoadingTimeout(timeout);
 
     // Check if YouTube is accessible
     if (!youtubeAccessible) {
@@ -228,6 +278,19 @@ const Sermons = () => {
 
   // Set the initially selected sermon when sermons data is loaded
   useEffect(() => {
+    // Reset loading states when component mounts
+    const resetLoadingState = setTimeout(() => {
+      if (isLoading) {
+        console.log("Force resetting loading state after component mount");
+        setIsLoading(false);
+        
+        if (loadingTimeout) {
+          clearTimeout(loadingTimeout);
+          setLoadingTimeout(null);
+        }
+      }
+    }, 3000);
+    
     if (sermons && sermons.length > 0) {
       console.log("Sermons page - API data:", sermons);
 
@@ -280,6 +343,15 @@ const Sermons = () => {
 
       setError("Using local sermon data - API server unavailable");
     }
+    
+    // Clear any loading timeouts on component unmount
+    return () => {
+      clearTimeout(resetLoadingState);
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+        setLoadingTimeout(null);
+      }
+    };
   }, [sermons, sermonsError, videoIdParam]);
 
   // Loading state for the whole page
@@ -448,26 +520,25 @@ const Sermons = () => {
                         </div>
                       </div>
                     ) : (
-                      <iframe
-                        className="absolute top-0 left-0 w-full h-full"
-                        src={`https://www.youtube.com/embed/${selectedSermon.videoId}?origin=${encodeURIComponent(window.location.origin)}&enablejsapi=1`}
-                        title={selectedSermon.title}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        referrerPolicy="origin"
-                        onLoad={() => {
-                          console.log("YouTube iframe loaded successfully");
-                          setIsLoading(false);
-                        }}
-                        onError={(e) => {
-                          console.error("YouTube iframe error:", e);
-                          setVideoError(true);
-                          setVideoErrorMessage(
-                            "Failed to connect to YouTube. Check your internet connection or try another player option."
-                          );
-                          setIsLoading(false);
-                        }}
-                      />
+                      <div className="absolute top-0 left-0 w-full h-full">
+                        <iframe
+                          className="absolute top-0 left-0 w-full h-full"
+                          src={`https://www.youtube.com/embed/${selectedSermon.videoId}?origin=${encodeURIComponent(window.location.origin)}&enablejsapi=0&rel=0&modestbranding=1&autoplay=1`}
+                          title={selectedSermon.title}
+                          allow="autoplay; fullscreen"
+                          allowFullScreen
+                          loading="eager"
+                          onLoad={() => {
+                            console.log("YouTube iframe loaded successfully");
+                            setIsLoading(false);
+                            // Clear any existing timeout to prevent race conditions
+                            if (loadingTimeout) {
+                              clearTimeout(loadingTimeout);
+                              setLoadingTimeout(null);
+                            }
+                          }}
+                        />
+                      </div>
                     )}
                   </>
                 ) : (
@@ -518,28 +589,25 @@ const Sermons = () => {
                         </div>
                       </div>
                     ) : (
-                      <iframe
-                        className="absolute top-0 left-0 w-full h-full"
-                        src={`https://www.youtube-nocookie.com/embed/${selectedSermon.videoId}?rel=0&modestbranding=1&origin=${encodeURIComponent(window.location.origin)}&enablejsapi=1`}
-                        title={selectedSermon.title}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        referrerPolicy="origin"
-                        onLoad={() => {
-                          console.log(
-                            "YouTube-nocookie iframe loaded successfully"
-                          );
-                          setIsLoading(false);
-                        }}
-                        onError={(e) => {
-                          console.error("YouTube-nocookie iframe error:", e);
-                          setVideoError(true);
-                          setVideoErrorMessage(
-                            "Failed to connect to YouTube-nocookie domain. Check your internet connection or try another player option."
-                          );
-                          setIsLoading(false);
-                        }}
-                      />
+                      <div className="absolute top-0 left-0 w-full h-full">
+                        <iframe
+                          className="absolute top-0 left-0 w-full h-full"
+                          src={`https://www.youtube-nocookie.com/embed/${selectedSermon.videoId}?rel=0&modestbranding=1&origin=${encodeURIComponent(window.location.origin)}&enablejsapi=0&autoplay=1`}
+                          title={selectedSermon.title}
+                          allow="autoplay; fullscreen"
+                          allowFullScreen
+                          loading="eager" 
+                          onLoad={() => {
+                            console.log("YouTube-nocookie iframe loaded successfully");
+                            setIsLoading(false);
+                            // Clear any existing timeout to prevent race conditions
+                            if (loadingTimeout) {
+                              clearTimeout(loadingTimeout);
+                              setLoadingTimeout(null);
+                            }
+                          }}
+                        />
+                      </div>
                     )}
                   </>
                 )}
@@ -592,21 +660,19 @@ const Sermons = () => {
               onClick={() => selectSermon(sermon)}
             >
               {/* Add sermon image if available */}
-              {(sermon.imageUrl || sermon.image) && (
-                <div className="relative h-40 overflow-hidden">
-                  <img
-                    src={getSermonImageUrl(sermon)}
-                    alt={sermon.title}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      console.error(
-                        `Failed to load image: ${getSermonImageUrl(sermon)}`
-                      );
-                      e.target.src = placeholderImage;
-                    }}
-                  />
-                </div>
-              )}
+              <div className="relative h-40 overflow-hidden">
+                <img
+                  src={getSermonImageUrl(sermon)}
+                  alt={sermon.title}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    console.error(
+                      `Failed to load image: ${getSermonImageUrl(sermon)}`
+                    );
+                    e.target.src = placeholderImage;
+                  }}
+                />
+              </div>
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   {sermon.title}

@@ -181,12 +181,31 @@ const SermonManager = () => {
   };
 
   const getImagePreviewUrl = (imageUrl) => {
-    if (!imageUrl) return null;
+    if (!imageUrl) {
+      // If no imageUrl is provided but we have a videoId, use YouTube thumbnail
+      if (currentSermon && currentSermon.videoId) {
+        const youtubeThumb = `https://img.youtube.com/vi/${currentSermon.videoId}/hqdefault.jpg`;
+        console.log("Using auto-generated YouTube thumbnail:", youtubeThumb);
+        return youtubeThumb;
+      }
+      return placeholderImage;
+    }
+    
     console.log("Getting preview for:", imageUrl);
 
     // Handle case where imageUrl is an object
     if (typeof imageUrl === "object") {
       console.warn("imageUrl is an object, not a string:", imageUrl);
+      
+      // If it's a valid media object with path, use that
+      if (imageUrl.path) {
+        const url = imageUrl.path.startsWith("/")
+          ? `${API_URL}${imageUrl.path}`
+          : imageUrl.path;
+        console.log("Using object.path:", url);
+        return url;
+      }
+      
       return placeholderImage;
     }
 
@@ -194,11 +213,16 @@ const SermonManager = () => {
     if (
       imageUrl &&
       typeof imageUrl === "string" &&
-      imageUrl.includes('{"imageUrl"')
+      imageUrl.includes('{"')
     ) {
       console.warn("imageUrl contains a stringified object:", imageUrl);
       try {
         const parsed = JSON.parse(imageUrl);
+        if (parsed && parsed.path) {
+          return parsed.path.startsWith("/")
+            ? `${API_URL}${parsed.path}`
+            : parsed.path;
+        }
         if (parsed && parsed.imageUrl && typeof parsed.imageUrl === "string") {
           return parsed.imageUrl.startsWith("/")
             ? `${API_URL}${parsed.imageUrl}`
@@ -207,14 +231,27 @@ const SermonManager = () => {
       } catch (e) {
         console.error("Failed to parse imageUrl:", e);
       }
-      return placeholderImage;
     }
 
-    const fullUrl = imageUrl.startsWith("/")
-      ? `${API_URL}${imageUrl}`
-      : imageUrl;
-    console.log("Full preview URL:", fullUrl);
-    return fullUrl;
+    // Handle regular string URL
+    if (imageUrl && typeof imageUrl === "string") {
+      // Don't prepend API_URL if the URL is already absolute or a data URL
+      if (
+        imageUrl.startsWith("http") ||
+        imageUrl.startsWith("data:")
+      ) {
+        console.log("Using absolute imageUrl:", imageUrl);
+        return imageUrl;
+      }
+      
+      const fullUrl = imageUrl.startsWith("/")
+        ? `${API_URL}${imageUrl}`
+        : imageUrl;
+      console.log("Full preview URL:", fullUrl);
+      return fullUrl;
+    }
+
+    return placeholderImage;
   };
 
   // Use placeholder image from assets
@@ -899,7 +936,7 @@ const SermonManager = () => {
                           {/* Media selection controls */}
                           <div className="flex-1 flex flex-col">
                             {/* Media library popup button */}
-                            <div className="mb-2">
+                            <div className="mb-2 flex space-x-2">
                               <button
                                 type="button"
                                 onClick={() => setIsMediaSelectorOpen(true)}
@@ -908,6 +945,26 @@ const SermonManager = () => {
                                 <PhotographIcon className="h-5 w-5 mr-2 text-gray-400" />
                                 Browse Media Library
                               </button>
+                              
+                              {/* Auto-generate thumbnail from YouTube */}
+                              {currentSermon.videoId && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const youtubeThumb = `https://img.youtube.com/vi/${currentSermon.videoId}/hqdefault.jpg`;
+                                    console.log("Auto-generating YouTube thumbnail:", youtubeThumb);
+                                    setCurrentSermon((prev) => ({
+                                      ...prev,
+                                      imageUrl: youtubeThumb,
+                                      image: null, // Clear any existing image reference
+                                    }));
+                                  }}
+                                  className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                >
+                                  <VideoCameraIcon className="h-5 w-5 mr-2 text-gray-400" />
+                                  Auto Generate Thumbnail
+                                </button>
+                              )}
                             </div>
 
                             {/* URL input field (fallback method) */}

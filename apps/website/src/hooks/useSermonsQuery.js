@@ -30,6 +30,7 @@ export const useSermonsQuery = (options = {}) => {
             // For image objects, extract the path
             if (key === "image" && value.path) {
               safeSermom.imageUrl = value.path;
+              // Keep the image object intact for reference
             } else {
               // Convert other objects to string to prevent rendering issues
               safeSermom[key] = JSON.stringify(value);
@@ -49,11 +50,27 @@ export const useSermonsQuery = (options = {}) => {
             ? "View sermon details"
             : String(safeSermom.description || "");
 
-        safeSermom.imageUrl =
-          typeof safeSermom.imageUrl === "object"
-            ? "/assets/media/default-image.jpg"
-            : String(safeSermom.imageUrl || "/assets/media/default-image.jpg");
-
+        // Handle image URL - Always generate YouTube thumbnail if a videoId is available
+        if (safeSermom.videoId) {
+          // Generate YouTube thumbnail URL - this should be the primary fallback
+          const youtubeThumb = `https://img.youtube.com/vi/${safeSermom.videoId}/hqdefault.jpg`;
+          
+          // Only set this if we don't have a valid image path
+          if (!safeSermom.imageUrl || 
+              safeSermom.imageUrl === "" || 
+              safeSermom.imageUrl.includes("default-image") ||
+              typeof safeSermom.imageUrl === "object") {
+            safeSermom.imageUrl = youtubeThumb;
+            console.log("Using YouTube thumbnail for:", safeSermom.title);
+          }
+        } 
+        
+        // Ensure imageUrl has a value
+        if (!safeSermom.imageUrl || typeof safeSermom.imageUrl === "object") {
+          safeSermom.imageUrl = "/assets/sermons/default-sermon.jpg";
+        }
+        
+        safeSermom.imageUrl = String(safeSermom.imageUrl);
         safeSermom.title = String(safeSermom.title || "Untitled Sermon");
         safeSermom.speaker = String(safeSermom.speaker || "Unknown Speaker");
 
@@ -97,6 +114,7 @@ export const useSermonByIdQuery = (id) => {
           // For image objects, extract the path
           if (key === "image" && value.path) {
             safeSermom.imageUrl = value.path;
+            // Keep the image object intact for reference
           } else {
             // Convert other objects to string to prevent rendering issues
             safeSermom[key] = JSON.stringify(value);
@@ -116,11 +134,27 @@ export const useSermonByIdQuery = (id) => {
           ? "View sermon details"
           : String(safeSermom.description || "");
 
-      safeSermom.imageUrl =
-        typeof safeSermom.imageUrl === "object"
-          ? "/assets/media/default-image.jpg"
-          : String(safeSermom.imageUrl || "/assets/media/default-image.jpg");
-
+      // Handle image URL - Always generate YouTube thumbnail if a videoId is available
+      if (safeSermom.videoId) {
+        // Generate YouTube thumbnail URL - this should be the primary fallback
+        const youtubeThumb = `https://img.youtube.com/vi/${safeSermom.videoId}/hqdefault.jpg`;
+        
+        // Only set this if we don't have a valid image path
+        if (!safeSermom.imageUrl || 
+            safeSermom.imageUrl === "" || 
+            safeSermom.imageUrl.includes("default-image") ||
+            typeof safeSermom.imageUrl === "object") {
+          safeSermom.imageUrl = youtubeThumb;
+          console.log("Using YouTube thumbnail for single sermon:", safeSermom.title);
+        }
+      }
+      
+      // Ensure imageUrl has a value
+      if (!safeSermom.imageUrl || typeof safeSermom.imageUrl === "object") {
+        safeSermom.imageUrl = "/assets/sermons/default-sermon.jpg";
+      }
+      
+      safeSermom.imageUrl = String(safeSermom.imageUrl);
       safeSermom.title = String(safeSermom.title || "Untitled Sermon");
       safeSermom.speaker = String(safeSermom.speaker || "Unknown Speaker");
 

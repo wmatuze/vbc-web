@@ -58,47 +58,75 @@ const Sermons = () => {
 
   // Helper function to get the correct image URL
   const getSermonImageUrl = (sermon) => {
-    console.log("Processing sermon image:", sermon);
-
-    // Handle case where sermon might be an object with imageUrl property
-    if (
-      typeof sermon === "object" &&
-      sermon.imageUrl &&
-      typeof sermon.imageUrl === "object"
-    ) {
-      console.log("Found object imageUrl, using placeholder");
+    // Ensure we have a valid sermon object
+    if (!sermon || typeof sermon !== "object") {
+      console.log("Invalid sermon object, using placeholder");
       return placeholderImage;
     }
 
-    if (sermon.image?.path) {
+    // For debugging
+    console.log("Processing sermon image:", sermon.title, sermon.imageUrl);
+
+    // 1. First priority: Use YouTube thumbnail if available (most reliable)
+    if (sermon.videoId) {
+      const youtubeThumb = `https://img.youtube.com/vi/${sermon.videoId}/hqdefault.jpg`;
+      console.log("Using auto-generated YouTube thumbnail:", youtubeThumb);
+      return youtubeThumb;
+    }
+
+    // 2. Try to get image from populated image object with path property
+    if (sermon.image && typeof sermon.image === "object" && sermon.image.path) {
       const url = sermon.image.path.startsWith("/")
         ? `${config.API_URL}${sermon.image.path}`
         : sermon.image.path;
       console.log("Using image.path:", url);
       return url;
-    } else if (sermon.imageUrl && typeof sermon.imageUrl === "string") {
+    }
+    
+    // 3. Try to get image from imageUrl string
+    if (sermon.imageUrl && typeof sermon.imageUrl === "string") {
+      // Skip if it's a default image path and we have better options
+      if (sermon.imageUrl.includes('default-image')) {
+        console.log("Skipping default image path, using sermon thumbnail");
+        return "/assets/sermons/default-sermon.jpg";
+      }
+      
+      // Handle JSON string that might have been passed
+      if (sermon.imageUrl.includes('{"')) {
+        try {
+          const parsed = JSON.parse(sermon.imageUrl);
+          if (parsed && parsed.path) {
+            const url = parsed.path.startsWith("/")
+              ? `${config.API_URL}${parsed.path}`
+              : parsed.path;
+            console.log("Using parsed imageUrl path:", url);
+            return url;
+          }
+        } catch (e) {
+          console.error("Failed to parse imageUrl JSON:", e);
+        }
+      }
+      
+      // Regular imageUrl string
       const url = sermon.imageUrl.startsWith("/")
         ? `${config.API_URL}${sermon.imageUrl}`
         : sermon.imageUrl;
-      console.log("Using imageUrl:", url);
+      console.log("Using regular imageUrl:", url);
       return url;
-    } else if (typeof sermon.image === "string") {
+    }
+    
+    // 4. Try to get image from direct image string (static data)
+    if (sermon.image && typeof sermon.image === "string") {
       const url = sermon.image.startsWith("/")
         ? `${config.API_URL}${sermon.image}`
         : sermon.image;
-      console.log("Using sermon.image:", url);
+      console.log("Using sermon.image string:", url);
       return url;
     }
 
-    // For static data, use the image path directly
-    if (sermon.image && typeof sermon.image === "string") {
-      console.log("Using static sermon.image:", sermon.image);
-      return sermon.image;
-    }
-
-    // If no image is found, return a placeholder
-    console.log("No image found, using placeholder");
-    return placeholderImage;
+    // If no image is found, return a sermon-specific placeholder
+    console.log("No image found, using sermon thumbnail placeholder");
+    return "/assets/sermons/default-sermon.jpg";
   };
 
   // Helper function to format dates
@@ -446,12 +474,14 @@ const Sermons = () => {
               </button>
               <div className="relative pt-[56.25%] h-[50vh] md:h-[60vh] lg:h-auto">
                 <iframe
-                  src={`https://www.youtube.com/embed/${latestSermon.videoId}?autoplay=1`}
+                  src={`https://www.youtube.com/embed/${latestSermon.videoId}?autoplay=1&rel=0&modestbranding=1&enablejsapi=0`}
                   frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow="autoplay; fullscreen"
                   allowFullScreen
+                  loading="eager"
                   title={latestSermon.title}
                   className="absolute top-0 left-0 w-full h-full"
+                  onLoad={() => console.log("Video modal iframe loaded successfully")}
                 ></iframe>
               </div>
             </div>
