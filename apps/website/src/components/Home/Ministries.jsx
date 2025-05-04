@@ -6,7 +6,7 @@ const ministries = [
     name: "Youth Ministry - Lit Nation",
     description: "Empowering young people to grow in faith and leadership.",
     image: "/images/youth-ministry.jpg",
-    path: "/ministries/youth"
+    path: "/ministries/youths"
   },
   {
     name: "Men's Ministry",

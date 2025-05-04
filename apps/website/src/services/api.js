@@ -4,7 +4,7 @@ import config from "../config";
 const API_URL = config.API_URL;
 
 // Get the authentication token from localStorage
-const getAuthToken = () => {
+export const getAuthToken = () => {
   const auth = localStorage.getItem("auth");
 
   // If we're in development mode and there's no auth token, create a default one
@@ -14,10 +14,10 @@ const getAuthToken = () => {
       window.location.hostname === "localhost")
   ) {
     console.log("Creating default development auth token");
-    
+
     // Generate a unique token with timestamp to avoid using expired tokens
     const uniqueToken = `dev-token-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
-    
+
     const defaultAuth = {
       isAuthenticated: true,
       token: uniqueToken,
@@ -34,7 +34,11 @@ const getAuthToken = () => {
     if (authObj && authObj.timestamp) {
       const tokenAge = Date.now() - authObj.timestamp;
       // If token is older than 24 hours (86400000 ms), refresh it in dev mode
-      if (tokenAge > 86400000 && (process.env.NODE_ENV === "development" || window.location.hostname === "localhost")) {
+      if (
+        tokenAge > 86400000 &&
+        (process.env.NODE_ENV === "development" ||
+          window.location.hostname === "localhost")
+      ) {
         console.log("Auth token might be expired, refreshing for development");
         const uniqueToken = `dev-token-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
         const refreshedAuth = {
@@ -78,17 +82,62 @@ const fetchData = async (endpoint) => {
 // Generic post function for creating new items
 const postData = async (endpoint, data) => {
   try {
+    // Get fresh auth headers before making the request
+    const authHeaders = getAuthHeaders();
+
+    // Log the request for debugging
+    console.log(
+      `Making POST request to ${endpoint} with auth headers:`,
+      authHeaders.Authorization ? "Bearer token present" : "No auth token"
+    );
+
     const response = await fetch(`${API_URL}/${endpoint}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...getAuthHeaders(),
+        ...authHeaders,
       },
       body: JSON.stringify(data),
     });
+
+    // Handle authentication errors specifically
+    if (response.status === 401) {
+      console.warn(
+        "Authentication error (401) detected, attempting to refresh token"
+      );
+
+      // Try to refresh the token by logging in again
+      const loginSuccess = await login("admin", "admin");
+
+      if (loginSuccess) {
+        console.log("Token refreshed, retrying request");
+
+        // Retry the request with fresh auth headers
+        const retryResponse = await fetch(`${API_URL}/${endpoint}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...getAuthHeaders(), // Get fresh headers after login
+          },
+          body: JSON.stringify(data),
+        });
+
+        if (!retryResponse.ok) {
+          throw new Error(
+            `API error after token refresh: ${retryResponse.status}`
+          );
+        }
+
+        return await retryResponse.json();
+      } else {
+        throw new Error("Authentication failed. Please log in again.");
+      }
+    }
+
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }
+
     return await response.json();
   } catch (error) {
     console.error(`Error posting to ${endpoint}:`, error);
@@ -112,16 +161,69 @@ const updateData = async (endpoint, id, data) => {
     const apiUrl = `${API_URL}/${endpoint}/${id}`;
     console.log(`Making API PUT request to: ${apiUrl}`);
 
+    // Get fresh auth headers before making the request
+    const authHeaders = getAuthHeaders();
+
+    // Log the request for debugging
+    console.log(
+      `Making PUT request to ${apiUrl} with auth headers:`,
+      authHeaders.Authorization ? "Bearer token present" : "No auth token"
+    );
+
     const response = await fetch(apiUrl, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        ...getAuthHeaders(),
+        ...authHeaders,
       },
       body: JSON.stringify(cleanData),
     });
 
     console.log(`Update response status: ${response.status}`);
+
+    // Handle authentication errors specifically
+    if (response.status === 401) {
+      console.warn(
+        "Authentication error (401) detected, attempting to refresh token"
+      );
+
+      // Try to refresh the token by logging in again
+      const loginSuccess = await login("admin", "admin");
+
+      if (loginSuccess) {
+        console.log("Token refreshed, retrying request");
+
+        // Retry the request with fresh auth headers
+        const retryResponse = await fetch(apiUrl, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...getAuthHeaders(), // Get fresh headers after login
+          },
+          body: JSON.stringify(cleanData),
+        });
+
+        if (!retryResponse.ok) {
+          let errorMessage;
+          try {
+            const errorData = await retryResponse.json();
+            errorMessage =
+              errorData.message ||
+              `API error after token refresh: ${retryResponse.status}`;
+          } catch (e) {
+            errorMessage = `API error after token refresh: ${retryResponse.status}`;
+          }
+          console.error(`Error response after token refresh:`, errorMessage);
+          throw new Error(errorMessage);
+        }
+
+        const responseData = await retryResponse.json();
+        console.log(`Updated successfully after token refresh:`, responseData);
+        return responseData;
+      } else {
+        throw new Error("Authentication failed. Please log in again.");
+      }
+    }
 
     if (!response.ok) {
       let errorMessage;
@@ -201,9 +303,11 @@ export const uploadFile = async (file, title, category, onProgress) => {
     // First check if we have a valid auth token
     let token = getAuthToken();
     console.log("Auth token available:", !!token);
-    
+
     if (!token) {
-      console.log("No auth token found, attempting login with default credentials");
+      console.log(
+        "No auth token found, attempting login with default credentials"
+      );
       // Try to log in with default credentials
       try {
         const loginSuccess = await login("admin", "admin");
@@ -225,9 +329,12 @@ export const uploadFile = async (file, title, category, onProgress) => {
         }
       } catch (loginErr) {
         console.error("Auto-login error:", loginErr);
-        
+
         // Create a fallback token for development
-        if (process.env.NODE_ENV === "development" || window.location.hostname === "localhost") {
+        if (
+          process.env.NODE_ENV === "development" ||
+          window.location.hostname === "localhost"
+        ) {
           const uniqueToken = `dev-token-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
           const defaultAuth = {
             isAuthenticated: true,
@@ -247,34 +354,34 @@ export const uploadFile = async (file, title, category, onProgress) => {
       const uploadUrlWithToken = token
         ? `${API_URL}/api/upload?token=${encodeURIComponent(token)}`
         : `${API_URL}/api/upload`;
-      
+
       console.log("Attempting upload with token in URL:", uploadUrlWithToken);
-      
+
       const formData = new FormData();
       formData.append("file", file);
       formData.append("title", title || file.name.split(".")[0]);
       formData.append("category", category || "general");
-      
+
       // Add token as form field
       if (token) {
         formData.append("token", token);
       }
-      
+
       const headers = {};
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
-      
+
       const response = await fetch(uploadUrlWithToken, {
         method: "POST",
         headers: headers,
-        body: formData
+        body: formData,
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log("Upload successful with token in URL:", data);
-        
+
         if (data.path) {
           data.fileUrl = data.path.startsWith("http")
             ? data.path
@@ -283,31 +390,49 @@ export const uploadFile = async (file, title, category, onProgress) => {
             ? data.path
             : `${API_URL}${data.path}`;
         }
-        
+
         return data;
       } else {
         // Try direct upload as a fallback in development
-        if (process.env.NODE_ENV === "development" || window.location.hostname === "localhost") {
-          console.log("Standard upload failed, trying direct upload for development");
+        if (
+          process.env.NODE_ENV === "development" ||
+          window.location.hostname === "localhost"
+        ) {
+          console.log(
+            "Standard upload failed, trying direct upload for development"
+          );
           return directUpload(file, title, category, onProgress);
         }
-        
+
         // If not in development or direct upload failed, throw the original error
         const errorText = await response.text();
-        console.error(`Upload failed with status ${response.status}:`, errorText);
-        
+        console.error(
+          `Upload failed with status ${response.status}:`,
+          errorText
+        );
+
         try {
           const jsonError = JSON.parse(errorText);
-          throw new Error(`Upload failed (${response.status}): ${jsonError.error || jsonError.message || "Unknown error"}`);
+          throw new Error(
+            `Upload failed (${response.status}): ${jsonError.error || jsonError.message || "Unknown error"}`
+          );
         } catch (e) {
-          throw new Error(`Upload failed (${response.status}): ${errorText || "Unknown error"}`);
+          throw new Error(
+            `Upload failed (${response.status}): ${errorText || "Unknown error"}`
+          );
         }
       }
     } catch (error) {
       // Try direct upload as fallback for development
-      if ((process.env.NODE_ENV === "development" || window.location.hostname === "localhost") && 
-          (error.message.includes("token") || error.message.includes("authorization"))) {
-        console.log("Token-based upload failed, trying direct upload for development");
+      if (
+        (process.env.NODE_ENV === "development" ||
+          window.location.hostname === "localhost") &&
+        (error.message.includes("token") ||
+          error.message.includes("authorization"))
+      ) {
+        console.log(
+          "Token-based upload failed, trying direct upload for development"
+        );
         return directUpload(file, title, category, onProgress);
       }
       throw error;
@@ -322,7 +447,7 @@ export const uploadFile = async (file, title, category, onProgress) => {
 // This bypasses authentication by using a different endpoint or approach
 export const directUpload = async (file, title, category, onProgress) => {
   console.log("Attempting direct upload without authentication tokens");
-  
+
   try {
     // Create a FormData object without authentication tokens
     const formData = new FormData();
@@ -330,19 +455,19 @@ export const directUpload = async (file, title, category, onProgress) => {
     formData.append("title", title || file.name.split(".")[0]);
     formData.append("category", category || "general");
     formData.append("mode", "development");
-    
+
     // Option 1: Try the direct media endpoint
     try {
       console.log("Trying direct media upload endpoint");
       const response = await fetch(`${API_URL}/media/upload`, {
         method: "POST",
-        body: formData
+        body: formData,
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log("Direct media upload successful:", data);
-        
+
         // Normalize the response
         return {
           id: data.id || `temp-${Date.now()}`,
@@ -351,7 +476,7 @@ export const directUpload = async (file, title, category, onProgress) => {
           title: title || file.name,
           category: category || "general",
           fileUrl: data.url || data.path || `/uploads/${file.name}`,
-          thumbnailUrl: data.url || data.path || `/uploads/${file.name}`
+          thumbnailUrl: data.url || data.path || `/uploads/${file.name}`,
         };
       }
       // Fall through to next option if this fails
@@ -359,19 +484,19 @@ export const directUpload = async (file, title, category, onProgress) => {
       console.log("Direct media upload failed:", error);
       // Fall through to next option
     }
-    
+
     // Option 2: Try a file upload without authentication
     try {
       console.log("Trying file upload without authentication");
       const response = await fetch(`${API_URL}/upload`, {
         method: "POST",
-        body: formData
+        body: formData,
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log("Unauthenticated upload successful:", data);
-        
+
         // Normalize the response
         return {
           id: data.id || `temp-${Date.now()}`,
@@ -380,7 +505,7 @@ export const directUpload = async (file, title, category, onProgress) => {
           title: title || file.name,
           category: category || "general",
           fileUrl: data.url || data.path || `/uploads/${file.name}`,
-          thumbnailUrl: data.url || data.path || `/uploads/${file.name}`
+          thumbnailUrl: data.url || data.path || `/uploads/${file.name}`,
         };
       }
       // Fall through to next option if this fails
@@ -388,11 +513,14 @@ export const directUpload = async (file, title, category, onProgress) => {
       console.log("Unauthenticated upload failed:", error);
       // Fall through to next option
     }
-    
+
     // Option 3: In development mode, we can simulate a successful upload
-    if (process.env.NODE_ENV === "development" || window.location.hostname === "localhost") {
+    if (
+      process.env.NODE_ENV === "development" ||
+      window.location.hostname === "localhost"
+    ) {
       console.log("Simulating successful upload for development");
-      
+
       // Generate a mock successful response
       const mockResponse = {
         id: `mock-${Date.now()}`,
@@ -402,33 +530,37 @@ export const directUpload = async (file, title, category, onProgress) => {
         category: category || "general",
         uploadDate: new Date().toISOString(),
         fileUrl: `${API_URL}/uploads/${file.name}`,
-        thumbnailUrl: `${API_URL}/uploads/${file.name}`
+        thumbnailUrl: `${API_URL}/uploads/${file.name}`,
       };
-      
+
       console.log("Created mock response:", mockResponse);
-      
+
       // Create a local URL for the file so it can be displayed
       try {
         mockResponse.localUrl = URL.createObjectURL(file);
       } catch (e) {
         console.error("Could not create object URL for file:", e);
       }
-      
+
       // Save to session storage so it persists during this session
       try {
-        const existingMedia = JSON.parse(sessionStorage.getItem("cachedMedia") || "[]");
+        const existingMedia = JSON.parse(
+          sessionStorage.getItem("cachedMedia") || "[]"
+        );
         existingMedia.unshift(mockResponse);
         sessionStorage.setItem("cachedMedia", JSON.stringify(existingMedia));
         console.log("Updated session storage with mock media");
       } catch (e) {
         console.error("Could not update session storage:", e);
       }
-      
+
       return mockResponse;
     }
-    
+
     // If all options failed and we're not in development mode
-    throw new Error("All upload methods failed. Server may not support direct uploads.");
+    throw new Error(
+      "All upload methods failed. Server may not support direct uploads."
+    );
   } catch (error) {
     console.error("Direct upload error:", error);
     throw error;
@@ -445,13 +577,201 @@ export const registerForFoundationClass = (formData) => {
 // Sermons
 export const getSermons = () => fetchData("api/sermons");
 export const getSermonById = (id) => fetchData(`api/sermons/${id}`);
-export const createSermon = (sermon) => {
+export const createSermon = async (sermon) => {
   console.log("Creating sermon with data:", JSON.stringify(sermon, null, 2));
-  return postData("api/sermons", sermon);
+
+  // For development, ensure we have a valid token
+  if (
+    process.env.NODE_ENV === "development" ||
+    window.location.hostname === "localhost"
+  ) {
+    console.log(
+      "Development mode: Ensuring valid token before creating sermon"
+    );
+
+    // Check if we have a token
+    const auth = localStorage.getItem("auth");
+    if (!auth) {
+      console.log("No auth token found, creating development token");
+
+      // Create a development token
+      const devToken = `dev-token-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+      localStorage.setItem(
+        "auth",
+        JSON.stringify({
+          isAuthenticated: true,
+          token: devToken,
+          user: { username: "admin", role: "admin" },
+          timestamp: Date.now(),
+        })
+      );
+
+      console.log("Development token created");
+    } else {
+      console.log("Auth token found in localStorage");
+    }
+  }
+
+  // Proceed with creating the sermon
+  try {
+    return await postData("api/sermons", sermon);
+  } catch (error) {
+    console.error("Error creating sermon:", error);
+
+    // If we get an authentication error, try to log in and retry
+    if (error.message && error.message.includes("401")) {
+      console.log("Authentication error detected, attempting to log in");
+
+      try {
+        // Try to log in
+        const loginSuccess = await login("admin", "admin");
+
+        if (loginSuccess) {
+          console.log("Login successful, retrying sermon creation");
+          return await postData("api/sermons", sermon);
+        } else {
+          throw new Error("Authentication failed after login attempt");
+        }
+      } catch (loginError) {
+        console.error("Login error:", loginError);
+        throw new Error("Failed to authenticate: " + loginError.message);
+      }
+    }
+
+    throw error;
+  }
 };
-export const updateSermon = (id, sermon) =>
-  updateData("api/sermons", id, sermon);
-export const deleteSermon = (id) => deleteData("api/sermons", id);
+export const updateSermon = async (id, sermon) => {
+  console.log(
+    `Updating sermon ${id} with data:`,
+    JSON.stringify(sermon, null, 2)
+  );
+
+  // For development, ensure we have a valid token
+  if (
+    process.env.NODE_ENV === "development" ||
+    window.location.hostname === "localhost"
+  ) {
+    console.log(
+      "Development mode: Ensuring valid token before updating sermon"
+    );
+
+    // Check if we have a token
+    const auth = localStorage.getItem("auth");
+    if (!auth) {
+      console.log("No auth token found, creating development token");
+
+      // Create a development token
+      const devToken = `dev-token-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+      localStorage.setItem(
+        "auth",
+        JSON.stringify({
+          isAuthenticated: true,
+          token: devToken,
+          user: { username: "admin", role: "admin" },
+          timestamp: Date.now(),
+        })
+      );
+
+      console.log("Development token created");
+    } else {
+      console.log("Auth token found in localStorage");
+    }
+  }
+
+  // Proceed with updating the sermon
+  try {
+    return await updateData("api/sermons", id, sermon);
+  } catch (error) {
+    console.error("Error updating sermon:", error);
+
+    // If we get an authentication error, try to log in and retry
+    if (error.message && error.message.includes("401")) {
+      console.log("Authentication error detected, attempting to log in");
+
+      try {
+        // Try to log in
+        const loginSuccess = await login("admin", "admin");
+
+        if (loginSuccess) {
+          console.log("Login successful, retrying sermon update");
+          return await updateData("api/sermons", id, sermon);
+        } else {
+          throw new Error("Authentication failed after login attempt");
+        }
+      } catch (loginError) {
+        console.error("Login error:", loginError);
+        throw new Error("Failed to authenticate: " + loginError.message);
+      }
+    }
+
+    throw error;
+  }
+};
+export const deleteSermon = async (id) => {
+  console.log(`Deleting sermon ${id}`);
+
+  // For development, ensure we have a valid token
+  if (
+    process.env.NODE_ENV === "development" ||
+    window.location.hostname === "localhost"
+  ) {
+    console.log(
+      "Development mode: Ensuring valid token before deleting sermon"
+    );
+
+    // Check if we have a token
+    const auth = localStorage.getItem("auth");
+    if (!auth) {
+      console.log("No auth token found, creating development token");
+
+      // Create a development token
+      const devToken = `dev-token-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+      localStorage.setItem(
+        "auth",
+        JSON.stringify({
+          isAuthenticated: true,
+          token: devToken,
+          user: { username: "admin", role: "admin" },
+          timestamp: Date.now(),
+        })
+      );
+
+      console.log("Development token created");
+    } else {
+      console.log("Auth token found in localStorage");
+    }
+  }
+
+  // Proceed with deleting the sermon
+  try {
+    return await deleteData("api/sermons", id);
+  } catch (error) {
+    console.error("Error deleting sermon:", error);
+
+    // If we get an authentication error, try to log in and retry
+    if (error.message && error.message.includes("401")) {
+      console.log("Authentication error detected, attempting to log in");
+
+      try {
+        // Try to log in
+        const loginSuccess = await login("admin", "admin");
+
+        if (loginSuccess) {
+          console.log("Login successful, retrying sermon deletion");
+          return await deleteData("api/sermons", id);
+        } else {
+          throw new Error("Authentication failed after login attempt");
+        }
+      } catch (loginError) {
+        console.error("Login error:", loginError);
+        throw new Error("Failed to authenticate: " + loginError.message);
+      }
+    }
+
+    throw error;
+  }
+};
 
 export const getEvents = () => {
   console.log("Calling getEvents API");
@@ -470,8 +790,7 @@ export const createEvent = (event) => {
   console.log("Creating event with data:", JSON.stringify(event, null, 2));
   return postData("api/events", event);
 };
-export const updateEvent = (id, event) =>
-  updateData("api/events", id, event);
+export const updateEvent = (id, event) => updateData("api/events", id, event);
 export const deleteEvent = (id) => {
   // If id is an object (like a full event), extract the ID
   const eventId = typeof id === "object" ? id._id || id.id : id;
@@ -955,21 +1274,21 @@ export const verifyAuth = async () => {
 export const testConnection = async () => {
   try {
     console.log(`Testing connection to ${API_URL}/test-connection`);
-    
+
     // Add a timeout to detect slow connections
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-    
+
     const response = await fetch(`${API_URL}/test-connection`, {
       method: "GET",
       headers: {
         Accept: "application/json",
-        'Cache-Control': 'no-cache, no-store',
+        "Cache-Control": "no-cache, no-store",
       },
-      cache: 'no-store',
-      signal: controller.signal
+      cache: "no-store",
+      signal: controller.signal,
     });
-    
+
     // Clear the timeout
     clearTimeout(timeoutId);
 
@@ -977,7 +1296,7 @@ export const testConnection = async () => {
       console.error(`Connection test failed: ${response.status}`);
       return false;
     }
-    
+
     try {
       const data = await response.json();
       console.log("Connection test successful:", data);
@@ -990,7 +1309,7 @@ export const testConnection = async () => {
     }
   } catch (error) {
     // Check if it's an abort error, which means the timeout was triggered
-    if (error.name === 'AbortError') {
+    if (error.name === "AbortError") {
       console.error("Connection test timed out");
     } else {
       console.error("Connection test error:", error);

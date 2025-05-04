@@ -35,7 +35,7 @@ const formatObject = (item) => {
     // Try to infer type from the object structure
     if (obj.startDate && obj.title) {
       obj.type = "event";
-    } else if (obj.preacher && obj.title) {
+    } else if ((obj.speaker || obj.preacher) && obj.title) {
       obj.type = "sermon";
     } else if (obj.position && obj.name) {
       obj.type = "leader";
@@ -164,6 +164,116 @@ const formatObject = (item) => {
     // Ensure we have a ministry field (even if empty)
     if (!obj.hasOwnProperty("ministry")) {
       obj.ministry = "";
+    }
+  }
+
+  // Handle sermon dates
+  if (
+    obj.type === "sermon" ||
+    obj.category === "sermon" ||
+    (obj.speaker && obj.title)
+  ) {
+    // Make sure sermon date is properly formatted
+    if (obj.date) {
+      try {
+        // If date is an object but not a Date instance, it might be corrupted
+        if (typeof obj.date === "object" && !(obj.date instanceof Date)) {
+          console.warn(
+            "Sermon date is an object but not a Date instance:",
+            obj.date
+          );
+
+          // If the object has an imageUrl property, it's definitely corrupted
+          // In this case, we need to preserve the original date from the database
+          if (obj.date.imageUrl) {
+            console.log(
+              "Detected corrupted date object with imageUrl, preserving original date"
+            );
+
+            // Check if we have the original date in _doc (Mongoose document)
+            if (obj._doc && obj._doc.date && obj._doc.date instanceof Date) {
+              console.log("Using original date from Mongoose document");
+              obj.date = obj._doc.date;
+            } else {
+              // If we can't find the original date, use a placeholder
+              console.log("Original date not found, using placeholder");
+              obj.date = "Date unavailable";
+            }
+          }
+          // Try to extract date from the object if possible
+          else if (obj.date.toString) {
+            obj.date = obj.date.toString();
+          } else {
+            // Check if we have the original date in _doc (Mongoose document)
+            if (obj._doc && obj._doc.date && obj._doc.date instanceof Date) {
+              console.log("Using original date from Mongoose document");
+              obj.date = obj._doc.date;
+            } else {
+              // If we can't find the original date, use a placeholder
+              obj.date = "Date unavailable";
+            }
+          }
+        }
+
+        // Now format the date properly if it's a Date object
+        if (obj.date instanceof Date) {
+          // Format as "Month Day, Year" (e.g., "April 30, 2025")
+          const month = obj.date.toLocaleString("default", { month: "long" });
+          const day = obj.date.getDate();
+          const year = obj.date.getFullYear();
+          obj.date = `${month} ${day}, ${year}`;
+        }
+        // Try to parse it as a date if it's a string that might be a date
+        else if (
+          typeof obj.date === "string" &&
+          !obj.date.includes("unavailable")
+        ) {
+          try {
+            const sermonDate = new Date(obj.date);
+            if (!isNaN(sermonDate.getTime())) {
+              // Format as "Month Day, Year" (e.g., "April 30, 2025")
+              const month = sermonDate.toLocaleString("default", {
+                month: "long",
+              });
+              const day = sermonDate.getDate();
+              const year = sermonDate.getFullYear();
+              obj.date = `${month} ${day}, ${year}`;
+            }
+          } catch (parseErr) {
+            console.error("Error parsing date string:", parseErr);
+            // Keep the original string if parsing fails
+          }
+        }
+      } catch (err) {
+        console.error("Error formatting sermon date:", err);
+        // If all else fails, check if we have the original date in _doc
+        if (obj._doc && obj._doc.date && obj._doc.date instanceof Date) {
+          console.log("Using original date from Mongoose document after error");
+          const date = obj._doc.date;
+          const month = date.toLocaleString("default", { month: "long" });
+          const day = date.getDate();
+          const year = date.getFullYear();
+          obj.date = `${month} ${day}, ${year}`;
+        } else {
+          // If we can't find the original date, use a placeholder
+          obj.date = "Date unavailable";
+        }
+      }
+    } else if (!obj.date) {
+      // If no date is provided, check if we have the original date in _doc
+      if (obj._doc && obj._doc.date && obj._doc.date instanceof Date) {
+        console.log(
+          "Using original date from Mongoose document for missing date"
+        );
+        const date = obj._doc.date;
+        const month = date.toLocaleString("default", { month: "long" });
+        const day = date.getDate();
+        const year = date.getFullYear();
+        obj.date = `${month} ${day}, ${year}`;
+      } else {
+        // If we can't find the original date, use a placeholder
+        obj.date = "Date unavailable";
+      }
     }
   }
 

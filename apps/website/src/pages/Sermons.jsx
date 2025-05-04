@@ -11,15 +11,15 @@ const API_URL = config.API_URL;
 // Function to check if YouTube is accessible
 const checkYouTubeConnectivity = async () => {
   try {
-    // Try to fetch a YouTube image resource instead of favicon 
+    // Try to fetch a YouTube image resource instead of favicon
     // (more reliable and less likely to be cached)
     const response = await fetch("https://i.ytimg.com/vi/default/default.jpg", {
       mode: "no-cors",
       cache: "no-store",
       method: "HEAD",
-      timeout: 3000
+      timeout: 3000,
     });
-    
+
     console.log("YouTube connectivity check successful");
     return true;
   } catch (error) {
@@ -123,15 +123,15 @@ const Sermons = () => {
       console.log("Using image.path:", url);
       return url;
     }
-    
+
     // 3. Try to get image from imageUrl string
     if (sermon.imageUrl && typeof sermon.imageUrl === "string") {
       // Skip if it's a default image path and we have better options
-      if (sermon.imageUrl.includes('default-image')) {
+      if (sermon.imageUrl.includes("default-image")) {
         console.log("Skipping default image path, using sermon thumbnail");
         return "/assets/sermons/default-sermon.jpg";
       }
-      
+
       // Handle JSON string that might have been passed
       if (sermon.imageUrl.includes('{"')) {
         try {
@@ -147,7 +147,7 @@ const Sermons = () => {
           console.error("Failed to parse imageUrl JSON:", e);
         }
       }
-      
+
       // Don't prepend API_URL if the URL is already absolute or a data URL
       if (
         sermon.imageUrl.startsWith("http") ||
@@ -156,7 +156,7 @@ const Sermons = () => {
         console.log("Using absolute imageUrl:", sermon.imageUrl);
         return sermon.imageUrl;
       }
-      
+
       // Regular imageUrl string
       const url = sermon.imageUrl.startsWith("/")
         ? `${API_URL}${sermon.imageUrl}`
@@ -164,7 +164,7 @@ const Sermons = () => {
       console.log("Using regular imageUrl:", url);
       return url;
     }
-    
+
     // 4. Try to get image from direct image string (static data)
     if (sermon.image && typeof sermon.image === "string") {
       // Don't prepend API_URL if the URL is already absolute or a data URL
@@ -172,7 +172,7 @@ const Sermons = () => {
         console.log("Using absolute image string:", sermon.image);
         return sermon.image;
       }
-      
+
       const url = sermon.image.startsWith("/")
         ? `${API_URL}${sermon.image}`
         : sermon.image;
@@ -189,20 +189,49 @@ const Sermons = () => {
   const formatSermonDate = (dateString) => {
     if (!dateString) return "";
     try {
+      // If it's an object, try to convert it to a string
+      if (typeof dateString === "object" && !(dateString instanceof Date)) {
+        console.warn(
+          "Sermon date is an object but not a Date instance:",
+          dateString
+        );
+        // Try to extract date from the object if possible
+        if (dateString.toString) {
+          dateString = dateString.toString();
+        } else {
+          // Set a default date
+          return "Date unavailable";
+        }
+      }
+
       // Check if it's an ISO date string
       if (typeof dateString === "string" && dateString.includes("T")) {
         const date = new Date(dateString);
-        return date.toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        });
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+        }
       }
+
+      // If it's a Date object
+      if (dateString instanceof Date) {
+        if (!isNaN(dateString.getTime())) {
+          return dateString.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+        }
+      }
+
       // Otherwise return as is (already formatted)
       return dateString;
     } catch (err) {
       console.error("Error formatting date:", err);
-      return dateString;
+      return "Date unavailable";
     }
   };
 
@@ -251,7 +280,7 @@ const Sermons = () => {
     const timeout = setTimeout(() => {
       console.warn("Video loading timeout - forcing completion");
       setIsLoading(false);
-      
+
       // Only set error if we're still in loading state
       if (isLoading) {
         setVideoError(true);
@@ -290,14 +319,14 @@ const Sermons = () => {
       if (isLoading) {
         console.log("Force resetting loading state after component mount");
         setIsLoading(false);
-        
+
         if (loadingTimeout) {
           clearTimeout(loadingTimeout);
           setLoadingTimeout(null);
         }
       }
     }, 3000);
-    
+
     if (sermons && sermons.length > 0) {
       console.log("Sermons page - API data:", sermons);
 
@@ -350,7 +379,7 @@ const Sermons = () => {
 
       setError("Using local sermon data - API server unavailable");
     }
-    
+
     // Clear any loading timeouts on component unmount
     return () => {
       clearTimeout(resetLoadingState);
@@ -603,9 +632,11 @@ const Sermons = () => {
                           title={selectedSermon.title}
                           allow="autoplay; fullscreen"
                           allowFullScreen
-                          loading="eager" 
+                          loading="eager"
                           onLoad={() => {
-                            console.log("YouTube-nocookie iframe loaded successfully");
+                            console.log(
+                              "YouTube-nocookie iframe loaded successfully"
+                            );
                             setIsLoading(false);
                             // Clear any existing timeout to prevent race conditions
                             if (loadingTimeout) {
@@ -677,7 +708,10 @@ const Sermons = () => {
                       `Failed to load image: ${getSermonImageUrl(sermon)}`
                     );
                     // First try YouTube thumbnail if available
-                    if (sermon.videoId && !e.target.src.includes(sermon.videoId)) {
+                    if (
+                      sermon.videoId &&
+                      !e.target.src.includes(sermon.videoId)
+                    ) {
                       console.log("Fallback to direct YouTube thumbnail");
                       e.target.src = `https://img.youtube.com/vi/${sermon.videoId}/hqdefault.jpg`;
                     } else {

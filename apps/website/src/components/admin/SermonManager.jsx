@@ -6,6 +6,7 @@ import { createSermon, updateSermon, deleteSermon } from "../../services/api";
 import { useSermonsQuery } from "../../hooks/useSermonsQuery";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { safeRenderValue, safeRenderObject } from "../../utils/safeRenderUtils";
+import { ensureAuthenticated } from "../../utils/authUtils";
 import placeholderImage from "../../assets/placeholders/default-image.svg";
 import {
   PlusIcon,
@@ -28,6 +29,56 @@ import { format, parseISO } from "date-fns";
 import config from "../../config";
 
 const API_URL = config.API_URL;
+
+// Helper function to format sermon dates
+const formatSermonDate = (dateString) => {
+  if (!dateString) return "No date";
+  try {
+    // If it's an object, try to convert it to a string
+    if (typeof dateString === "object" && !(dateString instanceof Date)) {
+      console.warn(
+        "Sermon date is an object but not a Date instance:",
+        dateString
+      );
+      // Try to extract date from the object if possible
+      if (dateString.toString) {
+        dateString = dateString.toString();
+      } else {
+        // Set a default date
+        return "Date unavailable";
+      }
+    }
+
+    // Check if it's an ISO date string
+    if (typeof dateString === "string" && dateString.includes("T")) {
+      const date = new Date(dateString);
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+      }
+    }
+
+    // If it's a Date object
+    if (dateString instanceof Date) {
+      if (!isNaN(dateString.getTime())) {
+        return dateString.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+      }
+    }
+
+    // Otherwise return as is (already formatted)
+    return dateString;
+  } catch (err) {
+    console.error("Error formatting date:", err);
+    return "Date unavailable";
+  }
+};
 
 const SermonManager = () => {
   // Use React Query for fetching sermons
@@ -82,6 +133,27 @@ const SermonManager = () => {
       handleError(sermonsError, "Loading Sermons");
     }
   }, [sermonsError, handleError]);
+
+  // Check authentication on component mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const isAuthenticated = await ensureAuthenticated();
+        if (!isAuthenticated) {
+          handleError(
+            new Error("Authentication failed. Please log in again."),
+            "Authentication"
+          );
+        } else {
+          console.log("Authentication successful for SermonManager");
+        }
+      } catch (error) {
+        handleError(error, "Authentication");
+      }
+    };
+
+    checkAuth();
+  }, [handleError]);
 
   // Use React Query for fetching media
   const {
@@ -190,13 +262,13 @@ const SermonManager = () => {
       }
       return placeholderImage;
     }
-    
+
     console.log("Getting preview for:", imageUrl);
 
     // Handle case where imageUrl is an object
     if (typeof imageUrl === "object") {
       console.warn("imageUrl is an object, not a string:", imageUrl);
-      
+
       // If it's a valid media object with path, use that
       if (imageUrl.path) {
         const url = imageUrl.path.startsWith("/")
@@ -205,16 +277,12 @@ const SermonManager = () => {
         console.log("Using object.path:", url);
         return url;
       }
-      
+
       return placeholderImage;
     }
 
     // Handle case where imageUrl might be an object with imageUrl property
-    if (
-      imageUrl &&
-      typeof imageUrl === "string" &&
-      imageUrl.includes('{"')
-    ) {
+    if (imageUrl && typeof imageUrl === "string" && imageUrl.includes('{"')) {
       console.warn("imageUrl contains a stringified object:", imageUrl);
       try {
         const parsed = JSON.parse(imageUrl);
@@ -236,14 +304,11 @@ const SermonManager = () => {
     // Handle regular string URL
     if (imageUrl && typeof imageUrl === "string") {
       // Don't prepend API_URL if the URL is already absolute or a data URL
-      if (
-        imageUrl.startsWith("http") ||
-        imageUrl.startsWith("data:")
-      ) {
+      if (imageUrl.startsWith("http") || imageUrl.startsWith("data:")) {
         console.log("Using absolute imageUrl:", imageUrl);
         return imageUrl;
       }
-      
+
       const fullUrl = imageUrl.startsWith("/")
         ? `${API_URL}${imageUrl}`
         : imageUrl;
@@ -292,6 +357,23 @@ const SermonManager = () => {
           new Error("Please fix the form errors before submitting"),
           "Form Validation"
         );
+        return;
+      }
+
+      // Ensure we're authenticated before submitting
+      try {
+        const isAuthenticated = await ensureAuthenticated();
+        if (!isAuthenticated) {
+          handleError(
+            new Error(
+              "Authentication failed. Please log in again before submitting."
+            ),
+            "Authentication"
+          );
+          return;
+        }
+      } catch (authError) {
+        handleError(authError, "Authentication");
         return;
       }
 
@@ -714,7 +796,7 @@ const SermonManager = () => {
                           {safeRenderValue(sermon.speaker, "Unknown Speaker")}
                         </span>
                         <CalendarIcon className="flex-shrink-0 ml-4 mr-1.5 h-5 w-5 text-gray-400" />
-                        <span>{safeRenderValue(sermon.date, "No date")}</span>
+                        <span>{formatSermonDate(sermon.date)}</span>
                         {sermon.duration && (
                           <>
                             <ClockIcon className="flex-shrink-0 ml-4 mr-1.5 h-5 w-5 text-gray-400" />
@@ -945,14 +1027,17 @@ const SermonManager = () => {
                                 <PhotographIcon className="h-5 w-5 mr-2 text-gray-400" />
                                 Browse Media Library
                               </button>
-                              
+
                               {/* Auto-generate thumbnail from YouTube */}
                               {currentSermon.videoId && (
                                 <button
                                   type="button"
                                   onClick={() => {
                                     const youtubeThumb = `https://img.youtube.com/vi/${currentSermon.videoId}/hqdefault.jpg`;
-                                    console.log("Auto-generating YouTube thumbnail:", youtubeThumb);
+                                    console.log(
+                                      "Auto-generating YouTube thumbnail:",
+                                      youtubeThumb
+                                    );
                                     setCurrentSermon((prev) => ({
                                       ...prev,
                                       imageUrl: youtubeThumb,

@@ -514,8 +514,25 @@ router.get("/sermons", async (req, res) => {
       .populate("image")
       .sort({ date: -1 });
 
+    // Log the raw sermon data for debugging
+    console.log("Raw sermon data from database:");
+    sermons.forEach((sermon, index) => {
+      console.log(`Sermon ${index + 1}: "${sermon.title}"`);
+      console.log(`  - Date in DB: ${sermon.date}`);
+      console.log(`  - Date type: ${typeof sermon.date}`);
+      console.log(`  - Is Date object: ${sermon.date instanceof Date}`);
+    });
+
     // Format sermons for frontend compatibility
     const formattedSermons = formatResponse(sermons);
+
+    // Log the formatted sermon data for debugging
+    console.log("Formatted sermon data after processing:");
+    formattedSermons.forEach((sermon, index) => {
+      console.log(`Sermon ${index + 1}: "${sermon.title}"`);
+      console.log(`  - Formatted date: ${sermon.date}`);
+      console.log(`  - Date type: ${typeof sermon.date}`);
+    });
 
     res.json(formattedSermons);
   } catch (error) {
@@ -535,8 +552,21 @@ router.get("/sermons/:id", async (req, res) => {
       return res.status(404).json({ error: "Sermon not found" });
     }
 
+    // Log the raw sermon data for debugging
+    console.log("Raw single sermon data from database:");
+    console.log(`Sermon: "${sermon.title}"`);
+    console.log(`  - Date in DB: ${sermon.date}`);
+    console.log(`  - Date type: ${typeof sermon.date}`);
+    console.log(`  - Is Date object: ${sermon.date instanceof Date}`);
+
     // Format sermon for frontend compatibility
     const formattedSermon = formatResponse(sermon);
+
+    // Log the formatted sermon data for debugging
+    console.log("Formatted single sermon data after processing:");
+    console.log(`Sermon: "${formattedSermon.title}"`);
+    console.log(`  - Formatted date: ${formattedSermon.date}`);
+    console.log(`  - Date type: ${typeof formattedSermon.date}`);
 
     res.json(formattedSermon);
   } catch (error) {

@@ -82,15 +82,15 @@ const Sermons = () => {
       console.log("Using image.path:", url);
       return url;
     }
-    
+
     // 3. Try to get image from imageUrl string
     if (sermon.imageUrl && typeof sermon.imageUrl === "string") {
       // Skip if it's a default image path and we have better options
-      if (sermon.imageUrl.includes('default-image')) {
+      if (sermon.imageUrl.includes("default-image")) {
         console.log("Skipping default image path, using sermon thumbnail");
         return "/assets/sermons/default-sermon.jpg";
       }
-      
+
       // Handle JSON string that might have been passed
       if (sermon.imageUrl.includes('{"')) {
         try {
@@ -106,7 +106,7 @@ const Sermons = () => {
           console.error("Failed to parse imageUrl JSON:", e);
         }
       }
-      
+
       // Regular imageUrl string
       const url = sermon.imageUrl.startsWith("/")
         ? `${config.API_URL}${sermon.imageUrl}`
@@ -114,7 +114,7 @@ const Sermons = () => {
       console.log("Using regular imageUrl:", url);
       return url;
     }
-    
+
     // 4. Try to get image from direct image string (static data)
     if (sermon.image && typeof sermon.image === "string") {
       const url = sermon.image.startsWith("/")
@@ -133,20 +133,49 @@ const Sermons = () => {
   const formatSermonDate = (dateString) => {
     if (!dateString) return "";
     try {
+      // If it's an object, try to convert it to a string
+      if (typeof dateString === "object" && !(dateString instanceof Date)) {
+        console.warn(
+          "Sermon date is an object but not a Date instance:",
+          dateString
+        );
+        // Try to extract date from the object if possible
+        if (dateString.toString) {
+          dateString = dateString.toString();
+        } else {
+          // Set a default date
+          return "Date unavailable";
+        }
+      }
+
       // Check if it's an ISO date string
       if (typeof dateString === "string" && dateString.includes("T")) {
         const date = new Date(dateString);
-        return date.toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        });
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+        }
       }
+
+      // If it's a Date object
+      if (dateString instanceof Date) {
+        if (!isNaN(dateString.getTime())) {
+          return dateString.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+        }
+      }
+
       // Otherwise return as is (already formatted)
       return dateString;
     } catch (err) {
       console.error("Error formatting date:", err);
-      return dateString;
+      return "Date unavailable";
     }
   };
 
@@ -306,8 +335,13 @@ const Sermons = () => {
                   onError={(e) => {
                     console.error(`Failed to load featured sermon image`);
                     // First try YouTube thumbnail if available
-                    if (latestSermon.videoId && !e.target.src.includes(latestSermon.videoId)) {
-                      console.log("Fallback to direct YouTube thumbnail for featured sermon");
+                    if (
+                      latestSermon.videoId &&
+                      !e.target.src.includes(latestSermon.videoId)
+                    ) {
+                      console.log(
+                        "Fallback to direct YouTube thumbnail for featured sermon"
+                      );
                       e.target.src = `https://img.youtube.com/vi/${latestSermon.videoId}/hqdefault.jpg`;
                     } else {
                       // Otherwise use default sermon image
@@ -335,7 +369,9 @@ const Sermons = () => {
                   </p>
                   <p className="text-gray-600 mb-6">
                     {typeof latestSermon.description === "string"
-                      ? latestSermon.description
+                      ? latestSermon.description.length > 300
+                        ? latestSermon.description.substring(0, 300) + "..."
+                        : latestSermon.description
                       : typeof latestSermon.description === "object"
                         ? "View sermon details"
                         : "No description available"}
@@ -370,10 +406,10 @@ const Sermons = () => {
                     Watch Now
                   </button>
                   <Link
-                    to={`/media/sermons`}
+                    to={`/media/sermons?video=${latestSermon.videoId}`}
                     className="btn btn-outline text-primary-600 border-primary-600 hover:bg-primary-50"
                   >
-                    See All Messages
+                    View Details
                   </Link>
                 </div>
               </div>
@@ -398,10 +434,17 @@ const Sermons = () => {
                   alt={sermon.title}
                   className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                   onError={(e) => {
-                    console.error(`Failed to load recent sermon image for ${sermon.title}`);
+                    console.error(
+                      `Failed to load recent sermon image for ${sermon.title}`
+                    );
                     // First try YouTube thumbnail if available
-                    if (sermon.videoId && !e.target.src.includes(sermon.videoId)) {
-                      console.log("Fallback to direct YouTube thumbnail for recent sermon");
+                    if (
+                      sermon.videoId &&
+                      !e.target.src.includes(sermon.videoId)
+                    ) {
+                      console.log(
+                        "Fallback to direct YouTube thumbnail for recent sermon"
+                      );
                       e.target.src = `https://img.youtube.com/vi/${sermon.videoId}/hqdefault.jpg`;
                     } else {
                       // Otherwise use default sermon image
@@ -505,7 +548,9 @@ const Sermons = () => {
                   loading="eager"
                   title={latestSermon.title}
                   className="absolute top-0 left-0 w-full h-full"
-                  onLoad={() => console.log("Video modal iframe loaded successfully")}
+                  onLoad={() =>
+                    console.log("Video modal iframe loaded successfully")
+                  }
                 ></iframe>
               </div>
             </div>
