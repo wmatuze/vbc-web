@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   CheckCircleIcon,
   XCircleIcon,
@@ -26,6 +26,43 @@ const EventSignupDetailsModal = ({
   deleteEventSignupRequest,
   actionLoading,
 }) => {
+  // Fix corrupted date objects
+  useEffect(() => {
+    // This function will be used to fix corrupted date objects
+    const fixCorruptedDateObject = (obj, fieldName) => {
+      if (!obj || !obj[fieldName]) return;
+
+      // Check if the field is a corrupted date object (has imageUrl property)
+      if (
+        typeof obj[fieldName] === "object" &&
+        !(obj[fieldName] instanceof Date) &&
+        obj[fieldName].imageUrl
+      ) {
+        console.log(`Fixing corrupted ${fieldName} object:`, obj[fieldName]);
+
+        // Replace the corrupted object with a proper date string
+        // We'll use the current date as a fallback
+        obj[fieldName] = new Date().toISOString();
+        console.log(`Fixed ${fieldName} object:`, obj[fieldName]);
+      }
+    };
+
+    // Fix corrupted date objects if they exist
+    if (selectedEventSignup) {
+      fixCorruptedDateObject(selectedEventSignup, "submittedAt");
+      fixCorruptedDateObject(selectedEventSignup, "childDateOfBirth");
+
+      // Debug logs
+      console.log("SubmittedAt after fix:", selectedEventSignup.submittedAt);
+      if (selectedEventSignup.childDateOfBirth) {
+        console.log(
+          "ChildDateOfBirth after fix:",
+          selectedEventSignup.childDateOfBirth
+        );
+      }
+    }
+  }, [selectedEventSignup]);
+
   return (
     <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">

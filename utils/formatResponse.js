@@ -3,6 +3,8 @@
  * @param {Object|Array} data - Data to format
  * @returns {Object|Array} - Formatted data
  */
+const { processDateField, isDateField } = require("./dateUtils");
+
 const formatResponse = (data) => {
   // If data is an array, map over each item
   if (Array.isArray(data)) {
@@ -277,8 +279,241 @@ const formatObject = (item) => {
     }
   }
 
+  // Handle membership renewal dates (birthday and renewalDate)
+  if (obj.fullName && obj.email && (obj.birthday || obj.renewalDate)) {
+    // Process birthday field
+    if (obj.birthday) {
+      try {
+        // If birthday is an object but not a Date instance, it might be corrupted
+        if (
+          typeof obj.birthday === "object" &&
+          !(obj.birthday instanceof Date)
+        ) {
+          console.log(
+            "Membership birthday is an object but not a Date instance:",
+            obj.birthday
+          );
+
+          // If the object has an imageUrl property, it's definitely corrupted
+          if (obj.birthday.imageUrl) {
+            console.log(
+              "Detected corrupted birthday object with imageUrl, preserving original date"
+            );
+
+            // Check if we have the original date in _doc (Mongoose document)
+            if (
+              obj._doc &&
+              obj._doc.birthday &&
+              obj._doc.birthday instanceof Date
+            ) {
+              console.log("Using original birthday from Mongoose document");
+              obj.birthday = obj._doc.birthday;
+            } else {
+              // If we can't find the original date, use a placeholder
+              console.log("Original birthday not found, using placeholder");
+              obj.birthday = "Date unavailable";
+            }
+          }
+          // Try to extract date from the object if possible
+          else if (obj.birthday.toString) {
+            obj.birthday = obj.birthday.toString();
+          } else {
+            // Check if we have the original date in _doc (Mongoose document)
+            if (
+              obj._doc &&
+              obj._doc.birthday &&
+              obj._doc.birthday instanceof Date
+            ) {
+              console.log("Using original birthday from Mongoose document");
+              obj.birthday = obj._doc.birthday;
+            } else {
+              // If we can't find the original date, use a placeholder
+              obj.birthday = "Date unavailable";
+            }
+          }
+        }
+
+        // Now format the date properly if it's a Date object
+        if (obj.birthday instanceof Date) {
+          // Format as "Month Day, Year" (e.g., "April 30, 2025")
+          const month = obj.birthday.toLocaleString("default", {
+            month: "long",
+          });
+          const day = obj.birthday.getDate();
+          const year = obj.birthday.getFullYear();
+          obj.birthday = `${month} ${day}, ${year}`;
+        }
+        // Try to parse it as a date if it's a string that might be a date
+        else if (
+          typeof obj.birthday === "string" &&
+          !obj.birthday.includes("unavailable")
+        ) {
+          try {
+            const birthdayDate = new Date(obj.birthday);
+            if (!isNaN(birthdayDate.getTime())) {
+              // Format as "Month Day, Year" (e.g., "April 30, 2025")
+              const month = birthdayDate.toLocaleString("default", {
+                month: "long",
+              });
+              const day = birthdayDate.getDate();
+              const year = birthdayDate.getFullYear();
+              obj.birthday = `${month} ${day}, ${year}`;
+            }
+          } catch (parseErr) {
+            console.error("Error parsing birthday string:", parseErr);
+            // Keep the original string if parsing fails
+          }
+        }
+      } catch (err) {
+        console.error("Error formatting membership birthday:", err);
+        // If all else fails, check if we have the original date in _doc
+        if (
+          obj._doc &&
+          obj._doc.birthday &&
+          obj._doc.birthday instanceof Date
+        ) {
+          console.log(
+            "Using original birthday from Mongoose document after error"
+          );
+          const date = obj._doc.birthday;
+          const month = date.toLocaleString("default", { month: "long" });
+          const day = date.getDate();
+          const year = date.getFullYear();
+          obj.birthday = `${month} ${day}, ${year}`;
+        } else {
+          // If we can't find the original date, use a placeholder
+          obj.birthday = "Date unavailable";
+        }
+      }
+    }
+
+    // Process renewalDate field
+    if (obj.renewalDate) {
+      try {
+        // If renewalDate is an object but not a Date instance, it might be corrupted
+        if (
+          typeof obj.renewalDate === "object" &&
+          !(obj.renewalDate instanceof Date)
+        ) {
+          console.log(
+            "Membership renewalDate is an object but not a Date instance:",
+            obj.renewalDate
+          );
+
+          // If the object has an imageUrl property, it's definitely corrupted
+          if (obj.renewalDate.imageUrl) {
+            console.log(
+              "Detected corrupted renewalDate object with imageUrl, preserving original date"
+            );
+
+            // Check if we have the original date in _doc (Mongoose document)
+            if (
+              obj._doc &&
+              obj._doc.renewalDate &&
+              obj._doc.renewalDate instanceof Date
+            ) {
+              console.log("Using original renewalDate from Mongoose document");
+              obj.renewalDate = obj._doc.renewalDate;
+            } else {
+              // If we can't find the original date, use a placeholder
+              console.log("Original renewalDate not found, using placeholder");
+              obj.renewalDate = "Date unavailable";
+            }
+          }
+          // Try to extract date from the object if possible
+          else if (obj.renewalDate.toString) {
+            obj.renewalDate = obj.renewalDate.toString();
+          } else {
+            // Check if we have the original date in _doc (Mongoose document)
+            if (
+              obj._doc &&
+              obj._doc.renewalDate &&
+              obj._doc.renewalDate instanceof Date
+            ) {
+              console.log("Using original renewalDate from Mongoose document");
+              obj.renewalDate = obj._doc.renewalDate;
+            } else {
+              // If we can't find the original date, use a placeholder
+              obj.renewalDate = "Date unavailable";
+            }
+          }
+        }
+
+        // Now format the date properly if it's a Date object
+        if (obj.renewalDate instanceof Date) {
+          // Format as "Month Day, Year" (e.g., "April 30, 2025")
+          const month = obj.renewalDate.toLocaleString("default", {
+            month: "long",
+          });
+          const day = obj.renewalDate.getDate();
+          const year = obj.renewalDate.getFullYear();
+          obj.renewalDate = `${month} ${day}, ${year}`;
+        }
+        // Try to parse it as a date if it's a string that might be a date
+        else if (
+          typeof obj.renewalDate === "string" &&
+          !obj.renewalDate.includes("unavailable")
+        ) {
+          try {
+            const renewalDate = new Date(obj.renewalDate);
+            if (!isNaN(renewalDate.getTime())) {
+              // Format as "Month Day, Year" (e.g., "April 30, 2025")
+              const month = renewalDate.toLocaleString("default", {
+                month: "long",
+              });
+              const day = renewalDate.getDate();
+              const year = renewalDate.getFullYear();
+              obj.renewalDate = `${month} ${day}, ${year}`;
+            }
+          } catch (parseErr) {
+            console.error("Error parsing renewalDate string:", parseErr);
+            // Keep the original string if parsing fails
+          }
+        }
+      } catch (err) {
+        console.error("Error formatting membership renewalDate:", err);
+        // If all else fails, check if we have the original date in _doc
+        if (
+          obj._doc &&
+          obj._doc.renewalDate &&
+          obj._doc.renewalDate instanceof Date
+        ) {
+          console.log(
+            "Using original renewalDate from Mongoose document after error"
+          );
+          const date = obj._doc.renewalDate;
+          const month = date.toLocaleString("default", { month: "long" });
+          const day = date.getDate();
+          const year = date.getFullYear();
+          obj.renewalDate = `${month} ${day}, ${year}`;
+        } else {
+          // If we can't find the original date, use a placeholder
+          obj.renewalDate = "Date unavailable";
+        }
+      }
+    }
+  }
+
+  // Process date fields first
+  Object.keys(obj).forEach((key) => {
+    if (isDateField(key) && obj[key]) {
+      // Process date field and convert to formatted string
+      const formattedDate = processDateField(obj, key);
+      if (formattedDate) {
+        obj[key] = formattedDate;
+      }
+    }
+  });
+
   // Recursively format nested objects
   Object.keys(obj).forEach((key) => {
+    // Skip date fields to prevent them from being recursively processed
+    // This prevents date objects from being replaced with image URL objects
+    if (isDateField(key)) {
+      // Don't process date fields recursively
+      return;
+    }
+
     if (
       obj[key] &&
       typeof obj[key] === "object" &&

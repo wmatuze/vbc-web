@@ -42,6 +42,114 @@ class RequestsService {
     return instance;
   }
 
+  /**
+   * Normalize date fields in a membership renewal object
+   * @param {Object} renewal - The membership renewal object
+   * @returns {Object} - Normalized membership renewal object
+   */
+  static normalizeMembershipRenewal(renewal) {
+    if (!renewal) return renewal;
+
+    try {
+      // Create a copy to avoid mutating the original
+      const normalizedRenewal = { ...renewal };
+
+      // Normalize birthday if it exists
+      if (normalizedRenewal.birthday) {
+        // Store the original value
+        const originalBirthday = normalizedRenewal.birthday;
+        // Try to normalize it
+        const normalizedDate = normalizeRequestDate(originalBirthday);
+        // Keep the original value in the normalized object
+        normalizedRenewal.birthday = normalizedDate;
+      }
+
+      // Normalize renewalDate if it exists
+      if (normalizedRenewal.renewalDate) {
+        // Store the original value
+        const originalRenewalDate = normalizedRenewal.renewalDate;
+        // Try to normalize it
+        const normalizedDate = normalizeRequestDate(originalRenewalDate);
+        // Keep the original value in the normalized object
+        normalizedRenewal.renewalDate = normalizedDate;
+      }
+
+      return normalizedRenewal;
+    } catch (error) {
+      console.error("Error normalizing membership renewal:", error);
+      return renewal; // Return original if normalization fails
+    }
+  }
+
+  /**
+   * Normalize date fields in a foundation class registration object
+   * @param {Object} registration - The foundation class registration object
+   * @returns {Object} - Normalized foundation class registration object
+   */
+  static normalizeFoundationClassRegistration(registration) {
+    if (!registration) return registration;
+
+    try {
+      // Create a copy to avoid mutating the original
+      const normalizedRegistration = { ...registration };
+
+      // Normalize registrationDate if it exists
+      if (normalizedRegistration.registrationDate) {
+        // Store the original value
+        const originalRegistrationDate =
+          normalizedRegistration.registrationDate;
+        // Try to normalize it
+        const normalizedDate = normalizeRequestDate(originalRegistrationDate);
+        // Keep the original value in the normalized object
+        normalizedRegistration.registrationDate = normalizedDate;
+      }
+
+      return normalizedRegistration;
+    } catch (error) {
+      console.error("Error normalizing foundation class registration:", error);
+      return registration; // Return original if normalization fails
+    }
+  }
+
+  /**
+   * Normalize date fields in an event signup request object
+   * @param {Object} signup - The event signup request object
+   * @returns {Object} - Normalized event signup request object
+   */
+  static normalizeEventSignupRequest(signup) {
+    if (!signup) return signup;
+
+    try {
+      // Create a copy to avoid mutating the original
+      const normalizedSignup = { ...signup };
+
+      // Normalize submittedAt if it exists
+      if (normalizedSignup.submittedAt) {
+        // Store the original value
+        const originalSubmittedAt = normalizedSignup.submittedAt;
+        // Try to normalize it
+        const normalizedDate = normalizeRequestDate(originalSubmittedAt);
+        // Keep the original value in the normalized object
+        normalizedSignup.submittedAt = normalizedDate;
+      }
+
+      // Normalize childDateOfBirth if it exists (for baby dedication)
+      if (normalizedSignup.childDateOfBirth) {
+        // Store the original value
+        const originalChildDateOfBirth = normalizedSignup.childDateOfBirth;
+        // Try to normalize it
+        const normalizedDate = normalizeRequestDate(originalChildDateOfBirth);
+        // Keep the original value in the normalized object
+        normalizedSignup.childDateOfBirth = normalizedDate;
+      }
+
+      return normalizedSignup;
+    } catch (error) {
+      console.error("Error normalizing event signup request:", error);
+      return signup; // Return original if normalization fails
+    }
+  }
+
   /* MEMBERSHIP RENEWALS API */
 
   /**
@@ -55,6 +163,7 @@ class RequestsService {
         headers: getAuthHeaders(),
       });
 
+      // Return the data directly without normalization
       return response.data;
     } catch (error) {
       console.error("Failed to fetch membership renewals:", error);
@@ -102,6 +211,7 @@ class RequestsService {
         headers: getAuthHeaders(),
       });
 
+      // Return the data directly without normalization
       return response.data;
     } catch (error) {
       console.error("Failed to fetch membership renewal:", error);
@@ -125,6 +235,7 @@ class RequestsService {
         }
       );
 
+      // Return the data directly without normalization
       return response.data;
     } catch (error) {
       console.error("Failed to fetch foundation class registrations:", error);
@@ -178,6 +289,7 @@ class RequestsService {
         }
       );
 
+      // Return the data directly without normalization
       return response.data;
     } catch (error) {
       console.error("Failed to fetch foundation class registration:", error);
@@ -290,6 +402,7 @@ class RequestsService {
         headers: getAuthHeaders(),
       });
 
+      // Return the data directly without normalization
       return response.data;
     } catch (error) {
       console.error("Failed to fetch event signup requests:", error);
@@ -312,6 +425,7 @@ class RequestsService {
         }
       );
 
+      // Return the data directly without normalization
       return response.data;
     } catch (error) {
       console.error(`Failed to fetch ${eventType} signup requests:`, error);
@@ -334,6 +448,7 @@ class RequestsService {
         }
       );
 
+      // Return the data directly without normalization
       return response.data;
     } catch (error) {
       console.error(
@@ -417,29 +532,6 @@ class RequestsService {
       return response.data;
     } catch (error) {
       console.error(`Failed to export approved ${eventType} signups:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Delete an event signup request
-   * @param {String} id - The ID of the event signup request to delete
-   * @returns {Promise} - Promise that resolves with the API response
-   */
-  static async deleteEventSignupRequest(id) {
-    try {
-      // Validate the ID
-      if (!id) {
-        throw new Error("Event signup request ID is required");
-      }
-
-      const response = await this.getAxiosInstance().delete(
-        `/api/event-signup-requests/${id}`,
-        { headers: getAuthHeaders() }
-      );
-      return response.data;
-    } catch (error) {
-      console.error(`Failed to delete event signup request ${id}:`, error);
       throw error;
     }
   }
