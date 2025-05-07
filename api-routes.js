@@ -140,10 +140,13 @@ router.post("/events", authMiddleware, async (req, res) => {
     // Create a new event from the request body
     const eventData = {
       ...req.body,
-      type: "event", // Ensure type is set for proper categorization
+      // Use the provided type or default to "event" if not specified
+      type: req.body.type || "event",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
+
+    console.log(`Creating event with type: ${eventData.type}`);
 
     // Handle date conversion properly
     if (req.body.startDate) {
@@ -267,8 +270,10 @@ router.put("/events/:id", authMiddleware, async (req, res) => {
     const updateData = {
       ...req.body,
       updatedAt: new Date(),
-      type: "event", // Ensure type is set for proper categorization
+      type: req.body.type || "event", // Use the provided type or default to "event"
     };
+
+    console.log(`Updating event with type: ${updateData.type}`);
 
     // Handle date conversion properly
     if (req.body.startDate) {

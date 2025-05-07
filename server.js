@@ -1203,10 +1203,12 @@ app.post("/api/events", async (req, res) => {
       startDate: new Date(req.body.startDate),
       endDate: new Date(req.body.endDate),
       // Set default values if not provided
-      type: "event",
+      type: req.body.type || "event", // Use the provided type or default to "event"
       createdAt: new Date(),
       updatedAt: new Date(),
     };
+
+    console.log(`API: Creating event with type: ${eventData.type}`);
 
     // If imageUrl is provided but no image object, use the imageUrl
     if (req.body.imageUrl && !req.body.image) {
@@ -1281,10 +1283,12 @@ app.post("/events", async (req, res) => {
       startDate: new Date(req.body.startDate),
       endDate: new Date(req.body.endDate),
       // Set default values if not provided
-      type: "event",
+      type: req.body.type || "event", // Use the provided type or default to "event"
       createdAt: new Date(),
       updatedAt: new Date(),
     };
+
+    console.log(`Legacy: Creating event with type: ${eventData.type}`);
 
     // If imageUrl is provided but no image object, use the imageUrl
     if (req.body.imageUrl && !req.body.image) {
@@ -1347,8 +1351,10 @@ app.put("/api/events/:id", authMiddleware, async (req, res) => {
     const updateData = {
       ...req.body,
       updatedAt: new Date(),
-      type: "event", // Ensure type is set for proper categorization
+      type: req.body.type || "event", // Use the provided type or default to "event"
     };
+
+    console.log(`API: Updating event with type: ${updateData.type}`);
 
     // Ensure time field is preserved
     if (req.body.time) {
@@ -1405,8 +1411,10 @@ app.put("/events/:id", authMiddleware, async (req, res) => {
     const updateData = {
       ...req.body,
       updatedAt: new Date(),
-      type: "event", // Ensure type is set for proper categorization
+      type: req.body.type || "event", // Use the provided type or default to "event"
     };
+
+    console.log(`Legacy: Updating event with type: ${updateData.type}`);
 
     // Ensure time field is preserved
     if (req.body.time) {
