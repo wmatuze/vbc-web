@@ -8,31 +8,42 @@ const FoundationClassRegistration = require("../models/FoundationClassRegistrati
 // Configure nodemailer for development (mock) or production
 let transporter;
 
-// Check if we're in development mode
-const isDevelopment = process.env.NODE_ENV !== "production";
+// Log environment configuration
+console.log("=== Email Configuration ===");
+console.log("NODE_ENV:", process.env.NODE_ENV);
+console.log("EMAIL_HOST:", process.env.EMAIL_HOST);
+console.log("EMAIL_PORT:", process.env.EMAIL_PORT);
+console.log("EMAIL_USER:", process.env.EMAIL_USER ? "Set" : "Not set");
+console.log("EMAIL_PASSWORD:", process.env.EMAIL_PASSWORD ? "Set" : "Not set");
+console.log("EMAIL_FROM:", process.env.EMAIL_FROM);
+console.log("========================");
 
-if (isDevelopment) {
-  // In development, create a mock transporter that just logs emails
-  console.log("Using mock email transporter for development");
-  transporter = {
-    sendMail: (mailOptions) => {
-      console.log("MOCK EMAIL SENT:");
-      console.log("To:", mailOptions.to);
-      console.log("Subject:", mailOptions.subject);
-      console.log("Body:", mailOptions.html.substring(0, 100) + "...");
-      return Promise.resolve({ messageId: "mock-email-id-" + Date.now() });
-    },
-  };
-} else {
-  // In production, use real email service
-  transporter = nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE || "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
+// Create transporter with Gmail configuration
+console.log("Configuring Gmail email transporter");
+if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+  console.error("ERROR: Missing email credentials in environment variables");
+  console.error("Please ensure EMAIL_USER and EMAIL_PASSWORD are set");
 }
+
+// Create transporter with proper configuration
+transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
+  secure: process.env.EMAIL_SECURE === 'true',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD,
+  },
+});
+
+// Verify the transporter configuration
+transporter.verify((error, success) => {
+  if (error) {
+    console.error("Email transporter verification failed:", error);
+  } else {
+    console.log("Email transporter is ready to send emails");
+  }
+});
 
 /**
  * @route POST /api/notifications/send
@@ -43,10 +54,11 @@ router.post("/send", authMiddleware, async (req, res) => {
   try {
     const { type, recipient, data } = req.body;
 
-    console.log("Notification request received:", {
-      type,
-      recipient: { ...recipient, email: recipient?.email },
-    });
+    console.log("=== Notification Request Details ===");
+    console.log("Type:", type);
+    console.log("Recipient:", { ...recipient, email: recipient?.email });
+    console.log("Data:", data);
+    console.log("===================================");
 
     if (!type || !recipient || !recipient.email) {
       console.error("Missing required fields:", { type, recipient });
@@ -54,21 +66,27 @@ router.post("/send", authMiddleware, async (req, res) => {
     }
 
     // Get email content based on notification type
+    console.log("Generating email content for type:", type);
     const emailContent = getEmailContent(type, recipient, data);
+    console.log("Email content generated successfully");
 
     // Send the email
     const mailOptions = {
-      from:
-        process.env.EMAIL_FROM ||
-        '"Victory Bible Church" <no-reply@victorybiblechurch.org>',
+      from: process.env.EMAIL_FROM || '"Victory Bible Church" <watu.matuze@gmail.com>',
       to: recipient.email,
       subject: emailContent.subject,
       html: emailContent.body,
     };
 
-    console.log("Sending email to:", recipient.email);
+    console.log("Preparing to send email to:", recipient.email);
+    console.log("Email configuration:", {
+      from: mailOptions.from,
+      to: mailOptions.to,
+      subject: mailOptions.subject,
+    });
 
     try {
+      console.log("Attempting to send email...");
       const info = await transporter.sendMail(mailOptions);
       console.log("Email sent successfully:", info.messageId);
 
@@ -83,18 +101,28 @@ router.post("/send", authMiddleware, async (req, res) => {
         .json({ message: "Notification sent successfully" });
     } catch (emailError) {
       console.error("Error sending email:", emailError);
+      console.error("Email error details:", {
+        message: emailError.message,
+        stack: emailError.stack,
+        code: emailError.code,
+      });
       return res.status(500).json({
         message: "Failed to send email notification",
         error: emailError.message,
-        details: isDevelopment ? emailError.stack : undefined,
+        details: undefined,
       });
     }
   } catch (error) {
     console.error("Error in notification route:", error);
+    console.error("Full error details:", {
+      message: error.message,
+      stack: error.stack,
+      code: error.code,
+    });
     return res.status(500).json({
       message: "Failed to process notification request",
       error: error.message,
-      details: isDevelopment ? error.stack : undefined,
+      details: undefined,
     });
   }
 });
@@ -141,6 +169,49 @@ function getEmailContent(type, recipient, data) {
             <p>If you have any questions or need assistance, please don't hesitate to contact our church office.</p>
             <p>God bless you,</p>
             <p>The ${churchName} Team</p>
+            ${emailFooter}
+          </div>
+        `,
+      };
+
+    case "baptism_signup_approved":
+      return {
+        subject: "Your Baptism Request Has Been Approved",
+        body: `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <img src="${churchLogo}" alt="${churchName}" style="max-width: 200px;" />
+            </div>
+            <h2>Hello ${name},</h2>
+            <p>We are delighted to inform you that your baptism request at ${churchName} has been approved!</p>
+            
+            <div style="background-color: #eff6ff; padding: 15px; border-radius: 5px; margin: 15px 0; border: 1px solid #bfdbfe;">
+              <h3 style="margin-top: 0; color: #1e40af;">Baptism Details:</h3>
+              <ul>
+                <li><strong>Event:</strong> ${data.eventTitle}</li>
+                <li><strong>Date:</strong> ${data.eventDate}</li>
+                <li><strong>Time:</strong> ${data.eventTime}</li>
+                <li><strong>Location:</strong> ${data.eventLocation}</li>
+              </ul>
+            </div>
+
+            <p>This is a significant step in your faith journey, and we are excited to celebrate this moment with you. Please arrive 30 minutes before the scheduled time to prepare for the baptism.</p>
+
+            <div style="background-color: #f8fafc; padding: 15px; border-radius: 5px; margin: 15px 0; border: 1px solid #cbd5e1;">
+              <h3 style="margin-top: 0; color: #334155;">What to Bring:</h3>
+              <ul>
+                <li>Change of clothes</li>
+                <li>Towel</li>
+                <li>Plastic bag for wet clothes</li>
+                <li>Any personal items you may need</li>
+              </ul>
+            </div>
+
+            <p>If you have any questions or need to make any changes, please contact our church office as soon as possible.</p>
+
+            <p>We look forward to celebrating this special moment with you!</p>
+
+            <p>Blessings,<br>The ${churchName} Team</p>
             ${emailFooter}
           </div>
         `,
