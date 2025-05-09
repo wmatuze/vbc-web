@@ -13,6 +13,7 @@ import EventManager from "../components/admin/EventManager";
 import LeaderManager from "../components/admin/LeaderManager";
 import CellGroupManager from "../components/admin/CellGroupManager";
 import MediaManager from "../components/admin/MediaManager";
+import FoundationClassSessionManager from "../components/admin/FoundationClassSessionManager";
 import DashboardContent from "../components/admin/DashboardContent";
 import SettingsContent from "../components/admin/SettingsContent";
 import RequestsManager from "../components/admin/RequestsManager";
@@ -32,6 +33,7 @@ import {
   IdentificationIcon,
   SunIcon,
   MoonIcon,
+  AcademicCapIcon,
 } from "@heroicons/react/24/outline";
 
 const Admin = () => {
@@ -182,6 +184,12 @@ const Admin = () => {
       id: "members",
       label: "Membership",
       icon: IdentificationIcon,
+      count: null,
+    },
+    {
+      id: "foundationClasses",
+      label: "Foundation Classes",
+      icon: AcademicCapIcon,
       count: null,
     },
     { id: "media", label: "Media Library", icon: PhotoIcon, count: null },
@@ -641,6 +649,9 @@ const Admin = () => {
               {activeTab === "leaders" && <LeaderManager darkMode={darkMode} />}
               {activeTab === "cellGroups" && (
                 <CellGroupManager darkMode={darkMode} />
+              )}
+              {activeTab === "foundationClasses" && (
+                <FoundationClassSessionManager darkMode={darkMode} />
               )}
               {activeTab === "media" && <MediaManager darkMode={darkMode} />}
               {activeTab === "dashboard" && (

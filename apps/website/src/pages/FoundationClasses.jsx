@@ -4,11 +4,8 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import PlaceHolderbanner from "../assets/ministry-banners/ph.png";
 import FallbackImage from "../assets/fallback-image.png";
-import {
-  registerForFoundationClass,
-  getFoundationClassSessions,
-  incrementFoundationClassEnrollment,
-} from "../services/api";
+import useFoundationClassSessions from "../hooks/useFoundationClassSessions";
+import { isAuthenticated } from "../services/api";
 import {
   FaBookOpen,
   FaCalendarAlt,
@@ -39,9 +36,22 @@ const FoundationClasses = () => {
   const [formErrors, setFormErrors] = useState({});
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [availableSessions, setAvailableSessions] = useState([]);
-  const [loadingSessions, setLoadingSessions] = useState(true);
-  const [sessionError, setSessionError] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Check if user is admin (for showing mock data notification)
+  useEffect(() => {
+    const checkAdmin = async () => {
+      try {
+        const authStatus = await isAuthenticated();
+        setIsAdmin(authStatus);
+      } catch (error) {
+        console.error("Error checking authentication:", error);
+        setIsAdmin(false);
+      }
+    };
+
+    checkAdmin();
+  }, []);
 
   // Class curriculum data
   const classSessions = [
@@ -99,32 +109,15 @@ const FoundationClasses = () => {
     },
   ];
 
-  // Fetch available foundation class sessions
-  useEffect(() => {
-    const fetchSessions = async () => {
-      try {
-        setLoadingSessions(true);
-        const sessions = await getFoundationClassSessions();
-
-        // Sort sessions by start date (nearest first)
-        const sortedSessions = sessions.sort((a, b) => {
-          return new Date(a.startDate) - new Date(b.startDate);
-        });
-
-        setAvailableSessions(sortedSessions);
-        setSessionError(null);
-      } catch (error) {
-        console.error("Error fetching foundation class sessions:", error);
-        setSessionError(
-          "Unable to load available sessions. Please try again later."
-        );
-      } finally {
-        setLoadingSessions(false);
-      }
-    };
-
-    fetchSessions();
-  }, []);
+  // Use our custom hook for foundation class sessions
+  const {
+    sessions: availableSessions,
+    loading: loadingSessions,
+    error: sessionError,
+    usingMockData,
+    refreshSessions,
+    registerForSession,
+  } = useFoundationClassSessions();
 
   // FAQ data
   const faqItems = [
@@ -195,7 +188,7 @@ const FoundationClasses = () => {
     return errors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const errors = validateForm();
@@ -221,35 +214,18 @@ const FoundationClasses = () => {
       return;
     }
 
-    // Send data to the backend API using the API service
-    registerForFoundationClass(formData)
-      .then((data) => {
-        console.log("Registration submitted successfully:", data);
+    try {
+      // Use our service to register
+      await registerForSession(formData, selectedSessionId);
 
-        // Increment the enrollment count for the selected session
-        return incrementFoundationClassEnrollment(selectedSessionId);
-      })
-      .then(() => {
-        setFormSubmitted(true);
-        setSubmitting(false);
-
-        // Refresh the available sessions to update spots left
-        return getFoundationClassSessions();
-      })
-      .then((updatedSessions) => {
-        if (updatedSessions) {
-          const sortedSessions = updatedSessions.sort((a, b) => {
-            return new Date(a.startDate) - new Date(b.startDate);
-          });
-          setAvailableSessions(sortedSessions);
-        }
-      })
-      .catch((error) => {
-        console.error("Error submitting registration form:", error);
-        setSubmitting(false);
-        // Could add error state handling here
-        alert("There was a problem submitting your form. Please try again.");
-      });
+      // Show success message
+      setFormSubmitted(true);
+    } catch (error) {
+      console.error("Error submitting registration form:", error);
+      alert("There was a problem submitting your form. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -494,11 +470,26 @@ const FoundationClasses = () => {
               <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-white">
                 Upcoming Classes
               </h2>
-              <p className="text-lg text-gray-700 dark:text-gray-300 mb-8">
+              <p className="text-lg text-gray-700 dark:text-gray-300 mb-4">
                 Classes are offered quarterly throughout the year. Registration
                 is required as space is limited. Select your preferred session
                 when you register.
               </p>
+
+              {/* Mock data notification for admins */}
+              {isAdmin && usingMockData && (
+                <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 rounded-lg text-sm">
+                  <p className="font-medium">Admin Notice: Using Mock Data</p>
+                  <p>
+                    The API endpoint for foundation class sessions is not
+                    available. Using mock data instead.
+                  </p>
+                  <p>
+                    Changes made to sessions will be stored locally but won't be
+                    saved to the server.
+                  </p>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {loadingSessions ? (
