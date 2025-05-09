@@ -535,6 +535,29 @@ class RequestsService {
       throw error;
     }
   }
+
+  /**
+   * Get a single event by ID
+   * @param {String} id - The event ID
+   * @returns {Promise} Promise that resolves to event object
+   */
+  static async getEventById(id) {
+    try {
+      console.log(`Fetching event with ID: ${id}`);
+      const axios = this.getAxiosInstance();
+      const response = await axios.get(`/api/events/${id}`, {
+        headers: getAuthHeaders(),
+      });
+
+      console.log(
+        `Successfully retrieved event: ${response.data?.title || "Unknown event"}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch event with ID ${id}:`, error);
+      throw error;
+    }
+  }
 }
 
 export default RequestsService;

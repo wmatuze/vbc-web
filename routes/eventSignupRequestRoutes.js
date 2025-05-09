@@ -1,60 +1,66 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const models = require('../models');
-const { authMiddleware } = require('../auth-middleware');
-const formatResponse = require('../utils/formatResponse');
+const models = require("../models");
+const { authMiddleware } = require("../auth-middleware");
+const formatResponse = require("../utils/formatResponse");
 
 // Get all event signup requests (admin only)
-router.get('/', authMiddleware, async (req, res) => {
+router.get("/", authMiddleware, async (req, res) => {
   try {
     const requests = await models.EventSignupRequest.find()
-      .populate('eventId')
+      .populate("eventId")
       .sort({ submittedAt: -1 });
 
     const formattedRequests = formatResponse(requests);
     res.json(formattedRequests);
   } catch (error) {
-    console.error('Error fetching event signup requests:', error);
-    res.status(500).json({ error: 'Failed to fetch event signup requests' });
+    console.error("Error fetching event signup requests:", error);
+    res.status(500).json({ error: "Failed to fetch event signup requests" });
   }
 });
 
 // Get event signup requests by event type (admin only)
-router.get('/type/:eventType', authMiddleware, async (req, res) => {
+router.get("/type/:eventType", authMiddleware, async (req, res) => {
   try {
     const { eventType } = req.params;
-    
+
     const requests = await models.EventSignupRequest.find({ eventType })
-      .populate('eventId')
+      .populate("eventId")
       .sort({ submittedAt: -1 });
 
     const formattedRequests = formatResponse(requests);
     res.json(formattedRequests);
   } catch (error) {
-    console.error(`Error fetching ${req.params.eventType} signup requests:`, error);
-    res.status(500).json({ error: 'Failed to fetch signup requests' });
+    console.error(
+      `Error fetching ${req.params.eventType} signup requests:`,
+      error
+    );
+    res.status(500).json({ error: "Failed to fetch signup requests" });
   }
 });
 
 // Get event signup requests for a specific event (admin only)
-router.get('/event/:eventId', authMiddleware, async (req, res) => {
+router.get("/event/:eventId", authMiddleware, async (req, res) => {
   try {
     const { eventId } = req.params;
-    
+
     const requests = await models.EventSignupRequest.find({ eventId })
-      .populate('eventId')
+      .populate("eventId")
       .sort({ submittedAt: -1 });
 
     const formattedRequests = formatResponse(requests);
     res.json(formattedRequests);
   } catch (error) {
-    console.error(`Error fetching signup requests for event ${req.params.eventId}:`, error);
-    res.status(500).json({ error: 'Failed to fetch signup requests' });
+    console.error(
+      `Error fetching signup requests for event ${req.params.eventId}:`,
+      error
+    );
+    res.status(500).json({ error: "Failed to fetch signup requests" });
   }
 });
 
 // Create a new event signup request (public)
-router.post('/', async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     const {
       eventId,
@@ -67,21 +73,21 @@ router.post('/', async (req, res) => {
       childName,
       childDateOfBirth,
       parentNames,
-      message
+      message,
     } = req.body;
 
     // Validate required fields
     if (!eventId || !eventType || !fullName || !email || !phone) {
-      return res.status(400).json({ 
-        error: 'Missing required fields',
-        requiredFields: ['eventId', 'eventType', 'fullName', 'email', 'phone']
+      return res.status(400).json({
+        error: "Missing required fields",
+        requiredFields: ["eventId", "eventType", "fullName", "email", "phone"],
       });
     }
 
     // Verify the event exists
     const event = await models.Event.findById(eventId);
     if (!event) {
-      return res.status(404).json({ error: 'Event not found' });
+      return res.status(404).json({ error: "Event not found" });
     }
 
     // Create the signup request
@@ -97,67 +103,111 @@ router.post('/', async (req, res) => {
       childDateOfBirth,
       parentNames,
       message,
-      status: 'pending',
-      submittedAt: new Date()
+      status: "pending",
+      submittedAt: new Date(),
     });
 
     const savedRequest = await signupRequest.save();
     const formattedRequest = formatResponse(savedRequest);
-    
+
     res.status(201).json(formattedRequest);
   } catch (error) {
-    console.error('Error creating event signup request:', error);
-    res.status(500).json({ error: 'Failed to create signup request' });
+    console.error("Error creating event signup request:", error);
+    res.status(500).json({ error: "Failed to create signup request" });
   }
 });
 
 // Update an event signup request status (admin only)
-router.put('/:id', authMiddleware, async (req, res) => {
+router.put("/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
 
+    console.log(
+      `=== Updating event signup request ${id} to status: ${status} ===`
+    );
+
     // Validate status
-    if (!status || !['pending', 'approved', 'declined'].includes(status)) {
-      return res.status(400).json({ 
-        error: 'Invalid status value',
-        allowedValues: ['pending', 'approved', 'declined']
+    if (!status || !["pending", "approved", "declined"].includes(status)) {
+      console.error(`Invalid status value: ${status}`);
+      return res.status(400).json({
+        error: "Invalid status value",
+        allowedValues: ["pending", "approved", "declined"],
       });
     }
 
+    // Find the request first to log its details
+    const existingRequest = await models.EventSignupRequest.findById(id);
+    if (!existingRequest) {
+      console.error(`Signup request with ID ${id} not found`);
+      return res.status(404).json({ error: "Signup request not found" });
+    }
+
+    console.log(
+      `Found request for ${existingRequest.fullName}, event type: ${existingRequest.eventType}`
+    );
+    console.log(`EventId reference: ${existingRequest.eventId}`);
+
+    // Update the request and ensure eventId is populated
     const updatedRequest = await models.EventSignupRequest.findByIdAndUpdate(
       id,
       { status },
       { new: true }
-    ).populate('eventId');
+    ).populate("eventId");
 
     if (!updatedRequest) {
-      return res.status(404).json({ error: 'Signup request not found' });
+      console.error(`Failed to update signup request with ID ${id}`);
+      return res.status(404).json({ error: "Signup request not found" });
+    }
+
+    console.log(
+      `Successfully updated request status to: ${updatedRequest.status}`
+    );
+
+    // Check if eventId was properly populated
+    if (updatedRequest.eventId) {
+      if (typeof updatedRequest.eventId === "object") {
+        console.log(
+          `Event details populated: ${updatedRequest.eventId.title || "No title"}`
+        );
+      } else {
+        console.log(
+          `EventId is not populated as an object: ${updatedRequest.eventId}`
+        );
+      }
+    } else {
+      console.log(`EventId is null or undefined after population`);
     }
 
     const formattedRequest = formatResponse(updatedRequest);
+    console.log(
+      `Returning formatted response for request ID: ${formattedRequest.id}`
+    );
+
     res.json(formattedRequest);
   } catch (error) {
     console.error(`Error updating signup request ${req.params.id}:`, error);
-    res.status(500).json({ error: 'Failed to update signup request' });
+    console.error(`Error details:`, error.stack);
+    res.status(500).json({ error: "Failed to update signup request" });
   }
 });
 
 // Delete an event signup request (admin only)
-router.delete('/:id', authMiddleware, async (req, res) => {
+router.delete("/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    
-    const deletedRequest = await models.EventSignupRequest.findByIdAndDelete(id);
-    
+
+    const deletedRequest =
+      await models.EventSignupRequest.findByIdAndDelete(id);
+
     if (!deletedRequest) {
-      return res.status(404).json({ error: 'Signup request not found' });
+      return res.status(404).json({ error: "Signup request not found" });
     }
-    
-    res.json({ message: 'Signup request deleted successfully' });
+
+    res.json({ message: "Signup request deleted successfully" });
   } catch (error) {
     console.error(`Error deleting signup request ${req.params.id}:`, error);
-    res.status(500).json({ error: 'Failed to delete signup request' });
+    res.status(500).json({ error: "Failed to delete signup request" });
   }
 });
 

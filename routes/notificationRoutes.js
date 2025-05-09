@@ -29,7 +29,7 @@ if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
 transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
   port: process.env.EMAIL_PORT,
-  secure: process.env.EMAIL_SECURE === 'true',
+  secure: process.env.EMAIL_SECURE === "true",
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD,
@@ -67,12 +67,18 @@ router.post("/send", authMiddleware, async (req, res) => {
 
     // Get email content based on notification type
     console.log("Generating email content for type:", type);
+    console.log("Recipient data:", JSON.stringify(recipient));
+    console.log("Event data:", JSON.stringify(data));
+
     const emailContent = getEmailContent(type, recipient, data);
     console.log("Email content generated successfully");
+    console.log("Email subject:", emailContent.subject);
 
     // Send the email
     const mailOptions = {
-      from: process.env.EMAIL_FROM || '"Victory Bible Church" <watu.matuze@gmail.com>',
+      from:
+        process.env.EMAIL_FROM ||
+        '"Victory Bible Church" <watu.matuze@gmail.com>',
       to: recipient.email,
       subject: emailContent.subject,
       html: emailContent.body,
@@ -154,27 +160,19 @@ function getEmailContent(type, recipient, data) {
     </div>
   `;
 
-  switch (type) {
-    case "membership_renewal_approved":
-      return {
-        subject: "Your Membership Renewal Has Been Approved",
-        body: `
-          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-            <div style="text-align: center; margin-bottom: 20px;">
-              <img src="${churchLogo}" alt="${churchName}" style="max-width: 200px;" />
-            </div>
-            <h2>Hello ${name},</h2>
-            <p>We're pleased to inform you that your membership renewal at ${churchName} has been approved!</p>
-            <p>Your continued commitment to our church family is greatly appreciated. As a renewed member, you'll continue to enjoy all the benefits of being part of our community.</p>
-            <p>If you have any questions or need assistance, please don't hesitate to contact our church office.</p>
-            <p>God bless you,</p>
-            <p>The ${churchName} Team</p>
-            ${emailFooter}
-          </div>
-        `,
-      };
+  // Log the notification type for debugging
+  console.log("Processing notification type:", type);
 
-    case "baptism_signup_approved":
+  // Check if this is an event signup approval notification
+  const eventSignupApprovedMatch = type.match(/^(.+)_signup_approved$/);
+  const eventSignupDeclinedMatch = type.match(/^(.+)_signup_declined$/);
+
+  if (eventSignupApprovedMatch) {
+    const eventType = eventSignupApprovedMatch[1]; // Extract the event type (baptism, babyDedication, etc.)
+    console.log(`Detected event signup approval for event type: ${eventType}`);
+
+    // Handle different event types with specific templates
+    if (eventType === "baptism") {
       return {
         subject: "Your Baptism Request Has Been Approved",
         body: `
@@ -184,7 +182,7 @@ function getEmailContent(type, recipient, data) {
             </div>
             <h2>Hello ${name},</h2>
             <p>We are delighted to inform you that your baptism request at ${churchName} has been approved!</p>
-            
+
             <div style="background-color: #eff6ff; padding: 15px; border-radius: 5px; margin: 15px 0; border: 1px solid #bfdbfe;">
               <h3 style="margin-top: 0; color: #1e40af;">Baptism Details:</h3>
               <ul>
@@ -212,6 +210,113 @@ function getEmailContent(type, recipient, data) {
             <p>We look forward to celebrating this special moment with you!</p>
 
             <p>Blessings,<br>The ${churchName} Team</p>
+            ${emailFooter}
+          </div>
+        `,
+      };
+    } else if (eventType === "babyDedication") {
+      return {
+        subject: "Your Baby Dedication Request Has Been Approved",
+        body: `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <img src="${churchLogo}" alt="${churchName}" style="max-width: 200px;" />
+            </div>
+            <h2>Hello ${name},</h2>
+            <p>We are pleased to inform you that your baby dedication request at ${churchName} has been approved!</p>
+
+            <div style="background-color: #eff6ff; padding: 15px; border-radius: 5px; margin: 15px 0; border: 1px solid #bfdbfe;">
+              <h3 style="margin-top: 0; color: #1e40af;">Baby Dedication Details:</h3>
+              <ul>
+                <li><strong>Event:</strong> ${data.eventTitle}</li>
+                <li><strong>Date:</strong> ${data.eventDate}</li>
+                <li><strong>Time:</strong> ${data.eventTime}</li>
+                <li><strong>Location:</strong> ${data.eventLocation}</li>
+                ${data.childName ? `<li><strong>Child's Name:</strong> ${data.childName}</li>` : ""}
+              </ul>
+            </div>
+
+            <p>This is a special moment for your family, and we are honored to be part of it. Please arrive 15 minutes before the scheduled time.</p>
+
+            <p>If you have any questions or need to make any changes, please contact our church office as soon as possible.</p>
+
+            <p>We look forward to celebrating this special occasion with you and your family!</p>
+
+            <p>Blessings,<br>The ${churchName} Team</p>
+            ${emailFooter}
+          </div>
+        `,
+      };
+    } else {
+      // Generic event signup approval template for other event types
+      return {
+        subject: `Your ${data.eventTitle || "Event"} Registration Has Been Approved`,
+        body: `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <img src="${churchLogo}" alt="${churchName}" style="max-width: 200px;" />
+            </div>
+            <h2>Hello ${name},</h2>
+            <p>We are pleased to inform you that your registration for ${data.eventTitle || "our event"} has been approved!</p>
+
+            <div style="background-color: #eff6ff; padding: 15px; border-radius: 5px; margin: 15px 0; border: 1px solid #bfdbfe;">
+              <h3 style="margin-top: 0; color: #1e40af;">Event Details:</h3>
+              <ul>
+                <li><strong>Event:</strong> ${data.eventTitle || "Event"}</li>
+                <li><strong>Date:</strong> ${data.eventDate || "Please contact for details"}</li>
+                <li><strong>Time:</strong> ${data.eventTime || "Please contact for details"}</li>
+                <li><strong>Location:</strong> ${data.eventLocation || "Please contact for details"}</li>
+              </ul>
+            </div>
+
+            <p>We look forward to seeing you at this event. If you have any questions or need to make any changes, please contact our church office.</p>
+
+            <p>Blessings,<br>The ${churchName} Team</p>
+            ${emailFooter}
+          </div>
+        `,
+      };
+    }
+  } else if (eventSignupDeclinedMatch) {
+    const eventType = eventSignupDeclinedMatch[1]; // Extract the event type
+    console.log(`Detected event signup decline for event type: ${eventType}`);
+
+    // Generic event signup declined template
+    return {
+      subject: `Regarding Your ${data.eventTitle || "Event"} Registration`,
+      body: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <img src="${churchLogo}" alt="${churchName}" style="max-width: 200px;" />
+          </div>
+          <h2>Hello ${name},</h2>
+          <p>Thank you for your interest in ${data.eventTitle || "our event"} at ${churchName}.</p>
+          <p>We need to discuss some details about your registration. Please contact our church office at your earliest convenience.</p>
+          ${data.reason ? `<p>Additional information: ${data.reason}</p>` : ""}
+          <p>We look forward to speaking with you soon.</p>
+          <p>Blessings,<br>The ${churchName} Team</p>
+          ${emailFooter}
+        </div>
+      `,
+    };
+  }
+
+  // Continue with the regular switch statement for other notification types
+  switch (type) {
+    case "membership_renewal_approved":
+      return {
+        subject: "Your Membership Renewal Has Been Approved",
+        body: `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <img src="${churchLogo}" alt="${churchName}" style="max-width: 200px;" />
+            </div>
+            <h2>Hello ${name},</h2>
+            <p>We're pleased to inform you that your membership renewal at ${churchName} has been approved!</p>
+            <p>Your continued commitment to our church family is greatly appreciated. As a renewed member, you'll continue to enjoy all the benefits of being part of our community.</p>
+            <p>If you have any questions or need assistance, please don't hesitate to contact our church office.</p>
+            <p>God bless you,</p>
+            <p>The ${churchName} Team</p>
             ${emailFooter}
           </div>
         `,

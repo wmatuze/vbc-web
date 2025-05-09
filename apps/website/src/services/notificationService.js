@@ -207,34 +207,77 @@ class NotificationService {
    */
   static async sendEventSignupApprovalNotification(request) {
     try {
+      console.log(
+        "Sending event signup approval notification for:",
+        request.fullName
+      );
+      console.log("Event type:", request.eventType);
+      console.log(
+        "Request object structure:",
+        JSON.stringify({
+          id: request.id,
+          eventId: request.eventId,
+          eventType: request.eventType,
+          email: request.email,
+          fullName: request.fullName,
+        })
+      );
+
+      // Check if eventId is an object or a string
+      if (typeof request.eventId === "object") {
+        console.log(
+          "Event details:",
+          JSON.stringify({
+            title: request.eventId?.title,
+            date: request.eventId?.date,
+            time: request.eventId?.time,
+            location: request.eventId?.location,
+          })
+        );
+      } else {
+        console.log(
+          "EventId is not an object, it's a:",
+          typeof request.eventId
+        );
+        console.log("EventId value:", request.eventId);
+      }
+
       const token = getAuthToken();
+
+      // Prepare notification data
+      const notificationData = {
+        type: `${request.eventType}_signup_approved`,
+        recipient: {
+          email: request.email,
+          phone: request.phone,
+          name: request.fullName,
+        },
+        data: {
+          eventTitle: request.eventId?.title || "Event",
+          eventDate: request.eventId?.date || "TBD",
+          eventTime: request.eventId?.time || "TBD",
+          eventLocation: request.eventId?.location || "TBD",
+          // Include event-specific data
+          ...(request.eventType === "baptism" && {
+            testimony: request.testimony,
+            previousReligion: request.previousReligion,
+          }),
+          ...(request.eventType === "babyDedication" && {
+            childName: request.childName,
+            childDateOfBirth: request.childDateOfBirth,
+            parentNames: request.parentNames,
+          }),
+        },
+      };
+
+      console.log(
+        "Sending notification with data:",
+        JSON.stringify(notificationData)
+      );
 
       const response = await axios.post(
         `${getApiUrl()}/api/notifications/send`,
-        {
-          type: `${request.eventType}_signup_approved`,
-          recipient: {
-            email: request.email,
-            phone: request.phone,
-            name: request.fullName,
-          },
-          data: {
-            eventTitle: request.eventId?.title || "Event",
-            eventDate: request.eventId?.date || "TBD",
-            eventTime: request.eventId?.time || "TBD",
-            eventLocation: request.eventId?.location || "TBD",
-            // Include event-specific data
-            ...(request.eventType === "baptism" && {
-              testimony: request.testimony,
-              previousReligion: request.previousReligion,
-            }),
-            ...(request.eventType === "babyDedication" && {
-              childName: request.childName,
-              childDateOfBirth: request.childDateOfBirth,
-              parentNames: request.parentNames,
-            }),
-          },
-        },
+        notificationData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -243,12 +286,14 @@ class NotificationService {
         }
       );
 
+      console.log("Notification response:", JSON.stringify(response.data));
       return response.data;
     } catch (error) {
       console.error(
         "Failed to send event signup approval notification:",
         error
       );
+      console.error("Error details:", error.response?.data || error.message);
       throw error;
     }
   }
