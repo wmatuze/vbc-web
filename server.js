@@ -195,6 +195,26 @@ const apiRoutes = require("./api-routes");
 app.use("/api", apiRoutes);
 app.use("/", apiRoutes); // For compatibility with old routes
 
+// Log all available routes for debugging
+console.log("Available API routes:");
+function printRoutes(stack, basePath = "") {
+  stack.forEach(function (layer) {
+    if (layer.route) {
+      const methods = Object.keys(layer.route.methods)
+        .filter((method) => layer.route.methods[method])
+        .join(", ")
+        .toUpperCase();
+      console.log(`${methods} ${basePath}${layer.route.path}`);
+    } else if (layer.name === "router" && layer.handle.stack) {
+      const newBase =
+        basePath +
+        (layer.regexp.toString().indexOf("^\\/api") > -1 ? "/api" : "");
+      printRoutes(layer.handle.stack, newBase);
+    }
+  });
+}
+printRoutes(app._router.stack);
+
 // Auth middleware function
 const authMiddleware = (req, res, next) => {
   try {

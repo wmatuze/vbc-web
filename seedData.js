@@ -2,6 +2,7 @@ const models = require("./models");
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
+const seedFoundationClassSessions = require("./seed/foundationClassSessions");
 
 // Hash password
 const hashPassword = (password) => {
@@ -277,6 +278,8 @@ const seedAllData = async () => {
   await seedUsers();
   await seedZones();
   await seedCellGroups();
+  await seedFoundationClassSessions();
+  console.log("All data seeded successfully");
 };
 
 module.exports = {
