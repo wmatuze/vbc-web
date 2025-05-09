@@ -1,10 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import PlaceHolderbanner from "../assets/ministry-banners/ph.png";
 import FallbackImage from "../assets/fallback-image.png";
-import { registerForFoundationClass } from "../services/api";
+import {
+  registerForFoundationClass,
+  getFoundationClassSessions,
+  incrementFoundationClassEnrollment,
+} from "../services/api";
 import {
   FaBookOpen,
   FaCalendarAlt,
@@ -35,6 +39,9 @@ const FoundationClasses = () => {
   const [formErrors, setFormErrors] = useState({});
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [availableSessions, setAvailableSessions] = useState([]);
+  const [loadingSessions, setLoadingSessions] = useState(true);
+  const [sessionError, setSessionError] = useState(null);
 
   // Class curriculum data
   const classSessions = [
@@ -92,33 +99,32 @@ const FoundationClasses = () => {
     },
   ];
 
-  // Upcoming class schedule
-  const upcomingClasses = [
-    {
-      startDate: "January 7, 2024",
-      endDate: "January 28, 2024",
-      day: "Sundays",
-      time: "9:00 AM - 10:30 AM",
-      location: "Room 201",
-      spotsLeft: 12,
-    },
-    {
-      startDate: "February 4, 2024",
-      endDate: "February 25, 2024",
-      day: "Sundays",
-      time: "9:00 AM - 10:30 AM",
-      location: "Room 201",
-      spotsLeft: 15,
-    },
-    {
-      startDate: "April 3, 2024",
-      endDate: "April 24, 2024",
-      day: "Wednesdays",
-      time: "6:30 PM - 8:00 PM",
-      location: "Room 105",
-      spotsLeft: 20,
-    },
-  ];
+  // Fetch available foundation class sessions
+  useEffect(() => {
+    const fetchSessions = async () => {
+      try {
+        setLoadingSessions(true);
+        const sessions = await getFoundationClassSessions();
+
+        // Sort sessions by start date (nearest first)
+        const sortedSessions = sessions.sort((a, b) => {
+          return new Date(a.startDate) - new Date(b.startDate);
+        });
+
+        setAvailableSessions(sortedSessions);
+        setSessionError(null);
+      } catch (error) {
+        console.error("Error fetching foundation class sessions:", error);
+        setSessionError(
+          "Unable to load available sessions. Please try again later."
+        );
+      } finally {
+        setLoadingSessions(false);
+      }
+    };
+
+    fetchSessions();
+  }, []);
 
   // FAQ data
   const faqItems = [
@@ -200,12 +206,43 @@ const FoundationClasses = () => {
 
     setSubmitting(true);
 
+    // Find the selected session
+    const selectedSessionId = formData.preferredSession;
+    const selectedSession = availableSessions.find(
+      (session) => session.id === selectedSessionId
+    );
+
+    if (!selectedSession) {
+      setFormErrors({
+        ...formErrors,
+        preferredSession: "Please select a valid session",
+      });
+      setSubmitting(false);
+      return;
+    }
+
     // Send data to the backend API using the API service
     registerForFoundationClass(formData)
       .then((data) => {
         console.log("Registration submitted successfully:", data);
+
+        // Increment the enrollment count for the selected session
+        return incrementFoundationClassEnrollment(selectedSessionId);
+      })
+      .then(() => {
         setFormSubmitted(true);
         setSubmitting(false);
+
+        // Refresh the available sessions to update spots left
+        return getFoundationClassSessions();
+      })
+      .then((updatedSessions) => {
+        if (updatedSessions) {
+          const sortedSessions = updatedSessions.sort((a, b) => {
+            return new Date(a.startDate) - new Date(b.startDate);
+          });
+          setAvailableSessions(sortedSessions);
+        }
       })
       .catch((error) => {
         console.error("Error submitting registration form:", error);
@@ -227,7 +264,7 @@ const FoundationClasses = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-b-3xl h-[60vh]">
+      <section className="relative overflow-hidden rounded-b-3xl h-[60vh] md:h-[70vh] pt-16 md:pt-20">
         <motion.div
           className={`absolute inset-0 ${
             !isImageLoaded ? "animate-pulse bg-gray-200" : ""
@@ -464,52 +501,131 @@ const FoundationClasses = () => {
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {upcomingClasses.map((classSession, index) => (
-                  <motion.div
-                    key={index}
-                    whileHover={{ y: -5 }}
-                    className="bg-gray-50 dark:bg-gray-700 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300"
-                  >
-                    <div className="bg-blue-600 p-4 text-white">
-                      <div className="flex justify-between items-center">
-                        <h3 className="font-semibold">
-                          {classSession.day} Series
-                        </h3>
-                        <span className="text-xs bg-blue-500 py-1 px-2 rounded-full">
-                          {classSession.spotsLeft} spots left
-                        </span>
-                      </div>
-                    </div>
-                    <div className="p-6">
-                      <div className="flex items-start gap-3 mb-4">
-                        <FaCalendarAlt className="text-blue-500 mt-1 flex-shrink-0" />
-                        <div>
-                          <div className="font-medium">
-                            {classSession.startDate} - {classSession.endDate}
-                          </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">
-                            {classSession.time}
+                {loadingSessions ? (
+                  // Loading state
+                  Array.from({ length: 3 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className="bg-gray-50 dark:bg-gray-700 rounded-xl overflow-hidden shadow-md animate-pulse"
+                    >
+                      <div className="bg-blue-400 p-4 h-14"></div>
+                      <div className="p-6">
+                        <div className="flex items-start gap-3 mb-4">
+                          <div className="w-6 h-6 bg-blue-300 rounded-full"></div>
+                          <div className="flex-1">
+                            <div className="h-5 bg-gray-200 dark:bg-gray-600 rounded w-3/4 mb-2"></div>
+                            <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-1/2"></div>
                           </div>
                         </div>
-                      </div>
-                      <div className="flex items-start gap-3 mb-6">
-                        <FaChurch className="text-blue-500 mt-1 flex-shrink-0" />
-                        <div>
-                          <div className="font-medium">Location</div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">
-                            {classSession.location}
+                        <div className="flex items-start gap-3 mb-6">
+                          <div className="w-6 h-6 bg-blue-300 rounded-full"></div>
+                          <div className="flex-1">
+                            <div className="h-5 bg-gray-200 dark:bg-gray-600 rounded w-1/3 mb-2"></div>
+                            <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-2/3"></div>
                           </div>
                         </div>
+                        <div className="h-10 bg-blue-400 rounded-lg"></div>
                       </div>
-                      <a
-                        href="#register"
-                        className="block text-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300"
-                      >
-                        Register Now
-                      </a>
                     </div>
-                  </motion.div>
-                ))}
+                  ))
+                ) : sessionError ? (
+                  // Error state
+                  <div className="col-span-1 md:col-span-3 bg-red-50 dark:bg-red-900/20 p-6 rounded-xl text-center">
+                    <p className="text-red-600 dark:text-red-400 mb-4">
+                      {sessionError}
+                    </p>
+                    <button
+                      onClick={() => window.location.reload()}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300"
+                    >
+                      Refresh Page
+                    </button>
+                  </div>
+                ) : availableSessions.length === 0 ? (
+                  // No sessions available
+                  <div className="col-span-1 md:col-span-3 bg-yellow-50 dark:bg-yellow-900/20 p-6 rounded-xl text-center">
+                    <p className="text-gray-700 dark:text-gray-300 mb-4">
+                      There are currently no upcoming foundation class sessions
+                      scheduled. Please check back later or contact the church
+                      office for more information.
+                    </p>
+                  </div>
+                ) : (
+                  // Display available sessions
+                  availableSessions.map((session, index) => (
+                    <motion.div
+                      key={session.id}
+                      whileHover={{ y: -5 }}
+                      className="bg-gray-50 dark:bg-gray-700 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300"
+                    >
+                      <div className="bg-blue-600 p-4 text-white">
+                        <div className="flex justify-between items-center">
+                          <h3 className="font-semibold">
+                            {session.day} Series
+                          </h3>
+                          <span className="text-xs bg-blue-500 py-1 px-2 rounded-full">
+                            {session.spotsLeft} spots left
+                          </span>
+                        </div>
+                      </div>
+                      <div className="p-6">
+                        <div className="flex items-start gap-3 mb-4">
+                          <FaCalendarAlt className="text-blue-500 mt-1 flex-shrink-0" />
+                          <div>
+                            <div className="font-medium">
+                              {new Date(session.startDate).toLocaleDateString(
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                }
+                              )}{" "}
+                              -{" "}
+                              {new Date(session.endDate).toLocaleDateString(
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                }
+                              )}
+                            </div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                              {session.time}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3 mb-6">
+                          <FaChurch className="text-blue-500 mt-1 flex-shrink-0" />
+                          <div>
+                            <div className="font-medium">Location</div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                              {session.location}
+                            </div>
+                          </div>
+                        </div>
+                        <a
+                          href="#register"
+                          className={`block text-center font-medium py-2 px-4 rounded-lg transition-colors duration-300 ${
+                            session.spotsLeft > 0
+                              ? "bg-blue-600 hover:bg-blue-700 text-white"
+                              : "bg-gray-400 cursor-not-allowed text-white"
+                          }`}
+                          onClick={(e) => {
+                            if (session.spotsLeft === 0) {
+                              e.preventDefault();
+                            }
+                          }}
+                        >
+                          {session.spotsLeft > 0
+                            ? "Register Now"
+                            : "Class Full"}
+                        </a>
+                      </div>
+                    </motion.div>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -715,31 +831,65 @@ const FoundationClasses = () => {
                       Preferred Session
                     </span>
                   </label>
-                  <select
-                    name="preferredSession"
-                    value={formData.preferredSession}
-                    onChange={handleChange}
-                    className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 ${
-                      formErrors.preferredSession
-                        ? "border-red-500 dark:border-red-500"
-                        : "border-gray-300"
-                    }`}
-                  >
-                    <option value="">Select a session</option>
-                    {upcomingClasses.map((classSession, index) => (
-                      <option
-                        key={index}
-                        value={`${classSession.startDate} (${classSession.day})`}
-                      >
-                        {classSession.startDate} - {classSession.day}{" "}
-                        {classSession.time}
-                      </option>
-                    ))}
-                  </select>
+                  {loadingSessions ? (
+                    <div className="w-full h-12 bg-gray-200 dark:bg-gray-600 rounded-lg animate-pulse"></div>
+                  ) : (
+                    <select
+                      name="preferredSession"
+                      value={formData.preferredSession}
+                      onChange={handleChange}
+                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 ${
+                        formErrors.preferredSession
+                          ? "border-red-500 dark:border-red-500"
+                          : "border-gray-300"
+                      }`}
+                      disabled={
+                        submitting ||
+                        availableSessions.length === 0 ||
+                        availableSessions.filter((s) => s.spotsLeft > 0)
+                          .length === 0
+                      }
+                    >
+                      <option value="">Select a session</option>
+                      {availableSessions
+                        .filter((session) => session.spotsLeft > 0)
+                        .map((session) => (
+                          <option key={session.id} value={session.id}>
+                            {session.day} ({session.time}) -{" "}
+                            {new Date(session.startDate).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "long",
+                                year: "numeric",
+                              }
+                            )}
+                          </option>
+                        ))}
+                      {availableSessions.length > 0 &&
+                        availableSessions.filter(
+                          (session) => session.spotsLeft > 0
+                        ).length === 0 && (
+                          <option value="" disabled>
+                            No available sessions at this time
+                          </option>
+                        )}
+                    </select>
+                  )}
                   {formErrors.preferredSession && (
                     <p className="mt-2 text-red-500 text-sm">
                       {formErrors.preferredSession}
                     </p>
+                  )}
+                  {availableSessions.length === 0 &&
+                    !loadingSessions &&
+                    !sessionError && (
+                      <p className="mt-2 text-yellow-600 dark:text-yellow-400 text-sm">
+                        No sessions are currently available. Please check back
+                        later.
+                      </p>
+                    )}
+                  {sessionError && (
+                    <p className="mt-2 text-red-500 text-sm">{sessionError}</p>
                   )}
                 </div>
 

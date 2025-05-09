@@ -10,7 +10,8 @@
     "dev:deprecated": "concurrently \"npm run server:json\" \"cd apps/website && npm run dev\"",
     "dev": "concurrently \"npm run server\" \"cd apps/website && npm run dev\"",
     "migrate": "node scripts/migrate-data.js",
-    "start-app": "start-app.bat"
+    "start-app": "start-app.bat",
+    "seed": "node seed/index.js"
   },
   "keywords": [],
   "author": "",

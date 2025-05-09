@@ -8,6 +8,7 @@ const exportRoutes = require("./routes/exportRoutes");
 const zoneRoutes = require("./routes/zoneRoutes");
 const cellGroupJoinRequestRoutes = require("./routes/cellGroupJoinRequestRoutes");
 const eventSignupRequestRoutes = require("./routes/eventSignupRequestRoutes");
+const foundationClassSessionRoutes = require("./routes/foundationClassSessionRoutes");
 const formatResponse = require("./utils/formatResponse");
 
 // Mount notification routes
@@ -24,6 +25,9 @@ router.use("/cell-group-join-requests", cellGroupJoinRequestRoutes);
 
 // Mount event signup request routes
 router.use("/event-signup-requests", eventSignupRequestRoutes);
+
+// Mount foundation class session routes
+router.use("/foundation-class-sessions", foundationClassSessionRoutes);
 
 // Support request endpoint
 router.post("/support", async (req, res) => {

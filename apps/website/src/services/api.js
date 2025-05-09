@@ -574,6 +574,34 @@ export const registerForFoundationClass = (formData) => {
   return postData("api/foundation-classes/register", formData);
 };
 
+// Foundation Class Sessions
+export const getFoundationClassSessions = () => {
+  return fetchData("api/foundation-class-sessions");
+};
+
+export const getFoundationClassSessionById = (id) => {
+  return fetchData(`api/foundation-class-sessions/${id}`);
+};
+
+export const createFoundationClassSession = (session) => {
+  return postData("api/foundation-class-sessions", session);
+};
+
+export const updateFoundationClassSession = (id, session) => {
+  return updateData("api/foundation-class-sessions", id, session);
+};
+
+export const deleteFoundationClassSession = (id) => {
+  return deleteData("api/foundation-class-sessions", id);
+};
+
+export const incrementFoundationClassEnrollment = (id) => {
+  return postData(
+    `api/foundation-class-sessions/${id}/increment-enrollment`,
+    {}
+  );
+};
+
 // Sermons
 export const getSermons = () => fetchData("api/sermons");
 export const getSermonById = (id) => fetchData(`api/sermons/${id}`);
