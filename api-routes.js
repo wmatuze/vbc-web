@@ -29,6 +29,113 @@ router.use("/event-signup-requests", eventSignupRequestRoutes);
 // Mount foundation class session routes
 router.use("/foundation-class-sessions", foundationClassSessionRoutes);
 
+// Foundation class registration endpoint
+router.post("/foundation-classes/register", async (req, res) => {
+  try {
+    console.log("Received foundation class registration:", req.body);
+
+    // Set CORS headers explicitly for this endpoint
+    res.header("Access-Control-Allow-Origin", "http://localhost:5173");
+    res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+    );
+    res.header("Access-Control-Allow-Credentials", "true");
+
+    const { fullName, email, phone, preferredSession, questions } = req.body;
+
+    if (!fullName || !email || !phone || !preferredSession) {
+      return res.status(400).json({
+        success: false,
+        error: "Please provide all required fields",
+      });
+    }
+
+    // Create a new registration
+    const registration = new models.FoundationClassRegistration({
+      fullName,
+      email,
+      phone,
+      preferredSession, // Use the original field name
+      sessionId: preferredSession, // Also store in the new field for compatibility
+      questions: questions || "",
+      status: "pending",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const savedRegistration = await registration.save();
+    console.log("Foundation class registration saved:", savedRegistration);
+
+    // Send confirmation email
+    try {
+      const emailContent = {
+        to: email,
+        subject: "Foundation Class Registration Confirmation",
+        text: `
+Dear ${fullName},
+
+Thank you for registering for Foundation Classes at Victory Bible Church. Your registration has been received and is being processed.
+
+Registration Details:
+- Name: ${fullName}
+- Phone: ${phone}
+- Session ID: ${preferredSession}
+
+We look forward to seeing you at the first class. If you have any questions, please contact the church office.
+
+Blessings,
+Victory Bible Church Team
+        `,
+        html: `
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+  <div style="background-color: #4f46e5; color: white; padding: 20px; text-align: center;">
+    <h1>Foundation Class Registration Confirmation</h1>
+  </div>
+  <div style="padding: 20px; border: 1px solid #e5e7eb; border-top: none;">
+    <p>Dear ${fullName},</p>
+
+    <p>Thank you for registering for Foundation Classes at Victory Bible Church. Your registration has been received and is being processed.</p>
+
+    <div style="background-color: #f9fafb; padding: 15px; border-radius: 5px; margin: 15px 0;">
+      <p><strong>Registration Details:</strong></p>
+      <ul>
+        <li>Name: ${fullName}</li>
+        <li>Phone: ${phone}</li>
+        <li>Session ID: ${preferredSession}</li>
+      </ul>
+    </div>
+
+    <p>We look forward to seeing you at the first class. If you have any questions, please contact the church office.</p>
+
+    <p>Blessings,<br>Victory Bible Church Team</p>
+  </div>
+</div>
+        `,
+      };
+
+      await emailService.sendEmail(emailContent);
+      console.log("Confirmation email sent to:", email);
+    } catch (emailError) {
+      console.error("Error sending confirmation email:", emailError);
+      // Continue with the response even if email fails
+    }
+
+    res.status(201).json({
+      success: true,
+      message: "Registration submitted successfully",
+      data: formatResponse(savedRegistration),
+    });
+  } catch (error) {
+    console.error("Error processing foundation class registration:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to process registration",
+    });
+  }
+});
+
 // Support request endpoint
 router.post("/support", async (req, res) => {
   try {

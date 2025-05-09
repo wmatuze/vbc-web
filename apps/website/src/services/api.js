@@ -575,8 +575,33 @@ export const registerForFoundationClass = (formData) => {
 };
 
 // Foundation Class Sessions
-export const getFoundationClassSessions = () => {
-  return fetchData("api/foundation-class-sessions");
+export const getFoundationClassSessions = async () => {
+  try {
+    console.log("Fetching foundation class sessions...");
+    // Add cache-busting parameter
+    const cacheBuster = Date.now();
+    const response = await fetch(
+      `${API_URL}/api/foundation-class-sessions?_=${cacheBuster}`,
+      {
+        headers: getAuthHeaders(),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`API error (${response.status}): ${errorText}`);
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(
+      `Successfully fetched ${data.length} foundation class sessions`
+    );
+    return data;
+  } catch (error) {
+    console.error("Error fetching foundation class sessions:", error);
+    throw error;
+  }
 };
 
 export const getFoundationClassSessionById = (id) => {
