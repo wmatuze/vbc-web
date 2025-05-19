@@ -240,11 +240,11 @@ const HeroSection = forwardRef((props, ref) => {
       </div>
 
       {/* Content Grid */}
-      <div className="relative z-10 h-full grid grid-cols-1 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 max-w-screen-3xl mx-auto">
+      <div className="relative z-10 h-full grid grid-cols-1 lg:grid-cols-12 max-w-screen-3xl mx-auto">
         {/* Left Column - Main Content */}
-        <div className="lg:col-span-3 xl:col-span-4 2xl:col-span-5 pt-24 lg:pt-32 p-8 lg:p-16 flex flex-col justify-start items-start">
+        <div className="lg:col-span-7 xl:col-span-7 2xl:col-span-7 pt-24 lg:pt-32 p-8 lg:p-16 flex flex-col justify-start items-start">
           {/* Welcome Content */}
-          <div className="max-w-2xl pt-4 space-y-8">
+          <div className="max-w-3xl mx-auto lg:mx-0 pt-4 space-y-8">
             <div className="flex items-center space-x-4 fade-in">
               <div className="h-0.5 w-12 bg-primary-500" />
               <span className="font-medium text-white text-lg tracking-wider">
@@ -272,13 +272,13 @@ const HeroSection = forwardRef((props, ref) => {
               </h1>
             </div>
 
-            <p className="text-gray-300 text-xl leading-relaxed max-w-xl opacity-0 animate-[fadeIn_1s_1.3s_forwards]">
+            <p className="text-gray-300 text-xl leading-relaxed max-w-xl lg:max-w-2xl opacity-0 animate-[fadeIn_1s_1.3s_forwards]">
               Join our vibrant community where faith grows stronger through
               fellowship, worship, and service to others.
             </p>
 
             {/* Service Times Card - New Addition */}
-            <div className="bg-black/30 backdrop-blur-sm rounded-lg p-4 border border-white/10 opacity-0 animate-[fadeIn_1s_1.4s_forwards]">
+            <div className="bg-black/30 backdrop-blur-sm rounded-lg p-4 border border-white/10 opacity-0 animate-[fadeIn_1s_1.4s_forwards] lg:max-w-lg xl:max-w-xl">
               <div className="flex items-center space-x-2 mb-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -410,10 +410,10 @@ const HeroSection = forwardRef((props, ref) => {
         </div>
 
         {/* Right Column - Events Section */}
-        <div className="lg:col-span-2 xl:col-span-2 2xl:col-span-2 relative h-full">
+        <div className="lg:col-span-5 xl:col-span-5 2xl:col-span-5 relative h-full">
           <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/95 lg:bg-gradient-to-r lg:from-black/95 lg:to-black/80" />
 
-          <div className="relative z-10 p-8 lg:p-16 h-full flex flex-col opacity-0 animate-[fadeIn_1s_1.7s_forwards]">
+          <div className="relative z-10 p-8 lg:p-16 h-full flex flex-col opacity-0 animate-[fadeIn_1s_1.7s_forwards] lg:max-w-md xl:max-w-lg 2xl:max-w-xl lg:ml-auto">
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4 pt-10">
                 <div className="flex items-center space-x-4">
@@ -627,7 +627,7 @@ const HeroSection = forwardRef((props, ref) => {
       <div
         className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20
                   hidden lg:flex flex-col items-center animate-bounce cursor-pointer
-                  opacity-0 animate-[fadeIn_1s_2s_forwards]"
+                  opacity-0 animate-[fadeIn_1s_2s_forwards] 3xl:bottom-12"
         onClick={() => {
           window.scrollTo({
             top: window.innerHeight,
