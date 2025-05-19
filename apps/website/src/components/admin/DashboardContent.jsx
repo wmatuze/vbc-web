@@ -1,84 +1,84 @@
-import React from 'react';
+import React from "react";
 import {
   ChartBarIcon,
   UsersIcon,
   VideoCameraIcon,
   CalendarIcon,
   ClockIcon,
-  CheckCircleIcon
-} from '@heroicons/react/24/outline';
+  CheckCircleIcon,
+} from "@heroicons/react/24/outline";
 
 const DashboardContent = () => {
   const stats = [
     {
-      title: 'Total Members',
-      value: '1,234',
-      change: '+12%',
-      changeType: 'increase',
+      title: "Total Members",
+      value: "1,234",
+      change: "+12%",
+      changeType: "increase",
       icon: UsersIcon,
-      color: 'bg-blue-500'
+      color: "bg-blue-500",
     },
     {
-      title: 'Sermons',
-      value: '156',
-      change: '+3',
-      changeType: 'increase',
+      title: "Sermons",
+      value: "156",
+      change: "+3",
+      changeType: "increase",
       icon: VideoCameraIcon,
-      color: 'bg-green-500'
+      color: "bg-green-500",
     },
     {
-      title: 'Events',
-      value: '24',
-      change: '+2',
-      changeType: 'increase',
+      title: "Events",
+      value: "24",
+      change: "+2",
+      changeType: "increase",
       icon: CalendarIcon,
-      color: 'bg-purple-500'
+      color: "bg-purple-500",
     },
     {
-      title: 'Cell Groups',
-      value: '45',
-      change: '+5',
-      changeType: 'increase',
+      title: "Cell Groups",
+      value: "45",
+      change: "+5",
+      changeType: "increase",
       icon: ChartBarIcon,
-      color: 'bg-yellow-500'
-    }
+      color: "bg-yellow-500",
+    },
   ];
 
   const recentActivity = [
     {
       id: 1,
-      type: 'sermon',
+      type: "sermon",
       title: 'Sunday Service - "Walking in Faith"',
-      time: '2 hours ago',
-      status: 'Published'
+      time: "2 hours ago",
+      status: "Published",
     },
     {
       id: 2,
-      type: 'event',
-      title: 'Youth Conference 2024',
-      time: '5 hours ago',
-      status: 'Updated'
+      type: "event",
+      title: "Youth Conference 2024",
+      time: "5 hours ago",
+      status: "Updated",
     },
     {
       id: 3,
-      type: 'member',
-      title: 'New Member Registration - John Smith',
-      time: '1 day ago',
-      status: 'Pending'
+      type: "member",
+      title: "New Member Registration - John Smith",
+      time: "1 day ago",
+      status: "Pending",
     },
     {
       id: 4,
-      type: 'cellGroup',
+      type: "cellGroup",
       title: 'New Cell Group Created - "Young Professionals"',
-      time: '2 days ago',
-      status: 'Active'
-    }
+      time: "2 days ago",
+      status: "Active",
+    },
   ];
 
   return (
     <div className="space-y-6">
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-4 gap-6">
         {stats.map((stat) => (
           <div key={stat.title} className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center">
@@ -86,12 +86,20 @@ const DashboardContent = () => {
                 <stat.icon className="h-6 w-6 text-white" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">{stat.title}</p>
+                <p className="text-sm font-medium text-gray-500">
+                  {stat.title}
+                </p>
                 <div className="flex items-baseline">
-                  <p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
-                  <p className={`ml-2 text-sm font-medium ${
-                    stat.changeType === 'increase' ? 'text-green-600' : 'text-red-600'
-                  }`}>
+                  <p className="text-2xl font-semibold text-gray-900">
+                    {stat.value}
+                  </p>
+                  <p
+                    className={`ml-2 text-sm font-medium ${
+                      stat.changeType === "increase"
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
                     {stat.change}
                   </p>
                 </div>
@@ -136,4 +144,4 @@ const DashboardContent = () => {
   );
 };
 
-export default DashboardContent; 
+export default DashboardContent;

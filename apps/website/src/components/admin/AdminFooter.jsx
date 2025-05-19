@@ -12,7 +12,7 @@ const AdminFooter = ({ darkMode }) => {
           : "bg-white border-gray-200 text-gray-600"
       }`}
     >
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 3xl:max-w-[1920px]">
         <div className="flex flex-col md:flex-row justify-between items-center text-sm">
           <div className="mb-2 md:mb-0">
             © {currentYear} Victory Bible Church CMS •{" "}

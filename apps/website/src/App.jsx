@@ -73,7 +73,13 @@ const NavbarWrapper = ({ heroRef, isNavHidden }) => {
 };
 
 const PageWrapper = ({ children, noPadding }) => (
-  <div className={noPadding ? "" : "pt-20 pb-16"}>{children}</div>
+  <div
+    className={
+      noPadding ? "" : "pt-20 pb-16 2xl:pt-24 2xl:pb-20 3xl:pt-28 3xl:pb-24"
+    }
+  >
+    {children}
+  </div>
 );
 
 // Create a new AppContent component that uses Router-dependent hooks

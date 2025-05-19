@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { deleteMedia, uploadFile, testConnection } from "../../services/api";
-import { uploadMediaLocally, deleteLocalMedia } from "../../services/mockUpload";
+import {
+  uploadMediaLocally,
+  deleteLocalMedia,
+} from "../../services/mockUpload";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import useErrorHandler from "../../hooks/useErrorHandler";
 import { validateField } from "../../utils/validationUtils";
@@ -31,14 +34,14 @@ const API_URL = config.API_URL;
 const checkNetworkConnection = async () => {
   try {
     // Attempt to fetch a small resource to check connectivity
-    const response = await fetch(`${API_URL}/test-connection`, { 
-      method: 'GET',
-      cache: 'no-cache',
-      headers: { 'Cache-Control': 'no-cache' },
+    const response = await fetch(`${API_URL}/test-connection`, {
+      method: "GET",
+      cache: "no-cache",
+      headers: { "Cache-Control": "no-cache" },
       // Short timeout to detect connection issues quickly
-      signal: AbortSignal.timeout(5000)
+      signal: AbortSignal.timeout(5000),
     });
-    
+
     return response.ok;
   } catch (error) {
     console.error("Network connection check failed:", error);
@@ -120,7 +123,10 @@ const MediaManager = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
-  const [serverStatus, setServerStatus] = useState({ connected: true, lastChecked: null });
+  const [serverStatus, setServerStatus] = useState({
+    connected: true,
+    lastChecked: null,
+  });
 
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
@@ -141,15 +147,24 @@ const MediaManager = () => {
       try {
         const isConnected = await testConnection();
         if (isMounted.current) {
-          setServerStatus({ 
-            connected: isConnected, 
-            lastChecked: new Date().toISOString() 
+          setServerStatus({
+            connected: isConnected,
+            lastChecked: new Date().toISOString(),
           });
-          
+
           if (!isConnected) {
-            console.warn("Server connection check failed - API server may be unavailable");
-            handleError(new Error("API server appears to be offline or unreachable"), "Server Connection");
-          } else if (error && error.message && error.message.includes("API server")) {
+            console.warn(
+              "Server connection check failed - API server may be unavailable"
+            );
+            handleError(
+              new Error("API server appears to be offline or unreachable"),
+              "Server Connection"
+            );
+          } else if (
+            error &&
+            error.message &&
+            error.message.includes("API server")
+          ) {
             // Clear previous server connection errors if we're now connected
             clearError();
           }
@@ -157,17 +172,20 @@ const MediaManager = () => {
       } catch (err) {
         console.error("Server status check error:", err);
         if (isMounted.current) {
-          setServerStatus({ connected: false, lastChecked: new Date().toISOString() });
+          setServerStatus({
+            connected: false,
+            lastChecked: new Date().toISOString(),
+          });
         }
       }
     };
-    
+
     // Check immediately on component load
     checkServerStatus();
-    
+
     // Set up periodic checks
     const interval = setInterval(checkServerStatus, 300000); // Every 5 minutes
-    
+
     return () => {
       clearInterval(interval);
     };
@@ -335,10 +353,15 @@ const MediaManager = () => {
     // Check connectivity before attempting refresh
     const isConnected = await checkNetworkConnection();
     if (!isConnected) {
-      handleError(new Error("Network connection issue detected. Please check your internet connection and try again."), "Network");
+      handleError(
+        new Error(
+          "Network connection issue detected. Please check your internet connection and try again."
+        ),
+        "Network"
+      );
       return;
     }
-    
+
     setRefreshTrigger((prev) => prev + 1);
     refetchMedia();
   }, [refetchMedia, handleError]);
@@ -366,16 +389,26 @@ const MediaManager = () => {
         const isConnected = await testConnection();
         if (!isConnected) {
           // If server is not connected, use local upload in development mode
-          if (process.env.NODE_ENV === "development" || window.location.hostname === "localhost") {
-            console.log("Server appears to be offline, using local browser storage for upload");
+          if (
+            process.env.NODE_ENV === "development" ||
+            window.location.hostname === "localhost"
+          ) {
+            console.log(
+              "Server appears to be offline, using local browser storage for upload"
+            );
             return handleLocalUpload();
           } else {
-            setUploadError("Server appears to be offline. Please try again later.");
+            setUploadError(
+              "Server appears to be offline. Please try again later."
+            );
             return;
           }
         } else {
           // Update status if we're actually connected
-          setServerStatus({ connected: true, lastChecked: new Date().toISOString() });
+          setServerStatus({
+            connected: true,
+            lastChecked: new Date().toISOString(),
+          });
         }
       }
 
@@ -392,11 +425,18 @@ const MediaManager = () => {
           const isConnected = await checkNetworkConnection();
           if (!isConnected) {
             // If network is not connected, use local upload in development mode
-            if (process.env.NODE_ENV === "development" || window.location.hostname === "localhost") {
-              console.log("Network connection issue, using local browser storage for upload");
+            if (
+              process.env.NODE_ENV === "development" ||
+              window.location.hostname === "localhost"
+            ) {
+              console.log(
+                "Network connection issue, using local browser storage for upload"
+              );
               return handleLocalUpload();
             } else {
-              throw new Error("Network connection issue detected. Please check your internet connection and try again.");
+              throw new Error(
+                "Network connection issue detected. Please check your internet connection and try again."
+              );
             }
           }
 
@@ -482,76 +522,101 @@ const MediaManager = () => {
             setShowUploadModal(false);
             setUploadSuccess(false);
           }, 1500);
-          
+
           return true;
         } catch (err) {
           if (!isMounted.current) return false;
-          
+
           console.error("Upload attempt failed:", err);
-          
+
           // First check if it's a network connectivity issue
-          if (err.message && (
-              err.message.includes("Network") || 
+          if (
+            err.message &&
+            (err.message.includes("Network") ||
               err.message.includes("connection") ||
               err.message.includes("offline") ||
-              err.message.includes("internet")
-            )) {
+              err.message.includes("internet"))
+          ) {
             // In development mode, fall back to local upload
-            if (process.env.NODE_ENV === "development" || window.location.hostname === "localhost") {
-              console.log("Network issue detected, falling back to local upload");
+            if (
+              process.env.NODE_ENV === "development" ||
+              window.location.hostname === "localhost"
+            ) {
+              console.log(
+                "Network issue detected, falling back to local upload"
+              );
               return handleLocalUpload();
             }
-            
-            setUploadError("Network connection issue. Please check your internet connection and try again.");
-            
+
+            setUploadError(
+              "Network connection issue. Please check your internet connection and try again."
+            );
+
             // Update server status
-            setServerStatus({ connected: false, lastChecked: new Date().toISOString() });
-            
+            setServerStatus({
+              connected: false,
+              lastChecked: new Date().toISOString(),
+            });
+
             throw err;
           }
-          
+
           // Check if it's an auth error and we can retry
-          if (err.message && (
-              err.message.includes("Token is not valid") || 
+          if (
+            err.message &&
+            (err.message.includes("Token is not valid") ||
               err.message.includes("401") ||
               err.message.includes("authorization") ||
               err.message.includes("unauthorized") ||
               err.message.includes("Unauthorized") ||
-              err.message.includes("No token")
-            ) && retryCount < maxRetries) {
+              err.message.includes("No token")) &&
+            retryCount < maxRetries
+          ) {
             retryCount++;
-            console.log(`Auth error detected, retrying upload (attempt ${retryCount}/${maxRetries})...`);
-            
+            console.log(
+              `Auth error detected, retrying upload (attempt ${retryCount}/${maxRetries})...`
+            );
+
             // Try to refresh the token by calling login
             try {
               // Import the login function if not already available
               const { login } = await import("../../services/api");
               await login("admin", "admin");
               console.log("Token refreshed, retrying upload...");
-              
+
               // Small delay before retry
-              await new Promise(resolve => setTimeout(resolve, 500));
-              
+              await new Promise((resolve) => setTimeout(resolve, 500));
+
               // Try again
               return attemptUpload();
             } catch (loginErr) {
               console.error("Failed to refresh token:", loginErr);
-              
+
               // In development mode, fall back to local upload
-              if (process.env.NODE_ENV === "development" || window.location.hostname === "localhost") {
-                console.log("Authentication issue detected, falling back to local upload");
+              if (
+                process.env.NODE_ENV === "development" ||
+                window.location.hostname === "localhost"
+              ) {
+                console.log(
+                  "Authentication issue detected, falling back to local upload"
+                );
                 return handleLocalUpload();
               }
             }
           }
-          
+
           // If we get here, either it's not an auth error or all retries failed
           // In development mode, fall back to local upload
-          if (process.env.NODE_ENV === "development" || window.location.hostname === "localhost") {
-            console.log("All upload attempts failed, falling back to local upload");
+          if (
+            process.env.NODE_ENV === "development" ||
+            window.location.hostname === "localhost"
+          ) {
+            console.log(
+              "All upload attempts failed, falling back to local upload"
+            );
             return handleLocalUpload();
           }
-          
+
           setUploadError(`Failed to upload file: ${err.message}`);
           throw err; // Re-throw for error handler
         } finally {
@@ -560,48 +625,48 @@ const MediaManager = () => {
           }
         }
       };
-      
+
       // Helper function for local browser-only uploads in development
       const handleLocalUpload = async () => {
         try {
           setUploadProgress(0);
-          
+
           // Simulate progress
           const progressInterval = setInterval(() => {
-            setUploadProgress(prev => {
+            setUploadProgress((prev) => {
               const newProgress = prev + 10;
               return newProgress > 90 ? 90 : newProgress;
             });
           }, 100);
-          
+
           // Use the mock upload service
           const localMedia = await uploadMediaLocally(
             selectedFile,
             title || selectedFile.name.split(".")[0],
             category || "general"
           );
-          
+
           // Clear the progress interval
           clearInterval(progressInterval);
           setUploadProgress(100);
-          
+
           console.log("Local upload successful:", localMedia);
-          
+
           // Update local state with the new media
-          setMedia(prev => [localMedia, ...prev]);
-          
+          setMedia((prev) => [localMedia, ...prev]);
+
           // Reset form state
           setSelectedFile(null);
           setTitle("");
           setPreviewUrl(null);
           setUploadSuccess(true);
-          
+
           // Close modal after short delay
           setTimeout(() => {
             setShowUploadModal(false);
             setUploadSuccess(false);
           }, 1500);
-          
+
           return true;
         } catch (err) {
           console.error("Local upload failed:", err);
@@ -611,7 +676,7 @@ const MediaManager = () => {
           setIsUploading(false);
         }
       };
-      
+
       // Start the upload process with retry logic
       return attemptUpload();
     },
@@ -725,7 +790,8 @@ const MediaManager = () => {
               </div>
               <div className="ml-3">
                 <p className="text-sm text-yellow-700">
-                  Server connection issues detected. Some features may not work correctly.
+                  Server connection issues detected. Some features may not work
+                  correctly.
                 </p>
               </div>
               <div className="ml-auto pl-3">
@@ -741,7 +807,7 @@ const MediaManager = () => {
             </div>
           </div>
         )}
-        
+
         {/* Error Message */}
         {error && (
           <div className="mb-6 bg-red-50 border-l-4 border-red-400 p-4">
@@ -750,7 +816,11 @@ const MediaManager = () => {
                 <ExclamationCircleIcon className="h-5 w-5 text-red-400" />
               </div>
               <div className="ml-3">
-                <p className="text-sm text-red-700">{typeof error === 'string' ? error : (error.message || 'An unknown error occurred')}</p>
+                <p className="text-sm text-red-700">
+                  {typeof error === "string"
+                    ? error
+                    : error.message || "An unknown error occurred"}
+                </p>
               </div>
               <div className="ml-auto pl-3">
                 <div className="-mx-1.5 -my-1.5">
@@ -853,7 +923,7 @@ const MediaManager = () => {
             <p className="text-gray-500">No media items found</p>
           </div>
         ) : viewMode === "grid" ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 3xl:grid-cols-8 gap-4">
             {filteredMedia.map((item) => (
               <div
                 key={item.id}

@@ -19,7 +19,9 @@ const resources = [
     path: "/resources/discipleship",
     title: "Discipleship Program",
     description: "Deepen your faith and walk with Christ",
-    icon: <FaChalkboardTeacher className="text-purple-600 dark:text-purple-300 text-4xl" />,
+    icon: (
+      <FaChalkboardTeacher className="text-purple-600 dark:text-purple-300 text-4xl" />
+    ),
   },
   {
     path: "/resources/bible-study",
@@ -57,18 +59,19 @@ const Resources = () => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-7xl mx-auto"
+      className="max-w-7xl mx-auto 3xl:max-w-[1920px]"
     >
       <header className="text-center mb-16">
         <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
           Church Resources
         </h1>
         <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-          Explore foundational materials and leadership resources to deepen your faith.
+          Explore foundational materials and leadership resources to deepen your
+          faith.
         </p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-8">
         {resources.map((resource, index) => (
           <ResourceCard key={resource.path} resource={resource} index={index} />
         ))}

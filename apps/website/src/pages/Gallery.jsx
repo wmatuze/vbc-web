@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Masonry from "react-masonry-css";
-import { FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import PropTypes from 'prop-types';
+import { FaTimes, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import PropTypes from "prop-types";
 
 const galleryImages = [
   { id: 1, src: "/images/gallery1.jpg", alt: "Sunday Service Worship" },
@@ -16,7 +16,7 @@ const galleryImages = [
   { id: 9, src: "/images/gallery9.jpg", alt: "Choir Practice" },
   { id: 10, src: "/images/gallery10.jpg", alt: "Volunteer Work" },
   { id: 11, src: "/images/gallery11.jpg", alt: "Church Picnic" },
-  { id: 12, src: "/images/gallery12.jpg", alt: "New Year Service" }
+  { id: 12, src: "/images/gallery12.jpg", alt: "New Year Service" },
 ];
 
 const GalleryImage = ({ src, alt, onClick }) => (
@@ -50,11 +50,14 @@ GalleryImage.propTypes = {
 };
 
 const Modal = ({ selectedImage, onClose, onNavigate }) => {
-  const handleKeyDown = useCallback((event) => {
-    if (event.key === "Escape") onClose();
-    if (event.key === "ArrowLeft") onNavigate("prev");
-    if (event.key === "ArrowRight") onNavigate("next");
-  }, [onClose, onNavigate]);
+  const handleKeyDown = useCallback(
+    (event) => {
+      if (event.key === "Escape") onClose();
+      if (event.key === "ArrowLeft") onNavigate("prev");
+      if (event.key === "ArrowRight") onNavigate("next");
+    },
+    [onClose, onNavigate]
+  );
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
@@ -73,7 +76,7 @@ const Modal = ({ selectedImage, onClose, onNavigate }) => {
           onClick={onClose}
         >
           <motion.div
-            className="relative max-w-4xl max-h-[90vh]"
+            className="relative max-w-4xl 2xl:max-w-5xl 3xl:max-w-6xl max-h-[90vh]"
             initial={{ scale: 0.95 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0.95 }}
@@ -83,21 +86,32 @@ const Modal = ({ selectedImage, onClose, onNavigate }) => {
             <motion.img
               src={selectedImage.src}
               alt={selectedImage.alt}
-              className="max-w-full max-h-[70vh] rounded-lg shadow-lg object-contain"
+              className="max-w-full max-h-[70vh] 2xl:max-h-[75vh] 3xl:max-h-[80vh] rounded-lg shadow-lg object-contain"
               loading="lazy"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             />
-            <div className="mt-2 text-center text-white">{selectedImage.alt}</div>
-            <button onClick={onClose} className="absolute top-4 right-4 text-white bg-gray-700 rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-600 focus:outline-none">
+            <div className="mt-2 text-center text-white">
+              {selectedImage.alt}
+            </div>
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 text-white bg-gray-700 rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-600 focus:outline-none"
+            >
               <FaTimes />
             </button>
-            <button onClick={() => onNavigate('prev')} className="absolute top-1/2 left-4 transform -translate-y-1/2 text-white bg-gray-700 rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-600 focus:outline-none">
+            <button
+              onClick={() => onNavigate("prev")}
+              className="absolute top-1/2 left-4 transform -translate-y-1/2 text-white bg-gray-700 rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-600 focus:outline-none"
+            >
               <FaChevronLeft />
             </button>
-            <button onClick={() => onNavigate('next')} className="absolute top-1/2 right-4 transform -translate-y-1/2 text-white bg-gray-700 rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-600 focus:outline-none">
+            <button
+              onClick={() => onNavigate("next")}
+              className="absolute top-1/2 right-4 transform -translate-y-1/2 text-white bg-gray-700 rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-600 focus:outline-none"
+            >
               <FaChevronRight />
             </button>
           </motion.div>
@@ -123,24 +137,34 @@ const Gallery = () => {
 
   const handleNavigate = (direction) => {
     if (selectedIndex === null) return;
-    let newIndex = (selectedIndex + (direction === "prev" ? -1 : 1) + galleryImages.length) % galleryImages.length;
+    let newIndex =
+      (selectedIndex + (direction === "prev" ? -1 : 1) + galleryImages.length) %
+      galleryImages.length;
     setSelectedImage(galleryImages[newIndex]);
     setSelectedIndex(newIndex);
   };
 
   return (
-    <div className="container mx-auto px-4 py-10">
+    <div className="container mx-auto px-4 py-10 3xl:max-w-[1920px]">
       <h1 className="text-4xl font-bold text-center mb-6">Gallery</h1>
       <Masonry
-        breakpointCols={{ default: 3, 1100: 2, 700: 1 }}
+        breakpointCols={{ default: 3, 1100: 2, 700: 1, 1600: 4, 1920: 5 }}
         className="my-masonry-grid"
         columnClassName="my-masonry-grid_column"
       >
         {galleryImages.map((image, index) => (
-          <GalleryImage key={image.id} {...image} onClick={() => handleImageClick(image, index)} />
+          <GalleryImage
+            key={image.id}
+            {...image}
+            onClick={() => handleImageClick(image, index)}
+          />
         ))}
       </Masonry>
-      <Modal selectedImage={selectedImage} onClose={handleCloseModal} onNavigate={handleNavigate} />
+      <Modal
+        selectedImage={selectedImage}
+        onClose={handleCloseModal}
+        onNavigate={handleNavigate}
+      />
     </div>
   );
 };

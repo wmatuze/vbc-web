@@ -29,7 +29,10 @@ import {
 } from "@heroicons/react/24/outline";
 import { format, parseISO, isValid } from "date-fns";
 import config from "../../config";
-import { EVENT_VALIDATION_RULES, EVENT_TYPES } from "../../constants/eventConstants";
+import {
+  EVENT_VALIDATION_RULES,
+  EVENT_TYPES,
+} from "../../constants/eventConstants";
 import { normalizeEventDate, parseEventFromAPI } from "../../utils/dateUtils";
 import { getImageUrl, processMediaItem } from "../../utils/imageUtils";
 
@@ -70,13 +73,13 @@ const EventManager = () => {
     onSuccess: (savedEvent, action) => {
       setSuccessMessage(`Event ${action} successfully!`);
       refetchEvents();
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(""), 3000);
     },
     onError: (error) => {
       handleError(error, "Event Form Submission");
-    }
+    },
   });
 
   // UI state
@@ -89,7 +92,7 @@ const EventManager = () => {
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [eventFilter, setEventFilter] = useState("all"); // 'all', 'upcoming', 'past'
-  
+
   // Media selector state
   const [isMediaSelectorOpen, setIsMediaSelectorOpen] = useState(false);
 
@@ -101,10 +104,7 @@ const EventManager = () => {
   }, [eventsError, handleError]);
 
   // Use React Query for fetching media
-  const {
-    data: mediaItems = [],
-    isLoading: mediaLoading,
-  } = useMediaQuery({
+  const { data: mediaItems = [], isLoading: mediaLoading } = useMediaQuery({
     enabled: isMediaSelectorOpen, // Only fetch when media selector is open
   });
 
@@ -117,11 +117,11 @@ const EventManager = () => {
     (event) => {
       // Parse and normalize the event data
       const normalizedEvent = parseEventFromAPI(event);
-      
+
       // Log the event data before and after normalization for debugging
       console.log("Original event data:", event);
       console.log("Normalized event data:", normalizedEvent);
-      
+
       editEvent(normalizedEvent);
     },
     {
@@ -167,7 +167,7 @@ const EventManager = () => {
   const handleMediaSelection = (selectedItem) => {
     if (selectedItem) {
       const processedItem = processMediaItem(selectedItem);
-      
+
       // Update the event with the processed media item
       setCurrentEvent((prev) => ({
         ...prev,
@@ -180,19 +180,19 @@ const EventManager = () => {
   // Enhanced date change handler to ensure date updates work correctly
   const handleDateChange = (e) => {
     const inputDate = e.target.value;
-    
+
     if (inputDate) {
       try {
         // Parse the date and ensure it's valid
         const dateObj = parseISO(inputDate);
-        
+
         if (!isValid(dateObj)) {
           throw new Error("Invalid date format");
         }
-        
+
         // Format the date properly for display and API
         const formattedDate = format(dateObj, "MMMM d, yyyy");
-        
+
         // Update the date fields in the event
         setCurrentEvent((prev) => ({
           ...prev,
@@ -200,20 +200,20 @@ const EventManager = () => {
           formattedDate: formattedDate, // Human-readable format
           startDate: dateObj, // Date object for the API
         }));
-        
+
         console.log("Date updated successfully:", {
           date: inputDate,
           formattedDate,
           startDate: dateObj,
         });
-        
+
         // Clear any previous errors
         if (formErrors.date) {
           setFormErrors((prev) => ({ ...prev, date: null }));
         }
       } catch (err) {
         console.error("Error formatting date:", err);
-        
+
         // Set validation error
         setFormErrors((prev) => ({
           ...prev,
@@ -227,7 +227,7 @@ const EventManager = () => {
         date: "",
         formattedDate: "",
       }));
-      
+
       // Set validation error for required field
       if (EVENT_VALIDATION_RULES.date.required) {
         setFormErrors((prev) => ({
@@ -429,8 +429,10 @@ const EventManager = () => {
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
-                {EVENT_TYPES.map(type => (
-                  <option key={type.value} value={type.value}>{type.label}</option>
+                {EVENT_TYPES.map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
                 ))}
               </select>
             </div>
@@ -483,7 +485,10 @@ const EventManager = () => {
             {currentEvent.imageUrl && (
               <div className="mt-2">
                 <img
-                  src={getImageUrl(currentEvent.imageUrl, eventPlaceholderImage)}
+                  src={getImageUrl(
+                    currentEvent.imageUrl,
+                    eventPlaceholderImage
+                  )}
                   alt="Event preview"
                   className="h-20 object-cover rounded"
                   onError={handleImageError}
@@ -589,9 +594,9 @@ const EventManager = () => {
           </p>
         </div>
       ) : viewMode === "grid" ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6">
           {filteredEvents.map((event) => (
-            <EventAdminCard 
+            <EventAdminCard
               key={event.id || event._id}
               event={event}
               onEdit={handleEdit}
@@ -648,7 +653,10 @@ const EventManager = () => {
                     <div className="flex items-center">
                       {event.imageUrl ? (
                         <img
-                          src={getImageUrl(event.imageUrl, eventPlaceholderImage)}
+                          src={getImageUrl(
+                            event.imageUrl,
+                            eventPlaceholderImage
+                          )}
                           alt=""
                           className="h-10 w-10 rounded-full object-cover cursor-pointer"
                           onClick={() => handleImagePreview(event.imageUrl)}
@@ -726,12 +734,12 @@ const EventManager = () => {
         </div>
       )}
 
-      <MediaSelector 
+      <MediaSelector
         isOpen={isMediaSelectorOpen}
         onClose={() => setIsMediaSelectorOpen(false)}
         onSelect={handleMediaSelection}
       />
-      
+
       <ImagePreview
         isOpen={showImagePreview}
         imageUrl={selectedImage}

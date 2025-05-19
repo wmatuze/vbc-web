@@ -20,7 +20,11 @@ import {
 import { ChevronDownIcon } from "@heroicons/react/20/solid"; // Import ChevronDownIcon for dropdown indicator
 import PropTypes from "prop-types";
 
-const Navbar = ({ isHidden = false, scrollThreshold = 10, forceOpaque = false }) => {
+const Navbar = ({
+  isHidden = false,
+  scrollThreshold = 10,
+  forceOpaque = false,
+}) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
   const [showScrollToTop, setShowScrollToTop] = useState(false);
@@ -123,7 +127,9 @@ const Navbar = ({ isHidden = false, scrollThreshold = 10, forceOpaque = false })
     if (forceOpaque) {
       return "bg-white shadow-soft-xl";
     }
-    return hasScrolled ? "bg-white/95 backdrop-blur-md shadow-soft-xl" : "bg-transparent";
+    return hasScrolled
+      ? "bg-white/95 backdrop-blur-md shadow-soft-xl"
+      : "bg-transparent";
   };
 
   const toggleMobileMenu = () => {
@@ -137,7 +143,7 @@ const Navbar = ({ isHidden = false, scrollThreshold = 10, forceOpaque = false })
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
-      behavior: 'smooth'
+      behavior: "smooth",
     });
   };
 
@@ -147,7 +153,7 @@ const Navbar = ({ isHidden = false, scrollThreshold = 10, forceOpaque = false })
         className={`fixed w-full z-50 transition-all duration-500 ease-in-out ${getBackgroundStyle()}`}
         aria-label="Main Navigation"
       >
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 3xl:max-w-[1920px]">
           <div className="flex justify-between items-center py-4">
             {/* Logo Section */}
             <Link
@@ -208,7 +214,7 @@ const Navbar = ({ isHidden = false, scrollThreshold = 10, forceOpaque = false })
                       {link.label}
                       <ChevronDownIcon
                         className={`h-3 w-3 transition-transform duration-300 ${
-                          isMinistriesDropdownOpen ? 'rotate-180' : ''
+                          isMinistriesDropdownOpen ? "rotate-180" : ""
                         }`}
                       />
                     </button>
@@ -219,20 +225,17 @@ const Navbar = ({ isHidden = false, scrollThreshold = 10, forceOpaque = false })
                         shadow-soft-xl bg-white ring-1 ring-black/5
                         focus:outline-none transform
                         transition-all duration-300 origin-top
-                        ${isMinistriesDropdownOpen ?
-                          'opacity-100 scale-100 translate-y-0' :
-                          'opacity-0 scale-95 -translate-y-2 pointer-events-none'
+                        ${
+                          isMinistriesDropdownOpen
+                            ? "opacity-100 scale-100 translate-y-0"
+                            : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
                         }
                       `}
                       role="menu"
                       aria-orientation="vertical"
                       aria-labelledby="ministries-menu-button"
                     >
-                      <div
-                        className="py-2"
-                        role="menuitem"
-                        id="menu-items"
-                      >
+                      <div className="py-2" role="menuitem" id="menu-items">
                         {link.children.map((childLink) => (
                           <Link
                             key={childLink.label}
@@ -287,9 +290,13 @@ const Navbar = ({ isHidden = false, scrollThreshold = 10, forceOpaque = false })
               onClick={toggleMobileMenu}
             >
               {isMobileMenuOpen ? (
-                <XMarkIcon className={`h-6 w-6 ${getTextColor("text-white")}`} />
+                <XMarkIcon
+                  className={`h-6 w-6 ${getTextColor("text-white")}`}
+                />
               ) : (
-                <Bars3Icon className={`h-6 w-6 ${getTextColor("text-white")}`} />
+                <Bars3Icon
+                  className={`h-6 w-6 ${getTextColor("text-white")}`}
+                />
               )}
             </button>
           </div>
@@ -353,7 +360,7 @@ const Navbar = ({ isHidden = false, scrollThreshold = 10, forceOpaque = false })
                         className={`
                           h-5 w-5
                           transition-transform duration-300
-                          ${isMobileMinistriesDropdownOpen ? 'rotate-180' : ''}
+                          ${isMobileMinistriesDropdownOpen ? "rotate-180" : ""}
                           ${hasScrolled ? "text-gray-600" : "text-white/80"}
                           group-hover:text-red-500
                         `}
@@ -429,7 +436,7 @@ const Navbar = ({ isHidden = false, scrollThreshold = 10, forceOpaque = false })
           text-white p-3 rounded-full shadow-lg
           transition-all duration-300 ease-in-out
           focus:outline-none focus:ring-2 focus:ring-primary-400
-          ${showScrollToTop ? 'opacity-90 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}
+          ${showScrollToTop ? "opacity-90 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"}
         `}
         aria-label="Scroll to top"
       >
@@ -442,13 +449,13 @@ const Navbar = ({ isHidden = false, scrollThreshold = 10, forceOpaque = false })
 Navbar.propTypes = {
   isHidden: PropTypes.bool,
   scrollThreshold: PropTypes.number,
-  forceOpaque: PropTypes.bool
+  forceOpaque: PropTypes.bool,
 };
 
 Navbar.defaultProps = {
   isHidden: false,
   scrollThreshold: 10,
-  forceOpaque: false
+  forceOpaque: false,
 };
 
 export default Navbar;

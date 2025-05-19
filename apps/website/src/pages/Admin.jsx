@@ -616,7 +616,7 @@ const Admin = () => {
         <main
           className={`flex-1 overflow-y-auto transition-colors duration-200 ${darkMode ? "bg-gray-900" : "bg-gray-50"}`}
         >
-          <div className="p-6 flex flex-col h-full">
+          <div className="p-6 flex flex-col h-full max-w-[1920px] mx-auto">
             {/* Page Header */}
             <div className="mb-6">
               <h1

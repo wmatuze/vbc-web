@@ -240,9 +240,9 @@ const HeroSection = forwardRef((props, ref) => {
       </div>
 
       {/* Content Grid */}
-      <div className="relative z-10 h-full grid grid-cols-1 lg:grid-cols-5 max-w-screen-2xl mx-auto">
+      <div className="relative z-10 h-full grid grid-cols-1 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 max-w-screen-3xl mx-auto">
         {/* Left Column - Main Content */}
-        <div className="lg:col-span-3 pt-24 lg:pt-32 p-8 lg:p-16 flex flex-col justify-start items-start">
+        <div className="lg:col-span-3 xl:col-span-4 2xl:col-span-5 pt-24 lg:pt-32 p-8 lg:p-16 flex flex-col justify-start items-start">
           {/* Welcome Content */}
           <div className="max-w-2xl pt-4 space-y-8">
             <div className="flex items-center space-x-4 fade-in">
@@ -410,7 +410,7 @@ const HeroSection = forwardRef((props, ref) => {
         </div>
 
         {/* Right Column - Events Section */}
-        <div className="lg:col-span-2 relative h-full">
+        <div className="lg:col-span-2 xl:col-span-2 2xl:col-span-2 relative h-full">
           <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/95 lg:bg-gradient-to-r lg:from-black/95 lg:to-black/80" />
 
           <div className="relative z-10 p-8 lg:p-16 h-full flex flex-col opacity-0 animate-[fadeIn_1s_1.7s_forwards]">

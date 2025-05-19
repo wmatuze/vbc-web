@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import PlaceHolderbanner from "../assets/ministry-banners/ph.png"; // Import placeholder banner
 import FallbackImage from "../assets/fallback-image.png"; // Import fallback image
-import React, { useState } from "react";
+import { useState } from "react";
 import { Helmet } from "react-helmet"; // Added for SEO
 
 const mediaLinks = [
@@ -156,7 +156,7 @@ const Media = () => {
           ))}
         </div>
 
-        <div className="container mx-auto px-4 relative z-10 h-full flex flex-col justify-center items-center">
+        <div className="container mx-auto px-4 relative z-10 h-full flex flex-col justify-center items-center 3xl:max-w-[1920px]">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -184,7 +184,7 @@ const Media = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8"
+        className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 3xl:max-w-[1920px]"
       >
         <header className="text-center mb-16">
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
@@ -192,7 +192,7 @@ const Media = () => {
           </p>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-5 gap-8">
           {mediaLinks.map((media, index) => (
             <MediaCard key={media.path} media={media} index={index} />
           ))}
