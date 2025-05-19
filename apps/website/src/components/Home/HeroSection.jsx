@@ -240,9 +240,9 @@ const HeroSection = forwardRef((props, ref) => {
       </div>
 
       {/* Content Grid */}
-      <div className="relative z-10 h-full grid grid-cols-1 lg:grid-cols-12 max-w-screen-3xl mx-auto">
+      <div className="relative z-10 h-full grid grid-cols-1 lg:grid-cols-12 max-w-screen-3xl mx-auto lg:min-h-screen">
         {/* Left Column - Main Content */}
-        <div className="lg:col-span-7 xl:col-span-7 2xl:col-span-7 pt-24 lg:pt-32 p-8 lg:p-16 flex flex-col justify-start items-start">
+        <div className="lg:col-span-7 xl:col-span-7 2xl:col-span-7 pt-24 lg:pt-32 p-8 lg:p-16 flex flex-col justify-start items-start h-full">
           {/* Welcome Content */}
           <div className="max-w-3xl mx-auto lg:mx-0 pt-4 space-y-8">
             <div className="flex items-center space-x-4 fade-in">
@@ -411,9 +411,9 @@ const HeroSection = forwardRef((props, ref) => {
 
         {/* Right Column - Events Section */}
         <div className="lg:col-span-5 xl:col-span-5 2xl:col-span-5 relative h-full">
-          <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/95 lg:bg-gradient-to-r lg:from-black/95 lg:to-black/80" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/95 lg:bg-gradient-to-r lg:from-black/95 lg:to-black/80 h-full" />
 
-          <div className="relative z-10 p-8 lg:p-16 h-full flex flex-col opacity-0 animate-[fadeIn_1s_1.7s_forwards] lg:max-w-md xl:max-w-lg 2xl:max-w-xl lg:ml-auto">
+          <div className="relative z-10 p-8 lg:p-16 h-full flex flex-col opacity-0 animate-[fadeIn_1s_1.7s_forwards] w-full">
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4 pt-10">
                 <div className="flex items-center space-x-4">
@@ -466,18 +466,18 @@ const HeroSection = forwardRef((props, ref) => {
                   </button>
                 </div>
               ) : upcomingEvents.length > 0 ? (
-                <div className="space-y-3 mb-4 pr-1">
+                <div className="space-y-4 mb-4 pr-1 w-full">
                   {upcomingEvents.map((event) => (
                     <EventCard key={event.id} event={event} highlight compact />
                   ))}
                 </div>
               ) : (
-                <div className="card bg-white/5 backdrop-blur-sm border border-white/10 p-4 mb-4 h-24 flex items-center justify-center">
+                <div className="card bg-white/5 backdrop-blur-sm border border-white/10 p-6 mb-4 h-32 flex items-center justify-center w-full">
                   <div>
-                    <p className="text-gray-300 text-center">
+                    <p className="text-gray-300 text-center text-lg">
                       No upcoming events scheduled.
                     </p>
-                    <p className="text-gray-400 text-sm mt-1 text-center">
+                    <p className="text-gray-400 text-sm mt-2 text-center">
                       Check back soon for new events!
                     </p>
                   </div>
@@ -490,14 +490,14 @@ const HeroSection = forwardRef((props, ref) => {
               >
                 {upcomingEvents.length > 0 ? (
                   // More compact layout for when we have events
-                  <div className="flex justify-between gap-2">
+                  <div className="flex justify-between gap-4 w-full">
                     <Link
                       to="/events"
-                      className="flex-1 card bg-white/5 backdrop-blur-sm border border-white/10 p-3 hover:bg-white/10 transition-colors flex items-center"
+                      className="flex-1 card bg-white/5 backdrop-blur-sm border border-white/10 p-4 hover:bg-white/10 transition-colors flex items-center"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 text-primary-400 mr-2 flex-shrink-0"
+                        className="h-5 w-5 text-primary-400 mr-3 flex-shrink-0"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -509,18 +509,18 @@ const HeroSection = forwardRef((props, ref) => {
                           d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                         />
                       </svg>
-                      <span className="text-white text-xs truncate">
+                      <span className="text-white text-sm truncate">
                         Sunday: 10:00AM & 6:00PM
                       </span>
                     </Link>
 
                     <Link
                       to="/media/sermons"
-                      className="flex-1 card bg-white/5 backdrop-blur-sm border border-white/10 p-3 hover:bg-white/10 transition-colors flex items-center"
+                      className="flex-1 card bg-white/5 backdrop-blur-sm border border-white/10 p-4 hover:bg-white/10 transition-colors flex items-center"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 text-primary-400 mr-2 flex-shrink-0"
+                        className="h-5 w-5 text-primary-400 mr-3 flex-shrink-0"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -532,7 +532,7 @@ const HeroSection = forwardRef((props, ref) => {
                           d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
                         />
                       </svg>
-                      <span className="text-white text-xs truncate">
+                      <span className="text-white text-sm truncate">
                         Latest Sermons
                       </span>
                     </Link>
@@ -595,14 +595,14 @@ const HeroSection = forwardRef((props, ref) => {
             </div>
 
             {/* Additional Event Information */}
-            <div className="mt-auto pt-6">
+            <div className="mt-auto pt-8">
               <Link
                 to="/events"
-                className="flex items-center text-gray-300 hover:text-white transition-colors group"
+                className="flex items-center text-gray-300 hover:text-white transition-colors group w-full bg-white/5 backdrop-blur-sm border border-white/10 p-4 rounded-lg hover:bg-white/10"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 text-primary-500 mr-2"
+                  className="h-5 w-5 text-primary-500 mr-3"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
