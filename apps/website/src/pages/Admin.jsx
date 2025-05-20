@@ -10,6 +10,7 @@ import {
 import SermonManager from "../components/admin/SermonManager";
 import SermonManagerWrapper from "../components/admin/SermonManagerWrapper";
 import EventManager from "../components/admin/EventManager";
+import RecurringEventManager from "../components/admin/RecurringEventManager";
 import LeaderManager from "../components/admin/LeaderManager";
 import CellGroupManager from "../components/admin/CellGroupManager";
 import MediaManager from "../components/admin/MediaManager";
@@ -178,6 +179,12 @@ const Admin = () => {
     { id: "dashboard", label: "Dashboard", icon: HomeIcon, count: null },
     { id: "sermons", label: "Sermons", icon: VideoCameraIcon, count: 4 },
     { id: "events", label: "Events", icon: CalendarIcon, count: 2 },
+    {
+      id: "recurringEvents",
+      label: "Recurring Events",
+      icon: CalendarIcon,
+      count: null,
+    },
     { id: "leaders", label: "Leadership", icon: UserGroupIcon, count: null },
     { id: "cellGroups", label: "Cell Groups", icon: UsersIcon, count: 3 },
     {
@@ -646,6 +653,9 @@ const Admin = () => {
                 <SermonManagerWrapper darkMode={darkMode} />
               )}
               {activeTab === "events" && <EventManager darkMode={darkMode} />}
+              {activeTab === "recurringEvents" && (
+                <RecurringEventManager darkMode={darkMode} />
+              )}
               {activeTab === "leaders" && <LeaderManager darkMode={darkMode} />}
               {activeTab === "cellGroups" && (
                 <CellGroupManager darkMode={darkMode} />

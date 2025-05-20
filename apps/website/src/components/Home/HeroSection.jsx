@@ -225,6 +225,23 @@ const HeroSection = forwardRef((props, ref) => {
       name: "Midweek Service",
       time: "6:00 PM",
     },
+    monthly: [
+      {
+        name: "Anointing Service",
+        schedule: "First Sunday",
+        time: "9:30 AM",
+      },
+      {
+        name: "Holy Communion",
+        schedule: "Third Sunday",
+        time: "9:30 AM",
+      },
+      {
+        name: "Prayer & Fasting",
+        schedule: "Last Week",
+        time: "Various Times",
+      },
+    ],
     address: "Victory Bible Church - Kitwe, Off Chiwala Road, CBU East Gate",
   };
 
@@ -277,9 +294,9 @@ const HeroSection = forwardRef((props, ref) => {
               fellowship, worship, and service to others.
             </p>
 
-            {/* Service Times Card - New Addition */}
+            {/* Service Times Card - Enhanced with Monthly Programs */}
             <div className="bg-black/30 backdrop-blur-sm rounded-lg p-4 border border-white/10 opacity-0 animate-[fadeIn_1s_1.4s_forwards] lg:max-w-lg xl:max-w-xl">
-              <div className="flex items-center space-x-2 mb-2">
+              <div className="flex items-center space-x-2 mb-3">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-5 w-5 text-primary-400"
@@ -296,7 +313,9 @@ const HeroSection = forwardRef((props, ref) => {
                 </svg>
                 <h3 className="text-white font-medium">Service Times</h3>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+
+              {/* Weekly Services */}
+              <div className="grid grid-cols-2 gap-2 mb-3">
                 <div>
                   <p className="text-white text-sm">
                     {serviceInfo.sunday.name}
@@ -314,6 +333,61 @@ const HeroSection = forwardRef((props, ref) => {
                   </p>
                 </div>
               </div>
+
+              {/* Monthly Special Services - Condensed Version */}
+              <div className="mt-2 pt-2 border-t border-white/10 mb-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 text-yellow-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                    <h3 className="text-white text-sm font-medium">
+                      Monthly Programs
+                    </h3>
+                  </div>
+                  <Link
+                    to="#monthly-programs"
+                    className="text-yellow-400 text-xs hover:text-yellow-300"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      document
+                        .getElementById("monthly-programs")
+                        .scrollIntoView({
+                          behavior: "smooth",
+                        });
+                    }}
+                  >
+                    See All
+                  </Link>
+                </div>
+
+                {/* Compact horizontal layout for monthly programs */}
+                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+                  {serviceInfo.monthly.map((program, index) => (
+                    <div key={index} className="flex items-center">
+                      <span className="inline-block h-2 w-2 rounded-full bg-yellow-400 mr-1.5"></span>
+                      <span className="text-white text-xs">{program.name}</span>
+                      <span className="text-yellow-400 text-xs mx-1">•</span>
+                      <span className="text-primary-300 text-xs">
+                        {program.schedule}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Church Address */}
               <div className="mt-2 pt-2 border-t border-white/10">
                 <div className="flex items-center space-x-2">
                   <svg

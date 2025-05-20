@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const seedFoundationClassSessions = require("./seed/foundationClassSessions");
+const seedRecurringEvents = require("./seed/recurringEvents");
 
 // Hash password
 const hashPassword = (password) => {
@@ -279,6 +280,7 @@ const seedAllData = async () => {
   await seedZones();
   await seedCellGroups();
   await seedFoundationClassSessions();
+  await seedRecurringEvents();
   console.log("All data seeded successfully");
 };
 

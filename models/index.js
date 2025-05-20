@@ -2,6 +2,7 @@ const User = require("./User");
 const Media = require("./Media");
 const Sermon = require("./Sermon");
 const Event = require("./Event");
+const RecurringEvent = require("./RecurringEvent");
 const Leader = require("./Leader");
 const Zone = require("./Zone");
 const CellGroup = require("./CellGroup");
@@ -16,6 +17,7 @@ module.exports = {
   Media,
   Sermon,
   Event,
+  RecurringEvent,
   Leader,
   Zone,
   CellGroup,

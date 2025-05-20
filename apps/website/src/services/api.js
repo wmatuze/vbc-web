@@ -982,6 +982,43 @@ export const getEvents = () => {
     });
 };
 export const getEventById = (id) => fetchData(`api/events/${id}`);
+
+// Recurring events endpoints
+export const getRecurringEvents = () => {
+  console.log("Calling getRecurringEvents API");
+  return fetchData("api/recurring-events")
+    .then((data) => {
+      console.log("Recurring Events API response:", data);
+      return data;
+    })
+    .catch((error) => {
+      console.error("Error fetching recurring events:", error);
+      throw error;
+    });
+};
+export const getRecurringEventById = (id) =>
+  fetchData(`api/recurring-events/${id}`);
+export const createRecurringEvent = (event) => {
+  console.log(
+    "Creating recurring event with data:",
+    JSON.stringify(event, null, 2)
+  );
+  return postData("api/recurring-events", event);
+};
+export const updateRecurringEvent = (id, event) =>
+  updateData("api/recurring-events", id, event);
+export const deleteRecurringEvent = (id) => {
+  // If id is an object (like a full event), extract the ID
+  const eventId = typeof id === "object" ? id._id || id.id : id;
+
+  if (!eventId) {
+    console.error("Missing recurring event ID for deletion");
+    throw new Error("Cannot delete: Invalid recurring event ID");
+  }
+
+  console.log(`Deleting recurring event with ID: ${eventId}`);
+  return deleteData("api/recurring-events", eventId);
+};
 export const createEvent = (event) => {
   console.log("Creating event with data:", JSON.stringify(event, null, 2));
   return postData("api/events", event);

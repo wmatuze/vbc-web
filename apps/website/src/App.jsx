@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import QueryProvider from "./providers/QueryProvider";
 import Navbar from "./components/Layout/Navbar";
 import HeroSection from "./components/Home/HeroSection";
+import MonthlyPrograms from "./components/Home/MonthlyPrograms";
 import Ministries from "./components/Home/Ministries";
 import HomeSermons from "./components/Home/Sermons";
 import CallToAction from "./components/Home/CallToAction";
@@ -136,6 +137,7 @@ const AppContent = () => {
                 <PageWrapper noPadding>
                   <div className="space-y-16 md:space-y-24">
                     <HeroSection ref={heroRef} />
+                    <MonthlyPrograms />
                     <Ministries />
                     <HomeSermons />
                     <CallToAction />

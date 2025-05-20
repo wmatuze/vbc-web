@@ -15,10 +15,9 @@ import {
   FaYoutube,
   FaWhatsapp,
   FaDirections,
-  FaUserTie,
   FaQuestionCircle,
   FaPrayingHands,
-  FaBell,
+  FaCalendarAlt,
 } from "react-icons/fa";
 
 const ContactUs = () => {
@@ -398,55 +397,160 @@ const ContactUs = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 p-8 md:p-12">
-            <motion.div
-              className="bg-purple-50 dark:bg-gray-700 p-6 rounded-xl text-center"
-              whileHover={{
-                y: -5,
-                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
-              }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <div className="bg-purple-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-white">
-                <FaPrayingHands className="text-2xl" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Sunday Worship</h3>
-              <p className="text-gray-700 dark:text-gray-300 text-lg">[Time]</p>
-            </motion.div>
+          <div className="p-8 md:p-12">
+            <h3 className="text-2xl font-bold mb-6 text-center">
+              Weekly Services
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+              <motion.div
+                className="bg-purple-50 dark:bg-gray-700 p-6 rounded-xl text-center"
+                whileHover={{
+                  y: -5,
+                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
+                }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <div className="bg-purple-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-white">
+                  <FaPrayingHands className="text-2xl" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Sunday Worship</h3>
+                <p className="text-gray-700 dark:text-gray-300 text-lg">
+                  9:30 AM
+                </p>
+              </motion.div>
 
-            <motion.div
-              className="bg-indigo-50 dark:bg-gray-700 p-6 rounded-xl text-center"
-              whileHover={{
-                y: -5,
-                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
-              }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <div className="bg-indigo-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-white">
-                <FaQuestionCircle className="text-2xl" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Bible Study</h3>
-              <p className="text-gray-700 dark:text-gray-300 text-lg">
-                [Day/Time]
-              </p>
-            </motion.div>
+              <motion.div
+                className="bg-indigo-50 dark:bg-gray-700 p-6 rounded-xl text-center"
+                whileHover={{
+                  y: -5,
+                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
+                }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <div className="bg-indigo-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-white">
+                  <FaQuestionCircle className="text-2xl" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Midweek Service</h3>
+                <p className="text-gray-700 dark:text-gray-300 text-lg">
+                  Wednesday, 6:00 PM
+                </p>
+              </motion.div>
+            </div>
 
-            <motion.div
-              className="bg-blue-50 dark:bg-gray-700 p-6 rounded-xl text-center"
-              whileHover={{
-                y: -5,
-                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
-              }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <div className="bg-blue-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-white">
-                <FaBell className="text-2xl" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Prayer Meetings</h3>
-              <p className="text-gray-700 dark:text-gray-300 text-lg">
-                [Day/Time]
-              </p>
-            </motion.div>
+            <h3 className="text-2xl font-bold mb-6 text-center">
+              Monthly Programs
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <motion.div
+                className="bg-yellow-50 dark:bg-gray-700 p-6 rounded-xl text-center"
+                whileHover={{
+                  y: -5,
+                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
+                }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <div className="bg-yellow-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-white">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-8 w-8"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold mb-2">
+                  Anointing Service
+                </h3>
+                <p className="text-gray-700 dark:text-gray-300 text-lg">
+                  First Sunday of each month
+                </p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
+                  9:30 AM
+                </p>
+              </motion.div>
+
+              <motion.div
+                className="bg-red-50 dark:bg-gray-700 p-6 rounded-xl text-center"
+                whileHover={{
+                  y: -5,
+                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
+                }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <div className="bg-red-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-white">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-8 w-8"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Holy Communion</h3>
+                <p className="text-gray-700 dark:text-gray-300 text-lg">
+                  Third Sunday of each month
+                </p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
+                  9:30 AM
+                </p>
+              </motion.div>
+
+              <motion.div
+                className="bg-blue-50 dark:bg-gray-700 p-6 rounded-xl text-center"
+                whileHover={{
+                  y: -5,
+                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
+                }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <div className="bg-blue-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-white">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-8 w-8"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Prayer & Fasting</h3>
+                <p className="text-gray-700 dark:text-gray-300 text-lg">
+                  Last week of each month
+                </p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
+                  Various times
+                </p>
+              </motion.div>
+            </div>
+
+            <div className="text-center mt-10">
+              <Link
+                to="/events"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-700 text-white font-medium px-6 py-3 rounded-lg hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300"
+              >
+                <FaCalendarAlt /> View Full Church Calendar
+              </Link>
+            </div>
           </div>
         </motion.div>
       </section>
