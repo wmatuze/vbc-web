@@ -4,6 +4,15 @@ import config from "../../config";
 const API_URL = config.API_URL;
 
 /**
+ * Get the base API URL based on environment
+ * @returns {String} The base API URL
+ */
+export const getApiUrl = () => {
+  // Use environment variable if available, or fallback to localhost
+  return import.meta.env.VITE_API_URL || API_URL || "http://localhost:3000";
+};
+
+/**
  * Get the authentication token from localStorage
  * @returns {string|null} The authentication token or null if not available
  */
