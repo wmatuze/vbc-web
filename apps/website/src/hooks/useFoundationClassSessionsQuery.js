@@ -4,7 +4,7 @@ import {
   createFoundationClassSession,
   updateFoundationClassSession,
   deleteFoundationClassSession,
-} from "../services/api";
+} from "../services/api/foundation-classes";
 import { FoundationClassSessionService } from "../services/foundationClassSessionService";
 
 /**

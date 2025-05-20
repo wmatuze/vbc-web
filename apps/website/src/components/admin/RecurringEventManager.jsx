@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import useErrorHandler from "../../hooks/useErrorHandler";
 import useRecurringEventForm from "../../hooks/useRecurringEventForm";
 import RecurringEventForm from "./RecurringEventForm";
-import { deleteRecurringEvent } from "../../services/api";
+import { deleteRecurringEvent } from "../../services/api/events";
 import { useRecurringEventsQuery } from "../../hooks/useRecurringEventsQuery";
 import {
   PlusIcon,

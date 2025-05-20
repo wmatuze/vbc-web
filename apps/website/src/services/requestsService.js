@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getApiUrl, getAuthHeaders } from "./config";
+import { getApiUrl, getAuthHeaders } from "./api/core";
 import {
   validateMembershipRenewal,
   validateFoundationClassRegistration,

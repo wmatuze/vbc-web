@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { createRecurringEvent, updateRecurringEvent } from "../services/api";
+import {
+  createRecurringEvent,
+  updateRecurringEvent,
+} from "../services/api/events";
 
 // Initial state for a new recurring event
 const INITIAL_RECURRING_EVENT_STATE = {

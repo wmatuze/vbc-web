@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getApiUrl, getAuthToken } from "./config";
+import { getApiUrl, getAuthToken } from "./api/core";
 
 /**
  * Notification service to handle sending messages to users

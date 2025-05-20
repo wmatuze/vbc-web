@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import { isAuthenticated, verifyAuth } from '../../services/api';
+import React, { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
+import { isAuthenticated, verifyAuth } from "../../services/api/auth";
 
 const ProtectedRoute = ({ children }) => {
   const [loading, setLoading] = useState(true);
@@ -17,7 +17,7 @@ const ProtectedRoute = ({ children }) => {
       } else {
         setIsAuthorized(false);
       }
-      
+
       setLoading(false);
     };
 

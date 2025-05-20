@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { createLeader, updateLeader, deleteLeader } from "../../services/api";
+import {
+  createLeader,
+  updateLeader,
+  deleteLeader,
+} from "../../services/api/leaders";
 import { useLeadersQuery } from "../../hooks/useLeadersQuery";
 import useErrorHandler from "../../hooks/useErrorHandler";
 import { validateField } from "../../utils/validationUtils";

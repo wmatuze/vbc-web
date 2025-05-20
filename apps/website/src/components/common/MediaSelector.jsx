@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { getImageUrl } from "../../utils/imageUtils";
-import { getMedia } from "../../services/api";
-import { XMarkIcon as XIcon, MagnifyingGlassIcon as SearchIcon } from "@heroicons/react/24/outline";
+import { getMedia } from "../../services/api/media";
+import {
+  XMarkIcon as XIcon,
+  MagnifyingGlassIcon as SearchIcon,
+} from "@heroicons/react/24/outline";
 import config from "../../config";
 
 const API_URL = config.API_URL;
@@ -20,31 +23,31 @@ const MediaSelector = ({ isOpen, onClose, onSelect }) => {
   const [mediaItems, setMediaItems] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+
   // Fetch media items when modal is opened
   useEffect(() => {
     if (isOpen) {
       fetchMediaItems();
     }
   }, [isOpen]);
-  
+
   // Function to fetch media items directly from API
   const fetchMediaItems = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const items = await getMedia();
       console.log("Fetched media items:", items);
-      
+
       // Ensure items have proper URLs
-      const processedItems = items.map(item => ({
+      const processedItems = items.map((item) => ({
         ...item,
         id: item._id || item.id, // Normalize ID
         // Ensure path is set
         path: item.path || (item.filename ? `/uploads/${item.filename}` : null),
       }));
-      
+
       setMediaItems(processedItems);
     } catch (err) {
       console.error("Error fetching media items:", err);
@@ -53,52 +56,55 @@ const MediaSelector = ({ isOpen, onClose, onSelect }) => {
       setIsLoading(false);
     }
   };
-  
+
   // Get proper image URL with API_URL prefix when needed
   const getMediaImageUrl = (item) => {
     if (!item) return "";
-    
+
     // If it's a full URL
     if (item.path && item.path.startsWith("http")) {
       return item.path;
     }
-    
+
     // If path is available
     if (item.path) {
       return `${API_URL}${item.path}`;
     }
-    
+
     // Fallback to filename
     if (item.filename) {
       return `${API_URL}/uploads/${item.filename}`;
     }
-    
+
     return "";
   };
-  
+
   // Filter media items by search term
-  const filteredItems = searchTerm 
-    ? mediaItems.filter(item => 
-        (item.title?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (item.filename?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (item.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())))
+  const filteredItems = searchTerm
+    ? mediaItems.filter(
+        (item) =>
+          item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.filename?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.tags?.some((tag) =>
+            tag.toLowerCase().includes(searchTerm.toLowerCase())
+          )
       )
     : mediaItems;
-    
+
   const handleSelect = () => {
     if (selectedItem) {
       onSelect(selectedItem);
       setSelectedItem(null);
     }
   };
-  
+
   const handleRefresh = () => {
     fetchMediaItems();
   };
-  
+
   // If modal is not open, don't render anything
   if (!isOpen) return null;
-  
+
   return (
     <div className="fixed inset-0 overflow-y-auto z-50">
       <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center">
@@ -120,8 +126,19 @@ const MediaSelector = ({ isOpen, onClose, onSelect }) => {
                     className="text-gray-400 hover:text-gray-500"
                     title="Refresh media"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -143,8 +160,10 @@ const MediaSelector = ({ isOpen, onClose, onSelect }) => {
                     </div>
                   ) : error ? (
                     <div className="bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 p-3 rounded">
-                      {typeof error === 'string' ? error : (error.message || 'An unknown error occurred')}
-                      <button 
+                      {typeof error === "string"
+                        ? error
+                        : error.message || "An unknown error occurred"}
+                      <button
                         onClick={handleRefresh}
                         className="ml-2 underline"
                       >
@@ -153,9 +172,9 @@ const MediaSelector = ({ isOpen, onClose, onSelect }) => {
                     </div>
                   ) : filteredItems.length === 0 ? (
                     <div className="text-center p-6 text-gray-500 dark:text-gray-400">
-                      {mediaItems.length === 0 ? 
-                        "No media items found. Upload some media in the Media Manager." : 
-                        "No matching media items. Try a different search term."}
+                      {mediaItems.length === 0
+                        ? "No media items found. Upload some media in the Media Manager."
+                        : "No matching media items. Try a different search term."}
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 overflow-y-auto max-h-80">
@@ -219,4 +238,4 @@ const MediaSelector = ({ isOpen, onClose, onSelect }) => {
   );
 };
 
-export default MediaSelector; 
+export default MediaSelector;

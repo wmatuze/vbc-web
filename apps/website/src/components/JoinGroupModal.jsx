@@ -10,7 +10,7 @@ import {
   FaMapMarkerAlt,
   FaWhatsapp,
 } from "react-icons/fa";
-import { submitCellGroupJoinRequest } from "../services/api";
+import { submitCellGroupJoinRequest } from "../services/api/cell-groups";
 
 const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
   const [formData, setFormData] = useState({

@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
-import { getEvents, getEventById } from '../services/api';
+import { useQuery } from "@tanstack/react-query";
+import { getEvents, getEventById } from "../services/api/events";
 
 /**
  * Custom hook for fetching events data using React Query
@@ -8,15 +8,15 @@ import { getEvents, getEventById } from '../services/api';
  */
 export const useEventsQuery = (options = {}) => {
   return useQuery({
-    queryKey: ['events'],
+    queryKey: ["events"],
     queryFn: getEvents,
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
     retry: 1,
     onError: (error) => {
-      console.error('Error fetching events:', error);
+      console.error("Error fetching events:", error);
     },
-    ...options
+    ...options,
   });
 };
 
@@ -27,10 +27,10 @@ export const useEventsQuery = (options = {}) => {
  */
 export const useMinistryEventsQuery = (ministry) => {
   return useQuery({
-    queryKey: ['events', 'ministry', ministry],
+    queryKey: ["events", "ministry", ministry],
     queryFn: async () => {
       const events = await getEvents();
-      return events.filter(event => event?.ministry === ministry);
+      return events.filter((event) => event?.ministry === ministry);
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
@@ -38,7 +38,7 @@ export const useMinistryEventsQuery = (ministry) => {
     enabled: !!ministry, // Only run the query if we have a ministry
     onError: (error) => {
       console.error(`Error fetching events for ministry ${ministry}:`, error);
-    }
+    },
   });
 };
 
@@ -49,7 +49,7 @@ export const useMinistryEventsQuery = (ministry) => {
  */
 export const useEventByIdQuery = (id) => {
   return useQuery({
-    queryKey: ['events', id],
+    queryKey: ["events", id],
     queryFn: () => getEventById(id),
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
@@ -57,6 +57,6 @@ export const useEventByIdQuery = (id) => {
     enabled: !!id, // Only run the query if we have an ID
     onError: (error) => {
       console.error(`Error fetching event with ID ${id}:`, error);
-    }
+    },
   });
 };

@@ -2,7 +2,7 @@ import {
   getFoundationClassSessions,
   registerForFoundationClass,
   incrementFoundationClassEnrollment,
-} from "./api";
+} from "./api/foundation-classes";
 import { clearFoundationClassSessionsCache } from "../utils/clearCache";
 
 // Default mock data

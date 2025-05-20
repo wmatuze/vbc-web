@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getSermons, getSermonById } from "../services/api";
+import { getSermons, getSermonById } from "../services/api/sermons";
 
 /**
  * Custom hook for fetching sermons data using React Query

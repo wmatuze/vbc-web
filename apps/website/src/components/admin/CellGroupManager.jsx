@@ -3,13 +3,14 @@ import {
   createCellGroup,
   updateCellGroup,
   deleteCellGroup,
+} from "../../services/api/cell-groups";
+import {
   getZones,
   createZone,
   updateZone,
   deleteZone,
-  isAuthenticated,
-  login,
-} from "../../services/api";
+} from "../../services/api/zones";
+import { isAuthenticated, login } from "../../services/api/auth";
 import { useCellGroupsQuery } from "../../hooks/useCellGroupsQuery";
 import { useZonesQuery } from "../../hooks/useZonesQuery";
 import useErrorHandler from "../../hooks/useErrorHandler";

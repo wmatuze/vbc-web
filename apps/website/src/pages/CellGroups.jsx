@@ -15,7 +15,7 @@ import JoinGroupModal from "../components/JoinGroupModal";
 import PlaceHolderbanner from "../assets/ministry-banners/ph.png";
 import cellGroupPlaceholderImage from "../assets/placeholders/default-cell-group.svg";
 import { Helmet } from "react-helmet-async";
-import { getCellGroups } from "../services/api";
+import { getCellGroups } from "../services/api/cell-groups";
 import config from "../config";
 
 // Constants

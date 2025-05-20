@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
-import { getLeaders } from '../services/api';
+import { useQuery } from "@tanstack/react-query";
+import { getLeaders } from "../services/api/leaders";
 
 /**
  * Custom hook for fetching leadership data for the public-facing Leadership page
@@ -7,10 +7,10 @@ import { getLeaders } from '../services/api';
  */
 export const useLeadershipQuery = () => {
   return useQuery({
-    queryKey: ['leadership'],
+    queryKey: ["leadership"],
     queryFn: async () => {
       const data = await getLeaders();
-      
+
       // Process leaders to ensure email is properly extracted from contact object
       const processedLeaders = data.map((leader) => ({
         ...leader,

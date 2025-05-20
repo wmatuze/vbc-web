@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { deleteMedia, uploadFile, testConnection } from "../../services/api";
+import { deleteMedia, uploadFile } from "../../services/api/media";
+import { testConnection } from "../../services/api/auth";
 import {
   uploadMediaLocally,
   deleteLocalMedia,

@@ -5,7 +5,7 @@ import FormField from "../common/FormField";
 import MediaSelector from "../common/MediaSelector";
 import ImagePreview from "../common/ImagePreview";
 import EventAdminCard from "./EventAdminCard";
-import { deleteEvent } from "../../services/api";
+import { deleteEvent } from "../../services/api/events";
 import { useEventsQuery } from "../../hooks/useEventsQuery";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import {

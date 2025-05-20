@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
-import { getLeaders } from '../services/api';
+import { useQuery } from "@tanstack/react-query";
+import { getLeaders } from "../services/api/leaders";
 
 /**
  * Custom hook for fetching leaders data using React Query
@@ -7,7 +7,7 @@ import { getLeaders } from '../services/api';
  */
 export const useLeadersQuery = () => {
   return useQuery({
-    queryKey: ['leaders'],
+    queryKey: ["leaders"],
     queryFn: getLeaders,
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
@@ -17,7 +17,7 @@ export const useLeadersQuery = () => {
       return data.sort((a, b) => (a.order || 0) - (b.order || 0));
     },
     onError: (error) => {
-      console.error('Error fetching leaders:', error);
-    }
+      console.error("Error fetching leaders:", error);
+    },
   });
 };

@@ -1,3 +1,17 @@
+/**
+ * @deprecated This file is being phased out in favor of a more modular approach.
+ * Please import from the new modular structure instead:
+ *
+ * BEFORE:
+ * import { getSermons } from '../services/api';
+ *
+ * AFTER:
+ * import { getSermons } from '../services/api/sermons';
+ *
+ * The new structure provides better organization, maintainability, and performance.
+ * See the README.md in the api directory for more information.
+ */
+
 // API service for fetching data from JSON Server
 import config from "../config";
 

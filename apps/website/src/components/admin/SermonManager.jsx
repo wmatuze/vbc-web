@@ -2,7 +2,11 @@ import { useState, useEffect, useCallback } from "react";
 import useErrorHandler from "../../hooks/useErrorHandler";
 import { validateSermon, validateField } from "../../utils/validationUtils";
 import FormField from "../common/FormField";
-import { createSermon, updateSermon, deleteSermon } from "../../services/api";
+import {
+  createSermon,
+  updateSermon,
+  deleteSermon,
+} from "../../services/api/sermons";
 import { useSermonsQuery } from "../../hooks/useSermonsQuery";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { safeRenderValue, safeRenderObject } from "../../utils/safeRenderUtils";

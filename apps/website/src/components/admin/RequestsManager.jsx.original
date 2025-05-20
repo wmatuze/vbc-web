@@ -19,7 +19,7 @@ import {
 import RequestsService from "../../services/requestsService";
 import NotificationService from "../../services/notificationService";
 import { toast } from "react-toastify";
-import { getAuthToken } from "../../services/config";
+import { getAuthToken } from "../../services/api/core";
 import {
   validateMembershipRenewal,
   validateFoundationClassRegistration,

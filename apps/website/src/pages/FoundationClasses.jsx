@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import PlaceHolderbanner from "../assets/ministry-banners/ph.png";
 import FallbackImage from "../assets/fallback-image.png";
 import useFoundationClassSessions from "../hooks/useFoundationClassSessions";
-import { isAuthenticated } from "../services/api";
+import { isAuthenticated } from "../services/api/auth";
 import {
   FaBookOpen,
   FaCalendarAlt,

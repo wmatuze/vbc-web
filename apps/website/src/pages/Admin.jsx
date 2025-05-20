@@ -6,7 +6,7 @@ import {
   logout,
   verifyAuth,
   getCurrentUser,
-} from "../services/api";
+} from "../services/api/auth";
 import SermonManager from "../components/admin/SermonManager";
 import SermonManagerWrapper from "../components/admin/SermonManagerWrapper";
 import EventManager from "../components/admin/EventManager";

@@ -1,9 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import {
-  getCellGroups,
-  getCellGroupById,
-  getZoneCellGroups,
-} from "../services/api";
+import { getCellGroups, getCellGroupById } from "../services/api/cell-groups";
+import { getZoneCellGroups } from "../services/api/zones";
 
 /**
  * Custom hook for fetching cell groups data using React Query

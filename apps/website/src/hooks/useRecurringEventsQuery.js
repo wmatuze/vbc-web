@@ -1,5 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { getRecurringEvents, getRecurringEventById } from "../services/api";
+import {
+  getRecurringEvents,
+  getRecurringEventById,
+} from "../services/api/events";
 
 /**
  * Custom hook for fetching recurring events data using React Query

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createEvent, updateEvent } from "../services/api";
+import { createEvent, updateEvent } from "../services/api/events";
 import { validateEvent, validateField } from "../utils/validationUtils";
 import { prepareEventForAPI } from "../utils/dateUtils";
 import {

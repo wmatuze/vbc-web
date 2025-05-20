@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getMedia, getMediaById } from "../services/api";
+import { getMedia, getMediaById } from "../services/api/media";
 
 /**
  * Custom hook for fetching media data using React Query

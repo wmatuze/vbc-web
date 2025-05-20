@@ -1,5 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { getZones, getZoneById, getZoneCellGroups } from "../services/api";
+import {
+  getZones,
+  getZoneById,
+  getZoneCellGroups,
+} from "../services/api/zones";
 
 /**
  * Custom hook for fetching zones data using React Query
