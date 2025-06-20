@@ -90,7 +90,15 @@ export const foundationClassValidationRules = {
   },
   status: {
     type: "string",
-    enum: ["registered", "attending", "completed", "cancelled"],
+    enum: [
+      "registered",
+      "attending",
+      "completed",
+      "cancelled",
+      "pending",
+      "approved",
+      "rejected",
+    ],
     fieldName: "Status",
   },
 };
@@ -314,7 +322,15 @@ export const validateMembershipStatusChange = (status) => {
  * @returns {Object} - Object with isValid flag and error message
  */
 export const validateFoundationClassStatusChange = (status) => {
-  const validStatuses = ["registered", "attending", "completed", "cancelled"];
+  const validStatuses = [
+    "registered",
+    "attending",
+    "completed",
+    "cancelled",
+    "pending",
+    "approved",
+    "rejected",
+  ];
 
   if (!status || !validStatuses.includes(status)) {
     return {

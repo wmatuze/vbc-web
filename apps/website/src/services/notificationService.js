@@ -52,6 +52,46 @@ class NotificationService {
     try {
       const token = getAuthToken();
 
+      // Import the session API function
+      const { getFoundationClassSessionById } = await import(
+        "./api/foundation-classes"
+      );
+
+      // Fetch the actual session details
+      let sessionDetails = null;
+      try {
+        sessionDetails = await getFoundationClassSessionById(
+          enrollee.preferredSession
+        );
+        console.log("Fetched session details for email:", sessionDetails);
+      } catch (sessionError) {
+        console.warn(
+          "Could not fetch session details, using defaults:",
+          sessionError
+        );
+      }
+
+      // Format session information for email
+      const formatDate = (date) => {
+        const options = { year: "numeric", month: "long", day: "numeric" };
+        return new Date(date).toLocaleDateString("en-US", options);
+      };
+
+      const scheduleInfo = sessionDetails
+        ? {
+            location:
+              sessionDetails.location || "Church Main Building, Room 201",
+            startDate: `${formatDate(sessionDetails.startDate)} - ${formatDate(sessionDetails.endDate)}`,
+            time: sessionDetails.time || "9:00 AM - 10:30 AM",
+            day: sessionDetails.day || "Sundays",
+          }
+        : {
+            location: "Church Main Building, Room 201",
+            startDate: "Please contact the church office for details",
+            time: "9:00 AM - 10:30 AM",
+            day: "Sundays",
+          };
+
       const response = await axios.post(
         `${getApiUrl()}/api/notifications/send`,
         {
@@ -63,13 +103,7 @@ class NotificationService {
           },
           data: {
             preferredSession: enrollee.preferredSession,
-            // You might want to fetch the actual schedule data from the server
-            // or include it in the enrollee object
-            schedule: {
-              location: "Room 201",
-              startDate: enrollee.preferredSession,
-              time: "9:00 AM - 10:30 AM",
-            },
+            schedule: scheduleInfo,
           },
         },
         {

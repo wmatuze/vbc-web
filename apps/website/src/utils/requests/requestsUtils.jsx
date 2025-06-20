@@ -7,6 +7,8 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   ClockIcon,
+  UserPlusIcon,
+  ClipboardDocumentListIcon,
 } from "@heroicons/react/24/outline";
 
 /**
@@ -106,9 +108,11 @@ export const getStatusBadgeClasses = (status) => {
     case "declined":
     case "cancelled":
       return "bg-red-100 text-red-800";
-    case "pending":
     case "registered":
+      return "bg-blue-100 text-blue-800";
     case "attending":
+      return "bg-orange-100 text-orange-800"; // Assuming tailwind orange, otherwise adjust
+    case "pending":
     default:
       return "bg-yellow-100 text-yellow-800";
   }
@@ -127,9 +131,11 @@ export const getStatusIcon = (status) => {
     case "declined":
     case "cancelled":
       return <XCircleIcon className="h-5 w-5 text-red-500" />;
-    case "pending":
     case "registered":
+      return <UserPlusIcon className="h-5 w-5 text-blue-500" />;
     case "attending":
+      return <ClipboardDocumentListIcon className="h-5 w-5 text-orange-500" />; // Assuming tailwind orange
+    case "pending":
     default:
       return <ClockIcon className="h-5 w-5 text-yellow-500" />;
   }

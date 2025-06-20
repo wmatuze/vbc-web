@@ -3,6 +3,7 @@ import {
   FaSearch,
   FaMapMarkerAlt,
   FaUser,
+  FaUsers,
   FaEnvelope,
   FaChevronDown,
   FaCalendarAlt,
@@ -25,6 +26,7 @@ import CellGroupImage1 from "../assets/cell-groups/cell-group-1.jpg";
 import CellGroupImage2 from "../assets/cell-groups/cell-group-2.jpg";
 import CellGroupImage3 from "../assets/cell-groups/cell-group-3.jpg";
 import CellGroupImage4 from "../assets/cell-groups/cell-group-4.jpg";
+import FallbackImage from "../assets/fallback-image.png";
 
 // Fallback images map
 const fallbackImages = {
@@ -73,6 +75,15 @@ const CellGroups = () => {
   const allLocations = [
     ...new Set(cellGroupsData.map((group) => group.location)),
   ];
+  const allZones = [
+    ...new Set(
+      cellGroupsData
+        .map((group) =>
+          typeof group.zone === "object" ? group.zone.name : null
+        )
+        .filter(Boolean)
+    ),
+  ];
 
   // Scroll tracking for sticky header
   useEffect(() => {
@@ -116,7 +127,10 @@ const CellGroups = () => {
         (filter) =>
           (group.tags && group.tags.includes(filter)) ||
           group.location === filter ||
-          group.meetingDay === filter
+          group.meetingDay === filter ||
+          (group.zone &&
+            typeof group.zone === "object" &&
+            group.zone.name === filter)
       );
 
     return matchesSearch && matchesFilters;
@@ -437,6 +451,30 @@ const CellGroups = () => {
 
                   {/* Mobile-friendly filter layout */}
                   <div className="space-y-6 md:space-y-0 md:flex md:flex-wrap md:gap-8">
+                    {/* Zone filters */}
+                    {allZones.length > 0 && (
+                      <div className="mb-2">
+                        <h4 className="text-sm font-medium text-gray-700 mb-2">
+                          Zone
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {allZones.map((zone) => (
+                            <button
+                              key={zone}
+                              onClick={() => toggleFilter(zone)}
+                              className={`px-4 py-1.5 text-sm rounded-full shadow-sm ${
+                                activeFilters.includes(zone)
+                                  ? "bg-gray-900 text-white"
+                                  : "bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-white/90"
+                              } transition-all duration-300`}
+                            >
+                              {zone}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Location filters */}
                     <div className="mb-2">
                       <h4 className="text-sm font-medium text-gray-700 mb-2">
@@ -606,10 +644,19 @@ const CellGroups = () => {
                       <h3 className="text-xl font-bold text-white mb-1">
                         {group.name}
                       </h3>
-                      <div className="flex items-center text-sm text-white/90">
+                      <div className="flex items-center text-sm text-white/90 mb-1">
                         <FaMapMarkerAlt className="mr-1" />
                         {group.location}
                       </div>
+                      {/* Display zone information */}
+                      {group.zone && (
+                        <div className="flex items-center text-xs text-yellow-300/90">
+                          <FaUsers className="mr-1" size={10} />
+                          {typeof group.zone === "object"
+                            ? group.zone.name
+                            : "Zone"}
+                        </div>
+                      )}
                     </div>
                   </div>
 

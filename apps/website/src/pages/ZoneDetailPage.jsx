@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -12,7 +12,12 @@ import {
   FaFilter,
   FaArrowRight,
   FaArrowLeft,
-  FaUsers,
+  FaStar,
+  FaCrown,
+  FaQuoteLeft,
+  FaChevronDown,
+  FaGlobe,
+  FaHandsHelping,
 } from "react-icons/fa";
 import {
   useZoneByIdQuery,
@@ -39,6 +44,195 @@ const fallbackImages = {
   3: CellGroupImage3,
   4: CellGroupImage4,
 };
+
+// Premium Animation Variants
+const heroVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      duration: 1.2,
+      staggerChildren: 0.3,
+    },
+  },
+};
+
+const slideUpVariants = {
+  hidden: { opacity: 0, y: 60 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.8,
+      ease: [0.25, 0.46, 0.45, 0.94],
+    },
+  },
+};
+
+const slideInVariants = {
+  hidden: { opacity: 0, x: 60 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.8,
+      ease: [0.25, 0.46, 0.45, 0.94],
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 50, scale: 0.9 },
+  visible: (index) => ({
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.6,
+      delay: index * 0.1,
+      ease: [0.25, 0.46, 0.45, 0.94],
+    },
+  }),
+  hover: {
+    y: -8,
+    scale: 1.02,
+    transition: {
+      duration: 0.3,
+      ease: "easeOut",
+    },
+  },
+};
+
+// Premium Components
+const StatCard = ({ icon, value, label, delay = 0 }) => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.8 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ duration: 0.6, delay }}
+    whileHover={{ scale: 1.05, y: -2 }}
+    className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-300"
+  >
+    <div className="text-3xl mb-2">{icon}</div>
+    <div className="text-2xl font-bold text-white mb-1">{value}</div>
+    <div className="text-sm text-blue-100 uppercase tracking-wider">
+      {label}
+    </div>
+  </motion.div>
+);
+
+const ParticleBackground = () => (
+  <div className="absolute inset-0 overflow-hidden">
+    {[...Array(20)].map((_, i) => (
+      <motion.div
+        key={i}
+        className="absolute rounded-full bg-white/5"
+        style={{
+          width: Math.random() * 100 + 20,
+          height: Math.random() * 100 + 20,
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
+        }}
+        animate={{
+          y: [0, -30, 0],
+          opacity: [0.1, 0.3, 0.1],
+          scale: [1, 1.1, 1],
+        }}
+        transition={{
+          duration: Math.random() * 10 + 10,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+    ))}
+  </div>
+);
+
+const ElderSpotlightCard = ({ elder }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 50, rotateY: -15 }}
+    animate={{ opacity: 1, y: 0, rotateY: 0 }}
+    transition={{ duration: 1, delay: 0.5 }}
+    whileHover={{ y: -10, rotateY: 5 }}
+    className="relative group"
+  >
+    {/* Glow Effect */}
+    <div className="absolute -inset-1 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200" />
+
+    {/* Main Card */}
+    <div className="relative bg-white/10 backdrop-blur-2xl rounded-3xl p-8 border border-white/20 shadow-2xl">
+      {/* Crown Icon */}
+      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+        <div className="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full p-3 shadow-lg">
+          <FaCrown className="text-white text-xl" />
+        </div>
+      </div>
+
+      {/* Elder Image */}
+      <div className="relative mx-auto w-32 h-32 mb-6 mt-4">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full blur-sm opacity-50" />
+        <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-white/30 shadow-xl">
+          {elder?.image ? (
+            <img
+              src={elder.image}
+              alt={elder.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <FaUser className="text-white text-4xl" />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Elder Info */}
+      <div className="text-center">
+        <h3 className="text-2xl font-bold text-white mb-2">{elder?.name}</h3>
+        <p className="text-blue-200 mb-4 font-medium">{elder?.title}</p>
+
+        {/* Quote */}
+        <div className="relative mb-6">
+          <FaQuoteLeft className="absolute -top-2 -left-2 text-blue-300 text-lg opacity-50" />
+          <p className="text-sm text-blue-100 italic leading-relaxed px-4">
+            {elder?.bio ||
+              "Leading with faith, serving with love, building community together."}
+          </p>
+        </div>
+
+        {/* Contact Options */}
+        <div className="space-y-3">
+          {elder?.contact && (
+            <motion.a
+              href={`mailto:${elder.contact}`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center justify-center space-x-3 bg-white/10 hover:bg-white/20 rounded-xl p-3 transition-all duration-300 group"
+            >
+              <FaEnvelope className="text-blue-300 group-hover:text-white transition-colors" />
+              <span className="text-sm text-blue-100 group-hover:text-white transition-colors">
+                Send Message
+              </span>
+            </motion.a>
+          )}
+
+          {elder?.phone && (
+            <motion.a
+              href={`tel:${elder.phone}`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center justify-center space-x-3 bg-white/10 hover:bg-white/20 rounded-xl p-3 transition-all duration-300 group"
+            >
+              <FaPhone className="text-green-300 group-hover:text-white transition-colors" />
+              <span className="text-sm text-blue-100 group-hover:text-white transition-colors">
+                Call Now
+              </span>
+            </motion.a>
+          )}
+        </div>
+      </div>
+    </div>
+  </motion.div>
+);
 
 const ZoneDetailPage = () => {
   const { zoneId } = useParams();
@@ -79,13 +273,6 @@ const ZoneDetailPage = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Get all unique tags for filters
-  const allTags = [
-    ...new Set(displayCellGroups.flatMap((group) => group.tags || [])),
-  ];
-  // Get all unique locations for filters (commented out as it's not currently used)
-  // const allLocations = [...new Set(cellGroups.map((group) => group.location))];
-
   // Get image URL (either from API or fallback)
   const getImageUrl = (group) => {
     if (group.imageUrl) {
@@ -102,28 +289,6 @@ const ZoneDetailPage = () => {
       return FallbackImage;
     }
   };
-
-  // Filter groups based on search and active filters
-  const filteredGroups = displayCellGroups.filter((group) => {
-    // Match search term
-    const matchesSearch =
-      group.name?.toLowerCase().includes(search.toLowerCase()) ||
-      group.location?.toLowerCase().includes(search.toLowerCase()) ||
-      group.description?.toLowerCase().includes(search.toLowerCase()) ||
-      group.leader?.toLowerCase().includes(search.toLowerCase());
-
-    // Match all active filters or return true if no filters active
-    const matchesFilters =
-      activeFilters.length === 0 ||
-      activeFilters.some(
-        (filter) =>
-          (group.tags && group.tags.includes(filter)) ||
-          group.location === filter ||
-          group.meetingDay === filter
-      );
-
-    return matchesSearch && matchesFilters;
-  });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -214,6 +379,33 @@ const ZoneDetailPage = () => {
   const displayCellGroups =
     cellGroups.length > 0 ? cellGroups : fallbackCellGroups;
 
+  // Get all unique tags for filters (must be after displayCellGroups is defined)
+  const allTags = [
+    ...new Set(displayCellGroups.flatMap((group) => group.tags || [])),
+  ];
+
+  // Filter groups based on search and active filters (must be after displayCellGroups is defined)
+  const filteredGroups = displayCellGroups.filter((group) => {
+    // Match search term
+    const matchesSearch =
+      group.name?.toLowerCase().includes(search.toLowerCase()) ||
+      group.location?.toLowerCase().includes(search.toLowerCase()) ||
+      group.description?.toLowerCase().includes(search.toLowerCase()) ||
+      group.leader?.toLowerCase().includes(search.toLowerCase());
+
+    // Match all active filters or return true if no filters active
+    const matchesFilters =
+      activeFilters.length === 0 ||
+      activeFilters.some(
+        (filter) =>
+          (group.tags && group.tags.includes(filter)) ||
+          group.location === filter ||
+          group.meetingDay === filter
+      );
+
+    return matchesSearch && matchesFilters;
+  });
+
   // Show error state if there's an error or zone not found and no fallback data
   if ((zoneError || !zone) && !isLoading && !fallbackZone) {
     return (
@@ -258,88 +450,176 @@ const ZoneDetailPage = () => {
         />
       </Helmet>
 
-      {/* Zone Header */}
+      {/* Premium Cinematic Hero Section */}
       {displayZone && (
-        <section className="relative bg-gray-900 text-white py-16 pt-32">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-12">
+        <motion.section
+          variants={heroVariants}
+          initial="hidden"
+          animate="visible"
+          className="relative min-h-screen overflow-hidden"
+        >
+          {/* Dynamic Background with Parallax */}
+          <div className="absolute inset-0">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+            <ParticleBackground />
+          </div>
+
+          {/* Navigation - Positioned below navbar */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="relative z-20 pt-24 pb-4"
+          >
+            <div className="container mx-auto px-4">
               <Link
                 to="/cell-groups"
-                className="inline-flex items-center text-gray-300 hover:text-white bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full shadow-md transition-all duration-300"
+                className="inline-flex items-center text-white/80 hover:text-white bg-white/10 hover:bg-white/20 backdrop-blur-xl px-6 py-3 rounded-full shadow-xl transition-all duration-300 group"
               >
-                <FaArrowLeft className="mr-2" /> Back to All Zones
+                <FaArrowLeft className="mr-3 group-hover:-translate-x-1 transition-transform" />
+                <span className="font-medium">Back to All Zones</span>
               </Link>
-
-              <div className="flex items-center text-yellow-400 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full shadow-md">
-                <FaUsers className="mr-2" />
-                <span>
-                  {displayZone.cellCount || filteredGroups.length} Cell Groups
-                </span>
-              </div>
             </div>
+          </motion.div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-              <div className="lg:col-span-2">
-                <h1 className="text-4xl font-bold mb-4">{displayZone.name}</h1>
-                <div className="flex items-center text-gray-300 mb-4 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full shadow-md inline-block">
-                  <FaMapMarkerAlt className="mr-2" />
-                  <span>{displayZone.location}</span>
-                </div>
-                <p className="text-lg text-gray-300 mb-6 bg-black/20 backdrop-blur-sm p-4 rounded-xl shadow-md">
-                  {displayZone.description}
-                </p>
-              </div>
+          {/* Main Hero Content */}
+          <div className="relative z-10 container mx-auto px-4 pt-16 pb-32">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center min-h-[70vh]">
+              {/* Zone Information - 3/5 */}
+              <motion.div
+                variants={slideUpVariants}
+                className="lg:col-span-3 space-y-8"
+              >
+                {/* Zone Title */}
+                <div className="space-y-6">
+                  <motion.h1
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 1, delay: 0.2 }}
+                    className="text-6xl lg:text-8xl font-bold text-white leading-tight"
+                  >
+                    {displayZone.name}
+                  </motion.h1>
 
-              {/* Elder Information */}
-              <div className="bg-white/10 backdrop-blur-md p-6 rounded-xl shadow-lg border border-white/10">
-                <h2 className="text-xl font-bold mb-4">Zone Elder</h2>
-                <div className="flex items-start">
-                  <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm overflow-hidden mr-4 shadow-md">
-                    {displayZone.elder.image ? (
-                      <img
-                        src={displayZone.elder.image}
-                        alt={displayZone.elder.name}
-                        className="w-full h-full object-cover filter grayscale hover:grayscale-0 transition-all duration-500"
-                        onError={(e) => {
-                          e.target.src = FallbackImage;
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-white/20 text-white/80">
-                        <FaUser size={32} />
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg">
-                      {displayZone.elder.name}
-                    </h3>
-                    <p className="text-gray-300 mb-2">
-                      {displayZone.elder.title}
-                    </p>
-                    <p className="text-sm text-gray-300 mb-4">
-                      {displayZone.elder.bio}
-                    </p>
-                    <div className="flex flex-col space-y-2">
-                      {displayZone.elder.contact && (
-                        <div className="flex items-center text-gray-300 text-sm bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm">
-                          <FaEnvelope className="mr-2" />
-                          <span>{displayZone.elder.contact}</span>
-                        </div>
-                      )}
-                      {displayZone.elder.phone && (
-                        <div className="flex items-center text-gray-300 text-sm bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm">
-                          <FaPhone className="mr-2" />
-                          <span>{displayZone.elder.phone}</span>
-                        </div>
-                      )}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.4 }}
+                    className="flex items-center space-x-3"
+                  >
+                    <div className="flex items-center bg-white/10 backdrop-blur-xl px-6 py-3 rounded-full border border-white/20 shadow-xl">
+                      <FaGlobe className="mr-3 text-blue-300" />
+                      <span className="text-xl text-blue-100 font-medium">
+                        {displayZone.location}
+                      </span>
                     </div>
-                  </div>
+                  </motion.div>
+
+                  <motion.p
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.6 }}
+                    className="text-xl lg:text-2xl text-blue-100 leading-relaxed max-w-3xl"
+                  >
+                    Where faith meets community in the heart of{" "}
+                    {displayZone.location}. Join us as we grow together in love,
+                    service, and spiritual fellowship.
+                  </motion.p>
                 </div>
-              </div>
+
+                {/* Live Stats */}
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.8 }}
+                  className="grid grid-cols-2 gap-4"
+                >
+                  <StatCard
+                    icon="🏠"
+                    value={displayZone.cellCount || filteredGroups.length}
+                    label="Cell Groups"
+                    delay={0.9}
+                  />
+                  <StatCard icon="👥" value="127" label="Members" delay={1.0} />
+                </motion.div>
+
+                {/* Zone Description */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 1.0 }}
+                  className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 shadow-xl"
+                >
+                  <p className="text-blue-100 leading-relaxed">
+                    {displayZone.description}
+                  </p>
+                </motion.div>
+
+                {/* Call to Action */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 1.2 }}
+                  className="flex items-center space-x-4"
+                >
+                  <motion.button
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      const element = document.querySelector(
+                        '[id="cell-groups-section"]'
+                      );
+                      if (element) {
+                        element.scrollIntoView({
+                          behavior: "smooth",
+                          block: "start",
+                        });
+                      }
+                    }}
+                    className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-full shadow-xl transition-all duration-300 flex items-center space-x-3"
+                  >
+                    <span>Explore Cell Groups</span>
+                    <FaChevronDown className="animate-bounce" />
+                  </motion.button>
+
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    className="flex items-center space-x-2 text-blue-200"
+                  >
+                    <FaHandsHelping className="text-2xl" />
+                    <span className="font-medium">Ready to serve together</span>
+                  </motion.div>
+                </motion.div>
+              </motion.div>
+
+              {/* Elder Spotlight - 2/5 */}
+              <motion.div
+                variants={slideInVariants}
+                className="lg:col-span-2 flex justify-center lg:justify-end"
+              >
+                <ElderSpotlightCard elder={displayZone.elder} />
+              </motion.div>
             </div>
           </div>
-        </section>
+
+          {/* Scroll Indicator */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 2 }}
+            className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20"
+          >
+            <motion.div
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="text-white/60 text-center"
+            >
+              <FaChevronDown className="text-2xl mx-auto mb-2" />
+              <p className="text-sm">Scroll to explore</p>
+            </motion.div>
+          </motion.div>
+        </motion.section>
       )}
 
       {/* Sticky search header */}
@@ -385,6 +665,7 @@ const ZoneDetailPage = () => {
 
       {/* Search and filter section */}
       <section
+        id="cell-groups-section"
         ref={searchRef}
         className="container mx-auto px-4 py-16 max-w-7xl"
       >
@@ -625,8 +906,10 @@ const ZoneDetailPage = () => {
                   initial="hidden"
                   animate="visible"
                   whileHover="hover"
-                  className="bg-white/90 backdrop-blur-md rounded-xl shadow-lg border border-white/20 overflow-hidden transform transition-all duration-300"
+                  className="group relative bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 overflow-hidden transform transition-all duration-500 hover:shadow-2xl"
                 >
+                  {/* Premium Glow Effect */}
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-2xl blur opacity-0 group-hover:opacity-20 transition duration-1000 group-hover:duration-200" />
                   <div className="relative h-56 overflow-hidden rounded-t-xl">
                     <img
                       src={getImageUrl(group)}
@@ -727,14 +1010,20 @@ const ZoneDetailPage = () => {
                       </div>
                     </div>
 
-                    {/* Join Button */}
-                    <button
+                    {/* Premium Join Button */}
+                    <motion.button
                       onClick={() => setSelectedGroup(group)}
-                      className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 px-4 rounded-lg shadow-md transition-all duration-300 flex items-center justify-center"
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 hover:from-blue-900 hover:via-purple-900 hover:to-pink-900 text-white font-bold py-4 px-6 rounded-xl shadow-xl transition-all duration-500 flex items-center justify-center group relative overflow-hidden"
                     >
-                      Join this cell group
-                      <FaArrowRight className="ml-2" />
-                    </button>
+                      {/* Button Glow Effect */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+                      <span className="relative z-10">
+                        Join this cell group
+                      </span>
+                      <FaArrowRight className="ml-3 relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
+                    </motion.button>
                   </div>
                 </motion.div>
               ))}

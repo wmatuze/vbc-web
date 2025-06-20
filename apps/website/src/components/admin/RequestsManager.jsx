@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { ArrowPathIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowPathIcon,
+  ExclamationCircleIcon,
+} from "@heroicons/react/24/outline";
 
 // Services
 import RequestsService from "../../services/requestsService";
@@ -25,6 +28,7 @@ import FoundationTab from "./requests/FoundationTab";
 import FoundationDetailsModal from "./requests/FoundationDetailsModal";
 import EventSignupsTab from "./requests/EventSignupsTab";
 import EventSignupDetailsModal from "./requests/EventSignupDetailsModal";
+import ConfirmationModal from "../common/ConfirmationModal"; // Added import
 
 /**
  * RequestsManager component for managing membership renewals, foundation class enrollments, and event signups
@@ -56,6 +60,14 @@ const RequestsManager = () => {
   const [selectedEventSignup, setSelectedEventSignup] = useState(null);
   const [showEventSignupDetails, setShowEventSignupDetails] = useState(false);
   const [eventTypeFilter, setEventTypeFilter] = useState("all");
+
+  // Confirmation Modal State
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmModalProps, setConfirmModalProps] = useState({
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
 
   // Fetch data when tab changes
   useEffect(() => {
@@ -117,9 +129,10 @@ const RequestsManager = () => {
       if (eventTypeFilter === "all") {
         data = await RequestsService.getEventSignupRequests();
       } else {
-        data = await RequestsService.getEventSignupRequestsByType(eventTypeFilter);
+        data =
+          await RequestsService.getEventSignupRequestsByType(eventTypeFilter);
       }
-      
+
       setEventSignups(data);
       setError(null);
     } catch (err) {
@@ -164,7 +177,8 @@ const RequestsManager = () => {
     } catch (err) {
       console.error("Error updating renewal status:", err);
       const errorMessage =
-        err.response?.data?.error || "Failed to update status. Please try again.";
+        err.response?.data?.error ||
+        "Failed to update status. Please try again.";
       setError(errorMessage);
       toast.error(`Status update failed: ${errorMessage}`);
     }
@@ -225,9 +239,7 @@ const RequestsManager = () => {
       // Update the local state to reflect the change
       setEventSignups(
         eventSignups.map((signup) =>
-          signup.id === id
-            ? { ...signup, status: newStatus }
-            : signup
+          signup.id === id ? { ...signup, status: newStatus } : signup
         )
       );
 
@@ -318,7 +330,8 @@ const RequestsManager = () => {
       setActionLoading(true);
 
       // Validate the enrollment data before proceeding
-      const { isValid, errors } = validateFoundationClassRegistration(enrollment);
+      const { isValid, errors } =
+        validateFoundationClassRegistration(enrollment);
       if (!isValid) {
         const errorMessages = Object.values(errors).join(", ");
         toast.error(`Validation failed: ${errorMessages}`);
@@ -329,9 +342,7 @@ const RequestsManager = () => {
       await handleEnrollmentStatusChange(enrollment.id, "attending");
 
       // Then send notification
-      await NotificationService.sendFoundationClassScheduleNotification(
-        enrollment
-      );
+      await NotificationService.sendClassScheduleNotification(enrollment);
 
       toast.success(`Schedule sent to ${enrollment.fullName}`);
       setShowEnrollmentDetails(false);
@@ -352,7 +363,8 @@ const RequestsManager = () => {
       setActionLoading(true);
 
       // Validate the enrollment data before proceeding
-      const { isValid, errors } = validateFoundationClassRegistration(enrollment);
+      const { isValid, errors } =
+        validateFoundationClassRegistration(enrollment);
       if (!isValid) {
         const errorMessages = Object.values(errors).join(", ");
         toast.error(`Validation failed: ${errorMessages}`);
@@ -363,9 +375,7 @@ const RequestsManager = () => {
       await handleEnrollmentStatusChange(enrollment.id, "cancelled");
 
       // Then send notification
-      await NotificationService.sendFoundationClassCancellationNotification(
-        enrollment
-      );
+      await NotificationService.sendClassCancellationNotification(enrollment);
 
       toast.info(`Cancellation notification sent to ${enrollment.fullName}`);
       setShowEnrollmentDetails(false);
@@ -386,7 +396,8 @@ const RequestsManager = () => {
       setActionLoading(true);
 
       // Validate the enrollment data before proceeding
-      const { isValid, errors } = validateFoundationClassRegistration(enrollment);
+      const { isValid, errors } =
+        validateFoundationClassRegistration(enrollment);
       if (!isValid) {
         const errorMessages = Object.values(errors).join(", ");
         toast.error(`Validation failed: ${errorMessages}`);
@@ -397,9 +408,7 @@ const RequestsManager = () => {
       await handleEnrollmentStatusChange(enrollment.id, "completed");
 
       // Then send notification
-      await NotificationService.sendFoundationClassCompletionNotification(
-        enrollment
-      );
+      await NotificationService.sendClassCompletionNotification(enrollment);
 
       toast.success(`Completion notification sent to ${enrollment.fullName}`);
       setShowEnrollmentDetails(false);
@@ -488,36 +497,35 @@ const RequestsManager = () => {
       return;
     }
 
-    if (
-      !window.confirm(
-        `Are you sure you want to delete ${renewal.fullName}'s membership renewal?`
-      )
-    ) {
-      return;
-    }
-
-    try {
-      setActionLoading(true);
-      await RequestsService.deleteMembershipRenewal(renewal.id);
-      toast.success(
-        `${renewal.fullName}'s membership renewal has been deleted`
-      );
-
-      // Refresh the list
-      fetchRenewals();
-
-      // Close the details modal if open
-      if (showRenewalDetails && selectedRenewal?.id === renewal.id) {
-        setShowRenewalDetails(false);
-      }
-    } catch (err) {
-      console.error("Error deleting membership renewal:", err);
-      const errorMessage =
-        err.response?.data?.error || "Failed to delete membership renewal";
-      toast.error(errorMessage);
-    } finally {
-      setActionLoading(false);
-    }
+    setConfirmModalProps({
+      title: "Confirm Deletion",
+      message: `Are you sure you want to delete ${renewal.fullName}'s membership renewal? This action cannot be undone.`,
+      onConfirm: async () => {
+        try {
+          setActionLoading(true);
+          await RequestsService.deleteMembershipRenewal(renewal.id);
+          setRenewals(renewals.filter((r) => r.id !== renewal.id));
+          toast.success(
+            `${renewal.fullName}'s membership renewal has been deleted.`
+          );
+          if (selectedRenewal && selectedRenewal.id === renewal.id) {
+            setShowRenewalDetails(false);
+            setSelectedRenewal(null);
+          }
+        } catch (err) {
+          console.error("Error deleting membership renewal:", err);
+          const errorMessage =
+            err.response?.data?.error ||
+            "Failed to delete renewal. Please try again.";
+          setError(errorMessage);
+          toast.error(`Delete failed: ${errorMessage}`);
+        } finally {
+          setActionLoading(false);
+          setShowConfirmModal(false);
+        }
+      },
+    });
+    setShowConfirmModal(true);
   };
 
   // Delete a foundation class registration
@@ -531,37 +539,37 @@ const RequestsManager = () => {
       return;
     }
 
-    if (
-      !window.confirm(
-        `Are you sure you want to delete ${registration.fullName}'s foundation class registration?`
-      )
-    ) {
-      return;
-    }
-
-    try {
-      setActionLoading(true);
-      await RequestsService.deleteFoundationClassRegistration(registration.id);
-      toast.success(
-        `${registration.fullName}'s foundation class registration has been deleted`
-      );
-
-      // Refresh the list
-      fetchEnrollments();
-
-      // Close the details modal if open
-      if (showEnrollmentDetails && selectedEnrollment?.id === registration.id) {
-        setShowEnrollmentDetails(false);
-      }
-    } catch (err) {
-      console.error("Error deleting foundation class registration:", err);
-      const errorMessage =
-        err.response?.data?.error ||
-        "Failed to delete foundation class registration";
-      toast.error(errorMessage);
-    } finally {
-      setActionLoading(false);
-    }
+    setConfirmModalProps({
+      title: "Confirm Deletion",
+      message: `Are you sure you want to delete ${registration.fullName}'s foundation class registration? This action cannot be undone.`,
+      onConfirm: async () => {
+        try {
+          setActionLoading(true);
+          await RequestsService.deleteFoundationClassRegistration(
+            registration.id
+          );
+          setEnrollments(enrollments.filter((e) => e.id !== registration.id));
+          toast.success(
+            `${registration.fullName}'s foundation class registration has been deleted.`
+          );
+          if (selectedEnrollment && selectedEnrollment.id === registration.id) {
+            setShowEnrollmentDetails(false);
+            setSelectedEnrollment(null);
+          }
+        } catch (err) {
+          console.error("Error deleting foundation class registration:", err);
+          const errorMessage =
+            err.response?.data?.error ||
+            "Failed to delete registration. Please try again.";
+          setError(errorMessage);
+          toast.error(`Delete failed: ${errorMessage}`);
+        } finally {
+          setActionLoading(false);
+          setShowConfirmModal(false);
+        }
+      },
+    });
+    setShowConfirmModal(true);
   };
 
   // Delete an event signup request
@@ -574,78 +582,82 @@ const RequestsManager = () => {
       return;
     }
 
-    if (
-      !window.confirm(
-        `Are you sure you want to delete ${request.fullName}'s ${request.eventType} signup request?`
-      )
-    ) {
-      return;
-    }
-
-    try {
-      setActionLoading(true);
-      await RequestsService.deleteEventSignupRequest(request.id);
-      toast.success(
-        `${request.fullName}'s ${request.eventType} signup request has been deleted`
-      );
-
-      // Refresh the list
-      fetchEventSignups();
-
-      // Close the details modal if open
-      if (showEventSignupDetails && selectedEventSignup?.id === request.id) {
-        setShowEventSignupDetails(false);
-      }
-    } catch (err) {
-      console.error("Error deleting event signup request:", err);
-      const errorMessage =
-        err.response?.data?.error ||
-        "Failed to delete event signup request";
-      toast.error(errorMessage);
-    } finally {
-      setActionLoading(false);
-    }
+    setConfirmModalProps({
+      title: "Confirm Deletion",
+      message: `Are you sure you want to delete ${request.fullName}'s event signup request for ${request.eventName}? This action cannot be undone.`,
+      onConfirm: async () => {
+        try {
+          setActionLoading(true);
+          await RequestsService.deleteEventSignupRequest(request.id);
+          setEventSignups(eventSignups.filter((s) => s.id !== request.id));
+          toast.success(
+            `${request.fullName}'s event signup request for ${request.eventName} has been deleted.`
+          );
+          if (selectedEventSignup && selectedEventSignup.id === request.id) {
+            setShowEventSignupDetails(false);
+            setSelectedEventSignup(null);
+          }
+        } catch (err) {
+          console.error("Error deleting event signup request:", err);
+          const errorMessage =
+            err.response?.data?.error ||
+            "Failed to delete request. Please try again.";
+          setError(errorMessage);
+          toast.error(`Delete failed: ${errorMessage}`);
+        } finally {
+          setActionLoading(false);
+          setShowConfirmModal(false);
+        }
+      },
+    });
+    setShowConfirmModal(true);
   };
 
   // Download members list
   const downloadMembersList = async () => {
     try {
-      setActionLoading(true);
-      await RequestsService.downloadMembersList();
-      toast.success("Members list downloaded successfully");
+      const data = await RequestsService.downloadMembersList();
+      const blob = new Blob([data], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "members-list.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      toast.success("Members list downloaded successfully.");
     } catch (err) {
       console.error("Error downloading members list:", err);
-      const errorMessage =
-        err.response?.data?.error || "Failed to download members list";
-      toast.error(errorMessage);
-    } finally {
-      setActionLoading(false);
+      toast.error("Failed to download members list.");
     }
   };
 
-  // Download foundation class graduates list
+  // Download foundation graduates list
   const downloadFoundationGraduatesList = async () => {
     try {
-      setActionLoading(true);
-      await RequestsService.downloadFoundationGraduatesList();
-      toast.success("Foundation class graduates list downloaded successfully");
+      const data = await RequestsService.downloadFoundationGraduatesList();
+      const blob = new Blob([data], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "foundation-graduates-list.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      toast.success("Foundation graduates list downloaded successfully.");
     } catch (err) {
-      console.error("Error downloading graduates list:", err);
-      const errorMessage =
-        err.response?.data?.error || "Failed to download graduates list";
-      toast.error(errorMessage);
-    } finally {
-      setActionLoading(false);
+      console.error("Error downloading foundation graduates list:", err);
+      toast.error("Failed to download foundation graduates list.");
     }
   };
 
-  // View membership renewal details
+  // View renewal details
   const viewRenewalDetails = (renewal) => {
     setSelectedRenewal(renewal);
     setShowRenewalDetails(true);
   };
 
-  // View foundation class enrollment details
+  // View enrollment details
   const viewEnrollmentDetails = (enrollment) => {
     setSelectedEnrollment(enrollment);
     setShowEnrollmentDetails(true);
@@ -657,176 +669,164 @@ const RequestsManager = () => {
     setShowEventSignupDetails(true);
   };
 
-  // Filter membership renewals based on search term and status filter
-  const filteredRenewals = renewals.filter((renewal) => {
-    const matchesSearch =
-      renewal.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      renewal.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      renewal.phone.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesStatus =
-      filterStatus === "all" || renewal.status === filterStatus;
-
-    return matchesSearch && matchesStatus;
-  });
-
-  // Sort membership renewals by date (newest first)
-  const sortedRenewals = [...filteredRenewals].sort(
-    (a, b) => new Date(b.renewalDate) - new Date(a.renewalDate)
+  // Filtered data based on search term and status
+  const filteredRenewals = renewals.filter(
+    (renewal) =>
+      (renewal.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        renewal.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        renewal.phoneNumber?.includes(searchTerm)) &&
+      (filterStatus === "all" || renewal.status === filterStatus)
   );
 
-  // Filter foundation class enrollments based on search term and status filter
-  const filteredEnrollments = enrollments.filter((enrollment) => {
-    const matchesSearch =
-      enrollment.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      enrollment.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      enrollment.phone.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesStatus =
-      filterStatus === "all" || enrollment.status === filterStatus;
-
-    return matchesSearch && matchesStatus;
-  });
-
-  // Sort foundation class enrollments by date (newest first)
-  const sortedEnrollments = [...filteredEnrollments].sort(
-    (a, b) => new Date(b.registrationDate) - new Date(a.registrationDate)
+  const filteredEnrollments = enrollments.filter(
+    (enrollment) =>
+      (enrollment.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        enrollment.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        enrollment.phoneNumber?.includes(searchTerm)) &&
+      (filterStatus === "all" || enrollment.status === filterStatus)
   );
 
-  // Filter event signup requests based on search term, status filter, and event type filter
-  const filteredEventSignups = eventSignups.filter((signup) => {
-    const matchesSearch =
-      signup.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      signup.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      signup.phone.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesStatus =
-      filterStatus === "all" || signup.status === filterStatus;
-
-    const matchesEventType =
-      eventTypeFilter === "all" || signup.eventType === eventTypeFilter;
-
-    return matchesSearch && matchesStatus && matchesEventType;
-  });
-
-  // Sort event signup requests by date (newest first)
-  const sortedEventSignups = [...filteredEventSignups].sort(
-    (a, b) => new Date(b.submittedAt) - new Date(a.submittedAt)
+  const filteredEventSignups = eventSignups.filter(
+    (signup) =>
+      (signup.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        signup.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        signup.phoneNumber?.includes(searchTerm) ||
+        signup.eventName?.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (filterStatus === "all" || signup.status === filterStatus)
   );
 
-  // Loading indicator
+  // Refresh data based on active tab
+  const refreshData = () => {
+    if (activeTab === "membership") {
+      fetchRenewals();
+    } else if (activeTab === "foundation") {
+      fetchEnrollments();
+    } else if (activeTab === "events") {
+      fetchEventSignups();
+    }
+  };
+
   if (
     loading &&
-    ((activeTab === "membership" && renewals.length === 0) ||
-      (activeTab === "foundation" && enrollments.length === 0) ||
-      (activeTab === "events" && eventSignups.length === 0))
+    !renewals.length &&
+    !enrollments.length &&
+    !eventSignups.length
   ) {
     return (
-      <div className="flex flex-col items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        <p className="mt-4 text-gray-600">Loading requests...</p>
+      <div className="flex justify-center items-center h-64">
+        <ArrowPathIcon className="h-8 w-8 text-gray-500 animate-spin" />
+        <p className="ml-2 text-gray-500">Loading requests...</p>
+      </div>
+    );
+  }
+
+  if (
+    error &&
+    !renewals.length &&
+    !enrollments.length &&
+    !eventSignups.length
+  ) {
+    return (
+      <div className="text-center p-8 bg-red-50 border border-red-200 rounded-md">
+        <ExclamationCircleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-red-700 mb-2">
+          Error Loading Data
+        </h3>
+        <p className="text-red-600 mb-4">{error}</p>
+        <button
+          onClick={refreshData}
+          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+        >
+          Try Again
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="bg-white shadow rounded-lg overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-gray-800">Requests Manager</h2>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-gray-800">Manage Requests</h1>
         <button
-          onClick={
-            activeTab === "membership"
-              ? fetchRenewals
-              : activeTab === "foundation"
-              ? fetchEnrollments
-              : fetchEventSignups
-          }
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          onClick={refreshData}
+          disabled={loading}
+          className={`p-2 rounded-full hover:bg-gray-200 transition-colors ${
+            loading ? "cursor-not-allowed opacity-50" : ""
+          }`}
+          title="Refresh Data"
         >
-          <ArrowPathIcon className="h-5 w-5" />
+          <ArrowPathIcon
+            className={`h-6 w-6 text-gray-600 ${loading ? "animate-spin" : ""}`}
+          />
         </button>
       </div>
 
-      {/* Tab Navigation */}
       <RequestsTabs activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      {/* Search and Filters */}
       <SearchFilters
-        activeTab={activeTab}
         searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
+        onSearchTermChange={setSearchTerm}
         filterStatus={filterStatus}
-        setFilterStatus={setFilterStatus}
+        onFilterStatusChange={setFilterStatus}
+        activeTab={activeTab}
+        onDownloadMembers={downloadMembersList}
+        onDownloadGraduates={downloadFoundationGraduatesList}
         eventTypeFilter={eventTypeFilter}
-        setEventTypeFilter={setEventTypeFilter}
-        fetchEventSignups={fetchEventSignups}
-        downloadMembersList={downloadMembersList}
-        downloadFoundationGraduatesList={downloadFoundationGraduatesList}
-        actionLoading={actionLoading}
+        onEventTypeFilterChange={setEventTypeFilter}
+        onFetchEventSignups={fetchEventSignups}
       />
 
-      {/* Error message */}
-      {error && (
-        <div className="bg-red-50 border-l-4 border-red-400 p-4 m-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <ExclamationCircleIcon className="h-5 w-5 text-red-400" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-red-700">{typeof error === 'string' ? error : (error.message || 'An unknown error occurred')}</p>
-            </div>
-          </div>
-        </div>
-      )}
+      <div className="mt-6 bg-white shadow-lg rounded-lg p-6">
+        {activeTab === "membership" && (
+          <MembershipTab
+            sortedRenewals={filteredRenewals}
+            viewRenewalDetails={viewRenewalDetails}
+            approveAndNotifyMember={approveAndNotifyMember}
+            declineAndNotifyMember={declineAndNotifyMember}
+            deleteMembershipRenewal={deleteMembershipRenewal}
+            actionLoading={actionLoading}
+          />
+        )}
+        {activeTab === "foundation" && (
+          <FoundationTab
+            sortedEnrollments={filteredEnrollments}
+            viewEnrollmentDetails={viewEnrollmentDetails}
+            approveAndSendSchedule={approveAndSendSchedule}
+            cancelAndNotifyEnrollee={cancelAndNotifyEnrollee}
+            completeAndNotifyMember={completeAndNotifyMember}
+            deleteFoundationClassRegistration={
+              deleteFoundationClassRegistration
+            }
+            actionLoading={actionLoading}
+          />
+        )}
+        {activeTab === "events" && (
+          <EventSignupsTab
+            sortedEventSignups={filteredEventSignups}
+            viewEventSignupDetails={viewEventSignupDetails}
+            approveAndNotifyEventSignup={approveAndNotifyEventSignup}
+            declineAndNotifyEventSignup={declineAndNotifyEventSignup}
+            deleteEventSignupRequest={deleteEventSignupRequest}
+            actionLoading={actionLoading}
+          />
+        )}
+      </div>
 
-      {/* Content */}
-      {activeTab === "membership" ? (
-        <MembershipTab
-          sortedRenewals={sortedRenewals}
-          viewRenewalDetails={viewRenewalDetails}
-          approveAndNotifyMember={approveAndNotifyMember}
-          declineAndNotifyMember={declineAndNotifyMember}
-          deleteMembershipRenewal={deleteMembershipRenewal}
-          actionLoading={actionLoading}
-        />
-      ) : activeTab === "foundation" ? (
-        <FoundationTab
-          sortedEnrollments={sortedEnrollments}
-          viewEnrollmentDetails={viewEnrollmentDetails}
-          approveAndSendSchedule={approveAndSendSchedule}
-          cancelAndNotifyEnrollee={cancelAndNotifyEnrollee}
-          completeAndNotifyMember={completeAndNotifyMember}
-          deleteFoundationClassRegistration={deleteFoundationClassRegistration}
-          actionLoading={actionLoading}
-        />
-      ) : (
-        <EventSignupsTab
-          sortedEventSignups={sortedEventSignups}
-          viewEventSignupDetails={viewEventSignupDetails}
-          approveAndNotifyEventSignup={approveAndNotifyEventSignup}
-          declineAndNotifyEventSignup={declineAndNotifyEventSignup}
-          deleteEventSignupRequest={deleteEventSignupRequest}
-          actionLoading={actionLoading}
-        />
-      )}
-
-      {/* Membership Renewal Details Modal */}
+      {/* Modals */}
       {showRenewalDetails && selectedRenewal && (
         <MembershipDetailsModal
-          selectedRenewal={selectedRenewal}
-          setShowRenewalDetails={setShowRenewalDetails}
-          approveAndNotifyMember={approveAndNotifyMember}
-          declineAndNotifyMember={declineAndNotifyMember}
-          deleteMembershipRenewal={deleteMembershipRenewal}
+          renewal={selectedRenewal}
+          onClose={() => setShowRenewalDetails(false)}
+          onApprove={approveAndNotifyMember}
+          onDecline={declineAndNotifyMember}
+          onDelete={deleteMembershipRenewal} // This now triggers the confirmation modal
           actionLoading={actionLoading}
         />
       )}
-
-      {/* Foundation Class Enrollment Details Modal */}
       {showEnrollmentDetails && selectedEnrollment && (
         <FoundationDetailsModal
           selectedEnrollment={selectedEnrollment}
-          setShowEnrollmentDetails={setShowEnrollmentDetails}
+          setShowEnrollmentDetails={() => setShowEnrollmentDetails(false)}
           approveAndSendSchedule={approveAndSendSchedule}
           cancelAndNotifyEnrollee={cancelAndNotifyEnrollee}
           completeAndNotifyMember={completeAndNotifyMember}
@@ -834,18 +834,27 @@ const RequestsManager = () => {
           actionLoading={actionLoading}
         />
       )}
-
-      {/* Event Signup Request Details Modal */}
       {showEventSignupDetails && selectedEventSignup && (
         <EventSignupDetailsModal
-          selectedEventSignup={selectedEventSignup}
-          setShowEventSignupDetails={setShowEventSignupDetails}
-          approveAndNotifyEventSignup={approveAndNotifyEventSignup}
-          declineAndNotifyEventSignup={declineAndNotifyEventSignup}
-          deleteEventSignupRequest={deleteEventSignupRequest}
+          request={selectedEventSignup}
+          onClose={() => setShowEventSignupDetails(false)}
+          onApprove={approveAndNotifyEventSignup}
+          onDecline={declineAndNotifyEventSignup}
+          onDelete={deleteEventSignupRequest} // This now triggers the confirmation modal
           actionLoading={actionLoading}
         />
       )}
+
+      {/* Confirmation Modal for Deletions */}
+      <ConfirmationModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={confirmModalProps.onConfirm}
+        title={confirmModalProps.title}
+        message={confirmModalProps.message}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </div>
   );
 };

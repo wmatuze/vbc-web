@@ -1163,12 +1163,20 @@ router.put(
       // Validate status value
       if (
         !status ||
-        !["registered", "attending", "completed", "cancelled"].includes(status)
+        ![
+          "registered",
+          "attending",
+          "completed",
+          "cancelled",
+          "pending",
+          "approved",
+          "rejected",
+        ].includes(status)
       ) {
         return res.status(400).json({
           success: false,
           error:
-            "Invalid status value. Must be 'registered', 'attending', 'completed', or 'cancelled'.",
+            "Invalid status value. Must be 'registered', 'attending', 'completed', 'cancelled', 'pending', 'approved', or 'rejected'.",
         });
       }
 

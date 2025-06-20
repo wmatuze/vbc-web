@@ -8,6 +8,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { formatDate } from "../../../utils/requests/requestsUtils.jsx";
 import StatusBadge from "./StatusBadge";
+import SessionDisplay from "./SessionDisplay";
 
 /**
  * Foundation Class Enrollments Tab component
@@ -105,7 +106,7 @@ const FoundationTab = ({
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm text-gray-900">
-                  {enrollment.preferredSession}
+                  <SessionDisplay sessionId={enrollment.preferredSession} />
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
@@ -119,7 +120,8 @@ const FoundationTab = ({
                   >
                     View
                   </button>
-                  {enrollment.status === "registered" && (
+                  {(enrollment.status === "registered" ||
+                    enrollment.status === "pending") && (
                     <>
                       <button
                         onClick={() => {

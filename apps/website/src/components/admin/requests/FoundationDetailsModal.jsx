@@ -7,6 +7,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { formatDate } from "../../../utils/requests/requestsUtils.jsx";
 import StatusBadge from "./StatusBadge";
+import SessionDisplay from "./SessionDisplay";
 
 /**
  * Foundation Class Enrollment Details Modal component
@@ -123,7 +124,9 @@ const FoundationDetailsModal = ({
                 </p>
                 <p className="flex items-start">
                   <span className="font-medium w-32">Preferred Session:</span>{" "}
-                  {selectedEnrollment.preferredSession}
+                  <SessionDisplay
+                    sessionId={selectedEnrollment.preferredSession}
+                  />
                 </p>
                 <p className="flex items-start">
                   <span className="font-medium w-32">Status:</span>
@@ -145,7 +148,8 @@ const FoundationDetailsModal = ({
           )}
 
           <div className="flex flex-col sm:flex-row gap-2 justify-end mt-6">
-            {selectedEnrollment.status === "registered" && (
+            {(selectedEnrollment.status === "registered" ||
+              selectedEnrollment.status === "pending") && (
               <>
                 <button
                   onClick={() => {
