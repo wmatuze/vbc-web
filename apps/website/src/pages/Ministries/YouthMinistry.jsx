@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import events from "../../assets/data/events";
 import EventCard from "../../components/ChurchCalendar/EventsCard";
 import PlaceHolderbanner from "../../assets/ministry-banners/ph.png";
+import YouthMinistryHero from "/images/youth-ministry.jpg";
 import youthGallery1 from "../../assets/images/youth/gallery1.jpg"; // Replace with actual youth event images
 import youthGallery2 from "../../assets/images/youth/gallery2.jpg";
 import youthGallery3 from "../../assets/images/youth/gallery3.jpg";
@@ -13,6 +14,17 @@ const YouthMinistry = () => {
   const [activeTab, setActiveTab] = useState("main");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+
+  // Smooth scroll function for the arrow
+  const scrollToContent = () => {
+    const element = document.getElementById('main-content');
+    if (element) {
+      element.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  };
 
   // Image gallery for youth activities
   const galleryImages = [
@@ -103,14 +115,14 @@ const YouthMinistry = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Dynamic Hero Section with Lit Nation Branding */}
-      <section className="relative h-[80vh] overflow-hidden">
+      <section className="relative min-h-screen sm:h-[80vh] overflow-hidden">
         <motion.div
           className={`absolute inset-0 bg-cover bg-center ${
             !isImageLoaded ? "animate-pulse bg-gray-200" : ""
           }`}
           style={{
-            backgroundImage: `url(${PlaceHolderbanner})`,
-            filter: isImageLoaded ? "brightness(0.6)" : "none",
+            backgroundImage: `url(${YouthMinistryHero})`,
+            filter: isImageLoaded ? "brightness(0.7)" : "none",
           }}
           initial={{ scale: 1.1 }}
           animate={{ scale: 1 }}
@@ -119,18 +131,18 @@ const YouthMinistry = () => {
 
         <div className="absolute inset-0 bg-gradient-to-r from-green-900/80 to-purple-900/70"></div>
 
-        <div className="container mx-auto px-4 relative z-10 h-full flex flex-col justify-center items-center">
+        <div className="container mx-auto px-4 relative z-10 h-full flex flex-col justify-center items-center min-h-screen sm:min-h-0">
           <motion.div
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8 }}
-            className="text-center"
+            className="text-center px-4 py-8"
           >
             <div className="flex justify-center mb-6">
               <img
                 src={litNationLogo}
                 alt="Lit Nation Youth Ministry"
-                className="h-24 md:h-32"
+                className="h-20 sm:h-24 md:h-32 w-auto max-w-full"
                 onLoad={() => setIsImageLoaded(true)}
                 onError={(e) => {
                   e.target.onerror = null;
@@ -141,43 +153,71 @@ const YouthMinistry = () => {
               />
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-bold text-white mb-4 tracking-tighter">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-sans font-medium text-white mb-4 tracking-tighter leading-tight">
               LIT NATION
             </h1>
-            <p className="text-xl md:text-2xl text-white mb-8 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl md:text-2xl text-white mb-12 max-w-3xl mx-auto px-4 leading-relaxed">
               A vibrant community where youth experience faith, friendship, and
               fun
             </p>
 
-            <div className="flex flex-wrap justify-center gap-4 mt-8">
-              <motion.a
-                href="#join-us"
-                className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-full transform hover:scale-105 transition-all shadow-lg"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+            <div className="flex flex-col items-center mt-8 px-4">
+              <div className="relative pt-4 pb-2">
+                {/* "New Here?" Badge */}
+                <motion.div
+                  className="absolute -top-1 -right-1 bg-yellow-400 text-gray-800 text-xs font-bold px-2 py-1 rounded-full shadow-lg z-10"
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  New Here?
+                </motion.div>
+                
+                {/* Main CTA Button with Pulse */}
+                <motion.a
+                  href="#join-us"
+                  className="relative px-8 sm:px-10 py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-full transform hover:scale-105 transition-all shadow-xl text-center text-lg overflow-hidden"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  animate={{ 
+                    boxShadow: [
+                      "0 0 0 0 rgba(16, 185, 129, 0.4)",
+                      "0 0 0 20px rgba(16, 185, 129, 0)",
+                      "0 0 0 0 rgba(16, 185, 129, 0)"
+                    ]
+                  }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  Join Lit Nation
+                </motion.a>
+              </div>
+              
+              {/* Friendly Subtext */}
+              <motion.p
+                className="text-white/90 text-sm mt-3 font-medium"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1, duration: 0.8 }}
               >
-                Join Us
-              </motion.a>
-              <motion.a
-                href="#cbu-fellowship"
-                className="px-8 py-3 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-full transform hover:scale-105 transition-all shadow-lg"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                CBU Fellowship
-              </motion.a>
+                First time? We'll save you a seat! 💺
+              </motion.p>
             </div>
           </motion.div>
         </div>
 
-        {/* Animated down arrow */}
-        <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-10">
+        {/* Functional animated down arrow */}
+        <motion.button
+          onClick={scrollToContent}
+          className="absolute bottom-6 sm:bottom-10 left-1/2 transform -translate-x-1/2 z-10 p-2 hover:bg-white/10 rounded-full transition-all cursor-pointer group"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          aria-label="Scroll to main content"
+        >
           <motion.div
             animate={{ y: [0, 10, 0] }}
             transition={{ repeat: Infinity, duration: 2 }}
           >
             <svg
-              className="w-10 h-10 text-white"
+              className="w-8 h-8 sm:w-10 sm:h-10 text-white group-hover:text-green-300 transition-colors"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -190,13 +230,21 @@ const YouthMinistry = () => {
               ></path>
             </svg>
           </motion.div>
-        </div>
+        </motion.button>
       </section>
 
       {/* Navigation Tabs */}
       <div className="bg-white sticky top-0 z-30 shadow-md">
         <div className="container mx-auto px-4">
-          <div className="flex overflow-x-auto no-scrollbar py-4 space-x-1">
+          <div className="flex overflow-x-auto overflow-y-hidden scrollbar-hide py-4 space-x-1" style={{
+            scrollbarWidth: 'none', /* Firefox */
+            msOverflowStyle: 'none', /* IE and Edge */
+          }}>
+            <style jsx>{`
+              div::-webkit-scrollbar {
+                display: none; /* Chrome, Safari, Opera */
+              }
+            `}</style>
             <button
               onClick={() => setActiveTab("main")}
               className={`px-5 py-2 rounded-full whitespace-nowrap font-medium transition-all ${
@@ -252,7 +300,7 @@ const YouthMinistry = () => {
       </div>
 
       {/* Dynamic Content Based on Active Tab */}
-      <div className="py-12">
+      <div className="py-12" id="main-content">
         {/* MAIN LIT NATION CONTENT */}
         {activeTab === "main" && (
           <div className="container mx-auto px-4 max-w-5xl">
@@ -689,7 +737,7 @@ const YouthMinistry = () => {
               </div>
 
               {/* Main Gallery */}
-              <div className="relative overflow-hidden rounded-xl mb-10 h-[400px] md:h-[500px]">
+              <div className="relative overflow-hidden rounded-xl mb-10 h-[300px] sm:h-[400px] md:h-[500px]">
                 {galleryImages.map((image, index) => (
                   <div
                     key={index}
@@ -703,11 +751,19 @@ const YouthMinistry = () => {
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         e.target.onerror = null;
-                        e.target.src = `https://source.unsplash.com/random/800x600/?youth,church,${index}`;
+                        // Use a solid color fallback instead of external URLs
+                        e.target.src = `data:image/svg+xml;base64,${btoa(`
+                          <svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="100%" height="100%" fill="#10B981"/>
+                            <text x="50%" y="50%" font-family="Arial" font-size="24" text-anchor="middle" fill="white" dominant-baseline="middle">
+                              ${image.caption || 'Youth Ministry'}
+                            </text>
+                          </svg>
+                        `)}`;
                       }}
                     />
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
-                      <p className="text-white text-xl font-medium">
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 sm:p-6">
+                      <p className="text-white text-lg sm:text-xl font-medium">
                         {image.caption}
                       </p>
                     </div>
@@ -715,7 +771,7 @@ const YouthMinistry = () => {
                 ))}
 
                 {/* Navigation Dots */}
-                <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
+                <div className="absolute bottom-2 sm:bottom-4 left-0 right-0 flex justify-center space-x-2 z-10">
                   {galleryImages.map((_, index) => (
                     <button
                       key={index}
@@ -732,7 +788,7 @@ const YouthMinistry = () => {
 
                 {/* Navigation Arrows */}
                 <button
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full"
+                  className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 sm:p-3 rounded-full touch-manipulation"
                   onClick={() =>
                     setCurrentSlide(
                       (prev) =>
@@ -743,7 +799,7 @@ const YouthMinistry = () => {
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
+                    className="h-4 w-4 sm:h-6 sm:w-6"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -757,7 +813,7 @@ const YouthMinistry = () => {
                   </svg>
                 </button>
                 <button
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full"
+                  className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 sm:p-3 rounded-full touch-manipulation"
                   onClick={() =>
                     setCurrentSlide((prev) => (prev + 1) % galleryImages.length)
                   }
@@ -765,7 +821,7 @@ const YouthMinistry = () => {
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
+                    className="h-4 w-4 sm:h-6 sm:w-6"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -785,49 +841,46 @@ const YouthMinistry = () => {
               </h3>
 
               {/* Activity Categories */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10">
                 {[
                   {
                     title: "Worship Nights",
-                    image:
-                      "https://source.unsplash.com/random/300x300/?worship",
+                    color: "#10B981"
                   },
                   {
                     title: "Summer Camp",
-                    image: "https://source.unsplash.com/random/300x300/?camp",
+                    color: "#F59E0B"
                   },
                   {
                     title: "Mission Trips",
-                    image:
-                      "https://source.unsplash.com/random/300x300/?mission",
+                    color: "#EF4444"
                   },
                   {
                     title: "Game Nights",
-                    image: "https://source.unsplash.com/random/300x300/?games",
+                    color: "#8B5CF6"
                   },
                   {
                     title: "Community Service",
-                    image:
-                      "https://source.unsplash.com/random/300x300/?volunteer",
+                    color: "#06B6D4"
                   },
                   {
                     title: "Bible Studies",
-                    image: "https://source.unsplash.com/random/300x300/?bible",
+                    color: "#F97316"
                   },
                 ].map((category, i) => (
                   <div
                     key={i}
                     className="group relative overflow-hidden rounded-xl h-60 shadow-md"
                   >
-                    <img
-                      src={category.image}
-                      alt={category.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end">
-                      <p className="p-6 text-white font-bold text-xl">
-                        {category.title}
-                      </p>
+                    <div 
+                      className="w-full h-full flex items-center justify-center group-hover:scale-110 transition-transform duration-500"
+                      style={{ backgroundColor: category.color }}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent flex items-end">
+                        <p className="p-6 text-white font-bold text-xl">
+                          {category.title}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -1081,15 +1134,15 @@ const YouthMinistry = () => {
                   from you!
                 </p>
 
-                <div className="flex flex-wrap gap-4">
-                  <motion.a
-                    href="#volunteer"
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <motion.button
+                    onClick={() => alert('Volunteer application form coming soon! Please contact us directly for now.')}
                     className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
                     Volunteer Application
-                  </motion.a>
+                  </motion.button>
                   <motion.a
                     href="mailto:youth@church.org"
                     className="px-6 py-3 bg-white hover:bg-gray-100 text-red-600 font-bold rounded-lg border border-red-200 transition-colors"

@@ -1,162 +1,357 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion } from "framer-motion";
-import TimelineEvent from './TimelineEvent';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronUp, ChevronDown, MapPin, Calendar } from 'lucide-react';
 import timelineData from './config.jsx';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Timeline = () => {
-  const [selectedYear, setSelectedYear] = useState(timelineData[0].year);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [showModal, setShowModal] = useState(false);
-  const scrollRef = useRef(null);
+  const [selectedYear, setSelectedYear] = useState(timelineData[0]?.year);
+  const [selectedEventIndex, setSelectedEventIndex] = useState(0);
+  const [visibleYears, setVisibleYears] = useState(new Set());
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const timelineRef = useRef(null);
 
-  const handleYearClick = (year, index) => {
-    setSelectedYear(year);
-    setCurrentIndex(index);
-    setShowModal(true);
-  };
-
-  const handleNavigation = (direction) => {
-    const newIndex = direction === 'next' 
-      ? Math.min(currentIndex + 1, timelineData.length - 1)
-      : Math.max(currentIndex - 1, 0);
-    setCurrentIndex(newIndex);
-    setSelectedYear(timelineData[newIndex].year);
-    
-    // Smooth scroll to the selected year marker
-    const timelineElem = document.getElementById(`year-${timelineData[newIndex].year}`);
-    if (timelineElem && scrollRef.current) {
-      const containerWidth = scrollRef.current.clientWidth;
-      const scrollPosition = timelineElem.offsetLeft - (containerWidth / 2) + (timelineElem.clientWidth / 2);
-      scrollRef.current.scrollTo({ left: scrollPosition, behavior: 'smooth' });
+  // Group events by year
+  const eventsByYear = timelineData.reduce((acc, event) => {
+    if (!acc[event.year]) {
+      acc[event.year] = [];
     }
-  };
+    acc[event.year].push(event);
+    return acc;
+  }, {});
 
-  // Close modal
-  const closeModal = () => setShowModal(false);
+  const years = Object.keys(eventsByYear).sort((a, b) => b - a);
+  const currentEvents = eventsByYear[selectedYear] || [];
+  const currentEvent = currentEvents[selectedEventIndex] || currentEvents[0];
+
+  const handleYearSelect = useCallback(async (year) => {
+    if (isTransitioning) return; // Prevent multiple rapid clicks
+    
+    setIsTransitioning(true);
+    setSelectedYear(parseInt(year));
+    setSelectedEventIndex(0); // Reset to first event of the year
+    
+    // Add a small delay for smooth transition
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 600);
+  }, [isTransitioning]);
+
+  const handleEventNavigation = useCallback((direction) => {
+    if (isTransitioning) return;
+    
+    const maxIndex = currentEvents.length - 1;
+    if (direction === 'next' && selectedEventIndex < maxIndex) {
+      setSelectedEventIndex(prev => prev + 1);
+    } else if (direction === 'prev' && selectedEventIndex > 0) {
+      setSelectedEventIndex(prev => prev - 1);
+    }
+  }, [selectedEventIndex, currentEvents.length, isTransitioning]);
+
+  // Intersection Observer for timeline visibility
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const year = parseInt(entry.target.dataset.year);
+            setVisibleYears(prev => new Set([...prev, year]));
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+
+    const yearElements = document.querySelectorAll('[data-year]');
+    yearElements.forEach(el => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (isTransitioning) return;
+      
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const currentIndex = years.indexOf(selectedYear.toString());
+        if (currentIndex > 0) {
+          handleYearSelect(years[currentIndex - 1]);
+        }
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const currentIndex = years.indexOf(selectedYear.toString());
+        if (currentIndex < years.length - 1) {
+          handleYearSelect(years[currentIndex + 1]);
+        }
+      } else if (e.key === 'ArrowLeft') {
+        handleEventNavigation('prev');
+      } else if (e.key === 'ArrowRight') {
+        handleEventNavigation('next');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [selectedYear, years, handleYearSelect, handleEventNavigation, isTransitioning]);
 
   return (
-    <div className="relative bg-gray-100 dark:bg-gray-900 py-12 px-4 min-h-screen">
-      <div className="container mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-12 text-gray-800 dark:text-white">Our Journey Through Time</h2>
-        
-        {/* Horizontal Timeline */}
-        <div className="relative mb-16">
-          {/* Line */}
-          <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-300 dark:bg-gray-700 transform -translate-y-1/2" />
-          
-          {/* Scroll Container */}
-          <div 
-            ref={scrollRef}
-            className="relative overflow-x-auto pb-8 hide-scrollbar" 
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            <div className="flex items-center space-x-24 px-12 py-8 min-w-max">
-              {timelineData.map((event, index) => (
-                <div
-                  id={`year-${event.year}`}
-                  key={event.year}
-                  className="relative flex flex-col items-center"
-                >
-                  <button
-                    onClick={() => handleYearClick(event.year, index)}
-                    className="group flex flex-col items-center"
-                    type="button"
-                  >
-                    <div className={`w-6 h-6 rounded-full transition-all duration-300 z-10 border-2 ${
-                      selectedYear === event.year
-                        ? 'bg-blue-600 border-blue-600 scale-125'
-                        : 'bg-white dark:bg-gray-800 border-gray-400 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-500'
-                    }`} />
-                    
-                    <span className="mt-4 text-gray-800 dark:text-gray-200 font-bold text-lg">
-                      {event.year}
-                    </span>
-                    
-                    <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white dark:bg-gray-800 p-2 rounded-lg shadow-lg max-w-[150px] text-center">
-                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{event.title}</p>
-                    </div>
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Navigation Controls */}
-          <button 
-            onClick={() => handleNavigation('prev')} 
-            disabled={currentIndex === 0}
-            className="absolute left-0 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 rounded-full p-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed z-10"
-            type="button"
-          >
-            <ChevronLeft className="w-6 h-6 text-gray-800 dark:text-gray-200" />
-          </button>
-          
-          <button 
-            onClick={() => handleNavigation('next')} 
-            disabled={currentIndex === timelineData.length - 1}
-            className="absolute right-0 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 rounded-full p-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed z-10"
-            type="button"
-          >
-            <ChevronRight className="w-6 h-6 text-gray-800 dark:text-gray-200" />
-          </button>
-        </div>
-        
-        {/* Current Event Featured Display */}
-        <motion.div 
-          key={currentIndex}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8 max-w-4xl mx-auto"
-        >
-          <TimelineEvent 
-            event={timelineData[currentIndex]}
-            onPrev={() => handleNavigation('prev')}
-            onNext={() => handleNavigation('next')}
-            currentIndex={currentIndex}
-            totalEvents={timelineData.length}
-            isModal={false}
-            onOpenModal={() => setShowModal(true)}
-          />
-        </motion.div>
-      </div>
-      
-      {/* Modal View */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={closeModal}>
-          <div 
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
-            onClick={e => e.stopPropagation()}
-          >
-            <button 
-              onClick={closeModal}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              type="button"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <TimelineEvent 
-              event={timelineData[currentIndex]}
-              onPrev={() => handleNavigation('prev')}
-              onNext={() => handleNavigation('next')}
-              currentIndex={currentIndex}
-              totalEvents={timelineData.length}
-              isModal={true}
-            />
-          </div>
-        </div>
-      )}
-      
-      {/* Custom scrollbar style */}
+    <>
+      {/* Custom CSS to hide scrollbars */}
       <style jsx>{`
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
         .hide-scrollbar::-webkit-scrollbar {
           display: none;
         }
       `}</style>
-    </div>
+      
+      <div className="h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
+        {/* Header */}
+        <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+          <div className="max-w-7xl mx-auto px-6 py-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center"
+            >
+              <h1 className="text-4xl md:text-5xl font-light text-gray-900 dark:text-white mb-4 tracking-tight">
+                Our Journey
+              </h1>
+              <p className="text-lg text-gray-600 dark:text-gray-400 font-light max-w-2xl mx-auto">
+                Exploring the milestones that shaped our story
+              </p>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Main Content - Full Screen Layout */}
+        <div className="max-w-7xl mx-auto h-[calc(100vh-180px)] flex">
+          {/* Left Sidebar - Timeline */}
+          <div className="w-80 bg-white dark:bg-gray-800 shadow-lg border-r border-gray-200 dark:border-gray-700 overflow-y-auto hide-scrollbar">
+
+
+            {/* Timeline Years */}
+            <div className="relative px-4 py-4">
+              {/* Vertical line */}
+              <div className="absolute left-8 top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-600"></div>
+              
+              <div className="space-y-6">
+                {years.map((year, index) => {
+                  const yearInt = parseInt(year);
+                  const events = eventsByYear[year];
+                  const isSelected = selectedYear === yearInt;
+                  const isVisible = visibleYears.has(yearInt);
+
+                  return (
+                    <motion.div
+                      key={year}
+                      data-year={yearInt}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ 
+                        opacity: isVisible ? 1 : 0.5,
+                        x: 0 
+                      }}
+                      transition={{ delay: index * 0.1 }}
+                      className="relative flex items-center"
+                    >
+                      {/* Year marker */}
+                      <button
+                        onClick={() => handleYearSelect(year)}
+                        disabled={isTransitioning}
+                        className={`relative z-10 w-5 h-5 rounded-full border-3 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed ${
+                          isSelected
+                            ? 'bg-gray-800 dark:bg-white border-gray-800 dark:border-white scale-110'
+                            : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                        }`}
+                        aria-label={`View events from ${year}`}
+                      >
+                        {isSelected && (
+                          <div className="absolute inset-0.5 bg-white dark:bg-gray-800 rounded-full"></div>
+                        )}
+                      </button>
+
+                      {/* Year label and event count */}
+                      <div className="ml-4 flex-1">
+                        <button
+                          onClick={() => handleYearSelect(year)}
+                          disabled={isTransitioning}
+                          className="text-left group focus:outline-none disabled:cursor-not-allowed"
+                        >
+                          <div className={`text-xl font-light transition-colors ${
+                            isSelected 
+                              ? 'text-gray-900 dark:text-white' 
+                              : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300'
+                          }`}>
+                            {year}
+                          </div>
+                          {events.length > 1 && (
+                            <div className={`text-xs font-medium transition-colors ${
+                              isSelected 
+                                ? 'text-blue-600 dark:text-blue-400' 
+                                : 'text-gray-400 dark:text-gray-500'
+                            }`}>
+                              +{events.length}
+                            </div>
+                          )}
+                        </button>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Content Area - Scrollable Viewport */}
+          <div className="flex-1 relative overflow-y-auto hide-scrollbar">
+            <AnimatePresence mode="wait">
+              {currentEvent && (
+                <motion.div
+                  key={`${selectedYear}-${selectedEventIndex}`}
+                  initial={{ opacity: 0, x: 100 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -100 }}
+                  transition={{ 
+                    duration: 0.6, 
+                    ease: [0.4, 0.0, 0.2, 1], // Custom cubic-bezier for smooth feel
+                    opacity: { duration: 0.4 }
+                  }}
+                  className="relative min-h-full"
+                >
+                  {/* Background Image with Enhanced Gradient */}
+                  {currentEvent.image && (
+                    <div className="absolute inset-0">
+                      <img 
+                        src={`/images/timeline/${currentEvent.image}`}
+                        alt={currentEvent.title}
+                        className="w-full h-full object-cover opacity-25"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                      {/* Enhanced Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/50 to-transparent"></div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                    </div>
+                  )}
+
+                  {/* Content */}
+                  <div className="relative z-10 min-h-full flex flex-col justify-center px-8 lg:px-12 py-8">
+                    {/* Large Year Display - Compact Size */}
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.2, duration: 0.5 }}
+                      className="mb-6 flex-shrink-0"
+                    >
+                      <div className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extralight text-gray-900 dark:text-white leading-none tracking-tight">
+                        {selectedYear}
+                      </div>
+                    </motion.div>
+
+                    {/* Event Content - Scrollable */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4, duration: 0.5 }}
+                      className="max-w-4xl flex-grow"
+                    >
+                      {/* Event Title */}
+                      <h2 className="text-xl md:text-2xl lg:text-3xl font-light text-gray-900 dark:text-white mb-4 leading-tight uppercase tracking-wider">
+                        {currentEvent.title}
+                      </h2>
+
+                      {/* Event Metadata */}
+                      <div className="flex flex-wrap gap-4 mb-6 text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-5 h-5" />
+                          <span className="font-medium">{currentEvent.date}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-5 h-5" />
+                          <span className="font-medium">{currentEvent.location}</span>
+                        </div>
+                      </div>
+
+                      {/* Event Description */}
+                      <div className="space-y-4 text-base md:text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+                        <p>{currentEvent.description}</p>
+                        {currentEvent.additionalDetails && (
+                          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
+                            {currentEvent.additionalDetails}
+                          </p>
+                        )}
+                      </div>
+                    </motion.div>
+
+                    {/* Add bottom padding for navigation controls */}
+                    <div className="pb-16"></div>
+
+                    {/* Transition Loading Indicator */}
+                    {isTransitioning && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center"
+                      >
+                        <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      </motion.div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Fixed Navigation Controls */}
+            {currentEvents.length > 1 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
+                className="absolute bottom-6 right-6 flex gap-2 z-20"
+              >
+                <button
+                  onClick={() => handleEventNavigation('prev')}
+                  disabled={selectedEventIndex === 0 || isTransitioning}
+                  className="p-3 bg-white/20 dark:bg-gray-800/50 backdrop-blur-sm rounded-full border border-gray-200 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/30 dark:hover:bg-gray-700/50 transition-colors"
+                  aria-label="Previous event"
+                >
+                  <ChevronUp className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                </button>
+                <button
+                  onClick={() => handleEventNavigation('next')}
+                  disabled={selectedEventIndex === currentEvents.length - 1 || isTransitioning}
+                  className="p-3 bg-white/20 dark:bg-gray-800/50 backdrop-blur-sm rounded-full border border-gray-200 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/30 dark:hover:bg-gray-700/50 transition-colors"
+                  aria-label="Next event"
+                >
+                  <ChevronDown className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                </button>
+              </motion.div>
+            )}
+
+            {/* Fixed Event Counter */}
+            {currentEvents.length > 1 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
+                className="absolute bottom-6 left-8 lg:left-12 z-20"
+              >
+                <div className="px-4 py-2 bg-white/20 dark:bg-gray-800/50 backdrop-blur-sm rounded-full border border-gray-200 dark:border-gray-600">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {selectedEventIndex + 1} of {currentEvents.length}
+                  </span>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
   );
 };
 

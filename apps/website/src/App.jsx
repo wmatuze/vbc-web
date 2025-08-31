@@ -66,10 +66,9 @@ const ScrollToTop = () => {
 const NavbarWrapper = ({ heroRef, isNavHidden }) => {
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith("/admin");
-  const isSermonsPage = location.pathname.includes("/sermons");
 
   return (
-    <Navbar isHidden={isNavHidden} forceOpaque={isAdminPage || isSermonsPage} />
+    <Navbar isHidden={isNavHidden} forceOpaque={isAdminPage} />
   );
 };
 

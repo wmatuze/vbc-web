@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Calendar, Clock, MapPin, ExternalLink } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 const TimelineEvent = ({ 
   event, 
@@ -10,8 +11,25 @@ const TimelineEvent = ({
   isModal = false,
   onOpenModal 
 }) => {
-  // Determine if we should show the detailed view
-  const showDetailedView = isModal || window.innerWidth >= 1024;
+  const [isLargeScreen, setIsLargeScreen] = useState(false);
+  
+  // Safely determine if we should show the detailed view
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsLargeScreen(window.innerWidth >= 1024);
+    };
+    
+    // Set initial value
+    checkScreenSize();
+    
+    // Add event listener for resize
+    window.addEventListener('resize', checkScreenSize);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+  
+  const showDetailedView = isModal || isLargeScreen;
   
   // Function to render image with fallback
   const renderImage = () => {
@@ -25,7 +43,7 @@ const TimelineEvent = ({
           className="w-full h-auto object-cover"
           onError={(e) => {
             e.target.onerror = null;
-            e.target.src = "/images/placeholder.jpg";
+            e.target.src = "/assets/placeholder.jpg";
           }}
         />
       </div>

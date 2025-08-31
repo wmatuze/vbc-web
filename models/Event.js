@@ -44,6 +44,16 @@ const EventSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  // Signup mode: 'none', 'optional', 'required'
+  signupMode: {
+    type: String,
+    enum: ['none', 'optional', 'required'],
+    default: 'none',
+  },
+  // Deadline for event sign-up
+  signupDeadline: {
+    type: Date,
+  },
   image: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Media",

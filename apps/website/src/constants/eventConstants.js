@@ -23,6 +23,8 @@ export const INITIAL_EVENT_STATE = {
   featured: false,
   type: "event",
   signupRequired: false,
+  signupMode: "none",
+  signupDeadline: "",
 };
 
 /**
@@ -45,7 +47,7 @@ export const EVENT_VALIDATION_RULES = {
     maxLength: 100,
     fieldName: "Location",
   },
-  description: { type: "string", maxLength: 1000, fieldName: "Description" },
+  description: { type: "string", required: true, minLength: 3, maxLength: 1000, fieldName: "Description" },
   capacity: { type: "number", integer: true, min: 1, fieldName: "Capacity" },
   ministry: { type: "string", maxLength: 50, fieldName: "Ministry" },
   registrationUrl: { type: "url", fieldName: "Registration URL" },
@@ -66,4 +68,13 @@ export const EVENT_TYPES = [
   { value: "baptism", label: "Baptism" },
   { value: "babyDedication", label: "Baby Dedication" },
   { value: "other", label: "Other" },
-]; 
+];
+
+/**
+ * Signup modes for event registration
+ */
+export const SIGNUP_MODES = [
+  { value: "none", label: "No Sign-up Required" },
+  { value: "optional", label: "Optional Sign-up" },
+  { value: "required", label: "Required Sign-up" },
+];

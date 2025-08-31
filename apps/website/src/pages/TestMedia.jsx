@@ -58,7 +58,7 @@ const TestMedia = () => {
       </p>
 
       {loading && <p>Loading media...</p>}
-      {error && <p className="text-red-600">{error}</p>}
+      {error && <p className="text-red-600">{error?.message || error?.toString() || 'An error occurred'}</p>}
 
       <div className="grid grid-cols-1 gap-6">
         {media.map((item) => (

@@ -234,7 +234,7 @@ const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
 
               {error && (
                 <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">
-                  {error}
+                  {error?.message || error?.toString() || 'An error occurred'}
                 </div>
               )}
 

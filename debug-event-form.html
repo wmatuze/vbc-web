@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Form Debug</title>
+</head>
+<body>
+    <h1>Event Form Debug Page</h1>
+    <p>Open this page at: <strong>http://localhost:5173/debug-event-form.html</strong></p>
+    
+    <h2>Step-by-Step Instructions:</h2>
+    <ol>
+        <li>Open <code>http://localhost:5173/admin</code> in your browser</li>
+        <li>Press F12 to open Developer Tools</li>
+        <li>Click the Console tab</li>
+        <li>Look for any red error messages</li>
+        <li>Follow the steps I provided above</li>
+    </ol>
+    
+    <h2>Common Issues to Check:</h2>
+    <ul>
+        <li>Are you logged in as admin?</li>
+        <li>Do you see the Events tab in the sidebar?</li>
+        <li>Does clicking "Add New Event" show a form?</li>
+        <li>Are there console errors?</li>
+    </ul>
+    
+    <script>
+        console.log("Debug page loaded. Please navigate to /admin and check the console for errors.");
+        
+        // Test if we can access the admin interface
+        fetch('/admin')
+            .then(response => {
+                console.log('Admin route accessible:', response.ok);
+            })
+            .catch(error => {
+                console.error('Error accessing admin route:', error);
+            });
+    </script>
+</body>
+</html>

@@ -153,12 +153,12 @@ const Navbar = ({
         className={`fixed w-full z-50 transition-all duration-500 ease-in-out ${getBackgroundStyle()}`}
         aria-label="Main Navigation"
       >
-        <div className="container mx-auto px-4 3xl:max-w-[1920px]">
+        <div className="w-full max-w-none px-6 lg:px-8 xl:px-12 2xl:px-16">
           <div className="flex justify-between items-center py-4">
             {/* Logo Section */}
             <Link
               to="/"
-              className="flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-primary-400 rounded-lg p-1 transition-transform hover:scale-105"
+              className="flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-primary-400 rounded-lg p-1 transition-transform hover:scale-105 flex-shrink-0"
               aria-label="Home Page"
             >
               <div className="flex items-center">
@@ -186,7 +186,7 @@ const Navbar = ({
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-3">
+            <div className="hidden md:flex items-center space-x-6 lg:space-x-8 xl:space-x-10">
               {links.map((link) =>
                 link.children ? (
                   <div

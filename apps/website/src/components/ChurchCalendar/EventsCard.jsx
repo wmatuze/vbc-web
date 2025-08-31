@@ -6,6 +6,34 @@ import eventPlaceholderImage from "../../assets/placeholders/default-event.svg";
 const API_URL = config.API_URL;
 
 const EventCard = ({ event, highlight, compact = false }) => {
+  // Helper function to get event type badge styling
+  const getEventTypeBadgeStyle = (type) => {
+    switch (type) {
+      case 'baptism':
+        return 'bg-blue-100 text-blue-800';
+      case 'babyDedication':
+        return 'bg-purple-100 text-purple-800';
+      case 'other':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Helper function to get event type label
+  const getEventTypeLabel = (type) => {
+    switch (type) {
+      case 'baptism':
+        return 'Baptism';
+      case 'babyDedication':
+        return 'Baby Dedication';
+      case 'other':
+        return 'Special Event';
+      default:
+        return 'Event';
+    }
+  };
+
   // Get image URL with fallback
   const getImageUrl = (event) => {
     if (!event?.imageUrl && !event?.image) return eventPlaceholderImage;
@@ -319,6 +347,28 @@ const EventCard = ({ event, highlight, compact = false }) => {
             {event.ministry}
           </div>
         )}
+        
+        {/* Event type and signup badges */}
+        <div className="absolute top-2 left-2 flex flex-col gap-1">
+          {/* Event type badge */}
+          {event?.type && event.type !== 'event' && (
+            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getEventTypeBadgeStyle(event.type)}`}>
+              {getEventTypeLabel(event.type)}
+            </span>
+          )}
+          
+          {/* Signup badge */}
+          {(event?.signupMode === 'required' || event?.signupRequired) && (
+            <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
+              Sign-up Required
+            </span>
+          )}
+          {event?.signupMode === 'optional' && (
+            <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+              Sign-up Optional
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Content Section */}

@@ -201,7 +201,7 @@ const EventSignUpForm = ({ event, onClose, onSubmit }) => {
 
             {error && (
               <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg border border-red-200">
-                {error}
+                {error?.message || error?.toString() || 'An error occurred'}
               </div>
             )}
 

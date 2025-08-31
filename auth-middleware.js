@@ -37,6 +37,14 @@ const authMiddleware = (req, res, next) => {
   const token = authHeader.split(' ')[1];
 
   try {
+    // In development mode, accept development tokens that start with 'dev-token-'
+    if (process.env.NODE_ENV === 'development' && token.startsWith('dev-token-')) {
+      console.log('Development mode: accepting dev token');
+      // Add a default admin user for development
+      req.user = { id: 'dev-admin', username: 'admin', role: 'admin' };
+      return next();
+    }
+
     // Verify the token
     const decoded = jwt.verify(token, JWT_SECRET);
     

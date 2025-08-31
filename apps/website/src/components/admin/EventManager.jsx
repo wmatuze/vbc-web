@@ -32,6 +32,7 @@ import config from "../../config";
 import {
   EVENT_VALIDATION_RULES,
   EVENT_TYPES,
+  SIGNUP_MODES,
 } from "../../constants/eventConstants";
 import { normalizeEventDate, parseEventFromAPI } from "../../utils/dateUtils";
 import { getImageUrl, processMediaItem } from "../../utils/imageUtils";
@@ -330,13 +331,27 @@ const EventManager = () => {
         </div>
       )}
 
-      <form
-        onSubmit={handleSubmit}
-        className="mb-8 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg shadow-sm"
-      >
-        <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">
-          {formMode === "add" ? "Add New Event" : "Edit Event"}
-        </h3>
+      {!showForm && (
+        <div className="mb-8 flex justify-start">
+          <button
+            type="button"
+            onClick={addEvent}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            <PlusIcon className="h-5 w-5 mr-2" />
+            Add New Event
+          </button>
+        </div>
+      )}
+
+      {showForm && (
+        <form
+          onSubmit={handleSubmit}
+          className="mb-8 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg shadow-sm"
+        >
+          <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">
+            {formMode === "add" ? "Add New Event" : "Edit Event"}
+          </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <FormField
@@ -411,6 +426,7 @@ const EventManager = () => {
             value={currentEvent.description}
             onChange={handleInputChange}
             placeholder="Enter event description"
+            required={true}
             validation={EVENT_VALIDATION_RULES.description}
             errors={formErrors}
             setErrors={setFormErrors}
@@ -439,7 +455,46 @@ const EventManager = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Requires Sign-up
+                Sign-up Mode
+              </label>
+              <select
+                name="signupMode"
+                value={currentEvent.signupMode}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                {SIGNUP_MODES.map((mode) => (
+                  <option key={mode.value} value={mode.value}>
+                    {mode.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Sign-up Deadline (only show if signup is enabled) */}
+          {currentEvent.signupMode !== 'none' && (
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Sign-up Deadline (Optional)
+              </label>
+              <input
+                type="datetime-local"
+                name="signupDeadline"
+                value={currentEvent.signupDeadline}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Leave blank for no deadline. Sign-up will be hidden after this date/time.
+              </p>
+            </div>
+          )}
+
+          <div className="md:col-span-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Legacy Sign-up (Deprecated)
               </label>
               <div className="flex items-center mt-2">
                 <input
@@ -452,9 +507,9 @@ const EventManager = () => {
                 />
                 <label
                   htmlFor="signupRequired"
-                  className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
+                  className="ml-2 block text-sm text-gray-500 dark:text-gray-400"
                 >
-                  Enable sign-up form for this event
+                  Enable sign-up form for this event (use Sign-up Mode instead)
                 </label>
               </div>
             </div>
@@ -526,39 +581,25 @@ const EventManager = () => {
           </div>
         </div>
 
-        {!showForm && (
+        <div className="flex items-center">
+          <button
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white py-2 px-4 rounded-md transition-colors"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Saving..." : "Save Event"}
+          </button>
+
           <button
             type="button"
-            onClick={addEvent}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            onClick={resetForm}
+            className="ml-2 py-2 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
-            <PlusIcon className="h-5 w-5 mr-2" />
-            Add New Event
+            Cancel
           </button>
-        )}
-
-        {showForm && (
-          <div className="flex items-center">
-            <button
-              type="submit"
-              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white py-2 px-4 rounded-md transition-colors"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Saving..." : "Save Event"}
-            </button>
-
-            {formMode === "edit" && (
-              <button
-                type="button"
-                onClick={resetForm}
-                className="ml-2 py-2 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              >
-                Cancel
-              </button>
-            )}
-          </div>
-        )}
-      </form>
+        </div>
+        </form>
+      )}
 
       <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
         <div className="flex items-center space-x-2">

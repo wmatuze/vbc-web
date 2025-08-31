@@ -46,6 +46,28 @@ const ChurchCalendar = () => {
     }
   }, [events]);
 
+  // Function to check if signup button should be shown
+  const shouldShowSignupButton = (event) => {
+    if (!event) return false;
+    
+    // Check if signup is enabled (new signupMode or legacy signupRequired)
+    const isSignupEnabled = event.signupMode === 'required' || event.signupMode === 'optional' || event.signupRequired;
+    
+    if (!isSignupEnabled) return false;
+    
+    // Check if we're within the signup deadline
+    if (event.signupDeadline) {
+      const now = new Date();
+      const deadline = new Date(event.signupDeadline);
+      if (now > deadline) {
+        console.log('Signup deadline has passed for event:', event.title);
+        return false;
+      }
+    }
+    
+    return true;
+  };
+
   // Get unique ministries for filter dropdown
   const ministryCategories = [
     "All",
@@ -538,7 +560,7 @@ const ChurchCalendar = () => {
           </div>
         ) : error ? (
           <div className="text-center py-12">
-            <p className="text-xl text-gray-600">{error}</p>
+            <p className="text-xl text-gray-600">{error.message || error.toString() || 'An error occurred while loading events'}</p>
             <button
               className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               onClick={() => refetchEvents()}
@@ -684,13 +706,13 @@ const ChurchCalendar = () => {
       <Modal
         isOpen={isModalOpen}
         onRequestClose={closeModal}
-        className="max-w-2xl mx-auto mt-20 bg-white rounded-lg shadow-xl overflow-hidden outline-none"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center z-50"
+        className="w-full max-w-2xl mx-auto my-4 md:my-8 bg-white rounded-lg shadow-xl overflow-hidden outline-none max-h-[90vh] overflow-y-auto"
+        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
       >
         {selectedEvent && (
           <div>
             {/* Modal Header with Image */}
-            <div className="relative h-48 bg-gray-200">
+            <div className="relative h-32 sm:h-48 md:h-56 bg-gray-200">
               <img
                 src={getImageUrl(selectedEvent)}
                 alt={selectedEvent?.title || "Event"}
@@ -702,11 +724,11 @@ const ChurchCalendar = () => {
               />
               <button
                 onClick={closeModal}
-                className="absolute top-2 right-2 bg-white p-2 rounded-full shadow-md hover:bg-gray-100"
+                className="absolute top-2 right-2 bg-white p-1.5 sm:p-2 rounded-full shadow-md hover:bg-gray-100"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-gray-600"
+                  className="h-4 w-4 sm:h-6 sm:w-6 text-gray-600"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -720,35 +742,35 @@ const ChurchCalendar = () => {
                 </svg>
               </button>
               {selectedEvent?.ministry && (
-                <div className="absolute top-4 left-4 bg-red-600 text-white py-1 px-3 rounded-lg font-medium text-sm">
+                <div className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-red-600 text-white py-1 px-2 sm:px-3 rounded-lg font-medium text-xs sm:text-sm">
                   {selectedEvent.ministry}
                 </div>
               )}
             </div>
 
             {/* Modal Content */}
-            <div className="p-6">
-              <div className="flex items-start gap-4 mb-6">
+            <div className="p-4 sm:p-6">
+              <div className="flex items-start gap-2 sm:gap-4 mb-4 sm:mb-6">
                 {/* Date Box */}
-                <div className="flex flex-col items-center justify-center min-w-20 border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                <div className="flex flex-col items-center justify-center min-w-16 sm:min-w-20 border border-gray-200 rounded-lg overflow-hidden shadow-sm flex-shrink-0">
                   <div className="bg-red-600 text-white text-xs uppercase font-bold py-1 w-full text-center">
                     {getEventDate(selectedEvent).toLocaleString("default", {
                       month: "short",
                     })}
                   </div>
-                  <div className="text-gray-800 text-3xl font-bold py-2 w-full text-center">
+                  <div className="text-gray-800 text-xl sm:text-3xl font-bold py-1 sm:py-2 w-full text-center">
                     {getEventDate(selectedEvent).getDate()}
                   </div>
                 </div>
 
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-lg sm:text-2xl font-bold text-gray-800 mb-2 line-clamp-2">
                     {selectedEvent?.title || "Unnamed Event"}
                   </h2>
-                  <div className="flex items-center gap-2 text-gray-600">
+                  <div className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base text-gray-600">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
+                      className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -760,13 +782,13 @@ const ChurchCalendar = () => {
                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
-                    <span>{selectedEvent?.time || "TBA"}</span>
+                    <span className="truncate">{selectedEvent?.time || "TBA"}</span>
                   </div>
                   {selectedEvent?.location && (
-                    <div className="flex items-center mt-1 text-gray-600">
+                    <div className="flex items-center mt-1 text-sm sm:text-base text-gray-600">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 mr-2"
+                        className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2 flex-shrink-0"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -784,56 +806,63 @@ const ChurchCalendar = () => {
                           d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                         />
                       </svg>
-                      {selectedEvent.location}
+                      <span className="truncate">{selectedEvent.location}</span>
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Description */}
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-2">About This Event</h3>
-                <p className="text-gray-700">
+              <div className="mb-4 sm:mb-6">
+                <h3 className="text-base sm:text-lg font-semibold mb-2">About This Event</h3>
+                <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
                   {selectedEvent?.description || "No description available."}
                 </p>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setIsModalOpen(false);
-                    // Give time for the modal to close before opening the signup form
-                    setTimeout(() => {
-                      handleOpenSignupForm();
-                    }, 300);
-                  }}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-                    />
-                  </svg>
-                  Sign Up
-                </button>
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                {/* Only show Sign Up button if signup is enabled and within deadline */}
+                {shouldShowSignupButton(selectedEvent) && (
+                                      <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setIsModalOpen(false);
+                        // Give time for the modal to close before opening the signup form
+                        setTimeout(() => {
+                          handleOpenSignupForm();
+                        }, 300);
+                      }}
+                      className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-sm sm:text-base text-white rounded-lg transition-colors ${
+                        selectedEvent.signupMode === 'required' || selectedEvent.signupRequired
+                          ? 'bg-red-600 hover:bg-red-700'
+                          : 'bg-green-600 hover:bg-green-700'
+                      }`}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                        />
+                      </svg>
+                      {selectedEvent.signupMode === 'required' || selectedEvent.signupRequired ? 'Sign Up Required' : 'Sign Up (Optional)'}
+                    </button>
+                )}
                 <button
                   onClick={() => addToCalendar(selectedEvent)}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-sm sm:text-base bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
+                    className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -845,11 +874,11 @@ const ChurchCalendar = () => {
                       d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                     />
                   </svg>
-                  Add to Calendar
+                  <span className="truncate">Add to Calendar</span>
                 </button>
                 <button
                   onClick={closeModal}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Close
                 </button>

@@ -732,7 +732,7 @@ const RequestsManager = () => {
         <h3 className="text-lg font-semibold text-red-700 mb-2">
           Error Loading Data
         </h3>
-        <p className="text-red-600 mb-4">{error}</p>
+        <p className="text-red-600 mb-4">{error?.message || error?.toString() || 'An error occurred'}</p>
         <button
           onClick={refreshData}
           className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
@@ -815,11 +815,11 @@ const RequestsManager = () => {
       {/* Modals */}
       {showRenewalDetails && selectedRenewal && (
         <MembershipDetailsModal
-          renewal={selectedRenewal}
-          onClose={() => setShowRenewalDetails(false)}
-          onApprove={approveAndNotifyMember}
-          onDecline={declineAndNotifyMember}
-          onDelete={deleteMembershipRenewal} // This now triggers the confirmation modal
+          selectedRenewal={selectedRenewal}
+          setShowRenewalDetails={() => setShowRenewalDetails(false)}
+          approveAndNotifyMember={approveAndNotifyMember}
+          declineAndNotifyMember={declineAndNotifyMember}
+          deleteMembershipRenewal={deleteMembershipRenewal} // This now triggers the confirmation modal
           actionLoading={actionLoading}
         />
       )}
@@ -836,11 +836,11 @@ const RequestsManager = () => {
       )}
       {showEventSignupDetails && selectedEventSignup && (
         <EventSignupDetailsModal
-          request={selectedEventSignup}
-          onClose={() => setShowEventSignupDetails(false)}
-          onApprove={approveAndNotifyEventSignup}
-          onDecline={declineAndNotifyEventSignup}
-          onDelete={deleteEventSignupRequest} // This now triggers the confirmation modal
+          selectedEventSignup={selectedEventSignup}
+          setShowEventSignupDetails={() => setShowEventSignupDetails(false)}
+          approveAndNotifyEventSignup={approveAndNotifyEventSignup}
+          declineAndNotifyEventSignup={declineAndNotifyEventSignup}
+          deleteEventSignupRequest={deleteEventSignupRequest} // This now triggers the confirmation modal
           actionLoading={actionLoading}
         />
       )}

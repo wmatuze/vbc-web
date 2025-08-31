@@ -531,7 +531,7 @@ const HeroSection = forwardRef((props, ref) => {
                 </div>
               ) : error ? (
                 <div className="card bg-white/5 backdrop-blur-sm border border-white/10 p-6">
-                  <p className="text-red-400">{error}</p>
+                  <p className="text-red-400">{error?.message || error?.toString() || 'An error occurred'}</p>
                   <button
                     onClick={() => refetchEvents()}
                     className="text-sm text-primary-400 hover:text-primary-300 mt-2"
