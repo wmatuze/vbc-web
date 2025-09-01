@@ -491,6 +491,16 @@ const Sermons = () => {
                 <p className="text-gray-500 text-sm mb-3">
                   {formatSermonDate(sermon.date)}
                 </p>
+                {/* Add description for recent sermons */}
+                {sermon.description && (
+                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                    {typeof sermon.description === "string"
+                      ? sermon.description.length > 120
+                        ? sermon.description.substring(0, 120) + "..."
+                        : sermon.description
+                      : "View sermon details"}
+                  </p>
+                )}
                 <Link
                   to={`/media/sermons?video=${sermon.videoId}`}
                   className="text-primary-600 hover:text-primary-700 text-sm flex items-center group"

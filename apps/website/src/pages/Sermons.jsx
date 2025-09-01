@@ -404,7 +404,9 @@ const Sermons = () => {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          {error?.message || error?.toString() || 'An error occurred while loading sermons'}
+          {error?.message ||
+            error?.toString() ||
+            "An error occurred while loading sermons"}
         </div>
       </div>
     );
@@ -669,6 +671,16 @@ const Sermons = () => {
                 <span className="text-gray-400">•</span>
                 <span>{selectedSermon.duration}</span>
               </div>
+              {/* Add description for selected sermon */}
+              {selectedSermon.description && (
+                <div className="mt-4">
+                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                    {typeof selectedSermon.description === "string"
+                      ? selectedSermon.description
+                      : "No description available"}
+                  </p>
+                </div>
+              )}
 
               {/* Add sharing options */}
               <div className="mt-4 flex items-center justify-center lg:justify-start">
@@ -753,6 +765,17 @@ const Sermons = () => {
                     <span className="text-gray-400">{sermon.duration}</span>
                   </div>
                 </div>
+
+                {/* Add description for sermon cards */}
+                {sermon.description && (
+                  <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
+                    {typeof sermon.description === "string"
+                      ? sermon.description.length > 150
+                        ? sermon.description.substring(0, 150) + "..."
+                        : sermon.description
+                      : "View sermon details"}
+                  </p>
+                )}
 
                 {/* Add sharing options */}
                 <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center">

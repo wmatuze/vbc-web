@@ -5,45 +5,8 @@ const nodemailer = require("nodemailer");
 const MemberRenewal = require("../models/MemberRenewal");
 const FoundationClassRegistration = require("../models/FoundationClassRegistration");
 
-// Configure nodemailer for development (mock) or production
-let transporter;
-
-// Log environment configuration
-console.log("=== Email Configuration ===");
-console.log("NODE_ENV:", process.env.NODE_ENV);
-console.log("EMAIL_HOST:", process.env.EMAIL_HOST);
-console.log("EMAIL_PORT:", process.env.EMAIL_PORT);
-console.log("EMAIL_USER:", process.env.EMAIL_USER ? "Set" : "Not set");
-console.log("EMAIL_PASSWORD:", process.env.EMAIL_PASSWORD ? "Set" : "Not set");
-console.log("EMAIL_FROM:", process.env.EMAIL_FROM);
-console.log("========================");
-
-// Create transporter with Gmail configuration
-console.log("Configuring Gmail email transporter");
-if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-  console.error("ERROR: Missing email credentials in environment variables");
-  console.error("Please ensure EMAIL_USER and EMAIL_PASSWORD are set");
-}
-
-// Create transporter with proper configuration
-transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  secure: process.env.EMAIL_SECURE === "true",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
-
-// Verify the transporter configuration
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("Email transporter verification failed:", error);
-  } else {
-    console.log("Email transporter is ready to send emails");
-  }
-});
+// Use the centralized email service instead of creating a new transporter
+const { sendEmail } = require("../utils/emailService");
 
 /**
  * @route POST /api/notifications/send
@@ -74,26 +37,18 @@ router.post("/send", authMiddleware, async (req, res) => {
     console.log("Email content generated successfully");
     console.log("Email subject:", emailContent.subject);
 
-    // Send the email
-    const mailOptions = {
-      from:
-        process.env.EMAIL_FROM ||
-        '"Victory Bible Church" <watu.matuze@gmail.com>',
-      to: recipient.email,
-      subject: emailContent.subject,
-      html: emailContent.body,
-    };
-
+    // Send the email using centralized service
     console.log("Preparing to send email to:", recipient.email);
-    console.log("Email configuration:", {
-      from: mailOptions.from,
-      to: mailOptions.to,
-      subject: mailOptions.subject,
-    });
+    console.log("Email subject:", emailContent.subject);
 
     try {
       console.log("Attempting to send email...");
-      const info = await transporter.sendMail(mailOptions);
+      const info = await sendEmail({
+        to: recipient.email,
+        subject: emailContent.subject,
+        html: emailContent.body,
+        text: `Please view this email in HTML format. Subject: ${emailContent.subject}`
+      });
       console.log("Email sent successfully:", info.messageId);
 
       // For SMS, you would integrate with an SMS service here
