@@ -389,6 +389,76 @@ class RequestsService {
     }
   }
 
+  /* DISCIPLESHIP CLASS REGISTRATION API */
+
+  /**
+   * Fetch all discipleship class registrations
+   * @returns {Promise} Promise that resolves to array of registrations
+   */
+  static async getDiscipleshipRegistrations() {
+    try {
+      const axios = this.getAxiosInstance();
+      const response = await axios.get(
+        "/api/discipleship/registrations",
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+
+      // Return the data directly without normalization
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch discipleship registrations:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update the status of a discipleship registration
+   * @param {String} id - The registration ID
+   * @param {String} status - The new status (pending, approved, attending, completed, rejected)
+   * @returns {Promise} Promise that resolves to updated registration
+   */
+  static async updateDiscipleshipStatus(id, status) {
+    try {
+      const axios = this.getAxiosInstance();
+      const response = await axios.put(
+        `/api/discipleship/registrations/${id}`,
+        { status },
+        { headers: getAuthHeaders() }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error(
+        `Failed to update discipleship registration status: ${error.response?.data?.message || error.message}`
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Get a single discipleship registration by ID
+   * @param {String} id - The registration ID
+   * @returns {Promise} Promise that resolves to registration data
+   */
+  static async getDiscipleshipRegistration(id) {
+    try {
+      const axios = this.getAxiosInstance();
+      const response = await axios.get(
+        `/api/discipleship/registrations/${id}`,
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch discipleship registration:", error);
+      throw error;
+    }
+  }
+
   /* EVENT SIGNUP REQUESTS API */
 
   /**

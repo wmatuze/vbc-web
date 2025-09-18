@@ -3,6 +3,7 @@ import {
   IdentificationIcon,
   AcademicCapIcon,
   UserPlusIcon,
+  BookOpenIcon,
 } from "@heroicons/react/24/outline";
 
 /**
@@ -37,6 +38,17 @@ const RequestsTabs = ({ activeTab, setActiveTab }) => {
         >
           <AcademicCapIcon className="h-5 w-5 mr-2" />
           Foundation Class Enrollments
+        </button>
+        <button
+          onClick={() => setActiveTab("discipleship")}
+          className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center ${
+            activeTab === "discipleship"
+              ? "border-blue-500 text-blue-600"
+              : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+          }`}
+        >
+          <BookOpenIcon className="h-5 w-5 mr-2" />
+          Discipleship Classes
         </button>
         <button
           onClick={() => setActiveTab("events")}

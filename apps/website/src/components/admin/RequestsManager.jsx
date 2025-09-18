@@ -26,6 +26,8 @@ import MembershipTab from "./requests/MembershipTab";
 import MembershipDetailsModal from "./requests/MembershipDetailsModal";
 import FoundationTab from "./requests/FoundationTab";
 import FoundationDetailsModal from "./requests/FoundationDetailsModal";
+import DiscipleshipTab from "./requests/DiscipleshipTab";
+import DiscipleshipDetailsModal from "./requests/DiscipleshipDetailsModal";
 import EventSignupsTab from "./requests/EventSignupsTab";
 import EventSignupDetailsModal from "./requests/EventSignupDetailsModal";
 import ConfirmationModal from "../common/ConfirmationModal"; // Added import
@@ -55,6 +57,11 @@ const RequestsManager = () => {
   const [selectedEnrollment, setSelectedEnrollment] = useState(null);
   const [showEnrollmentDetails, setShowEnrollmentDetails] = useState(false);
 
+  // Discipleship class states
+  const [discipleshipRegistrations, setDiscipleshipRegistrations] = useState([]);
+  const [selectedDiscipleshipRegistration, setSelectedDiscipleshipRegistration] = useState(null);
+  const [showDiscipleshipDetails, setShowDiscipleshipDetails] = useState(false);
+
   // Event signup request states
   const [eventSignups, setEventSignups] = useState([]);
   const [selectedEventSignup, setSelectedEventSignup] = useState(null);
@@ -75,6 +82,8 @@ const RequestsManager = () => {
       fetchRenewals();
     } else if (activeTab === "foundation") {
       fetchEnrollments();
+    } else if (activeTab === "discipleship") {
+      fetchDiscipleshipRegistrations();
     } else if (activeTab === "events") {
       fetchEventSignups();
     }
@@ -113,6 +122,31 @@ const RequestsManager = () => {
       const errorMessage =
         err.response?.data?.error ||
         "Failed to load foundation class enrollments. Please try again.";
+      setError(errorMessage);
+      toast.error(`Error: ${errorMessage}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch discipleship registrations
+  const fetchDiscipleshipRegistrations = async () => {
+    try {
+      setLoading(true);
+
+      const data = await RequestsService.getDiscipleshipRegistrations();
+      console.log("Discipleship registrations response:", data);
+      
+      // Ensure we have an array
+      const registrations = Array.isArray(data) ? data : (data?.data ? data.data : []);
+      setDiscipleshipRegistrations(registrations);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching discipleship registrations:", err);
+      setDiscipleshipRegistrations([]); // Set empty array as fallback
+      const errorMessage =
+        err.response?.data?.error ||
+        "Failed to load discipleship registrations. Please try again.";
       setError(errorMessage);
       toast.error(`Error: ${errorMessage}`);
     } finally {
@@ -220,6 +254,34 @@ const RequestsManager = () => {
         "Failed to update status. Please try again.";
       setError(errorMessage);
       toast.error(`Class status update failed: ${errorMessage}`);
+    }
+  };
+
+  // Handle discipleship status change
+  const handleDiscipleshipStatusChange = async (id, newStatus) => {
+    try {
+      setActionLoading(true);
+
+      await RequestsService.updateDiscipleshipStatus(id, newStatus);
+
+      // Update the local state
+      setDiscipleshipRegistrations(prev =>
+        prev.map(registration =>
+          registration._id === id 
+            ? { ...registration, status: newStatus }
+            : registration
+        )
+      );
+
+      toast.success(`Discipleship registration ${newStatus} successfully`);
+    } catch (err) {
+      console.error("Error updating discipleship status:", err);
+      const errorMessage =
+        err.response?.data?.error ||
+        "Failed to update discipleship status. Please try again.";
+      toast.error(`Error: ${errorMessage}`);
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -669,8 +731,9 @@ const RequestsManager = () => {
     setShowEventSignupDetails(true);
   };
 
+
   // Filtered data based on search term and status
-  const filteredRenewals = renewals.filter(
+  const filteredRenewals = (renewals || []).filter(
     (renewal) =>
       (renewal.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         renewal.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -678,7 +741,7 @@ const RequestsManager = () => {
       (filterStatus === "all" || renewal.status === filterStatus)
   );
 
-  const filteredEnrollments = enrollments.filter(
+  const filteredEnrollments = (enrollments || []).filter(
     (enrollment) =>
       (enrollment.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         enrollment.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -686,7 +749,16 @@ const RequestsManager = () => {
       (filterStatus === "all" || enrollment.status === filterStatus)
   );
 
-  const filteredEventSignups = eventSignups.filter(
+  const filteredDiscipleshipRegistrations = (discipleshipRegistrations || []).filter(
+    (registration) =>
+      (registration.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        registration.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        registration.phone?.includes(searchTerm) ||
+        registration.classId?.title?.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (filterStatus === "all" || registration.status === filterStatus)
+  );
+
+  const filteredEventSignups = (eventSignups || []).filter(
     (signup) =>
       (signup.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         signup.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -701,15 +773,26 @@ const RequestsManager = () => {
       fetchRenewals();
     } else if (activeTab === "foundation") {
       fetchEnrollments();
+    } else if (activeTab === "discipleship") {
+      fetchDiscipleshipRegistrations();
     } else if (activeTab === "events") {
       fetchEventSignups();
     }
   };
 
+  // View discipleship registration details
+  const viewDiscipleshipDetails = (registration) => {
+    setSelectedDiscipleshipRegistration(registration);
+    setShowDiscipleshipDetails(true);
+  };
+
+
+
   if (
     loading &&
     !renewals.length &&
     !enrollments.length &&
+    !discipleshipRegistrations.length &&
     !eventSignups.length
   ) {
     return (
@@ -724,6 +807,7 @@ const RequestsManager = () => {
     error &&
     !renewals.length &&
     !enrollments.length &&
+    !discipleshipRegistrations.length &&
     !eventSignups.length
   ) {
     return (
@@ -800,6 +884,15 @@ const RequestsManager = () => {
             actionLoading={actionLoading}
           />
         )}
+        {activeTab === "discipleship" && (
+          <DiscipleshipTab
+            registrations={filteredDiscipleshipRegistrations}
+            onViewDetails={viewDiscipleshipDetails}
+            onApprove={(id, status = "approved") => handleDiscipleshipStatusChange(id, status)}
+            onReject={(id) => handleDiscipleshipStatusChange(id, "rejected")}
+            actionLoading={actionLoading}
+          />
+        )}
         {activeTab === "events" && (
           <EventSignupsTab
             sortedEventSignups={filteredEventSignups}
@@ -832,6 +925,13 @@ const RequestsManager = () => {
           completeAndNotifyMember={completeAndNotifyMember}
           deleteFoundationClassRegistration={deleteFoundationClassRegistration}
           actionLoading={actionLoading}
+        />
+      )}
+      {showDiscipleshipDetails && selectedDiscipleshipRegistration && (
+        <DiscipleshipDetailsModal
+          registration={selectedDiscipleshipRegistration}
+          onClose={() => setShowDiscipleshipDetails(false)}
+          isOpen={showDiscipleshipDetails}
         />
       )}
       {showEventSignupDetails && selectedEventSignup && (

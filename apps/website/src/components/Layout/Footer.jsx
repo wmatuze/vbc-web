@@ -6,14 +6,32 @@ const Footer = () => {
   const [email, setEmail] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
 
-  const footerLinks = [
-    { path: "/about", label: "About" },
-    { path: "about/leadership-team", label: "Leadership" },
-    { path: "/media/sermons", label: "Sermons" },
-    { path: "/contact", label: "Contact" },
-    { path: "/events", label: "Events" },
-    { path: "/cell-groups", label: "Cell Groups" },
-  ];
+  const footerLinks = {
+    about: [
+      { path: "/about", label: "About Us" },
+      { path: "/about/our-story", label: "Our Story" },
+      { path: "/about/leadership-team", label: "Leadership" },
+      { path: "/about/vision-mission", label: "Vision & Mission" },
+      { path: "/about/what-we-believe", label: "What We Believe" },
+    ],
+    programs: [
+      { path: "/foundation-classes", label: "Foundation Classes" },
+      { path: "/discipleship-classes", label: "Discipleship Classes" },
+      { path: "/membership", label: "Membership" },
+      { path: "/cell-groups", label: "Cell Groups" },
+    ],
+    media: [
+      { path: "/media/sermons", label: "Sermons" },
+      { path: "/media/videos", label: "Videos" },
+      { path: "/media/podcasts", label: "Podcasts" },
+      { path: "/media/gallery", label: "Gallery" },
+    ],
+    connect: [
+      { path: "/events", label: "Events" },
+      { path: "/missions", label: "Missions" },
+      { path: "/contact", label: "Contact Us" },
+    ]
+  };
 
   const socialLinks = [
     { icon: "facebook", url: "https://facebook.com/victorybiblechurch", label: "Facebook" },
@@ -34,9 +52,9 @@ const Footer = () => {
     <footer className="bg-gray-900 text-white">
       {/* Main Footer Content */}
       <div className="container mx-auto px-4 pt-16 pb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-8">
           {/* Church Info */}
-          <div className="space-y-4">
+          <div className="lg:col-span-2 space-y-4">
             <Link
               to="/"
               className="flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-primary-400 rounded-lg p-1 transition-transform hover:scale-105"
@@ -70,19 +88,16 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Quick Links */}
+          {/* About Links */}
           <div>
-            <h4 className="text-lg font-semibold mb-4 border-b border-gray-700 pb-2">Quick Links</h4>
+            <h4 className="text-lg font-semibold mb-4 border-b border-gray-700 pb-2">About</h4>
             <ul className="space-y-2">
-              {footerLinks.map((link) => (
+              {footerLinks.about.map((link) => (
                 <li key={link.path}>
                   <Link
                     to={link.path}
-                    className="text-gray-300 hover:text-primary-400 transition-colors flex items-center"
+                    className="text-gray-300 hover:text-primary-400 transition-colors text-sm"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
                     {link.label}
                   </Link>
                 </li>
@@ -90,57 +105,114 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Service Times */}
+          {/* Programs Links */}
           <div>
-            <h4 className="text-lg font-semibold mb-4 border-b border-gray-700 pb-2">Service Times</h4>
-            <div className="space-y-3">
-              <div>
-                <p className="font-medium">Sunday Services</p>
-                <p className="text-gray-400">09:30 AM</p>
-              </div>
-              <div>
-                <p className="font-medium">Wednesday Service</p>
-                <p className="text-gray-400">06:00 PM</p>
-              </div>
-              <Link to="/contact" className="inline-block mt-2 text-primary-400 hover:text-primary-300 transition-colors">
-                Get Directions →
-              </Link>
-            </div>
+            <h4 className="text-lg font-semibold mb-4 border-b border-gray-700 pb-2">Programs</h4>
+            <ul className="space-y-2">
+              {footerLinks.programs.map((link) => (
+                <li key={link.path}>
+                  <Link
+                    to={link.path}
+                    className="text-gray-300 hover:text-primary-400 transition-colors text-sm"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          {/* Newsletter Signup */}
+          {/* Media Links */}
           <div>
-            <h4 className="text-lg font-semibold mb-4 border-b border-gray-700 pb-2">Stay Connected</h4>
-            <p className="text-gray-400 mb-4">Subscribe to our newsletter for updates and inspiration.</p>
-
-            {isSubscribed ? (
-              <div className="p-3 bg-primary-900/50 rounded-lg border border-primary-700 text-primary-300">
-                Thank you for subscribing! You'll receive our next newsletter soon.
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-2">
-                <div className="flex">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Your email address"
-                    required
-                    className="px-3 py-2 bg-gray-800 text-white placeholder-gray-500 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary-500 flex-grow text-sm"
-                  />
-                  <button
-                    type="submit"
-                    className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-2 rounded-r-md transition-colors font-medium"
+            <h4 className="text-lg font-semibold mb-4 border-b border-gray-700 pb-2">Media</h4>
+            <ul className="space-y-2">
+              {footerLinks.media.map((link) => (
+                <li key={link.path}>
+                  <Link
+                    to={link.path}
+                    className="text-gray-300 hover:text-primary-400 transition-colors text-sm"
                   >
-                    Sign Up
-                  </button>
-                </div>
-              </form>
-            )}
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-            {/* Social Media Icons */}
-            <div className="mt-6">
-              <p className="font-medium mb-3">Follow Us</p>
+          {/* Connect Links */}
+          <div>
+            <h4 className="text-lg font-semibold mb-4 border-b border-gray-700 pb-2">Connect</h4>
+            <ul className="space-y-2">
+              {footerLinks.connect.map((link) => (
+                <li key={link.path}>
+                  <Link
+                    to={link.path}
+                    className="text-gray-300 hover:text-primary-400 transition-colors text-sm"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+        </div>
+
+        {/* Secondary Footer Info */}
+        <div className="border-t border-gray-800 mt-12 pt-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Service Times */}
+            <div>
+              <h4 className="text-lg font-semibold mb-4">Service Times</h4>
+              <div className="space-y-3">
+                <div>
+                  <p className="font-medium">Sunday Services</p>
+                  <p className="text-gray-400">09:30 AM</p>
+                </div>
+                <div>
+                  <p className="font-medium">Wednesday Service</p>
+                  <p className="text-gray-400">06:00 PM</p>
+                </div>
+                <Link to="/contact" className="inline-block mt-2 text-primary-400 hover:text-primary-300 transition-colors">
+                  Get Directions →
+                </Link>
+              </div>
+            </div>
+
+            {/* Newsletter Signup */}
+            <div>
+              <h4 className="text-lg font-semibold mb-4">Stay Connected</h4>
+              <p className="text-gray-400 mb-4">Subscribe to our newsletter for updates and inspiration.</p>
+
+              {isSubscribed ? (
+                <div className="p-3 bg-primary-900/50 rounded-lg border border-primary-700 text-primary-300">
+                  Thank you for subscribing! You'll receive our next newsletter soon.
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-2">
+                  <div className="flex">
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Your email address"
+                      required
+                      className="px-3 py-2 bg-gray-800 text-white placeholder-gray-500 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary-500 flex-grow text-sm"
+                    />
+                    <button
+                      type="submit"
+                      className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-2 rounded-r-md transition-colors font-medium"
+                    >
+                      Sign Up
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+
+            {/* Social Media */}
+            <div>
+              <h4 className="text-lg font-semibold mb-4">Follow Us</h4>
               <div className="flex space-x-4">
                 {socialLinks.map((social) => (
                   <a

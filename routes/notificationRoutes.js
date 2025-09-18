@@ -98,7 +98,7 @@ router.post("/send", authMiddleware, async (req, res) => {
 function getEmailContent(type, recipient, data) {
   const { name } = recipient;
   const churchLogo =
-    process.env.CHURCH_LOGO_URL || "https://victorybiblechurch.org/logo.png";
+    process.env.CHURCH_LOGO_URL || "https://i.imgur.com/MnxeSP1.png";
   const churchName = "Victory Bible Church Kitwe";
   const churchAddress = "123 Church Road, Kitwe, Zambia";
   const churchPhone = "+260 123 456 789";

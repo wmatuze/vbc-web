@@ -155,15 +155,13 @@ const Leadership = () => {
       </Helmet>
 
       {/* Hero Section with Accessibility Improvements */}
-      <section className="relative overflow-hidden rounded-b-3xl h-[85vh]">
+      <section className="relative min-h-screen overflow-hidden">
         <motion.div
           className={`absolute inset-0 ${
             !isImageLoaded ? "animate-pulse bg-gray-200" : ""
           }`}
           style={{
-            backgroundImage: `url(${
-              isImageLoaded ? PlaceHolderbanner : FallbackImage
-            })`,
+            backgroundImage: `url('/assets/hero-bg.jpg')`,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
@@ -174,7 +172,7 @@ const Leadership = () => {
           aria-label="Hero background image" // Accessibility
         >
           <img
-            src={PlaceHolderbanner}
+            src="/assets/hero-bg.jpg"
             alt="Victory Bible Church banner for Leadership"
             className="hidden"
             onLoad={() => setIsImageLoaded(true)}
@@ -182,10 +180,10 @@ const Leadership = () => {
           />
         </motion.div>
 
-        <div className="absolute inset-0 bg-gradient-to-r from-yellow-900/80 via-yellow-900/70 to-yellow-900/80 rounded-b-3xl"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-black/85 via-black/70 to-black/85"></div>
 
         {/* Decorative elements */}
-        <div className="absolute inset-0 overflow-hidden rounded-b-3xl">
+        <div className="absolute inset-0 overflow-hidden">
           {[...Array(4)].map((_, i) => (
             <motion.div
               key={i}
@@ -209,29 +207,71 @@ const Leadership = () => {
           ))}
         </div>
 
-        <div className="container mx-auto px-4 relative z-10 h-full flex flex-col justify-center items-center">
+        <div className="relative z-10 min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center"
+            className="text-center max-w-4xl xl:max-w-5xl 2xl:max-w-6xl mx-auto"
           >
+            {/* Primary Ribbon with subtitle */}
+            <div className="flex items-center justify-center space-x-4 mb-6 md:mb-8">
+              <div className="h-0.5 w-8 md:w-12 bg-primary-500" />
+              <span className="font-medium text-white text-base md:text-lg xl:text-xl tracking-wider">
+                Leadership Team
+              </span>
+              <div className="h-0.5 w-8 md:w-12 bg-primary-500" />
+            </div>
+            
             <h1
               id="hero-heading"
-              className="text-4xl lg:text-5xl font-bold text-white text-center mb-4 tracking-tight drop-shadow-lg"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 md:mb-8 leading-tight"
             >
-              Shepherds of Our <span className="text-yellow-400">Faith</span>
+              Shepherds of Our <span className="text-primary-400">Faith</span>
             </h1>
-            <p className="text-lg text-white text-center max-w-3xl mx-auto leading-relaxed font-light drop-shadow-md">
+            
+            <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-8 md:mb-12 leading-relaxed max-w-2xl md:max-w-3xl xl:max-w-4xl mx-auto">
               Meet the compassionate leaders who guide, nurture, and inspire our
               church community with love, wisdom, and unwavering commitment.
             </p>
-            <motion.div
-              className="h-1 bg-yellow-400 mx-auto mt-8"
-              initial={{ width: 0 }}
-              animate={{ width: 100 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
-            />
+            
+            {/* Golden Ribbon - decorative element */}
+            <div className="flex items-center justify-center space-x-3 md:space-x-4 mb-8 md:mb-12">
+              <div className="h-px w-12 md:w-16 xl:w-20 bg-yellow-400" />
+              <div className="w-2 h-2 xl:w-3 xl:h-3 bg-yellow-400 rounded-full" />
+              <div className="h-px w-12 md:w-16 xl:w-20 bg-yellow-400" />
+            </div>
+
+            {/* Scroll indicator */}
+            <div 
+              className="flex flex-col items-center animate-bounce cursor-pointer hover:scale-110 transition-transform duration-300 mt-6 md:mt-8"
+              onClick={() => {
+                window.scrollTo({
+                  top: window.innerHeight,
+                  behavior: "smooth",
+                });
+              }}
+            >
+              <div className="flex flex-col items-center group">
+                <span className="text-white/60 text-xs sm:text-sm xl:text-base font-light tracking-wider mb-2 group-hover:text-white/80 transition-colors">
+                  MEET OUR LEADERS
+                </span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 md:h-6 md:w-6 xl:h-7 xl:w-7 text-white/60 group-hover:text-white/80 transition-colors"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                  />
+                </svg>
+              </div>
+            </div>
           </motion.div>
         </div>
       </section>

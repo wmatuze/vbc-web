@@ -16,6 +16,7 @@ import {
   GlobeAltIcon,
   EnvelopeIcon,
   ArrowUpIcon,
+  CalendarDaysIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronDownIcon } from "@heroicons/react/20/solid"; // Import ChevronDownIcon for dropdown indicator
 import PropTypes from "prop-types";
@@ -32,14 +33,32 @@ const Navbar = ({
   const [isMinistriesDropdownOpen, setIsMinistriesDropdownOpen] =
     useState(false); // State for Desktop Ministries dropdown
   const ministriesDropdownRef = useRef(null); // Ref for Desktop Ministries dropdown
+  const [isProgramsDropdownOpen, setIsProgramsDropdownOpen] =
+    useState(false); // State for Desktop Programs dropdown
+  const programsDropdownRef = useRef(null); // Ref for Desktop Programs dropdown
+  const [isConnectDropdownOpen, setIsConnectDropdownOpen] =
+    useState(false); // State for Desktop Connect dropdown
+  const connectDropdownRef = useRef(null); // Ref for Desktop Connect dropdown
   const location = useLocation();
   const [isMobileMinistriesDropdownOpen, setIsMobileMinistriesDropdownOpen] =
     useState(false); // State for Mobile Ministries dropdown
+  const [isMobileProgramsDropdownOpen, setIsMobileProgramsDropdownOpen] =
+    useState(false); // State for Mobile Programs dropdown
+  const [isMobileConnectDropdownOpen, setIsMobileConnectDropdownOpen] =
+    useState(false); // State for Mobile Connect dropdown
 
   const links = useMemo(
     () => [
       { path: "/", label: "Home", icon: HomeIcon },
       { path: "/about", label: "About", icon: InformationCircleIcon },
+      {
+        label: "Programs",
+        icon: UserGroupIcon,
+        children: [
+          { path: "/foundation-classes", label: "Foundation Classes" },
+          { path: "/discipleship-classes", label: "Discipleship Classes" },
+        ],
+      },
       {
         label: "Ministries",
         icon: UserGroupIcon,
@@ -56,9 +75,16 @@ const Navbar = ({
           { path: "/ministries/couples", label: "Couples Ministry" },
         ],
       },
-      { path: "/cell-groups", label: "Cell Groups", icon: FilmIcon },
       { path: "/media", label: "Media", icon: FilmIcon },
-      { path: "/missions", label: "Missions", icon: GlobeAltIcon },
+      {
+        label: "Connect",
+        icon: CalendarDaysIcon,
+        children: [
+          { path: "/cell-groups", label: "Cell Groups" },
+          { path: "/events", label: "Events & Calendar" },
+          { path: "/missions", label: "Missions" },
+        ],
+      },
       { path: "/contact", label: "Contact", icon: EnvelopeIcon },
     ],
     []
@@ -117,6 +143,52 @@ const Navbar = ({
       );
   }, [isMinistriesDropdownOpen]);
 
+  // Close desktop programs dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutsideProgramsDropdown = (event) => {
+      if (
+        isProgramsDropdownOpen &&
+        programsDropdownRef.current &&
+        !programsDropdownRef.current.contains(event.target)
+      ) {
+        setIsProgramsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener(
+      "mousedown",
+      handleClickOutsideProgramsDropdown
+    );
+    return () =>
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutsideProgramsDropdown
+      );
+  }, [isProgramsDropdownOpen]);
+
+  // Close desktop connect dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutsideConnectDropdown = (event) => {
+      if (
+        isConnectDropdownOpen &&
+        connectDropdownRef.current &&
+        !connectDropdownRef.current.contains(event.target)
+      ) {
+        setIsConnectDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener(
+      "mousedown",
+      handleClickOutsideConnectDropdown
+    );
+    return () =>
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutsideConnectDropdown
+      );
+  }, [isConnectDropdownOpen]);
+
   const getTextColor = (defaultColor) =>
     hasScrolled || forceOpaque ? "text-gray-800" : defaultColor;
 
@@ -140,6 +212,14 @@ const Navbar = ({
     setIsMobileMinistriesDropdownOpen((prev) => !prev);
   };
 
+  const toggleMobileProgramsDropdown = () => {
+    setIsMobileProgramsDropdownOpen((prev) => !prev);
+  };
+
+  const toggleMobileConnectDropdown = () => {
+    setIsMobileConnectDropdownOpen((prev) => !prev);
+  };
+
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
@@ -153,7 +233,7 @@ const Navbar = ({
         className={`fixed w-full z-50 transition-all duration-500 ease-in-out ${getBackgroundStyle()}`}
         aria-label="Main Navigation"
       >
-        <div className="w-full max-w-none px-6 lg:px-8 xl:px-12 2xl:px-16">
+        <div className="w-full max-w-none px-3 md:px-4 lg:px-6 xl:px-8">
           <div className="flex justify-between items-center py-4">
             {/* Logo Section */}
             <Link
@@ -165,18 +245,18 @@ const Navbar = ({
                 <img
                   src="/assets/logo.png"
                   alt="Victory Bible Church Logo"
-                  className="h-14 w-auto -mr-4 z-10 relative"
+                  className="h-10 md:h-12 w-auto -mr-3 z-10 relative"
                   loading="lazy"
                 />
                 <span
-                  className={`text-lg md:text-base font-bold tracking-tight ${getTextColor(
+                  className={`text-sm md:text-sm lg:text-base font-bold tracking-tight ${getTextColor(
                     "text-white"
                   )} font-display pl-1`}
                 >
                   ictory Bible
                 </span>
                 <span
-                  className={`text-lg md:text-base font-bold tracking-tight ${getTextColor(
+                  className={`text-sm md:text-sm lg:text-base font-bold tracking-tight ${getTextColor(
                     "text-white"
                   )} font-display ml-1`}
                 >
@@ -186,35 +266,51 @@ const Navbar = ({
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-6 lg:space-x-8 xl:space-x-10">
+            <div className="hidden md:flex items-center space-x-1.5 lg:space-x-2 xl:space-x-2.5">
               {links.map((link) =>
                 link.children ? (
                   <div
                     key={link.label}
                     className="relative"
-                    ref={ministriesDropdownRef}
+                    ref={
+                      link.label === "Programs" ? programsDropdownRef :
+                      link.label === "Ministries" ? ministriesDropdownRef :
+                      link.label === "Connect" ? connectDropdownRef : null
+                    }
                   >
                     <button
                       className={`
                         flex items-center gap-1
-                        font-sans text-sm font-medium
+                        font-sans text-xs md:text-sm font-medium
                         hover:text-primary-500 focus:text-primary-600
                         transition-all duration-300 tracking-wide
                         focus:outline-none focus:ring-2 focus:ring-primary-300
-                        rounded-lg px-2 py-1.5 hover:bg-primary-50/50
+                        rounded-lg px-1 md:px-1.5 lg:px-2 py-1 hover:bg-primary-50/50
                         ${getTextColor("text-white")}
                       `}
-                      onClick={() =>
-                        setIsMinistriesDropdownOpen(!isMinistriesDropdownOpen)
+                      onClick={() => {
+                        if (link.label === "Programs") {
+                          setIsProgramsDropdownOpen(!isProgramsDropdownOpen);
+                        } else if (link.label === "Ministries") {
+                          setIsMinistriesDropdownOpen(!isMinistriesDropdownOpen);
+                        } else if (link.label === "Connect") {
+                          setIsConnectDropdownOpen(!isConnectDropdownOpen);
+                        }
+                      }}
+                      aria-expanded={
+                        link.label === "Programs" ? isProgramsDropdownOpen :
+                        link.label === "Ministries" ? isMinistriesDropdownOpen :
+                        link.label === "Connect" ? isConnectDropdownOpen : false
                       }
-                      aria-expanded={isMinistriesDropdownOpen}
                       aria-haspopup="true"
                     >
-                      <link.icon className="h-4 w-4" />
+                      <link.icon className="h-3 w-3 md:h-4 md:w-4" />
                       {link.label}
                       <ChevronDownIcon
-                        className={`h-3 w-3 transition-transform duration-300 ${
-                          isMinistriesDropdownOpen ? "rotate-180" : ""
+                        className={`h-2.5 w-2.5 md:h-3 md:w-3 transition-transform duration-300 ${
+                          (link.label === "Programs" ? isProgramsDropdownOpen :
+                           link.label === "Ministries" ? isMinistriesDropdownOpen :
+                           link.label === "Connect" ? isConnectDropdownOpen : false) ? "rotate-180" : ""
                         }`}
                       />
                     </button>
@@ -226,14 +322,16 @@ const Navbar = ({
                         focus:outline-none transform
                         transition-all duration-300 origin-top
                         ${
-                          isMinistriesDropdownOpen
+                          (link.label === "Programs" ? isProgramsDropdownOpen :
+                           link.label === "Ministries" ? isMinistriesDropdownOpen :
+                           link.label === "Connect" ? isConnectDropdownOpen : false)
                             ? "opacity-100 scale-100 translate-y-0"
                             : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
                         }
                       `}
                       role="menu"
                       aria-orientation="vertical"
-                      aria-labelledby="ministries-menu-button"
+                      aria-labelledby={`${link.label.toLowerCase()}-menu-button`}
                     >
                       <div className="py-2" role="menuitem" id="menu-items">
                         {link.children.map((childLink) => (
@@ -247,7 +345,15 @@ const Navbar = ({
                               first:rounded-t-xl last:rounded-b-xl
                             "
                             role="menuitem"
-                            onClick={() => setIsMinistriesDropdownOpen(false)}
+                            onClick={() => {
+                              if (link.label === "Programs") {
+                                setIsProgramsDropdownOpen(false);
+                              } else if (link.label === "Ministries") {
+                                setIsMinistriesDropdownOpen(false);
+                              } else if (link.label === "Connect") {
+                                setIsConnectDropdownOpen(false);
+                              }
+                            }}
                           >
                             {childLink.label}
                           </Link>
@@ -261,15 +367,15 @@ const Navbar = ({
                     to={link.path}
                     className={`
                       flex items-center gap-1
-                      font-sans text-sm font-medium
+                      font-sans text-xs md:text-sm font-medium
                       hover:text-primary-500 focus:text-primary-600
                       transition-all duration-300 tracking-wide
                       focus:outline-none focus:ring-2 focus:ring-primary-300
-                      rounded-lg px-2 py-1.5 hover:bg-primary-50/50
+                      rounded-lg px-1 md:px-1.5 lg:px-2 py-1 hover:bg-primary-50/50
                       ${getTextColor("text-white")}
                     `}
                   >
-                    <link.icon className="h-4 w-4" />
+                    <link.icon className="h-3 w-3 md:h-4 md:w-4" />
                     {link.label}
                   </Link>
                 )
@@ -281,7 +387,7 @@ const Navbar = ({
               aria-label="Toggle navigation menu"
               aria-expanded={isMobileMenuOpen}
               className="
-                p-2
+                p-1.5
                 md:hidden
                 focus:outline-none focus:ring-2 focus:ring-primary-400
                 rounded-lg hover:bg-primary-50/50
@@ -344,7 +450,11 @@ const Navbar = ({
                             : "text-white hover:text-red-300 hover:bg-white/20"
                         }
                       `}
-                      onClick={toggleMobileMinistriesDropdown}
+                      onClick={
+                        link.label === "Programs" ? toggleMobileProgramsDropdown :
+                        link.label === "Ministries" ? toggleMobileMinistriesDropdown :
+                        link.label === "Connect" ? toggleMobileConnectDropdown : null
+                      }
                     >
                       <div className="flex items-center">
                         <link.icon
@@ -360,13 +470,17 @@ const Navbar = ({
                         className={`
                           h-5 w-5
                           transition-transform duration-300
-                          ${isMobileMinistriesDropdownOpen ? "rotate-180" : ""}
+                          ${link.label === "Programs" ? (isMobileProgramsDropdownOpen ? "rotate-180" : "") :
+                            link.label === "Ministries" ? (isMobileMinistriesDropdownOpen ? "rotate-180" : "") :
+                            link.label === "Connect" ? (isMobileConnectDropdownOpen ? "rotate-180" : "") : ""}
                           ${hasScrolled ? "text-gray-600" : "text-white/80"}
                           group-hover:text-red-500
                         `}
                       />
                     </button>
-                    {isMobileMinistriesDropdownOpen && (
+                    {(link.label === "Programs" ? isMobileProgramsDropdownOpen :
+                      link.label === "Ministries" ? isMobileMinistriesDropdownOpen :
+                      link.label === "Connect" ? isMobileConnectDropdownOpen : false) && (
                       <div className="pl-6">
                         {link.children.map((childLink) => (
                           <Link

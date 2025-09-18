@@ -15,6 +15,9 @@ import LeaderManager from "../components/admin/LeaderManager";
 import CellGroupManager from "../components/admin/CellGroupManager";
 import MediaManager from "../components/admin/MediaManager";
 import FoundationClassSessionManager from "../components/admin/FoundationClassSessionManager";
+import DiscipleshipAdmin from "../components/admin/DiscipleshipAdmin";
+import ResourceAdmin from "../components/admin/ResourceAdmin";
+import ReportsAdmin from "../components/admin/ReportsAdmin";
 import DashboardContent from "../components/admin/DashboardContent";
 import SettingsContent from "../components/admin/SettingsContent";
 import RequestsManager from "../components/admin/RequestsManager";
@@ -35,6 +38,9 @@ import {
   SunIcon,
   MoonIcon,
   AcademicCapIcon,
+  BookOpenIcon,
+  DocumentTextIcon,
+  ChartBarIcon,
 } from "@heroicons/react/24/outline";
 
 const Admin = () => {
@@ -197,6 +203,24 @@ const Admin = () => {
       id: "foundationClasses",
       label: "Foundation Classes",
       icon: AcademicCapIcon,
+      count: null,
+    },
+    {
+      id: "discipleshipClasses",
+      label: "Discipleship Classes",
+      icon: BookOpenIcon,
+      count: null,
+    },
+    {
+      id: "resources",
+      label: "Resources",
+      icon: DocumentTextIcon,
+      count: null,
+    },
+    {
+      id: "reports",
+      label: "Reports",
+      icon: ChartBarIcon,
       count: null,
     },
     { id: "media", label: "Media Library", icon: PhotoIcon, count: null },
@@ -662,6 +686,15 @@ const Admin = () => {
               )}
               {activeTab === "foundationClasses" && (
                 <FoundationClassSessionManager darkMode={darkMode} />
+              )}
+              {activeTab === "discipleshipClasses" && (
+                <DiscipleshipAdmin darkMode={darkMode} />
+              )}
+              {activeTab === "resources" && (
+                <ResourceAdmin darkMode={darkMode} />
+              )}
+              {activeTab === "reports" && (
+                <ReportsAdmin darkMode={darkMode} />
               )}
               {activeTab === "media" && <MediaManager darkMode={darkMode} />}
               {activeTab === "dashboard" && (

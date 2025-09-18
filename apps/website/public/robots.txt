@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# Block admin pages and test routes
+Disallow: /admin/
+Disallow: /test-error-boundary
+Disallow: /media/test
+
+# Sitemap location
+Sitemap: https://victorybiiblechurchkitwe.com/sitemap.xml
+
+# Crawl delay to be respectful
+Crawl-delay: 1

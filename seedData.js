@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const seedFoundationClassSessions = require("./seed/foundationClassSessions");
 const seedRecurringEvents = require("./seed/recurringEvents");
+const seedDiscipleshipData = require("./seed/discipleshipData");
 
 // Hash password
 const hashPassword = (password) => {
@@ -281,6 +282,7 @@ const seedAllData = async () => {
   await seedCellGroups();
   await seedFoundationClassSessions();
   await seedRecurringEvents();
+  await seedDiscipleshipData();
   console.log("All data seeded successfully");
 };
 

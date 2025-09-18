@@ -10,6 +10,10 @@ const CellGroupJoinRequest = require("./CellGroupJoinRequest");
 const MemberRenewal = require("./MemberRenewal");
 const FoundationClassRegistration = require("./FoundationClassRegistration");
 const FoundationClassSession = require("./FoundationClassSession");
+const DiscipleshipClass = require("./DiscipleshipClass");
+const DiscipleshipSession = require("./DiscipleshipSession");
+const DiscipleshipRegistration = require("./DiscipleshipRegistration");
+const Resource = require("./Resource");
 const EventSignupRequest = require("./EventSignupRequest");
 
 module.exports = {
@@ -25,5 +29,9 @@ module.exports = {
   MemberRenewal,
   FoundationClassRegistration,
   FoundationClassSession,
+  DiscipleshipClass,
+  DiscipleshipSession,
+  DiscipleshipRegistration,
+  Resource,
   EventSignupRequest,
 };

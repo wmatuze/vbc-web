@@ -26,7 +26,9 @@ const formatDate = (date) => {
 // Enhanced email template with your actual logo
 const createEmailTemplate = (headerTitle, headerColor, content) => {
   const churchInfo = {
-    logoUrl: process.env.CHURCH_LOGO_URL || "https://via.placeholder.com/200x60/4f46e5/white?text=Victory+Bible+Church",
+    // Use imgur as a reliable image hosting service for emails
+    // Upload your logo to imgur.com and replace this URL
+    logoUrl: process.env.CHURCH_LOGO_URL || "https://i.imgur.com/placeholder.png",
     name: "Victory Bible Church",
     address: "Off Chiwala Road CBU East Gate, Kitwe, Zambia",
     phone: "+260 123 456 789", 
@@ -648,6 +650,60 @@ Victory Bible Church Team
   }
 };
 
+/**
+ * Send support request email to admin
+ * @param {Object} supportData - Support request data
+ */
+const sendSupportRequestEmail = async (supportData) => {
+  if (!supportData || !supportData.name || !supportData.email || !supportData.subject || !supportData.message) {
+    throw new Error("Missing required support request data");
+  }
+
+  const { name, email, subject, message, priority = 'medium' } = supportData;
+
+  try {
+    await sendEmail({
+      to: process.env.ADMIN_EMAIL || "watu.matuze@gmail.com",
+      subject: `Support Request: ${subject} (${priority} priority)`,
+      text: `
+Support Request from Admin Portal
+
+From: ${name} (${email})
+Priority: ${priority}
+
+Message:
+${message}
+
+---
+This message was sent from the Victory Bible Church CMS Support Form.
+      `,
+      html: createEmailTemplate(
+        "Support Request from Admin Portal",
+        EMAIL_COLORS.info,
+        `
+    <p><strong>From:</strong> ${name} (${email})</p>
+    <p><strong>Priority:</strong> <span style="color: ${priority === "urgent" ? "#dc2626" : priority === "high" ? "#ea580c" : priority === "medium" ? "#0284c7" : "#059669"};">${priority}</span></p>
+    <p><strong>Subject:</strong> ${subject}</p>
+
+    <div style="background-color: ${EMAIL_COLORS.background}; padding: 15px; border-radius: 5px; margin: 20px 0;">
+      <p><strong>Message:</strong></p>
+      <p>${message.replace(/\n/g, "<br>")}</p>
+    </div>
+
+    <p style="font-size: 12px; color: ${EMAIL_COLORS.textMuted}; margin-top: 30px; padding-top: 10px; border-top: 1px solid ${EMAIL_COLORS.border};">
+      This message was sent from the Victory Bible Church CMS Support Form.
+    </p>
+        `
+      ),
+    });
+
+    console.log("Support request email sent successfully");
+  } catch (error) {
+    console.error("Error sending support request email:", error);
+    throw error; // Re-throw for API to handle
+  }
+};
+
 module.exports = {
   sendEmail,
   sendMembershipRenewalEmails,
@@ -655,4 +711,5 @@ module.exports = {
   sendMembershipApprovalEmail,
   sendFoundationClassCompletionEmail,
   sendCellGroupJoinRequestEmails,
+  sendSupportRequestEmail,
 };

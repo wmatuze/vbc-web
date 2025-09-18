@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Helmet } from "react-helmet"; // Added for SEO
-import PlaceHolderbanner from "../assets/ministry-banners/ph.png";
-import FallbackImage from "../assets/fallback-image.png"; // Added fallback image
+// Removed unused image imports - now using consistent hero background
 import { motion } from "framer-motion";
 import {
   FaChevronDown,
@@ -12,6 +11,7 @@ import {
   FaBookOpen,
   FaHeart,
 } from "react-icons/fa";
+import HeroSection from "../components/common/HeroSection";
 
 // Reusable NavCard Component
 const NavCard = ({ label, icon, path, activeTab }) => (
@@ -104,96 +104,14 @@ const AboutUs = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-b-3xl h-[85vh]">
-        <motion.div
-          className={`absolute inset-0 ${
-            !isImageLoaded ? "animate-pulse bg-gray-200" : ""
-          }`}
-          style={{
-            backgroundImage: `url(${
-              isImageLoaded ? PlaceHolderbanner : FallbackImage
-            })`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-          initial={{ scale: 1.1 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 10, repeat: Infinity, repeatType: "reverse" }}
-          onLoad={() => setIsImageLoaded(true)} // Update loading state
-          aria-label="Hero background image" // Accessibility
-        >
-          <img
-            src={PlaceHolderbanner}
-            alt="Victory Bible Church banner"
-            className="hidden"
-            onLoad={() => setIsImageLoaded(true)}
-            onError={() => setIsImageLoaded(true)} // Fallback on error
-          />
-        </motion.div>
-
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-purple-900/70 to-blue-900/80"></div>
-
-        {/* Reduced decorative elements for performance */}
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(4)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute rounded-full bg-white/10"
-              style={{
-                width: Math.random() * 100 + 50,
-                height: Math.random() * 100 + 50,
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                y: [Math.random() * 100, Math.random() * -100],
-                opacity: [0.1, 0.3, 0.1],
-              }}
-              transition={{
-                duration: Math.random() * 10 + 10,
-                repeat: Infinity,
-                repeatType: "reverse",
-              }}
-            />
-          ))}
-        </div>
-
-        <div className="container mx-auto px-4 relative z-10 h-full flex flex-col justify-center items-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center"
-          >
-            <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-6 tracking-tight">
-              About <span className="text-yellow-400">Us</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-100 max-w-2xl mx-auto leading-relaxed font-light">
-              Get to know Victory Bible Church: our story, leadership, vision,
-              mission, and beliefs.
-            </p>
-            <motion.div
-              className="h-1 bg-yellow-400 mx-auto mt-8"
-              initial={{ width: 0 }}
-              animate={{ width: 100 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
-            />
-          </motion.div>
-
-          <motion.div
-            className="absolute bottom-10 cursor-pointer"
-            animate={{ y: [0, 10, 0] }}
-            transition={{ repeat: Infinity, duration: 1.5 }}
-            onClick={scrollToContent}
-            onKeyDown={(e) => e.key === "Enter" && scrollToContent()} // Accessibility
-            role="button"
-            tabIndex={0}
-            aria-label="Scroll to content"
-          >
-            <FaChevronDown className="text-white text-3xl" />
-          </motion.div>
-        </div>
-      </section>
+      <HeroSection
+        title="About Us"
+        subtitle="About Us"
+        description="Get to know Victory Bible Church: our story, leadership, vision, mission, and beliefs."
+        primaryAccentText="Us"
+        scrollText="EXPLORE OUR STORY"
+        backgroundImage="/assets/hero-bg.jpg"
+      />
 
       {/* Navigation Section */}
       <div id="nav-section" className="relative">

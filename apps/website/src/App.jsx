@@ -16,6 +16,7 @@ import GlobalErrorBoundary from "./components/GlobalErrorBoundary";
 import Membership from "./pages/Membership";
 import Renew from "./pages/Renew"; // Import Membership Renewal page
 import FoundationClasses from "./pages/FoundationClasses"; // Import Foundation Classes page
+import DiscipleshipClasses from "./pages/DiscipleshipClasses"; // Import Discipleship Classes page
 import ZonesPage from "./pages/ZonesPage";
 import ZoneDetailPage from "./pages/ZoneDetailPage";
 import Media from "./pages/Media";
@@ -123,6 +124,7 @@ const AppContent = () => {
           `}
         />
 
+
         <div
           className={`
             transition-opacity duration-300 ease-in-out
@@ -209,6 +211,14 @@ const AppContent = () => {
               element={
                 <PageWrapper noPadding>
                   <FoundationClasses />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="/discipleship-classes"
+              element={
+                <PageWrapper noPadding>
+                  <DiscipleshipClasses />
                 </PageWrapper>
               }
             />

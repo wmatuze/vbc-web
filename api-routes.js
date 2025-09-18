@@ -10,6 +10,8 @@ const cellGroupJoinRequestRoutes = require("./routes/cellGroupJoinRequestRoutes"
 const eventSignupRequestRoutes = require("./routes/eventSignupRequestRoutes");
 const foundationClassSessionRoutes = require("./routes/foundationClassSessionRoutes");
 const recurringEventRoutes = require("./routes/recurringEventRoutes");
+const discipleshipRoutes = require("./routes/discipleshipRoutes");
+const resourceRoutes = require("./routes/resourceRoutes");
 const formatResponse = require("./utils/formatResponse");
 
 // Mount notification routes
@@ -32,6 +34,12 @@ router.use("/foundation-class-sessions", foundationClassSessionRoutes);
 
 // Mount recurring events routes
 router.use("/recurring-events", recurringEventRoutes);
+
+// Mount discipleship routes
+router.use("/discipleship", discipleshipRoutes);
+
+// Mount resource routes
+router.use("/resources", resourceRoutes);
 
 // Foundation class registration endpoint
 router.post("/foundation-classes/register", async (req, res) => {
@@ -74,52 +82,12 @@ router.post("/foundation-classes/register", async (req, res) => {
 
     // Send confirmation email
     try {
-      const emailContent = {
-        to: email,
-        subject: "Foundation Class Registration Confirmation",
-        text: `
-Dear ${fullName},
-
-Thank you for registering for Foundation Classes at Victory Bible Church. Your registration has been received and is being processed.
-
-Registration Details:
-- Name: ${fullName}
-- Phone: ${phone}
-- Session ID: ${preferredSession}
-
-We look forward to seeing you at the first class. If you have any questions, please contact the church office.
-
-Blessings,
-Victory Bible Church Team
-        `,
-        html: `
-<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-  <div style="background-color: #4f46e5; color: white; padding: 20px; text-align: center;">
-    <h1>Foundation Class Registration Confirmation</h1>
-  </div>
-  <div style="padding: 20px; border: 1px solid #e5e7eb; border-top: none;">
-    <p>Dear ${fullName},</p>
-
-    <p>Thank you for registering for Foundation Classes at Victory Bible Church. Your registration has been received and is being processed.</p>
-
-    <div style="background-color: #f9fafb; padding: 15px; border-radius: 5px; margin: 15px 0;">
-      <p><strong>Registration Details:</strong></p>
-      <ul>
-        <li>Name: ${fullName}</li>
-        <li>Phone: ${phone}</li>
-        <li>Session ID: ${preferredSession}</li>
-      </ul>
-    </div>
-
-    <p>We look forward to seeing you at the first class. If you have any questions, please contact the church office.</p>
-
-    <p>Blessings,<br>Victory Bible Church Team</p>
-  </div>
-</div>
-        `,
-      };
-
-      await emailService.sendEmail(emailContent);
+      await emailService.sendFoundationClassRegistrationEmails({
+        fullName,
+        email,
+        phone,
+        preferredSession
+      });
       console.log("Confirmation email sent to:", email);
     } catch (emailError) {
       console.error("Error sending confirmation email:", emailError);
@@ -152,47 +120,14 @@ router.post("/support", async (req, res) => {
       });
     }
 
-    // Create email content
-    const emailContent = {
-      to: "watu.matuze@hotmail.com",
-      subject: `Support Request: ${subject} (${priority} priority)`,
-      text: `
-Support Request from Admin Portal
-
-From: ${name} (${email})
-Priority: ${priority}
-
-Message:
-${message}
-
----
-This message was sent from the Victory Bible Church CMS Support Form.
-      `,
-      html: `
-<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-  <div style="background-color: #4f46e5; color: white; padding: 20px; text-align: center;">
-    <h1>Support Request from Admin Portal</h1>
-  </div>
-  <div style="padding: 20px; border: 1px solid #e5e7eb; border-top: none;">
-    <p><strong>From:</strong> ${name} (${email})</p>
-    <p><strong>Priority:</strong> <span style="color: ${priority === "urgent" ? "#dc2626" : priority === "high" ? "#ea580c" : priority === "medium" ? "#0284c7" : "#059669"};">${priority}</span></p>
-    <p><strong>Subject:</strong> ${subject}</p>
-
-    <div style="background-color: #f9fafb; padding: 15px; border-radius: 5px; margin: 15px 0;">
-      <p><strong>Message:</strong></p>
-      <p>${message.replace(/\n/g, "<br>")}</p>
-    </div>
-
-    <p style="font-size: 12px; color: #6b7280; margin-top: 30px; padding-top: 10px; border-top: 1px solid #e5e7eb;">
-      This message was sent from the Victory Bible Church CMS Support Form.
-    </p>
-  </div>
-</div>
-      `,
-    };
-
-    // Send the email
-    await emailService.sendEmail(emailContent);
+    // Send support request email using the centralized template
+    await emailService.sendSupportRequestEmail({
+      name,
+      email,
+      subject,
+      message,
+      priority
+    });
 
     res.status(200).json({
       success: true,

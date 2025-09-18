@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import PlaceHolderbanner from "../assets/ministry-banners/ph.png"; // Import placeholder banner
-import FallbackImage from "../assets/fallback-image.png"; // Import fallback image
+// Removed unused image imports - now using consistent hero background
 import { useState } from "react";
 import { Helmet } from "react-helmet"; // Added for SEO
+import HeroSection from "../components/common/HeroSection";
 
 const mediaLinks = [
   {
@@ -101,84 +101,15 @@ const Media = () => {
         />
       </Helmet>
 
-      {/* Hero Section - Similar to About Us Page */}
-      <section className="relative overflow-hidden rounded-b-3xl h-[85vh]">
-        <motion.div
-          className={`absolute inset-0 ${
-            !isImageLoaded ? "animate-pulse bg-gray-200" : ""
-          }`}
-          style={{
-            backgroundImage: `url(${
-              isImageLoaded ? PlaceHolderbanner : FallbackImage
-            })`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-          initial={{ scale: 1.1 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 10, repeat: Infinity, repeatType: "reverse" }}
-          onLoad={() => setIsImageLoaded(true)} // Update loading state
-          aria-label="Hero background image" // Accessibility
-        >
-          <img
-            src={PlaceHolderbanner}
-            alt="Victory Bible Church banner for Media Library"
-            className="hidden"
-            onLoad={() => setIsImageLoaded(true)}
-            onError={() => setIsImageLoaded(true)} // Fallback on error
-          />
-        </motion.div>
-
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-purple-900/70 to-blue-900/80 rounded-b-3xl"></div>
-
-        {/* Decorative elements */}
-        <div className="absolute inset-0 overflow-hidden rounded-b-3xl">
-          {[...Array(4)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute rounded-full bg-white/10"
-              style={{
-                width: Math.random() * 100 + 50,
-                height: Math.random() * 100 + 50,
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                y: [Math.random() * 100, Math.random() * -100],
-                opacity: [0.1, 0.3, 0.1],
-              }}
-              transition={{
-                duration: Math.random() * 10 + 10,
-                repeat: Infinity,
-                repeatType: "reverse",
-              }}
-            />
-          ))}
-        </div>
-
-        <div className="container mx-auto px-4 relative z-10 h-full flex flex-col justify-center items-center 3xl:max-w-[1920px]">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center"
-          >
-            <h1 className="text-4xl lg:text-5xl font-bold text-white text-center mb-4 tracking-tight">
-              Media <span className="text-yellow-400">Library</span>
-            </h1>
-            <p className="text-lg text-white text-center max-w-3xl mx-auto leading-relaxed font-light">
-              Explore our collection of spiritual resources and community
-              moments.
-            </p>
-            <motion.div
-              className="h-1 bg-yellow-400 mx-auto mt-8"
-              initial={{ width: 0 }}
-              animate={{ width: 100 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
-            />
-          </motion.div>
-        </div>
-      </section>
+      {/* Hero Section */}
+      <HeroSection
+        title="Media Library"
+        subtitle="Media Library"
+        description="Explore our collection of spiritual resources and community moments."
+        primaryAccentText="Library"
+        scrollText="EXPLORE OUR MEDIA"
+        backgroundImage="/assets/hero-bg.jpg"
+      />
 
       {/* Content Section Below Hero */}
       <motion.div

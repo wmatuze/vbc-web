@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet"; // For SEO meta tags
-import PlaceHolderbanner from "../assets/ministry-banners/ph.png"; // Placeholder banner
-import FallbackImage from "../assets/fallback-image.png"; // Fallback image
+// Removed unused image imports - now using consistent hero background
 import {
   FaHandsHelping,
   FaGlobeAfrica,
@@ -13,6 +12,7 @@ import {
   FaHeart,
   FaArrowRight,
 } from "react-icons/fa";
+import HeroSection from "../components/common/HeroSection";
 
 // --- Data ---
 const missionProjects = [
@@ -241,59 +241,15 @@ const Missions = () => {
         />
       </Helmet>
 
-      {/* Hero Section - Minimalist Black & White Design */}
-      <section className="relative overflow-hidden h-[85vh] bg-black">
-        <motion.div
-          className={`absolute inset-0 opacity-40 ${
-            !isImageLoaded ? "animate-pulse bg-gray-800" : ""
-          }`}
-          style={{
-            backgroundImage: `url(${
-              isImageLoaded ? PlaceHolderbanner : FallbackImage
-            })`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            filter: "grayscale(100%)",
-          }}
-          initial={{ scale: 1.05 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 20, repeat: Infinity, repeatType: "reverse" }}
-          aria-label="Hero background image"
-        >
-          <img
-            src={PlaceHolderbanner}
-            alt="Victory Bible Church Missions"
-            className="hidden"
-            onLoad={() => setIsImageLoaded(true)}
-            onError={() => setIsImageLoaded(true)}
-          />
-        </motion.div>
-
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-black/80"></div>
-
-        <div className="container mx-auto px-4 relative z-10 h-full flex flex-col justify-center items-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center max-w-4xl"
-          >
-            <h1 className="text-6xl md:text-8xl font-black text-white mb-8 tracking-tighter leading-none">
-              OUR MISSIONS
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-200 mx-auto leading-relaxed font-extralight tracking-wide max-w-2xl">
-              Spreading the love of Christ through outreach, church planting,
-              and humanitarian efforts around the world.
-            </p>
-            <motion.div
-              className="h-px w-24 bg-white mx-auto mt-12"
-              initial={{ width: 0 }}
-              animate={{ width: 96 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
-            />
-          </motion.div>
-        </div>
-      </section>
+      {/* Hero Section */}
+      <HeroSection
+        title="Our Missions"
+        subtitle="Our Missions"
+        description="Spreading the love of Christ through outreach, church planting, and humanitarian efforts around the world."
+        primaryAccentText="Missions"
+        scrollText="EXPLORE OUR MISSION"
+        backgroundImage="/assets/hero-bg.jpg"
+      />
 
       {/* Biblical Foundation Section */}
       <section className="py-24 bg-white dark:bg-gray-900">
