@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import config from "../../config";
 import { useSermonsQuery } from "../../hooks/useSermonsQuery";
 import placeholderImage from "../../assets/placeholders/default-image.svg";
@@ -54,23 +54,33 @@ const Sermons = () => {
     },
   });
 
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [selectedSermon, setSelectedSermon] = useState(null);
+
+  // Normalize and sort sermons by date (desc)
+  const sermonsToDisplay = useMemo(() => {
+    const source = (error || !sermons?.length) ? staticSermons : sermons;
+    return [...source].sort((a, b) => {
+      const da = new Date(a.date)?.getTime() || 0;
+      const db = new Date(b.date)?.getTime() || 0;
+      return db - da;
+    });
+  }, [sermons, error]);
 
   // Helper function to get the correct image URL
-  const getSermonImageUrl = (sermon) => {
+  const getSermonImageUrl = useCallback((sermon) => {
     // Ensure we have a valid sermon object
     if (!sermon || typeof sermon !== "object") {
-      console.log("Invalid sermon object, using placeholder");
+      if (import.meta.env.DEV) console.log("Invalid sermon object, using placeholder");
       return placeholderImage;
     }
 
     // For debugging
-    console.log("Processing sermon image:", sermon.title, sermon.imageUrl);
+    if (import.meta.env.DEV) console.log("Processing sermon image:", sermon.title, sermon.imageUrl);
 
     // 1. First priority: Use YouTube thumbnail if available (most reliable)
     if (sermon.videoId) {
       const youtubeThumb = `https://img.youtube.com/vi/${sermon.videoId}/hqdefault.jpg`;
-      console.log("Using auto-generated YouTube thumbnail:", youtubeThumb);
+      if (import.meta.env.DEV) console.log("Using auto-generated YouTube thumbnail:", youtubeThumb);
       return youtubeThumb;
     }
 
@@ -79,7 +89,7 @@ const Sermons = () => {
       const url = sermon.image.path.startsWith("/")
         ? `${config.API_URL}${sermon.image.path}`
         : sermon.image.path;
-      console.log("Using image.path:", url);
+      if (import.meta.env.DEV) console.log("Using image.path:", url);
       return url;
     }
 
@@ -87,8 +97,8 @@ const Sermons = () => {
     if (sermon.imageUrl && typeof sermon.imageUrl === "string") {
       // Skip if it's a default image path and we have better options
       if (sermon.imageUrl.includes("default-image")) {
-        console.log("Skipping default image path, using sermon thumbnail");
-        return "/assets/sermons/default-sermon.jpg";
+        if (import.meta.env.DEV) console.log("Skipping default image path, using placeholder");
+        return placeholderImage;
       }
 
       // Handle JSON string that might have been passed
@@ -99,7 +109,7 @@ const Sermons = () => {
             const url = parsed.path.startsWith("/")
               ? `${config.API_URL}${parsed.path}`
               : parsed.path;
-            console.log("Using parsed imageUrl path:", url);
+            if (import.meta.env.DEV) console.log("Using parsed imageUrl path:", url);
             return url;
           }
         } catch (e) {
@@ -111,7 +121,7 @@ const Sermons = () => {
       const url = sermon.imageUrl.startsWith("/")
         ? `${config.API_URL}${sermon.imageUrl}`
         : sermon.imageUrl;
-      console.log("Using regular imageUrl:", url);
+      if (import.meta.env.DEV) console.log("Using regular imageUrl:", url);
       return url;
     }
 
@@ -120,14 +130,14 @@ const Sermons = () => {
       const url = sermon.image.startsWith("/")
         ? `${config.API_URL}${sermon.image}`
         : sermon.image;
-      console.log("Using sermon.image string:", url);
+      if (import.meta.env.DEV) console.log("Using sermon.image string:", url);
       return url;
     }
 
-    // If no image is found, return a sermon-specific placeholder
-    console.log("No image found, using sermon thumbnail placeholder");
-    return "/assets/sermons/default-sermon.jpg";
-  };
+    // If no image is found, return the imported placeholder
+    if (import.meta.env.DEV) console.log("No image found, using placeholder");
+    return placeholderImage;
+  }, []);
 
   // Helper function to format dates
   const formatSermonDate = (dateString) => {
@@ -181,7 +191,7 @@ const Sermons = () => {
 
   // Log sermon data when it changes
   if (sermons && sermons.length > 0) {
-    console.log("API Sermon Data:", sermons);
+    if (import.meta.env.DEV) console.log("API Sermon Data:", sermons);
 
     // Debug: Check for objects that might be incorrectly rendered
     sermons.forEach((sermon) => {
@@ -200,52 +210,50 @@ const Sermons = () => {
     });
   }
 
-  if (isLoading) {
+  // Loading state (only show spinner if we have nothing at all to show yet)
+  if (isLoading && !sermons?.length) {
     return (
-      <section className="py-20 px-6 bg-gray-50">
+      <section className="py-20 px-6 bg-gray-50" aria-busy="true" aria-live="polite">
         <div className="container mx-auto flex justify-center items-center min-h-[300px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-500 border-t-transparent"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-500 border-t-transparent" role="progressbar" aria-label="Loading sermons"></div>
         </div>
       </section>
     );
   }
 
-  if (error || (!isLoading && (!sermons || sermons.length === 0))) {
-    // If there's an error or no sermons, use static data
-    const staticData = staticSermons;
+  if (!sermonsToDisplay.length) {
     return (
       <section className="py-20 px-6 bg-gray-50">
         <div className="container mx-auto">
-          <div className="flex items-center mb-12">
-            <div className="w-12 h-1 bg-primary-500 mr-4"></div>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-800">
-              Latest Message
-            </h2>
-          </div>
-          <div className="p-6 bg-white rounded-xl shadow-lg">
-            <p className="text-gray-700">
-              {error
-                ? "Failed to load sermons from API, using static data"
-                : "No sermons available at the moment. Please check back later."}
-            </p>
-          </div>
+          <p className="text-gray-700">No sermons available right now.</p>
         </div>
       </section>
     );
-  }
-
-  // If we have an error but we're showing static data, log it
-  let sermonsToDisplay = sermons;
-  if (error && sermons.length === 0) {
-    console.log("Using static sermon data due to API error");
-    sermonsToDisplay = staticSermons;
   }
 
   const latestSermon = sermonsToDisplay[0];
 
+  // Debug: Log the actual sermon data to see what fields are available
+  if (import.meta.env.DEV && latestSermon) {
+    console.log("Latest sermon data:", latestSermon);
+    console.log("Description value:", latestSermon.description);
+    console.log("Series value:", latestSermon.series);
+    console.log("Tags value:", latestSermon.tags);
+    console.log("Duration value:", latestSermon.duration);
+  }
+
   return (
     <section className="py-20 px-6 bg-gray-50">
       <div className="container mx-auto">
+        {error && (
+          <div className="mb-6 rounded-lg bg-red-50 border border-red-200 p-4 text-red-700 flex items-center justify-between">
+            <span>We couldn't load the latest sermons. Showing a backup list.</span>
+            <button onClick={refetchSermons} className="btn btn-sm btn-outline border-red-300 text-red-700 hover:bg-red-100">
+              Retry
+            </button>
+          </div>
+        )}
+
         <div className="flex flex-col md:flex-row items-center justify-between mb-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -267,7 +275,7 @@ const Sermons = () => {
             viewport={{ once: true }}
           >
             <Link
-              to="/media/sermons"
+              to="/sermons"
               className="text-primary-600 hover:text-primary-700 flex items-center group mt-4 md:mt-0"
             >
               View All Sermons
@@ -300,9 +308,11 @@ const Sermons = () => {
           <div className="bg-white rounded-xl shadow-lg overflow-hidden">
             <div className="grid md:grid-cols-5 gap-0">
               {/* Video Thumbnail */}
-              <div
-                className="md:col-span-3 relative group cursor-pointer h-64 md:h-auto"
-                onClick={() => setIsVideoModalOpen(true)}
+              <button
+                type="button"
+                className="md:col-span-3 relative group h-64 md:h-auto text-left"
+                onClick={() => setSelectedSermon(latestSermon)}
+                aria-label={`Watch ${latestSermon.title}`}
               >
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <div className="w-20 h-20 rounded-full bg-primary-500 flex items-center justify-center">
@@ -333,27 +343,28 @@ const Sermons = () => {
                   alt={latestSermon.title}
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    console.error(`Failed to load featured sermon image`);
+                    if (import.meta.env.DEV) console.error(`Failed to load featured sermon image`);
                     // First try YouTube thumbnail if available
                     if (
                       latestSermon.videoId &&
                       !e.target.src.includes(latestSermon.videoId)
                     ) {
-                      console.log(
+                      if (import.meta.env.DEV) console.log(
                         "Fallback to direct YouTube thumbnail for featured sermon"
                       );
                       e.target.src = `https://img.youtube.com/vi/${latestSermon.videoId}/hqdefault.jpg`;
                     } else {
-                      // Otherwise use default sermon image
-                      e.target.src = "/assets/sermons/default-sermon.jpg";
+                      // Otherwise use placeholder image
+                      e.target.src = placeholderImage;
                     }
                   }}
                   loading="eager"
+                  decoding="async"
                 />
-                <div className="absolute top-4 left-4 bg-primary-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                <span className="absolute top-4 left-4 bg-primary-500 text-white px-3 py-1 rounded-full text-sm font-medium">
                   Latest
-                </div>
-              </div>
+                </span>
+              </button>
 
               {/* Sermon Info */}
               <div className="md:col-span-2 p-6 md:p-8 flex flex-col">
@@ -362,25 +373,56 @@ const Sermons = () => {
                     {latestSermon.title}
                   </h3>
                   <p className="text-primary-600 font-medium mb-1">
-                    {latestSermon.speaker}
+                    {latestSermon.speaker || "Guest Speaker"}
                   </p>
-                  <p className="text-gray-500 mb-4">
-                    {formatSermonDate(latestSermon.date)}
-                  </p>
-                  <p className="text-gray-600 mb-6">
-                    {typeof latestSermon.description === "string"
-                      ? latestSermon.description.length > 300
-                        ? latestSermon.description.substring(0, 300) + "..."
-                        : latestSermon.description
-                      : typeof latestSermon.description === "object"
-                        ? "View sermon details"
-                        : "No description available"}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-2 mb-4">
+                    <p className="text-gray-500">
+                      {formatSermonDate(latestSermon.date)}
+                    </p>
+                    {latestSermon.duration && (
+                      <>
+                        <span className="text-gray-300">•</span>
+                        <p className="text-gray-500">{latestSermon.duration}</p>
+                      </>
+                    )}
+                    {latestSermon.series && (
+                      <>
+                        <span className="text-gray-300">•</span>
+                        <span className="text-xs bg-primary-100 text-primary-700 px-2 py-1 rounded-full">
+                          {latestSermon.series}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  {latestSermon.description && latestSermon.description.trim() !== "" ? (
+                    <p className="text-gray-700 mb-4 leading-relaxed">
+                      {typeof latestSermon.description === "string"
+                        ? latestSermon.description.length > 280
+                          ? latestSermon.description.substring(0, 280) + "..."
+                          : latestSermon.description
+                        : typeof latestSermon.description === "object"
+                          ? "View sermon details"
+                          : ""}
+                    </p>
+                  ) : (
+                    <p className="text-gray-500 mb-4 italic">
+                      Click to watch this powerful message.
+                    </p>
+                  )}
+                  {latestSermon.tags && Array.isArray(latestSermon.tags) && latestSermon.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-4">
+                      {latestSermon.tags.slice(0, 3).map((tag, index) => (
+                        <span key={index} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex flex-wrap gap-3">
                   <button
-                    onClick={() => setIsVideoModalOpen(true)}
+                    onClick={() => setSelectedSermon(latestSermon)}
                     className="btn btn-primary flex items-center"
                   >
                     <svg
@@ -428,13 +470,18 @@ const Sermons = () => {
               viewport={{ once: true }}
               className="bg-white shadow-lg rounded-xl overflow-hidden group hover:shadow-xl transition-shadow"
             >
-              <div className="relative">
+              <button
+                type="button"
+                className="relative block text-left"
+                onClick={() => setSelectedSermon(sermon)}
+                aria-label={`Watch ${sermon.title}`}
+              >
                 <img
                   src={getSermonImageUrl(sermon)}
                   alt={sermon.title}
                   className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                   onError={(e) => {
-                    console.error(
+                    if (import.meta.env.DEV) console.error(
                       `Failed to load recent sermon image for ${sermon.title}`
                     );
                     // First try YouTube thumbnail if available
@@ -442,22 +489,20 @@ const Sermons = () => {
                       sermon.videoId &&
                       !e.target.src.includes(sermon.videoId)
                     ) {
-                      console.log(
+                      if (import.meta.env.DEV) console.log(
                         "Fallback to direct YouTube thumbnail for recent sermon"
                       );
                       e.target.src = `https://img.youtube.com/vi/${sermon.videoId}/hqdefault.jpg`;
                     } else {
-                      // Otherwise use default sermon image
-                      e.target.src = "/assets/sermons/default-sermon.jpg";
+                      // Otherwise use placeholder image
+                      e.target.src = placeholderImage;
                     }
                   }}
-                  loading="eager"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Link
-                    to={`/media/sermons?video=${sermon.videoId}`}
-                    className="w-12 h-12 rounded-full bg-primary-500 flex items-center justify-center"
-                  >
+                  <div className="w-12 h-12 rounded-full bg-primary-500 flex items-center justify-center">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-6 w-6 text-white"
@@ -478,27 +523,44 @@ const Sermons = () => {
                         d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
-                  </Link>
+                  </div>
                 </div>
-              </div>
+              </button>
               <div className="p-5">
                 <h3 className="text-lg font-semibold text-gray-800 mb-1">
                   {sermon.title}
                 </h3>
                 <p className="text-primary-600 text-sm mb-1">
-                  {sermon.speaker}
+                  {sermon.speaker || "Guest Speaker"}
                 </p>
-                <p className="text-gray-500 text-sm mb-3">
-                  {formatSermonDate(sermon.date)}
-                </p>
-                {/* Add description for recent sermons */}
-                {sermon.description && (
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-3">
+                  <span>{formatSermonDate(sermon.date)}</span>
+                  {sermon.duration && (
+                    <>
+                      <span className="text-gray-300">•</span>
+                      <span>{sermon.duration}</span>
+                    </>
+                  )}
+                  {sermon.series && (
+                    <>
+                      <span className="text-gray-300">•</span>
+                      <span className="bg-primary-100 text-primary-700 px-2 py-1 rounded-full">
+                        {sermon.series}
+                      </span>
+                    </>
+                  )}
+                </div>
+                {sermon.description && sermon.description.trim() !== "" ? (
+                  <p className="text-gray-600 text-sm mb-3 leading-relaxed">
                     {typeof sermon.description === "string"
-                      ? sermon.description.length > 120
-                        ? sermon.description.substring(0, 120) + "..."
+                      ? sermon.description.length > 100
+                        ? sermon.description.substring(0, 100) + "..."
                         : sermon.description
                       : "View sermon details"}
+                  </p>
+                ) : (
+                  <p className="text-gray-400 text-sm mb-3 italic">
+                    Watch this inspiring message
                   </p>
                 )}
                 <Link
@@ -527,48 +589,69 @@ const Sermons = () => {
         </div>
 
         {/* Video Modal */}
-        {isVideoModalOpen && (
-          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-            <div className="relative w-full lg:w-3/4 lg:mx-auto">
-              <button
-                onClick={() => setIsVideoModalOpen(false)}
-                className="absolute -top-12 right-0 text-white hover:text-primary-400"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-              <div className="relative pt-[56.25%] h-[50vh] md:h-[60vh] lg:h-auto">
-                <iframe
-                  src={`https://www.youtube.com/embed/${latestSermon.videoId}?autoplay=1&rel=0&modestbranding=1&enablejsapi=0`}
-                  frameBorder="0"
-                  allow="autoplay; fullscreen"
-                  allowFullScreen
-                  loading="eager"
-                  title={latestSermon.title}
-                  className="absolute top-0 left-0 w-full h-full"
-                  onLoad={() =>
-                    console.log("Video modal iframe loaded successfully")
-                  }
-                ></iframe>
-              </div>
-            </div>
-          </div>
+        {selectedSermon && (
+          <VideoModal sermon={selectedSermon} onClose={() => setSelectedSermon(null)} />
         )}
       </div>
     </section>
   );
 };
+
+function VideoModal({ sermon, onClose }) {
+  useEffect(() => {
+    const onKey = (e) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Watch ${sermon.title}`}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="relative w-full lg:w-3/4 lg:mx-auto">
+        <button 
+          onClick={onClose} 
+          className="absolute -top-12 right-0 text-white hover:text-primary-400" 
+          aria-label="Close video"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-8 w-8"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+        <div className="relative pt-[56.25%]">
+          <iframe
+            src={`https://www.youtube.com/embed/${sermon.videoId}?autoplay=1&rel=0&modestbranding=1`}
+            title={sermon.title}
+            className="absolute top-0 left-0 w-full h-full"
+            allow="autoplay; encrypted-media; picture-in-picture"
+            allowFullScreen
+            loading="lazy"
+            referrerPolicy="strict-origin-when-cross-origin"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default Sermons;

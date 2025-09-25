@@ -1,44 +1,44 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 
+// Static data moved outside component for better performance
+const FOOTER_LINKS = {
+  about: [
+    { path: "/about", label: "About Us" },
+    { path: "/about/our-story", label: "Our Story" },
+    { path: "/about/leadership-team", label: "Leadership" },
+    { path: "/about/vision-mission", label: "Vision & Mission" },
+    { path: "/about/what-we-believe", label: "What We Believe" },
+  ],
+  programs: [
+    { path: "/foundation-classes", label: "Foundation Classes" },
+    { path: "/discipleship-classes", label: "Discipleship Classes" },
+    { path: "/membership", label: "Membership" },
+    { path: "/cell-groups", label: "Cell Groups" },
+  ],
+  media: [
+    { path: "/audio-sermons", label: "Audio Sermons" },
+    { path: "/gallery", label: "Gallery" },
+    { path: "/resources", label: "Resources" },
+  ],
+  connect: [
+    { path: "/events", label: "Events" },
+    { path: "/missions", label: "Missions" },
+    { path: "/contact", label: "Contact Us" },
+  ]
+};
+
+const SOCIAL_LINKS = [
+  { icon: "facebook", url: "https://facebook.com/VictoryBibleChurchKitwe", label: "Facebook" },
+  { icon: "instagram", url: "https://instagram.com/victorybiblechurch", label: "Instagram" },
+  { icon: "youtube", url: "https://youtube.com/@BishopSimwanza", label: "YouTube" },
+  { icon: "twitter", url: "https://twitter.com/victorybible", label: "Twitter" },
+];
+
 const Footer = () => {
   const currentYear = new Date().getFullYear();
   const [email, setEmail] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
-
-  const footerLinks = {
-    about: [
-      { path: "/about", label: "About Us" },
-      { path: "/about/our-story", label: "Our Story" },
-      { path: "/about/leadership-team", label: "Leadership" },
-      { path: "/about/vision-mission", label: "Vision & Mission" },
-      { path: "/about/what-we-believe", label: "What We Believe" },
-    ],
-    programs: [
-      { path: "/foundation-classes", label: "Foundation Classes" },
-      { path: "/discipleship-classes", label: "Discipleship Classes" },
-      { path: "/membership", label: "Membership" },
-      { path: "/cell-groups", label: "Cell Groups" },
-    ],
-    media: [
-      { path: "/media/sermons", label: "Sermons" },
-      { path: "/media/videos", label: "Videos" },
-      { path: "/media/podcasts", label: "Podcasts" },
-      { path: "/media/gallery", label: "Gallery" },
-    ],
-    connect: [
-      { path: "/events", label: "Events" },
-      { path: "/missions", label: "Missions" },
-      { path: "/contact", label: "Contact Us" },
-    ]
-  };
-
-  const socialLinks = [
-    { icon: "facebook", url: "https://facebook.com/victorybiblechurch", label: "Facebook" },
-    { icon: "instagram", url: "https://instagram.com/victorybiblechurch", label: "Instagram" },
-    { icon: "youtube", url: "https://youtube.com/victorybiblechurch", label: "YouTube" },
-    { icon: "twitter", url: "https://twitter.com/victorybible", label: "Twitter" },
-  ];
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -52,7 +52,7 @@ const Footer = () => {
     <footer className="bg-gray-900 text-white">
       {/* Main Footer Content */}
       <div className="container mx-auto px-4 pt-16 pb-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-8">
           {/* Church Info */}
           <div className="lg:col-span-2 space-y-4">
             <Link
@@ -80,81 +80,81 @@ const Footer = () => {
               </div>
             </Link>
             <p className="text-gray-400">Worship | Grow | Impact</p>
-            <div className="text-gray-400">
+            <address className="not-italic text-gray-400">
               <p>Victory Bible Church - Kitwe</p>
               <p>Off Chiwala Road, CBU East Gate</p>
-              <p className="mt-2">Phone: (260) 964-985-651</p>
-              <p>Email: info@victorybiblechurch.com</p>
-            </div>
+              <p className="mt-2">Phone: <a href="tel:+260964985651" className="hover:text-primary-400 transition-colors">+260 964 985 651</a></p>
+              <p>Email: <a href="mailto:info@victorybiblechurch.com" className="hover:text-primary-400 transition-colors">info@victorybiblechurch.com</a></p>
+            </address>
           </div>
 
           {/* About Links */}
-          <div>
+          <nav aria-label="About">
             <h4 className="text-lg font-semibold mb-4 border-b border-gray-700 pb-2">About</h4>
             <ul className="space-y-2">
-              {footerLinks.about.map((link) => (
+              {FOOTER_LINKS.about.map((link) => (
                 <li key={link.path}>
                   <Link
                     to={link.path}
-                    className="text-gray-300 hover:text-primary-400 transition-colors text-sm"
+                    className="text-gray-300 hover:text-primary-400 focus:outline-none focus:text-primary-400 transition-colors text-sm"
                   >
                     {link.label}
                   </Link>
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
 
           {/* Programs Links */}
-          <div>
+          <nav aria-label="Programs">
             <h4 className="text-lg font-semibold mb-4 border-b border-gray-700 pb-2">Programs</h4>
             <ul className="space-y-2">
-              {footerLinks.programs.map((link) => (
+              {FOOTER_LINKS.programs.map((link) => (
                 <li key={link.path}>
                   <Link
                     to={link.path}
-                    className="text-gray-300 hover:text-primary-400 transition-colors text-sm"
+                    className="text-gray-300 hover:text-primary-400 focus:outline-none focus:text-primary-400 transition-colors text-sm"
                   >
                     {link.label}
                   </Link>
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
 
           {/* Media Links */}
-          <div>
+          <nav aria-label="Media">
             <h4 className="text-lg font-semibold mb-4 border-b border-gray-700 pb-2">Media</h4>
             <ul className="space-y-2">
-              {footerLinks.media.map((link) => (
+              {FOOTER_LINKS.media.map((link) => (
                 <li key={link.path}>
                   <Link
                     to={link.path}
-                    className="text-gray-300 hover:text-primary-400 transition-colors text-sm"
+                    className="text-gray-300 hover:text-primary-400 focus:outline-none focus:text-primary-400 transition-colors text-sm"
                   >
                     {link.label}
                   </Link>
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
 
           {/* Connect Links */}
-          <div>
+          <nav aria-label="Connect">
             <h4 className="text-lg font-semibold mb-4 border-b border-gray-700 pb-2">Connect</h4>
             <ul className="space-y-2">
-              {footerLinks.connect.map((link) => (
+              {FOOTER_LINKS.connect.map((link) => (
                 <li key={link.path}>
                   <Link
                     to={link.path}
-                    className="text-gray-300 hover:text-primary-400 transition-colors text-sm"
+                    className="text-gray-300 hover:text-primary-400 focus:outline-none focus:text-primary-400 transition-colors text-sm"
                   >
                     {link.label}
                   </Link>
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
 
         </div>
 
@@ -167,11 +167,11 @@ const Footer = () => {
               <div className="space-y-3">
                 <div>
                   <p className="font-medium">Sunday Services</p>
-                  <p className="text-gray-400">09:30 AM</p>
+                  <time className="text-gray-400" dateTime="09:30">09:30 AM</time>
                 </div>
                 <div>
                   <p className="font-medium">Wednesday Service</p>
-                  <p className="text-gray-400">06:00 PM</p>
+                  <time className="text-gray-400" dateTime="18:00">06:00 PM</time>
                 </div>
                 <Link to="/contact" className="inline-block mt-2 text-primary-400 hover:text-primary-300 transition-colors">
                   Get Directions →
@@ -185,14 +185,22 @@ const Footer = () => {
               <p className="text-gray-400 mb-4">Subscribe to our newsletter for updates and inspiration.</p>
 
               {isSubscribed ? (
-                <div className="p-3 bg-primary-900/50 rounded-lg border border-primary-700 text-primary-300">
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="p-3 bg-primary-900/50 rounded-lg border border-primary-700 text-primary-300"
+                >
                   Thank you for subscribing! You'll receive our next newsletter soon.
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-2">
+                <form onSubmit={handleSubmit} className="space-y-2" noValidate>
+                  <label htmlFor="newsletter-email" className="sr-only">Email address</label>
                   <div className="flex">
                     <input
+                      id="newsletter-email"
+                      name="email"
                       type="email"
+                      autoComplete="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="Your email address"
@@ -201,7 +209,7 @@ const Footer = () => {
                     />
                     <button
                       type="submit"
-                      className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-2 rounded-r-md transition-colors font-medium"
+                      className="bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-400 text-white px-3 py-2 rounded-r-md transition-colors font-medium"
                     >
                       Sign Up
                     </button>
@@ -214,13 +222,13 @@ const Footer = () => {
             <div>
               <h4 className="text-lg font-semibold mb-4">Follow Us</h4>
               <div className="flex space-x-4">
-                {socialLinks.map((social) => (
+                {SOCIAL_LINKS.map((social) => (
                   <a
                     key={social.icon}
                     href={social.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-gray-800 hover:bg-primary-600 text-white p-2 rounded-full transition-colors"
+                    className="bg-gray-800 hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-400 text-white p-2 rounded-full transition-colors"
                     aria-label={social.label}
                   >
                     {social.icon === 'facebook' && (

@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet"; // Added Helmet for SEO
 import config from "../config"; // Import centralized config
 import { useSermonsQuery } from "../hooks/useSermonsQuery";
 import placeholderImage from "../assets/placeholders/default-image.svg";
+import HeroSection from "../components/common/HeroSection";
 
 const API_URL = config.API_URL;
 
@@ -20,7 +21,7 @@ const checkYouTubeConnectivity = async () => {
       timeout: 3000,
     });
 
-    console.log("YouTube connectivity check successful");
+    if (import.meta.env.DEV) console.log("YouTube connectivity check successful");
     return true;
   } catch (error) {
     console.error("YouTube connectivity check failed:", error);
@@ -86,6 +87,7 @@ const Sermons = () => {
     data: sermons = [],
     isLoading: sermonsLoading,
     error: sermonsError,
+    refetch: refetchSermons,
   } = useSermonsQuery();
 
   const [selectedSermon, setSelectedSermon] = useState(null);
@@ -97,21 +99,31 @@ const Sermons = () => {
   const [youtubeAccessible, setYoutubeAccessible] = useState(true);
   const [loadingTimeout, setLoadingTimeout] = useState(null);
 
+  // Normalize and sort sermons by date (desc) with fallback logic
+  const sermonsToDisplay = useMemo(() => {
+    const source = (sermonsError || !sermons?.length) ? staticSermons : sermons;
+    return [...source].sort((a, b) => {
+      const da = new Date(a.date)?.getTime() || 0;
+      const db = new Date(b.date)?.getTime() || 0;
+      return db - da;
+    });
+  }, [sermons, sermonsError]);
+
   // Helper function to get the correct image URL
-  const getSermonImageUrl = (sermon) => {
+  const getSermonImageUrl = useCallback((sermon) => {
     // Ensure we have a valid sermon object
     if (!sermon || typeof sermon !== "object") {
-      console.log("Invalid sermon object, using placeholder");
+      if (import.meta.env.DEV) console.log("Invalid sermon object, using placeholder");
       return placeholderImage;
     }
 
     // For debugging
-    console.log("Processing sermon image:", sermon.title, sermon.imageUrl);
+    if (import.meta.env.DEV) console.log("Processing sermon image:", sermon.title, sermon.imageUrl);
 
     // 1. First priority: Use YouTube thumbnail if available (most reliable)
     if (sermon.videoId) {
       const youtubeThumb = `https://img.youtube.com/vi/${sermon.videoId}/hqdefault.jpg`;
-      console.log("Using auto-generated YouTube thumbnail:", youtubeThumb);
+      if (import.meta.env.DEV) console.log("Using auto-generated YouTube thumbnail:", youtubeThumb);
       return youtubeThumb;
     }
 
@@ -120,7 +132,7 @@ const Sermons = () => {
       const url = sermon.image.path.startsWith("/")
         ? `${API_URL}${sermon.image.path}`
         : sermon.image.path;
-      console.log("Using image.path:", url);
+      if (import.meta.env.DEV) console.log("Using image.path:", url);
       return url;
     }
 
@@ -128,8 +140,8 @@ const Sermons = () => {
     if (sermon.imageUrl && typeof sermon.imageUrl === "string") {
       // Skip if it's a default image path and we have better options
       if (sermon.imageUrl.includes("default-image")) {
-        console.log("Skipping default image path, using sermon thumbnail");
-        return "/assets/sermons/default-sermon.jpg";
+        if (import.meta.env.DEV) console.log("Skipping default image path, using placeholder");
+        return placeholderImage;
       }
 
       // Handle JSON string that might have been passed
@@ -140,7 +152,7 @@ const Sermons = () => {
             const url = parsed.path.startsWith("/")
               ? `${API_URL}${parsed.path}`
               : parsed.path;
-            console.log("Using parsed imageUrl path:", url);
+            if (import.meta.env.DEV) console.log("Using parsed imageUrl path:", url);
             return url;
           }
         } catch (e) {
@@ -153,7 +165,7 @@ const Sermons = () => {
         sermon.imageUrl.startsWith("http") ||
         sermon.imageUrl.startsWith("data:")
       ) {
-        console.log("Using absolute imageUrl:", sermon.imageUrl);
+        if (import.meta.env.DEV) console.log("Using absolute imageUrl:", sermon.imageUrl);
         return sermon.imageUrl;
       }
 
@@ -161,7 +173,7 @@ const Sermons = () => {
       const url = sermon.imageUrl.startsWith("/")
         ? `${API_URL}${sermon.imageUrl}`
         : sermon.imageUrl;
-      console.log("Using regular imageUrl:", url);
+      if (import.meta.env.DEV) console.log("Using regular imageUrl:", url);
       return url;
     }
 
@@ -169,21 +181,21 @@ const Sermons = () => {
     if (sermon.image && typeof sermon.image === "string") {
       // Don't prepend API_URL if the URL is already absolute or a data URL
       if (sermon.image.startsWith("http") || sermon.image.startsWith("data:")) {
-        console.log("Using absolute image string:", sermon.image);
+        if (import.meta.env.DEV) console.log("Using absolute image string:", sermon.image);
         return sermon.image;
       }
 
       const url = sermon.image.startsWith("/")
         ? `${API_URL}${sermon.image}`
         : sermon.image;
-      console.log("Using sermon.image string:", url);
+      if (import.meta.env.DEV) console.log("Using sermon.image string:", url);
       return url;
     }
 
-    // If no image is found, return a sermon-specific placeholder
-    console.log("No image found, using sermon thumbnail placeholder");
-    return "/assets/sermons/default-sermon.jpg";
-  };
+    // If no image is found, return the imported placeholder
+    if (import.meta.env.DEV) console.log("No image found, using placeholder");
+    return placeholderImage;
+  }, []);
 
   // Helper function to format dates
   const formatSermonDate = (dateString) => {
@@ -278,7 +290,7 @@ const Sermons = () => {
 
     // Set a timeout to prevent indefinite loading
     const timeout = setTimeout(() => {
-      console.warn("Video loading timeout - forcing completion");
+      if (import.meta.env.DEV) console.warn("Video loading timeout - forcing completion");
       setIsLoading(false);
 
       // Only set error if we're still in loading state
@@ -317,7 +329,7 @@ const Sermons = () => {
     // Reset loading states when component mounts
     const resetLoadingState = setTimeout(() => {
       if (isLoading) {
-        console.log("Force resetting loading state after component mount");
+        if (import.meta.env.DEV) console.log("Force resetting loading state after component mount");
         setIsLoading(false);
 
         if (loadingTimeout) {
@@ -327,57 +339,22 @@ const Sermons = () => {
       }
     }, 3000);
 
-    if (sermons && sermons.length > 0) {
-      console.log("Sermons page - API data:", sermons);
-
-      // Debug: Check for objects that might be incorrectly rendered
-      sermons.forEach((sermon) => {
-        if (sermon.description && typeof sermon.description === "object") {
-          console.warn(
-            "Found object description that might cause rendering issues:",
-            sermon.description
-          );
-        }
-        if (sermon.imageUrl && typeof sermon.imageUrl === "object") {
-          console.warn(
-            "Found object imageUrl that might cause rendering issues:",
-            sermon.imageUrl
-          );
-        }
-      });
+    if (sermonsToDisplay && sermonsToDisplay.length > 0) {
+      if (import.meta.env.DEV) console.log("Sermons page - data:", sermonsToDisplay);
 
       // Set the initially selected sermon
       if (videoIdParam) {
-        const foundSermon = sermons.find(
+        const foundSermon = sermonsToDisplay.find(
           (sermon) => sermon.videoId === videoIdParam
         );
         if (foundSermon) {
           selectSermon(foundSermon);
         } else {
-          selectSermon(sermons[0]);
+          selectSermon(sermonsToDisplay[0]);
         }
       } else {
-        selectSermon(sermons[0]);
+        selectSermon(sermonsToDisplay[0]);
       }
-    } else if (sermonsError) {
-      console.error("Error fetching sermons:", sermonsError);
-      // Use static data as fallback
-
-      // Set the initially selected sermon from static data
-      if (videoIdParam) {
-        const foundSermon = staticSermons.find(
-          (sermon) => sermon.videoId === videoIdParam
-        );
-        if (foundSermon) {
-          selectSermon(foundSermon);
-        } else {
-          selectSermon(staticSermons[0]);
-        }
-      } else {
-        selectSermon(staticSermons[0]);
-      }
-
-      setError("Using local sermon data - API server unavailable");
     }
 
     // Clear any loading timeouts on component unmount
@@ -388,7 +365,7 @@ const Sermons = () => {
         setLoadingTimeout(null);
       }
     };
-  }, [sermons, sermonsError, videoIdParam]);
+  }, [sermonsToDisplay, videoIdParam]);
 
   // Loading state for the whole page
   if (sermonsLoading || (isLoading && !selectedSermon)) {
@@ -432,22 +409,22 @@ const Sermons = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* SEO Meta Tags */}
       <Helmet>
-        <title>Sermons - Victory Bible Church</title>
+        <title>Sermons and Messages - Victory Bible Church</title>
         <meta
           name="description"
           content="Watch or listen to past messages and sermons from Victory Bible Church."
         />
       </Helmet>
 
-      {/* Hero Section for Navbar Background */}
-      <div className="bg-gray-900 text-white pt-32 pb-12">
-        <div className="container mx-auto px-4">
-          <h1 className="text-4xl font-bold text-center">Sermons & Messages</h1>
-          <p className="text-xl text-center mt-4 text-gray-300">
-            Watch or listen to past messages from our church services
-          </p>
-        </div>
-      </div>
+      {/* Standard Hero Section */}
+      <HeroSection
+        title="Sermons and Messages"
+        subtitle="Spiritual Growth"
+        description="Watch or listen to past messages from our church services and grow in your faith journey."
+        primaryAccentText="Messages"
+        scrollText="EXPLORE SERMONS"
+        backgroundImage="/assets/hero-bg.jpg"
+      />
 
       {/* Content Section Below Navbar */}
       <motion.div
@@ -455,6 +432,15 @@ const Sermons = () => {
         animate={{ opacity: 1, y: 0 }}
         className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8"
       >
+        {sermonsError && (
+          <div className="mb-8 rounded-lg bg-red-50 border border-red-200 p-4 text-red-700 flex items-center justify-between">
+            <span>We couldn't load the latest sermons from the server. Showing backup content.</span>
+            <button onClick={refetchSermons} className="btn btn-sm btn-outline border-red-300 text-red-700 hover:bg-red-100">
+              Retry
+            </button>
+          </div>
+        )}
+
         {/* Enhanced Video Player Section */}
         {selectedSermon && (
           <div className="mb-12">
@@ -567,7 +553,7 @@ const Sermons = () => {
                           allowFullScreen
                           loading="eager"
                           onLoad={() => {
-                            console.log("YouTube iframe loaded successfully");
+                            if (import.meta.env.DEV) console.log("YouTube iframe loaded successfully");
                             setIsLoading(false);
                             // Clear any existing timeout to prevent race conditions
                             if (loadingTimeout) {
@@ -636,7 +622,7 @@ const Sermons = () => {
                           allowFullScreen
                           loading="eager"
                           onLoad={() => {
-                            console.log(
+                            if (import.meta.env.DEV) console.log(
                               "YouTube-nocookie iframe loaded successfully"
                             );
                             setIsLoading(false);
@@ -698,7 +684,7 @@ const Sermons = () => {
 
         {/* Sermons Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {sermons?.map((sermon) => (
+          {sermonsToDisplay?.map((sermon) => (
             <motion.div
               key={sermon.id}
               whileHover={{ scale: 1.02 }}
@@ -724,14 +710,15 @@ const Sermons = () => {
                       sermon.videoId &&
                       !e.target.src.includes(sermon.videoId)
                     ) {
-                      console.log("Fallback to direct YouTube thumbnail");
+                      if (import.meta.env.DEV) console.log("Fallback to direct YouTube thumbnail");
                       e.target.src = `https://img.youtube.com/vi/${sermon.videoId}/hqdefault.jpg`;
                     } else {
-                      // Otherwise use default sermon image
-                      e.target.src = "/assets/sermons/default-sermon.jpg";
+                      // Otherwise use placeholder image
+                      e.target.src = placeholderImage;
                     }
                   }}
-                  loading="eager"
+                  loading="lazy"
+                  decoding="async"
                 />
                 {sermon.videoId && (
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black bg-opacity-30">

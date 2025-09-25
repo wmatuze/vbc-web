@@ -19,15 +19,13 @@ import FoundationClasses from "./pages/FoundationClasses"; // Import Foundation 
 import DiscipleshipClasses from "./pages/DiscipleshipClasses"; // Import Discipleship Classes page
 import ZonesPage from "./pages/ZonesPage";
 import ZoneDetailPage from "./pages/ZoneDetailPage";
-import Media from "./pages/Media";
 import Missions from "./pages/Missions";
 import AboutUs from "./pages/AboutUs";
 import Sermons from "./pages/Sermons";
 // SermonsDebug component has been removed
-import Videos from "./pages/Videos";
 import Resources from "./pages/Resources";
-import Podcasts from "./pages/Podcasts";
 import Gallery from "./pages/Gallery";
+import AudioSermons from "./pages/AudioSermons";
 import NotFound from "./pages/NotFound";
 import OurStory from "./pages/OurStory";
 import Leadership from "./pages/Leadership";
@@ -45,7 +43,6 @@ import AdminGuide from "./pages/admin/AdminGuide"; // Import Admin Guide page
 import Support from "./pages/admin/Support"; // Import Support page
 import ErrorTester from "./components/ErrorTester"; // Import Error Tester component
 import ProtectedRoute from "./components/auth/ProtectedRoute"; // Import ProtectedRoute component
-import TestMedia from "./pages/TestMedia"; // Import our test page
 
 // ✅ Import the ChurchCalendar component
 import ChurchCalendar from "./components/ChurchCalendar/ChurchCalendar";
@@ -241,17 +238,9 @@ const AppContent = () => {
               }
             />
 
-            {/* Media Pages */}
+            {/* Media Pages - Now accessible directly */}
             <Route
-              path="/media"
-              element={
-                <PageWrapper noPadding>
-                  <Media />
-                </PageWrapper>
-              }
-            />
-            <Route
-              path="/media/sermons"
+              path="/sermons"
               element={
                 <PageWrapper noPadding>
                   <Sermons />
@@ -259,23 +248,15 @@ const AppContent = () => {
               }
             />
             <Route
-              path="/media/videos"
+              path="/audio-sermons"
               element={
-                <PageWrapper>
-                  <Videos />
+                <PageWrapper noPadding>
+                  <AudioSermons />
                 </PageWrapper>
               }
             />
             <Route
-              path="/media/podcasts"
-              element={
-                <PageWrapper>
-                  <Podcasts />
-                </PageWrapper>
-              }
-            />
-            <Route
-              path="/media/gallery"
+              path="/gallery"
               element={
                 <PageWrapper>
                   <Gallery />
@@ -283,18 +264,10 @@ const AppContent = () => {
               }
             />
             <Route
-              path="/media/resources"
+              path="/resources"
               element={
                 <PageWrapper>
                   <Resources />
-                </PageWrapper>
-              }
-            />
-            <Route
-              path="/media/test"
-              element={
-                <PageWrapper>
-                  <TestMedia />
                 </PageWrapper>
               }
             />

@@ -16,7 +16,7 @@ const ResourceSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['foundation', 'discipleship', 'leadership', 'ministry', 'bible_study', 'worship', 'general'],
+    enum: ['audio_sermons', 'foundation', 'discipleship', 'leadership', 'ministry', 'bible_study', 'worship', 'general'],
     default: 'general'
   },
   file: {
@@ -27,21 +27,8 @@ const ResourceSchema = new mongoose.Schema({
     size: Number
   },
   url: String, // For external links
-  accessLevel: {
-    type: String,
-    enum: ['public', 'members', 'class_specific', 'leadership', 'admin'],
-    default: 'public'
-  },
-  classRestrictions: [{
-    classType: {
-      type: String,
-      enum: ['foundation', 'discipleship']
-    },
-    classId: {
-      type: mongoose.Schema.Types.ObjectId,
-      refPath: 'classRestrictions.classType'
-    }
-  }],
+  // Removed accessLevel and classRestrictions - everything is public
+  // Categories provide sufficient organization
   tags: [String],
   author: {
     name: String,

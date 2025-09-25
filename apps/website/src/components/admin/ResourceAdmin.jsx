@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getAuthToken } from '../../services/api/core';
 import {
   FaPlus,
   FaEdit,
@@ -41,11 +42,9 @@ const ResourceAdmin = () => {
     type: 'document',
     category: 'general',
     url: '',
-    accessLevel: 'public',
     tags: [],
     featured: false,
-    author: { name: '', email: '' },
-    classRestrictions: []
+    author: { name: '', email: '' }
   });
 
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -101,11 +100,9 @@ const ResourceAdmin = () => {
       type: 'document',
       category: 'general',
       url: '',
-      accessLevel: 'public',
       tags: [],
       featured: false,
-      author: { name: '', email: '' },
-      classRestrictions: []
+      author: { name: '', email: '' }
     });
     setShowModal(true);
   };
@@ -115,8 +112,7 @@ const ResourceAdmin = () => {
     setSelectedResource(resource);
     setResourceForm({
       ...resource,
-      tags: resource.tags || [],
-      classRestrictions: resource.classRestrictions || []
+      tags: resource.tags || []
     });
     setShowModal(true);
   };
@@ -184,7 +180,7 @@ const ResourceAdmin = () => {
       // Add form data with validation
       Object.keys(resourceForm).forEach(key => {
         const value = resourceForm[key];
-        if (key === 'tags' || key === 'classRestrictions') {
+        if (key === 'tags') {
           formData.append(key, JSON.stringify(value || []));
         } else if (key === 'author') {
           formData.append(key, JSON.stringify(value || { name: '', email: '' }));
@@ -203,7 +199,7 @@ const ResourceAdmin = () => {
       const response = await fetch(url, {
         method: method,
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer ${getAuthToken()}`
         },
         body: formData
       });
@@ -240,7 +236,7 @@ const ResourceAdmin = () => {
         const response = await fetch(`/api/resources/${resourceId}`, {
           method: 'DELETE',
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            'Authorization': `Bearer ${getAuthToken()}`
           }
         });
 
@@ -259,7 +255,7 @@ const ResourceAdmin = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer ${getAuthToken()}`
         },
         body: JSON.stringify({ featured: !resource.featured })
       });
@@ -303,13 +299,15 @@ const ResourceAdmin = () => {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           Resource Management
         </h1>
-        <button
-          onClick={handleCreateResource}
-          className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
-        >
-          <FaPlus />
-          <span>Add Resource</span>
-        </button>
+        <div className="flex space-x-3">
+          <button
+            onClick={handleCreateResource}
+            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
+          >
+            <FaPlus />
+            <span>Add Resource</span>
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -332,6 +330,7 @@ const ResourceAdmin = () => {
             className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           >
             <option value="">All Categories</option>
+            <option value="audio_sermons">Audio Sermons</option>
             <option value="foundation">Foundation</option>
             <option value="discipleship">Discipleship</option>
             <option value="leadership">Leadership</option>
@@ -454,14 +453,8 @@ const ResourceAdmin = () => {
                   )}
                 </div>
 
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                  resource.accessLevel === 'public'
-                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                    : resource.accessLevel === 'members'
-                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                    : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                }`}>
-                  {resource.accessLevel}
+                <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                  Public
                 </span>
               </div>
 
@@ -532,13 +525,13 @@ const ResourceAdmin = () => {
                               type="file"
                               onChange={handleFileChange}
                               className="sr-only"
-                              accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.jpg,.jpeg,.png,.gif,.mp3,.mp4,.avi,.mov"
+                              accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.rtf,.odt,.ods,.odp,.jpg,.jpeg,.png,.gif,.webp,.mp3,.wav,.ogg,.aac,.mp4,.avi,.mov,.wmv,.webm,.mkv"
                             />
                           </label>
                           <p className="pl-1">or drag and drop</p>
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          PDF, DOC, PPT, images, videos, audio up to 50MB
+                          Documents (PDF, DOC, PPT, TXT), Images (JPG, PNG, GIF), Audio (MP3, WAV), Video (MP4, AVI) up to 50MB
                         </p>
                       </div>
                     </div>
@@ -617,43 +610,25 @@ const ResourceAdmin = () => {
                     </div>
                   )}
 
-                  {/* Category and Access Level */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Category
-                      </label>
-                      <select
-                        value={resourceForm.category}
-                        onChange={(e) => setResourceForm(prev => ({ ...prev, category: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      >
-                        <option value="general">General</option>
-                        <option value="foundation">Foundation</option>
-                        <option value="discipleship">Discipleship</option>
-                        <option value="leadership">Leadership</option>
-                        <option value="ministry">Ministry</option>
-                        <option value="bible_study">Bible Study</option>
-                        <option value="worship">Worship</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Access Level
-                      </label>
-                      <select
-                        value={resourceForm.accessLevel}
-                        onChange={(e) => setResourceForm(prev => ({ ...prev, accessLevel: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      >
-                        <option value="public">Public</option>
-                        <option value="members">Members Only</option>
-                        <option value="class_specific">Class Specific</option>
-                        <option value="leadership">Leadership</option>
-                        <option value="admin">Admin Only</option>
-                      </select>
-                    </div>
+                  {/* Category */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Category
+                    </label>
+                    <select
+                      value={resourceForm.category}
+                      onChange={(e) => setResourceForm(prev => ({ ...prev, category: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    >
+                      <option value="general">General</option>
+                      <option value="audio_sermons">Audio Sermons</option>
+                      <option value="foundation">Foundation</option>
+                      <option value="discipleship">Discipleship</option>
+                      <option value="leadership">Leadership</option>
+                      <option value="ministry">Ministry</option>
+                      <option value="bible_study">Bible Study</option>
+                      <option value="worship">Worship</option>
+                    </select>
                   </div>
 
                   {/* Tags */}

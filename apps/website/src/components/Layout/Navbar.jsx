@@ -39,6 +39,9 @@ const Navbar = ({
   const [isConnectDropdownOpen, setIsConnectDropdownOpen] =
     useState(false); // State for Desktop Connect dropdown
   const connectDropdownRef = useRef(null); // Ref for Desktop Connect dropdown
+  const [isMediaDropdownOpen, setIsMediaDropdownOpen] =
+    useState(false); // State for Desktop Media dropdown
+  const mediaDropdownRef = useRef(null); // Ref for Desktop Media dropdown
   const location = useLocation();
   const [isMobileMinistriesDropdownOpen, setIsMobileMinistriesDropdownOpen] =
     useState(false); // State for Mobile Ministries dropdown
@@ -46,6 +49,8 @@ const Navbar = ({
     useState(false); // State for Mobile Programs dropdown
   const [isMobileConnectDropdownOpen, setIsMobileConnectDropdownOpen] =
     useState(false); // State for Mobile Connect dropdown
+  const [isMobileMediaDropdownOpen, setIsMobileMediaDropdownOpen] =
+    useState(false); // State for Mobile Media dropdown
 
   const links = useMemo(
     () => [
@@ -75,7 +80,15 @@ const Navbar = ({
           { path: "/ministries/couples", label: "Couples Ministry" },
         ],
       },
-      { path: "/media", label: "Media", icon: FilmIcon },
+      {
+        label: "Media",
+        icon: FilmIcon,
+        children: [
+          { path: "/audio-sermons", label: "Audio Sermons" },
+          { path: "/gallery", label: "Gallery" },
+          { path: "/resources", label: "Resources" },
+        ],
+      },
       {
         label: "Connect",
         icon: CalendarDaysIcon,
@@ -189,6 +202,29 @@ const Navbar = ({
       );
   }, [isConnectDropdownOpen]);
 
+  // Close desktop media dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutsideMediaDropdown = (event) => {
+      if (
+        isMediaDropdownOpen &&
+        mediaDropdownRef.current &&
+        !mediaDropdownRef.current.contains(event.target)
+      ) {
+        setIsMediaDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener(
+      "mousedown",
+      handleClickOutsideMediaDropdown
+    );
+    return () =>
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutsideMediaDropdown
+      );
+  }, [isMediaDropdownOpen]);
+
   const getTextColor = (defaultColor) =>
     hasScrolled || forceOpaque ? "text-gray-800" : defaultColor;
 
@@ -218,6 +254,10 @@ const Navbar = ({
 
   const toggleMobileConnectDropdown = () => {
     setIsMobileConnectDropdownOpen((prev) => !prev);
+  };
+
+  const toggleMobileMediaDropdown = () => {
+    setIsMobileMediaDropdownOpen((prev) => !prev);
   };
 
   const scrollToTop = () => {
@@ -275,6 +315,7 @@ const Navbar = ({
                     ref={
                       link.label === "Programs" ? programsDropdownRef :
                       link.label === "Ministries" ? ministriesDropdownRef :
+                      link.label === "Media" ? mediaDropdownRef :
                       link.label === "Connect" ? connectDropdownRef : null
                     }
                   >
@@ -293,6 +334,8 @@ const Navbar = ({
                           setIsProgramsDropdownOpen(!isProgramsDropdownOpen);
                         } else if (link.label === "Ministries") {
                           setIsMinistriesDropdownOpen(!isMinistriesDropdownOpen);
+                        } else if (link.label === "Media") {
+                          setIsMediaDropdownOpen(!isMediaDropdownOpen);
                         } else if (link.label === "Connect") {
                           setIsConnectDropdownOpen(!isConnectDropdownOpen);
                         }
@@ -300,6 +343,7 @@ const Navbar = ({
                       aria-expanded={
                         link.label === "Programs" ? isProgramsDropdownOpen :
                         link.label === "Ministries" ? isMinistriesDropdownOpen :
+                        link.label === "Media" ? isMediaDropdownOpen :
                         link.label === "Connect" ? isConnectDropdownOpen : false
                       }
                       aria-haspopup="true"
@@ -310,6 +354,7 @@ const Navbar = ({
                         className={`h-2.5 w-2.5 md:h-3 md:w-3 transition-transform duration-300 ${
                           (link.label === "Programs" ? isProgramsDropdownOpen :
                            link.label === "Ministries" ? isMinistriesDropdownOpen :
+                           link.label === "Media" ? isMediaDropdownOpen :
                            link.label === "Connect" ? isConnectDropdownOpen : false) ? "rotate-180" : ""
                         }`}
                       />
@@ -324,6 +369,7 @@ const Navbar = ({
                         ${
                           (link.label === "Programs" ? isProgramsDropdownOpen :
                            link.label === "Ministries" ? isMinistriesDropdownOpen :
+                           link.label === "Media" ? isMediaDropdownOpen :
                            link.label === "Connect" ? isConnectDropdownOpen : false)
                             ? "opacity-100 scale-100 translate-y-0"
                             : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
@@ -453,6 +499,7 @@ const Navbar = ({
                       onClick={
                         link.label === "Programs" ? toggleMobileProgramsDropdown :
                         link.label === "Ministries" ? toggleMobileMinistriesDropdown :
+                        link.label === "Media" ? toggleMobileMediaDropdown :
                         link.label === "Connect" ? toggleMobileConnectDropdown : null
                       }
                     >
@@ -472,6 +519,7 @@ const Navbar = ({
                           transition-transform duration-300
                           ${link.label === "Programs" ? (isMobileProgramsDropdownOpen ? "rotate-180" : "") :
                             link.label === "Ministries" ? (isMobileMinistriesDropdownOpen ? "rotate-180" : "") :
+                            link.label === "Media" ? (isMobileMediaDropdownOpen ? "rotate-180" : "") :
                             link.label === "Connect" ? (isMobileConnectDropdownOpen ? "rotate-180" : "") : ""}
                           ${hasScrolled ? "text-gray-600" : "text-white/80"}
                           group-hover:text-red-500
@@ -480,6 +528,7 @@ const Navbar = ({
                     </button>
                     {(link.label === "Programs" ? isMobileProgramsDropdownOpen :
                       link.label === "Ministries" ? isMobileMinistriesDropdownOpen :
+                      link.label === "Media" ? isMobileMediaDropdownOpen :
                       link.label === "Connect" ? isMobileConnectDropdownOpen : false) && (
                       <div className="pl-6">
                         {link.children.map((childLink) => (

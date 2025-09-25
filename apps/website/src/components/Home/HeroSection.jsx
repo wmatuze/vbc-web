@@ -1,10 +1,56 @@
 import { Link } from "react-router-dom";
-import { forwardRef, useState, useEffect } from "react";
+import { forwardRef, useState, useEffect, useMemo } from "react";
 import { useEventsQuery } from "../../hooks/useEventsQuery";
 import EventCard from "../ChurchCalendar/EventsCard";
 
-// API URL for static assets and uploads
-const API_URL = "http://localhost:3000";
+// API URL for static assets and uploads - use environment variable for production
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+// Skeleton loader component for events
+const SkeletonLoader = () => (
+  <div className="card bg-white/5 backdrop-blur-sm border border-white/10 p-6">
+    <div className="animate-pulse space-y-4">
+      <div className="h-4 bg-white/20 rounded w-3/4" />
+      <div className="h-4 bg-white/20 rounded w-1/2" />
+      <div className="h-4 bg-white/20 rounded w-2/3" />
+    </div>
+  </div>
+);
+
+// Error card component for failed API calls
+const ErrorCard = ({ error, onRetry }) => (
+  <div className="card bg-white/5 backdrop-blur-sm border border-red-500/20 p-6">
+    <div className="flex items-center space-x-2 mb-2">
+      <svg className="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <p className="text-red-400 text-sm">Failed to load events</p>
+    </div>
+    <p className="text-red-300 text-xs mb-3">{error?.message || error?.toString() || 'An error occurred'}</p>
+    <button
+      onClick={onRetry}
+      className="text-sm text-primary-400 hover:text-primary-300 flex items-center space-x-1"
+    >
+      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      <span>Try again</span>
+    </button>
+  </div>
+);
+
+// Empty state component for when no events are available
+const EmptyState = ({ message }) => (
+  <div className="card bg-white/5 backdrop-blur-sm border border-white/10 p-6 mb-4 h-32 flex items-center justify-center w-full">
+    <div className="text-center">
+      <svg className="h-8 w-8 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2z" />
+      </svg>
+      <p className="text-gray-300 text-lg">{message}</p>
+      <p className="text-gray-400 text-sm mt-2">Check back soon for new events!</p>
+    </div>
+  </div>
+);
 
 const HeroSection = forwardRef((props, ref) => {
   // Use React Query for fetching events
@@ -15,7 +61,6 @@ const HeroSection = forwardRef((props, ref) => {
     refetch: refetchEvents,
   } = useEventsQuery();
 
-  const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -24,193 +69,83 @@ const HeroSection = forwardRef((props, ref) => {
 
   // Helper function to parse event dates consistently
   const parseEventDate = (event) => {
-    // Log the event data for debugging
-    console.log("Parsing date for event:", {
-      id: event?.id,
-      title: event?.title,
-      date: event?.date,
-      startDate: event?.startDate,
-      type: typeof event?.startDate,
-    });
-
     try {
-      // First priority: use startDate if it's a valid date object or ISO string
-      if (event?.startDate) {
-        // If startDate is a Date object
-        if (event.startDate instanceof Date) {
-          return event.startDate;
-        }
+      const rawDate = event?.startDate || event?.date;
+      if (!rawDate) throw new Error("No date field");
 
-        // If startDate is a string in ISO format
-        const parsedDate = new Date(event.startDate);
-        if (!isNaN(parsedDate.getTime())) {
-          console.log(
-            `Successfully parsed ISO date from startDate: ${parsedDate}`
-          );
-          return parsedDate;
-        }
+      // If it's already a Date object
+      if (rawDate instanceof Date) return rawDate;
 
-        // If startDate is a string like "April 30, 2025"
-        if (
-          typeof event.startDate === "string" &&
-          event.startDate.includes(",")
-        ) {
-          const parts = event.startDate.split(",");
-          if (parts.length === 2) {
-            const monthDay = parts[0].trim().split(" ");
-            const year = parts[1].trim();
-            if (monthDay.length === 2) {
-              const month = monthDay[0];
-              const day = parseInt(monthDay[1]);
-              const parsedDate = new Date(`${month} ${day}, ${year}`);
-              if (!isNaN(parsedDate.getTime())) {
-                console.log(
-                  `Successfully parsed formatted date from startDate: ${parsedDate}`
-                );
-                return parsedDate;
-              }
-            }
-          }
-        }
-      }
+      // Parse string to Date
+      const parsed = new Date(rawDate);
+      if (!isNaN(parsed.getTime())) return parsed;
 
-      // Second priority: use date field if it's in the expected format
-      if (event?.date) {
-        // If date is a Date object
-        if (event.date instanceof Date) {
-          return event.date;
-        }
+      // Extra: Handle "April 30, 2025" format
+      const parsedFallback = Date.parse(rawDate);
+      if (!isNaN(parsedFallback)) return new Date(parsedFallback);
 
-        // If date is a string like "April 30, 2025"
-        if (typeof event.date === "string" && event.date.includes(",")) {
-          const parts = event.date.split(",");
-          if (parts.length === 2) {
-            const monthDay = parts[0].trim().split(" ");
-            const year = parts[1].trim();
-            if (monthDay.length === 2) {
-              const month = monthDay[0];
-              const day = parseInt(monthDay[1]);
-              const parsedDate = new Date(`${month} ${day}, ${year}`);
-              if (!isNaN(parsedDate.getTime())) {
-                console.log(
-                  `Successfully parsed formatted date from date field: ${parsedDate}`
-                );
-                return parsedDate;
-              }
-            }
-          }
-        }
-
-        // Try standard date parsing for date field
-        const parsedDate = new Date(event.date);
-        if (!isNaN(parsedDate.getTime())) {
-          console.log(
-            `Successfully parsed date from date field: ${parsedDate}`
-          );
-          return parsedDate;
-        }
-      }
-
-      // If we get here, we couldn't parse a valid date
       console.warn(`Could not parse a valid date for event: ${event?.title}`);
-      return new Date(); // Fallback to current date
+      return new Date();
     } catch (err) {
-      console.error(`Error parsing date for event:`, err, event);
-      return new Date(); // Fallback to current date
+      console.error("Error parsing date for event:", err, event);
+      return new Date();
     }
   };
 
-  // Process events data when it changes
-  useEffect(() => {
-    try {
-      console.log("Hero section - Events data received:", events);
-      console.log("Loading state:", loading);
-      console.log("Error state:", error);
-
-      if (events && events.length > 0) {
-        console.log("Hero section - API events data:", events);
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        console.log("Today's date for comparison:", today);
-
-        // First, parse all event dates and add a parsedDate property
-        const eventsWithParsedDates = events.map((event) => {
-          const parsedDate = parseEventDate(event);
-          return {
-            ...event,
-            parsedDate,
-          };
-        });
-
-        // Filter for upcoming events (today or later)
-        const upcomingOnly = eventsWithParsedDates
-          .filter((event) => {
-            const isUpcoming = event.parsedDate >= today;
-            console.log(
-              `Event: ${event.title}, Date: ${event.parsedDate.toISOString()}, Original: ${event.startDate || event.date}, Is upcoming: ${isUpcoming}`
-            );
-            return isUpcoming;
-          })
-          // Sort by date (closest first)
-          .sort((a, b) => a.parsedDate - b.parsedDate);
-
-        console.log(
-          "Upcoming events after filtering and sorting:",
-          upcomingOnly
-        );
-
-        // Take the first 4 events (closest upcoming events)
-        setUpcomingEvents(upcomingOnly.slice(0, 4));
-      } else if (!loading && (!events || events.length === 0)) {
-        // If no events are available and we're not loading, use fallback data
-        console.error("No events available in the database");
-
-        // Fallback static events
-        const staticEvents = [
-          {
-            id: "static1",
-            title: "Sunday Worship Service",
-            date: new Date(Date.now() + 86400000 * 3), // 3 days from now
-            startDate: new Date(Date.now() + 86400000 * 3),
-            time: "10:00 AM",
-            location: "Main Sanctuary",
-            imageUrl: "/assets/placeholders/default-event.svg",
-          },
-          {
-            id: "static2",
-            title: "Prayer Meeting",
-            date: new Date(Date.now() + 86400000 * 5), // 5 days from now
-            startDate: new Date(Date.now() + 86400000 * 5),
-            time: "7:00 PM",
-            location: "Prayer Room",
-            imageUrl: "/assets/placeholders/default-event.svg",
-          },
-          {
-            id: "static3",
-            title: "Bible Study",
-            date: new Date(Date.now() + 86400000 * 7), // 7 days from now
-            startDate: new Date(Date.now() + 86400000 * 7),
-            time: "6:30 PM",
-            location: "Fellowship Hall",
-            imageUrl: "/assets/placeholders/default-event.svg",
-          },
-          {
-            id: "static4",
-            title: "Youth Fellowship",
-            date: new Date(Date.now() + 86400000 * 6), // 6 days from now
-            startDate: new Date(Date.now() + 86400000 * 6),
-            time: "5:00 PM",
-            location: "Youth Center",
-            imageUrl: "/assets/placeholders/default-event.svg",
-          },
-        ];
-
-        setUpcomingEvents(staticEvents);
-      }
-    } catch (err) {
-      console.error("Error processing events:", err);
+  // Memoized upcoming events processing for better performance
+  const upcomingEvents = useMemo(() => {
+    if (loading) return [];
+    
+    if (!events?.length) {
+      // Fallback static events when no events are available
+      return [
+        {
+          id: "static1",
+          title: "Sunday Worship Service",
+          date: new Date(Date.now() + 86400000 * 3), // 3 days from now
+          startDate: new Date(Date.now() + 86400000 * 3),
+          time: "10:00 AM",
+          location: "Main Sanctuary",
+          imageUrl: "/assets/placeholders/default-event.svg",
+        },
+        {
+          id: "static2",
+          title: "Prayer Meeting",
+          date: new Date(Date.now() + 86400000 * 5), // 5 days from now
+          startDate: new Date(Date.now() + 86400000 * 5),
+          time: "7:00 PM",
+          location: "Prayer Room",
+          imageUrl: "/assets/placeholders/default-event.svg",
+        },
+        {
+          id: "static3",
+          title: "Bible Study",
+          date: new Date(Date.now() + 86400000 * 7), // 7 days from now
+          startDate: new Date(Date.now() + 86400000 * 7),
+          time: "6:30 PM",
+          location: "Fellowship Hall",
+          imageUrl: "/assets/placeholders/default-event.svg",
+        },
+        {
+          id: "static4",
+          title: "Youth Fellowship",
+          date: new Date(Date.now() + 86400000 * 6), // 6 days from now
+          startDate: new Date(Date.now() + 86400000 * 6),
+          time: "5:00 PM",
+          location: "Youth Center",
+          imageUrl: "/assets/placeholders/default-event.svg",
+        },
+      ];
     }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return events
+      .map(e => ({ ...e, parsedDate: parseEventDate(e) }))
+      .filter(e => e.parsedDate >= today)
+      .sort((a, b) => a.parsedDate - b.parsedDate)
+      .slice(0, 4);
   }, [events, loading]);
 
   const bgImage = `${API_URL}/assets/hero-bg.jpg`;
@@ -250,8 +185,15 @@ const HeroSection = forwardRef((props, ref) => {
       {/* Background with enhanced gradient overlay */}
       <div className="absolute inset-0">
         <div
-          className="absolute inset-0 bg-cover bg-center transform scale-105 transition-transform duration-[2s]"
-          style={{ backgroundImage: `url('${bgImage}')` }}
+          className="absolute inset-0 bg-cover bg-center transform scale-105 motion-safe:transition-transform motion-safe:duration-[2s]"
+          style={{ 
+            backgroundImage: `url('${bgImage}')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+          }}
+          role="img"
+          aria-label="Victory Bible Church background"
         />
         <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/60 to-black/80" />
       </div>
@@ -261,41 +203,41 @@ const HeroSection = forwardRef((props, ref) => {
         {/* Left Column - Main Content */}
         <div className="lg:col-span-7 xl:col-span-7 2xl:col-span-7 pt-24 lg:pt-32 p-8 lg:p-16 flex flex-col justify-start items-start h-full">
           {/* Welcome Content */}
-          <div className="max-w-3xl mx-auto lg:mx-0 pt-4 space-y-8">
+          <div className="max-w-3xl mx-auto lg:mx-0 pt-10 space-y-8">
             <div className="flex items-center space-x-4 fade-in">
               <div className="h-0.5 w-12 bg-primary-500" />
-              <span className="font-medium text-white text-lg tracking-wider">
+              <span className="font-medium text-white text-base tracking-wider">
                 Welcome to Victory Bible Church
               </span>
             </div>
 
             <div className="space-y-2">
-              <h1 className="font-display text-5xl lg:text-7xl font-bold text-white leading-tight">
-                <span className="block slide-up opacity-0 animate-[slideUp_0.7s_0.3s_forwards]">
+              <h1 className="font-display text-5xl lg:text-6xl font-bold text-white leading-tight">
+                <span className="block slide-up opacity-0 motion-safe:animate-[slideUp_0.7s_0.3s_forwards] motion-reduce:opacity-100">
                   Sinning when alone
                 </span>
-                <span className="block slide-up opacity-0 animate-[slideUp_0.7s_0.5s_forwards]">
+                <span className="block slide-up opacity-0 motion-safe:animate-[slideUp_0.7s_0.5s_forwards] motion-reduce:opacity-100">
                   is easy, <span className="text-primary-400">but</span>
                 </span>
-                <span className="block text-primary-400 slide-up opacity-0 animate-[slideUp_0.7s_0.7s_forwards]">
+                <span className="block text-primary-400 slide-up opacity-0 motion-safe:animate-[slideUp_0.7s_0.7s_forwards] motion-reduce:opacity-100">
                   worshipping
                 </span>
-                <span className="block slide-up opacity-0 animate-[slideUp_0.7s_0.9s_forwards]">
+                <span className="block slide-up opacity-0 motion-safe:animate-[slideUp_0.7s_0.9s_forwards] motion-reduce:opacity-100">
                   alone is
                 </span>
-                <span className="block text-primary-400 slide-up opacity-0 animate-[slideUp_0.7s_1.1s_forwards]">
+                <span className="block text-primary-400 slide-up opacity-0 motion-safe:animate-[slideUp_0.7s_1.1s_forwards] motion-reduce:opacity-100">
                   difficult.
                 </span>
               </h1>
             </div>
 
-            <p className="text-gray-300 text-xl leading-relaxed max-w-xl lg:max-w-2xl opacity-0 animate-[fadeIn_1s_1.3s_forwards]">
+            <p className="text-gray-300 text-xl leading-relaxed max-w-xl lg:max-w-2xl opacity-0 motion-safe:animate-[fadeIn_1s_1.3s_forwards] motion-reduce:opacity-100">
               Join our vibrant community where faith grows stronger through
               fellowship, worship, and service to others.
             </p>
 
             {/* Service Times Card - Enhanced with Monthly Programs */}
-            <div className="bg-black/30 backdrop-blur-sm rounded-lg p-4 border border-white/10 opacity-0 animate-[fadeIn_1s_1.4s_forwards] lg:max-w-lg xl:max-w-xl">
+            <div className="bg-black/30 backdrop-blur-sm rounded-lg p-4 border border-white/10 opacity-0 motion-safe:animate-[fadeIn_1s_1.4s_forwards] motion-reduce:opacity-100 lg:max-w-lg xl:max-w-xl">
               <div className="flex items-center space-x-2 mb-3">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -361,11 +303,12 @@ const HeroSection = forwardRef((props, ref) => {
                     className="text-yellow-400 text-xs hover:text-yellow-300"
                     onClick={(e) => {
                       e.preventDefault();
-                      document
-                        .getElementById("monthly-programs")
-                        .scrollIntoView({
+                      const element = document.getElementById("monthly-programs");
+                      if (element) {
+                        element.scrollIntoView({
                           behavior: "smooth",
                         });
+                      }
                     }}
                   >
                     See All
@@ -435,7 +378,7 @@ const HeroSection = forwardRef((props, ref) => {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-6 opacity-0 animate-[fadeIn_1s_1.5s_forwards]">
+            <div className="flex flex-wrap gap-6 opacity-0 motion-safe:animate-[fadeIn_1s_1.5s_forwards] motion-reduce:opacity-100">
               <Link to="/membership" className="btn btn-primary group">
                 GET CONNECTED
                 <svg
@@ -487,12 +430,12 @@ const HeroSection = forwardRef((props, ref) => {
         <div className="lg:col-span-5 xl:col-span-5 2xl:col-span-5 relative h-full">
           <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/95 lg:bg-gradient-to-r lg:from-black/95 lg:to-black/80 h-full" />
 
-          <div className="relative z-10 p-8 lg:p-16 h-full flex flex-col opacity-0 animate-[fadeIn_1s_1.7s_forwards] w-full">
+          <div className="relative z-10 pt-24 lg:pt-32 p-8 lg:p-16 h-full flex flex-col opacity-0 motion-safe:animate-[fadeIn_1s_1.7s_forwards] motion-reduce:opacity-100 w-full">
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4 pt-10">
                 <div className="flex items-center space-x-4">
                   <div className="h-0.5 w-12 bg-primary-500" />
-                  <span className="font-medium text-white text-lg tracking-wider">
+                  <span className="font-medium text-white text-base tracking-wider">
                     Upcoming Events
                   </span>
                 </div>
@@ -522,23 +465,9 @@ const HeroSection = forwardRef((props, ref) => {
 
             <div className="flex-grow">
               {loading ? (
-                <div className="card bg-white/5 backdrop-blur-sm border border-white/10 p-6">
-                  <div className="animate-pulse space-y-4">
-                    <div className="h-4 bg-white/20 rounded w-3/4" />
-                    <div className="h-4 bg-white/20 rounded w-1/2" />
-                    <div className="h-4 bg-white/20 rounded w-2/3" />
-                  </div>
-                </div>
+                <SkeletonLoader />
               ) : error ? (
-                <div className="card bg-white/5 backdrop-blur-sm border border-white/10 p-6">
-                  <p className="text-red-400">{error?.message || error?.toString() || 'An error occurred'}</p>
-                  <button
-                    onClick={() => refetchEvents()}
-                    className="text-sm text-primary-400 hover:text-primary-300 mt-2"
-                  >
-                    Try again
-                  </button>
-                </div>
+                <ErrorCard error={error} onRetry={refetchEvents} />
               ) : upcomingEvents.length > 0 ? (
                 <div className="space-y-4 mb-4 pr-1 w-full">
                   {upcomingEvents.map((event) => (
@@ -546,16 +475,7 @@ const HeroSection = forwardRef((props, ref) => {
                   ))}
                 </div>
               ) : (
-                <div className="card bg-white/5 backdrop-blur-sm border border-white/10 p-6 mb-4 h-32 flex items-center justify-center w-full">
-                  <div>
-                    <p className="text-gray-300 text-center text-lg">
-                      No upcoming events scheduled.
-                    </p>
-                    <p className="text-gray-400 text-sm mt-2 text-center">
-                      Check back soon for new events!
-                    </p>
-                  </div>
-                </div>
+                <EmptyState message="No upcoming events scheduled." />
               )}
 
               {/* Quick Info Links */}
@@ -589,7 +509,7 @@ const HeroSection = forwardRef((props, ref) => {
                     </Link>
 
                     <Link
-                      to="/media/sermons"
+                      to="/sermons"
                       className="flex-1 card bg-white/5 backdrop-blur-sm border border-white/10 p-4 hover:bg-white/10 transition-colors flex items-center"
                     >
                       <svg
@@ -640,7 +560,7 @@ const HeroSection = forwardRef((props, ref) => {
                     </Link>
 
                     <Link
-                      to="/media/sermons"
+                      to="/sermons"
                       className="block card bg-white/5 backdrop-blur-sm border border-white/10 p-4 hover:bg-white/10 transition-colors"
                     >
                       <div className="flex items-center">
@@ -700,8 +620,8 @@ const HeroSection = forwardRef((props, ref) => {
       {/* Scroll Down Indicator */}
       <div
         className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20
-                  hidden lg:flex flex-col items-center animate-bounce cursor-pointer
-                  opacity-0 animate-[fadeIn_1s_2s_forwards] 3xl:bottom-12"
+                  hidden lg:flex flex-col items-center motion-safe:animate-bounce cursor-pointer
+                  opacity-0 motion-safe:animate-[fadeIn_1s_2s_forwards] motion-reduce:opacity-100 3xl:bottom-12"
         onClick={() => {
           window.scrollTo({
             top: window.innerHeight,

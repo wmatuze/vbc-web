@@ -30,15 +30,55 @@ const upload = multer({
     fileSize: 50 * 1024 * 1024, // 50MB limit
   },
   fileFilter: function (req, file, cb) {
-    // Allow common file types
-    const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|ppt|pptx|xls|xlsx|txt|mp3|mp4|avi|mov/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
+    console.log('File filter check:', {
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      extension: path.extname(file.originalname).toLowerCase()
+    });
 
-    if (mimetype && extname) {
+    // Allow common file types - expanded list
+    const allowedExtensions = /\.(jpeg|jpg|png|gif|webp|pdf|doc|docx|ppt|pptx|xls|xlsx|txt|rtf|odt|ods|odp|mp3|wav|ogg|aac|mp4|avi|mov|wmv|webm|mkv)$/i;
+    
+    // Allow common MIME types
+    const allowedMimeTypes = [
+      // Images
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+      // Documents
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/plain', 'text/rtf',
+      'application/vnd.oasis.opendocument.text',
+      'application/vnd.oasis.opendocument.spreadsheet',
+      'application/vnd.oasis.opendocument.presentation',
+      // Audio
+      'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/aac',
+      // Video
+      'video/mp4', 'video/avi', 'video/quicktime', 'video/x-msvideo', 'video/webm', 'video/x-matroska'
+    ];
+
+    const extname = allowedExtensions.test(file.originalname);
+    const mimetype = allowedMimeTypes.includes(file.mimetype.toLowerCase());
+
+    console.log('File filter result:', {
+      extname: extname,
+      mimetype: mimetype,
+      allowed: extname || mimetype
+    });
+
+    if (extname || mimetype) {
       return cb(null, true);
     } else {
-      cb(new Error('File type not allowed'));
+      console.error('File type rejected:', {
+        filename: file.originalname,
+        mimetype: file.mimetype,
+        extension: path.extname(file.originalname).toLowerCase()
+      });
+      cb(new Error(`File type not allowed. Uploaded file: ${file.originalname} (${file.mimetype}). Please use: images, PDFs, documents, audio, or video files.`));
     }
   }
 });
@@ -46,12 +86,11 @@ const upload = multer({
 // Get all resources
 router.get('/', async (req, res) => {
   try {
-    const { category, type, accessLevel, search, featured } = req.query;
+    const { category, type, search, featured } = req.query;
     let query = { active: true };
     
     if (category) query.category = category;
     if (type) query.type = type;
-    if (accessLevel) query.accessLevel = accessLevel;
     if (featured) query.featured = featured === 'true';
     
     // Search functionality

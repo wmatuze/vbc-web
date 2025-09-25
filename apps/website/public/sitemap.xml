@@ -76,40 +76,28 @@
     <priority>0.8</priority>
   </url>
 
-  <!-- Media Pages -->
+  <!-- Media Pages - Now direct access -->
   <url>
-    <loc>https://victorybiiblechurchkitwe.com/media</loc>
-    <lastmod>2025-09-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://victorybiiblechurchkitwe.com/media/sermons</loc>
-    <lastmod>2025-09-12</lastmod>
+    <loc>https://victorybiiblechurchkitwe.com/sermons</loc>
+    <lastmod>2025-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://victorybiiblechurchkitwe.com/media/videos</loc>
-    <lastmod>2025-09-12</lastmod>
+    <loc>https://victorybiiblechurchkitwe.com/audio-sermons</loc>
+    <lastmod>2025-09-25</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://victorybiiblechurchkitwe.com/media/podcasts</loc>
-    <lastmod>2025-09-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://victorybiiblechurchkitwe.com/media/gallery</loc>
-    <lastmod>2025-09-12</lastmod>
+    <loc>https://victorybiiblechurchkitwe.com/gallery</loc>
+    <lastmod>2025-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://victorybiiblechurchkitwe.com/media/resources</loc>
-    <lastmod>2025-09-12</lastmod>
+    <loc>https://victorybiiblechurchkitwe.com/resources</loc>
+    <lastmod>2025-09-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

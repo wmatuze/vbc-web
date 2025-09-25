@@ -64,6 +64,7 @@ const typeIcons = {
 };
 
 const categoryColors = {
+  audio_sermons: "green",
   foundation: "blue",
   discipleship: "purple", 
   leadership: "green",
@@ -354,6 +355,7 @@ const Resources = () => {
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         >
                           <option value="">All Categories</option>
+                          <option value="audio_sermons">Audio Sermons</option>
                           <option value="foundation">Foundation</option>
                           <option value="discipleship">Discipleship</option>
                           <option value="leadership">Leadership</option>
