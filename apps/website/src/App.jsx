@@ -266,7 +266,7 @@ const AppContent = () => {
             <Route
               path="/resources"
               element={
-                <PageWrapper>
+                <PageWrapper noPadding>
                   <Resources />
                 </PageWrapper>
               }

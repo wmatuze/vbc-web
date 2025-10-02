@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet";
+import HeroSection from "../components/common/HeroSection";
 import { 
   FaBook, 
   FaUsers, 
@@ -255,20 +256,22 @@ const Resources = () => {
         />
       </Helmet>
 
-      <div className="py-12 px-4 sm:px-6 lg:px-8">
+      {/* Hero Section */}
+      <HeroSection
+        title="Church Resources"
+        subtitle="Resources"
+        description="Explore foundational materials, discipleship guides, and leadership resources to deepen your faith and grow in Christ."
+        primaryAccentText="Resources"
+        scrollText="EXPLORE RESOURCES"
+        backgroundImage="/assets/hero-bg.jpg"
+      />
+
+      <div className="py-20 px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="max-w-7xl mx-auto"
         >
-          <header className="text-center mb-16">
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-              Church Resources
-            </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Explore foundational materials, discipleship guides, and leadership resources to deepen your faith.
-            </p>
-          </header>
 
           {/* Main Category Navigation */}
           <section className="mb-16">

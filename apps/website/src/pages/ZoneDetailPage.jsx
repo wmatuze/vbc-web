@@ -12,12 +12,6 @@ import {
   FaFilter,
   FaArrowRight,
   FaArrowLeft,
-  FaStar,
-  FaCrown,
-  FaQuoteLeft,
-  FaChevronDown,
-  FaGlobe,
-  FaHandsHelping,
 } from "react-icons/fa";
 import {
   useZoneByIdQuery,
@@ -26,6 +20,7 @@ import {
 import { Helmet } from "react-helmet-async";
 import JoinGroupModal from "../components/JoinGroupModal";
 import FallbackImage from "../assets/fallback-image.png";
+import HeroSection from "../components/common/HeroSection";
 
 // Import fallback images in case there are no API images
 import CellGroupImage1 from "../assets/cell-groups/cell-group-1.jpg";
@@ -45,193 +40,109 @@ const fallbackImages = {
   4: CellGroupImage4,
 };
 
-// Premium Animation Variants
-const heroVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      duration: 1.2,
-      staggerChildren: 0.3,
-    },
-  },
-};
-
-const slideUpVariants = {
-  hidden: { opacity: 0, y: 60 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.8,
-      ease: [0.25, 0.46, 0.45, 0.94],
-    },
-  },
-};
-
-const slideInVariants = {
-  hidden: { opacity: 0, x: 60 },
-  visible: {
-    opacity: 1,
-    x: 0,
-    transition: {
-      duration: 0.8,
-      ease: [0.25, 0.46, 0.45, 0.94],
-    },
-  },
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 50, scale: 0.9 },
-  visible: (index) => ({
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      duration: 0.6,
-      delay: index * 0.1,
-      ease: [0.25, 0.46, 0.45, 0.94],
-    },
-  }),
-  hover: {
-    y: -8,
-    scale: 1.02,
-    transition: {
-      duration: 0.3,
-      ease: "easeOut",
-    },
-  },
-};
-
-// Premium Components
-const StatCard = ({ icon, value, label, delay = 0 }) => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.8 }}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ duration: 0.6, delay }}
-    whileHover={{ scale: 1.05, y: -2 }}
-    className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-300"
-  >
-    <div className="text-3xl mb-2">{icon}</div>
-    <div className="text-2xl font-bold text-white mb-1">{value}</div>
-    <div className="text-sm text-blue-100 uppercase tracking-wider">
-      {label}
-    </div>
-  </motion.div>
+// Breadcrumb Component
+const Breadcrumb = ({ zoneName }) => (
+  <nav className="flex items-center space-x-2 text-sm mb-6">
+    <Link to="/" className="text-gray-500 hover:text-blue-600 transition-colors">
+      Home
+    </Link>
+    <span className="text-gray-400">/</span>
+    <Link to="/cell-groups" className="text-gray-500 hover:text-blue-600 transition-colors">
+      Zones
+    </Link>
+    <span className="text-gray-400">/</span>
+    <span className="text-gray-900 font-medium">{zoneName}</span>
+  </nav>
 );
 
-const ParticleBackground = () => (
-  <div className="absolute inset-0 overflow-hidden">
-    {[...Array(20)].map((_, i) => (
-      <motion.div
-        key={i}
-        className="absolute rounded-full bg-white/5"
-        style={{
-          width: Math.random() * 100 + 20,
-          height: Math.random() * 100 + 20,
-          left: `${Math.random() * 100}%`,
-          top: `${Math.random() * 100}%`,
-        }}
-        animate={{
-          y: [0, -30, 0],
-          opacity: [0.1, 0.3, 0.1],
-          scale: [1, 1.1, 1],
-        }}
-        transition={{
-          duration: Math.random() * 10 + 10,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
-    ))}
-  </div>
-);
-
-const ElderSpotlightCard = ({ elder }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 50, rotateY: -15 }}
-    animate={{ opacity: 1, y: 0, rotateY: 0 }}
-    transition={{ duration: 1, delay: 0.5 }}
-    whileHover={{ y: -10, rotateY: 5 }}
-    className="relative group"
-  >
-    {/* Glow Effect */}
-    <div className="absolute -inset-1 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200" />
-
-    {/* Main Card */}
-    <div className="relative bg-white/10 backdrop-blur-2xl rounded-3xl p-8 border border-white/20 shadow-2xl">
-      {/* Crown Icon */}
-      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-        <div className="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full p-3 shadow-lg">
-          <FaCrown className="text-white text-xl" />
+// Enhanced Elder Card Component
+const ElderCard = ({ elder }) => (
+  <div className="bg-blue-50 rounded-xl shadow-lg p-8 relative overflow-hidden max-w-sm mx-auto">
+    {/* Decorative element */}
+    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100 rounded-full -mr-16 -mt-16 opacity-50" />
+    
+    {/* Content */}
+    <div className="relative">
+      {/* Zone Elder Badge */}
+      <div className="flex justify-center mb-4">
+        <div className="inline-flex items-center bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full">
+          <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+          ZONE ELDER
         </div>
       </div>
 
-      {/* Elder Image */}
-      <div className="relative mx-auto w-32 h-32 mb-6 mt-4">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full blur-sm opacity-50" />
-        <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-white/30 shadow-xl">
-          {elder?.image ? (
-            <img
-              src={elder.image}
-              alt={elder.name}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-              <FaUser className="text-white text-4xl" />
-            </div>
-          )}
-        </div>
+      {/* Elder Image with better styling */}
+      <div className="w-28 h-28 mx-auto mb-6 rounded-full ring-4 ring-white shadow-xl overflow-hidden bg-gray-100">
+        {elder?.image ? (
+          <img
+            src={elder.image}
+            alt={elder.name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500">
+            <FaUser className="text-2xl" />
+          </div>
+        )}
       </div>
 
       {/* Elder Info */}
       <div className="text-center">
-        <h3 className="text-2xl font-bold text-white mb-2">{elder?.name}</h3>
-        <p className="text-blue-200 mb-4 font-medium">{elder?.title}</p>
-
-        {/* Quote */}
-        <div className="relative mb-6">
-          <FaQuoteLeft className="absolute -top-2 -left-2 text-blue-300 text-lg opacity-50" />
-          <p className="text-sm text-blue-100 italic leading-relaxed px-4">
-            {elder?.bio ||
-              "Leading with faith, serving with love, building community together."}
-          </p>
-        </div>
+        <h3 className="text-xl font-bold text-gray-900 mb-1">{elder?.name}</h3>
+        <p className="text-blue-600 mb-4 font-medium">{elder?.title}</p>
+        
+        <p className="text-sm text-gray-600 mb-6 leading-relaxed">
+          {elder?.bio || "Leading with faith, serving with love, building community together."}
+        </p>
 
         {/* Contact Options */}
         <div className="space-y-3">
           {elder?.contact && (
-            <motion.a
+            <a
               href={`mailto:${elder.contact}`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex items-center justify-center space-x-3 bg-white/10 hover:bg-white/20 rounded-xl p-3 transition-all duration-300 group"
+              className="flex items-center justify-center space-x-2 bg-white hover:bg-blue-50 rounded-lg p-3 transition-colors duration-200 text-blue-700 shadow-sm"
             >
-              <FaEnvelope className="text-blue-300 group-hover:text-white transition-colors" />
-              <span className="text-sm text-blue-100 group-hover:text-white transition-colors">
-                Send Message
-              </span>
-            </motion.a>
+              <FaEnvelope className="text-sm" />
+              <span className="text-sm font-medium">Send Message</span>
+            </a>
           )}
 
           {elder?.phone && (
-            <motion.a
+            <a
               href={`tel:${elder.phone}`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex items-center justify-center space-x-3 bg-white/10 hover:bg-white/20 rounded-xl p-3 transition-all duration-300 group"
+              className="flex items-center justify-center space-x-2 bg-white hover:bg-green-50 rounded-lg p-3 transition-colors duration-200 text-green-700 shadow-sm"
             >
-              <FaPhone className="text-green-300 group-hover:text-white transition-colors" />
-              <span className="text-sm text-blue-100 group-hover:text-white transition-colors">
-                Call Now
-              </span>
-            </motion.a>
+              <FaPhone className="text-sm" />
+              <span className="text-sm font-medium">Call Now</span>
+            </a>
           )}
         </div>
       </div>
     </div>
-  </motion.div>
+  </div>
+);
+
+// Loading Skeleton Component
+const CellGroupSkeleton = () => (
+  <div className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
+    <div className="h-48 bg-gray-200" />
+    <div className="p-6">
+      <div className="h-4 bg-gray-200 rounded w-3/4 mb-3" />
+      <div className="h-3 bg-gray-200 rounded w-1/2 mb-4" />
+      <div className="flex gap-2 mb-4">
+        <div className="h-6 bg-gray-200 rounded-full w-16" />
+        <div className="h-6 bg-gray-200 rounded-full w-16" />
+      </div>
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 bg-gray-200 rounded-full" />
+        <div className="flex-1">
+          <div className="h-3 bg-gray-200 rounded w-2/3 mb-1" />
+          <div className="h-2 bg-gray-200 rounded w-1/2" />
+        </div>
+      </div>
+      <div className="h-10 bg-gray-200 rounded-lg" />
+    </div>
+  </div>
 );
 
 const ZoneDetailPage = () => {
@@ -323,30 +234,6 @@ const ZoneDetailPage = () => {
     );
   };
 
-  // Function to scroll to search section (commented out as it's not currently used)
-  // const scrollToSearch = () => {
-  //   searchRef.current?.scrollIntoView({ behavior: "smooth" });
-  // };
-
-  // Card variants for framer motion
-  const cardVariants = {
-    hidden: { opacity: 0, y: 50 },
-    visible: (i) => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        delay: i * 0.1,
-        duration: 0.5,
-        ease: "easeOut",
-      },
-    }),
-    hover: {
-      y: -10,
-      boxShadow:
-        "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-      transition: { duration: 0.3 },
-    },
-  };
 
   // State for fallback data
   const [fallbackZone, setFallbackZone] = useState(null);
@@ -410,7 +297,7 @@ const ZoneDetailPage = () => {
   if ((zoneError || !zone) && !isLoading && !fallbackZone) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center p-8 bg-white/90 backdrop-blur-md rounded-xl shadow-lg border border-white/20 max-w-md">
+        <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">
             Zone Not Found
           </h2>
@@ -421,7 +308,7 @@ const ZoneDetailPage = () => {
           </p>
           <Link
             to="/cell-groups"
-            className="bg-gray-900 text-white px-6 py-3 rounded-lg shadow-md hover:bg-gray-800 transition-all duration-300 inline-flex items-center"
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 inline-flex items-center"
           >
             <FaArrowLeft className="mr-2" /> Return to Zones
           </Link>
@@ -450,183 +337,79 @@ const ZoneDetailPage = () => {
         />
       </Helmet>
 
-      {/* Premium Cinematic Hero Section */}
+      {/* Uniform Hero Section */}
       {displayZone && (
-        <motion.section
-          variants={heroVariants}
-          initial="hidden"
-          animate="visible"
-          className="relative min-h-screen overflow-hidden"
-        >
-          {/* Dynamic Background with Parallax */}
-          <div className="absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-            <ParticleBackground />
-          </div>
+        <HeroSection
+          title={`${displayZone.name} Cell Groups`}
+          subtitle="Zone Details"
+          description={`Connect with others in ${displayZone.location}. Led by ${displayZone.elder.name}, this zone offers ${displayZone.cellCount || filteredGroups.length} cell groups where you can grow in faith and build lasting friendships.`}
+          primaryAccentText="Cell Groups"
+          scrollText="EXPLORE CELL GROUPS"
+          backgroundImage="/assets/hero-bg.jpg"
+        />
+      )}
 
-          {/* Navigation - Positioned below navbar */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="relative z-20 pt-24 pb-4"
-          >
-            <div className="container mx-auto px-4">
-              <Link
-                to="/cell-groups"
-                className="inline-flex items-center text-white/80 hover:text-white bg-white/10 hover:bg-white/20 backdrop-blur-xl px-6 py-3 rounded-full shadow-xl transition-all duration-300 group"
-              >
-                <FaArrowLeft className="mr-3 group-hover:-translate-x-1 transition-transform" />
-                <span className="font-medium">Back to All Zones</span>
-              </Link>
-            </div>
-          </motion.div>
-
-          {/* Main Hero Content */}
-          <div className="relative z-10 container mx-auto px-4 pt-16 pb-32">
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center min-h-[70vh]">
-              {/* Zone Information - 3/5 */}
-              <motion.div
-                variants={slideUpVariants}
-                className="lg:col-span-3 space-y-8"
-              >
-                {/* Zone Title */}
-                <div className="space-y-6">
-                  <motion.h1
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 1, delay: 0.2 }}
-                    className="text-6xl lg:text-8xl font-bold text-white leading-tight"
-                  >
-                    {displayZone.name}
-                  </motion.h1>
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.4 }}
-                    className="flex items-center space-x-3"
-                  >
-                    <div className="flex items-center bg-white/10 backdrop-blur-xl px-6 py-3 rounded-full border border-white/20 shadow-xl">
-                      <FaGlobe className="mr-3 text-blue-300" />
-                      <span className="text-xl text-blue-100 font-medium">
+      {/* Zone Info Section */}
+      {displayZone && (
+        <section className="bg-white py-16">
+          <div className="container mx-auto px-4 max-w-7xl">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
+              {/* Zone Information */}
+              <div className="lg:col-span-2">
+                <div className="mb-8">
+                  <Breadcrumb zoneName={displayZone.name} />
+                  <div className="flex items-center mb-4">
+                    <Link
+                      to="/cell-groups"
+                      className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      <FaArrowLeft className="mr-2" />
+                      Back to All Zones
+                    </Link>
+                  </div>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-4">{displayZone.name}</h2>
+                  <div className="flex items-center text-gray-600 mb-4">
+                    <FaMapMarkerAlt className="mr-2 text-blue-600" />
                         {displayZone.location}
-                      </span>
                     </div>
-                  </motion.div>
-
-                  <motion.p
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.6 }}
-                    className="text-xl lg:text-2xl text-blue-100 leading-relaxed max-w-3xl"
-                  >
-                    Where faith meets community in the heart of{" "}
-                    {displayZone.location}. Join us as we grow together in love,
-                    service, and spiritual fellowship.
-                  </motion.p>
-                </div>
-
-                {/* Live Stats */}
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.8 }}
-                  className="grid grid-cols-2 gap-4"
-                >
-                  <StatCard
-                    icon="🏠"
-                    value={displayZone.cellCount || filteredGroups.length}
-                    label="Cell Groups"
-                    delay={0.9}
-                  />
-                  <StatCard icon="👥" value="127" label="Members" delay={1.0} />
-                </motion.div>
-
-                {/* Zone Description */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 1.0 }}
-                  className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 shadow-xl"
-                >
-                  <p className="text-blue-100 leading-relaxed">
+                  <p className="text-gray-700 leading-relaxed">
                     {displayZone.description}
                   </p>
-                </motion.div>
+                </div>
 
-                {/* Call to Action */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 1.2 }}
-                  className="flex items-center space-x-4"
-                >
-                  <motion.button
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => {
-                      const element = document.querySelector(
-                        '[id="cell-groups-section"]'
-                      );
-                      if (element) {
-                        element.scrollIntoView({
-                          behavior: "smooth",
-                          block: "start",
-                        });
-                      }
-                    }}
-                    className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-full shadow-xl transition-all duration-300 flex items-center space-x-3"
-                  >
-                    <span>Explore Cell Groups</span>
-                    <FaChevronDown className="animate-bounce" />
-                  </motion.button>
-
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    className="flex items-center space-x-2 text-blue-200"
-                  >
-                    <FaHandsHelping className="text-2xl" />
-                    <span className="font-medium">Ready to serve together</span>
-                  </motion.div>
-                </motion.div>
-              </motion.div>
-
-              {/* Elder Spotlight - 2/5 */}
-              <motion.div
-                variants={slideInVariants}
-                className="lg:col-span-2 flex justify-center lg:justify-end"
-              >
-                <ElderSpotlightCard elder={displayZone.elder} />
-              </motion.div>
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-6 mb-8">
+                  <div className="bg-blue-50 rounded-lg p-6 text-center">
+                    <div className="text-3xl font-bold text-blue-600 mb-2">
+                      {displayZone.cellCount || filteredGroups.length}
+                    </div>
+                    <div className="text-sm text-gray-600 uppercase tracking-wider">
+                      Cell Groups
+                    </div>
+                  </div>
+                  <div className="bg-green-50 rounded-lg p-6 text-center">
+                    <div className="text-3xl font-bold text-green-600 mb-2">127</div>
+                    <div className="text-sm text-gray-600 uppercase tracking-wider">
+                      Members
+                    </div>
+                  </div>
             </div>
           </div>
 
-          {/* Scroll Indicator */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 2 }}
-            className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20"
-          >
-            <motion.div
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="text-white/60 text-center"
-            >
-              <FaChevronDown className="text-2xl mx-auto mb-2" />
-              <p className="text-sm">Scroll to explore</p>
-            </motion.div>
-          </motion.div>
-        </motion.section>
+              {/* Elder Card */}
+              <div className="lg:col-span-1">
+                <ElderCard elder={displayZone.elder} />
+              </div>
+            </div>
+          </div>
+        </section>
       )}
 
       {/* Sticky search header */}
       <AnimatePresence>
         {isHeaderSticky && (
           <motion.div
-            className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md shadow-lg py-3 px-4"
+            className="fixed top-0 left-0 right-0 z-50 bg-white shadow-lg py-3 px-4"
             initial={{ y: -100 }}
             animate={{ y: 0 }}
             exit={{ y: -100 }}
@@ -636,26 +419,24 @@ const ZoneDetailPage = () => {
               <div className="flex items-center space-x-3">
                 <Link
                   to="/cell-groups"
-                  className="flex items-center text-gray-700 hover:text-gray-900 bg-white/80 backdrop-blur-sm p-2 rounded-full shadow-sm transition-all duration-300"
+                  className="flex items-center text-gray-700 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
                 >
                   <FaArrowLeft />
                 </Link>
-                <h2 className="text-xl font-bold text-gray-900 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-lg shadow-sm">
+                <h2 className="text-xl font-bold text-gray-900">
                   {displayZone ? displayZone.name : "Loading..."} Cell Groups
                 </h2>
               </div>
               <div className="flex items-center space-x-4">
                 <div className="relative w-64">
-                  <div className="relative overflow-hidden rounded-lg shadow-sm bg-white/80 backdrop-blur-sm">
                     <input
                       type="text"
                       placeholder="Search..."
-                      className="w-full pl-10 pr-4 py-2 bg-transparent focus:outline-none transition-colors"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                     />
                     <FaSearch className="absolute left-3 top-3 text-gray-400" />
-                  </div>
                 </div>
               </div>
             </div>
@@ -669,60 +450,64 @@ const ZoneDetailPage = () => {
         ref={searchRef}
         className="container mx-auto px-4 py-16 max-w-7xl"
       >
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="bg-white/90 backdrop-blur-md shadow-lg rounded-xl p-8 mb-12 border border-white/20"
-        >
+        <div className="bg-white shadow-lg rounded-lg p-8 mb-12">
+        
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
             <h2 className="text-3xl font-bold text-gray-900">
               Find a Cell Group in{" "}
               {displayZone ? displayZone.name : "this Zone"}
             </h2>
 
-            {/* Mobile Search Bar */}
+            {/* Enhanced Mobile Search Bar */}
             <div className="w-full md:hidden relative mb-4">
-              <div className="relative overflow-hidden rounded-lg shadow-sm bg-white/80 backdrop-blur-sm">
+              <div className="relative">
                 <input
                   type="text"
-                  placeholder="Search by name or leader..."
-                  className="w-full pl-10 pr-4 py-3 bg-transparent focus:outline-none transition-colors"
+                  placeholder="Search groups, leaders, or locations..."
+                  className="w-full pl-12 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
-                <FaSearch className="absolute left-3 top-3.5 text-gray-400" />
+                <FaSearch className="absolute left-4 top-4 text-gray-400" />
                 {search && (
-                  <button
+                  <motion.button
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
                     onClick={() => setSearch("")}
-                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-3 p-1 rounded-full hover:bg-gray-100 transition-colors duration-200"
                   >
-                    ×
-                  </button>
+                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </motion.button>
                 )}
               </div>
             </div>
 
             {/* Desktop Controls */}
             <div className="flex items-center gap-4 w-full md:w-auto">
-              {/* Desktop Search */}
-              <div className="relative w-full md:w-64 hidden md:block">
-                <div className="relative overflow-hidden rounded-lg shadow-sm bg-white/80 backdrop-blur-sm">
+              {/* Enhanced Desktop Search */}
+              <div className="relative w-full md:w-80 hidden md:block">
+                <div className="relative">
                   <input
                     type="text"
-                    placeholder="Search by name or leader..."
-                    className="w-full pl-10 pr-4 py-2.5 bg-transparent focus:outline-none transition-colors"
+                    placeholder="Search groups, leaders, or locations..."
+                    className="w-full pl-12 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                   />
-                  <FaSearch className="absolute left-3 top-3 text-gray-400" />
+                  <FaSearch className="absolute left-4 top-4 text-gray-400" />
                   {search && (
-                    <button
+                    <motion.button
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
                       onClick={() => setSearch("")}
-                      className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-3 p-1 rounded-full hover:bg-gray-100 transition-colors duration-200"
                     >
-                      ×
-                    </button>
+                      <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </motion.button>
                   )}
                 </div>
               </div>
@@ -730,11 +515,11 @@ const ZoneDetailPage = () => {
               {/* Filter Button */}
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`py-2.5 px-4 flex items-center gap-2 rounded-lg shadow-sm ${
+                className={`py-2.5 px-4 flex items-center gap-2 rounded-lg ${
                   activeFilters.length > 0
-                    ? "bg-gray-900 text-white"
-                    : "bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-white/90"
-                } transition-all duration-300`}
+                    ? "bg-blue-600 text-white hover:bg-blue-700"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                } transition-colors duration-200`}
               >
                 <FaFilter size={14} />
                 <span>
@@ -752,12 +537,12 @@ const ZoneDetailPage = () => {
               {activeFilters.map((filter) => (
                 <div
                   key={filter}
-                  className="flex items-center bg-white/80 backdrop-blur-sm rounded-full px-4 py-1.5 text-sm shadow-sm"
+                  className="flex items-center bg-blue-100 text-blue-800 rounded-full px-4 py-1.5 text-sm"
                 >
                   {filter}
                   <button
                     onClick={() => toggleFilter(filter)}
-                    className="ml-2 text-gray-400 hover:text-gray-600"
+                    className="ml-2 text-blue-600 hover:text-blue-800"
                     aria-label={`Remove ${filter} filter`}
                   >
                     ×
@@ -800,11 +585,11 @@ const ZoneDetailPage = () => {
                           <button
                             key={tag}
                             onClick={() => toggleFilter(tag)}
-                            className={`px-4 py-1.5 text-sm rounded-full shadow-sm ${
+                            className={`px-4 py-1.5 text-sm rounded-full ${
                               activeFilters.includes(tag)
-                                ? "bg-gray-900 text-white"
-                                : "bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-white/90"
-                            } transition-all duration-300`}
+                                ? "bg-blue-600 text-white"
+                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            } transition-colors duration-200`}
                           >
                             {tag}
                           </button>
@@ -830,11 +615,11 @@ const ZoneDetailPage = () => {
                           <button
                             key={day}
                             onClick={() => toggleFilter(day)}
-                            className={`px-4 py-1.5 text-sm rounded-full shadow-sm ${
+                            className={`px-4 py-1.5 text-sm rounded-full ${
                               activeFilters.includes(day)
-                                ? "bg-gray-900 text-white"
-                                : "bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-white/90"
-                            } transition-all duration-300`}
+                                ? "bg-blue-600 text-white"
+                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            } transition-colors duration-200`}
                           >
                             {day}
                           </button>
@@ -846,7 +631,7 @@ const ZoneDetailPage = () => {
                   <div className="mt-6 flex justify-end">
                     <button
                       onClick={() => setShowFilters(false)}
-                      className="px-6 py-2.5 bg-gray-900 text-white hover:bg-gray-800 transition-all duration-300 rounded-lg shadow-md"
+                      className="px-6 py-2.5 bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-200 rounded-lg"
                     >
                       Apply Filters
                     </button>
@@ -855,7 +640,7 @@ const ZoneDetailPage = () => {
               </motion.div>
             )}
           </AnimatePresence>
-        </motion.div>
+        </div>
 
         {/* Results section */}
         <div className="mb-16">
@@ -867,58 +652,64 @@ const ZoneDetailPage = () => {
           </div>
 
           {isLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-900 border-t-transparent"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <CellGroupSkeleton key={i} />
+              ))}
             </div>
           ) : filteredGroups.length === 0 ? (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-16 bg-white/90 backdrop-blur-md rounded-xl shadow-lg border border-white/20"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-16 bg-white rounded-xl shadow-lg"
             >
-              <FaSearch className="mx-auto text-3xl text-gray-300 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                No Cell Groups Found
+              <div className="w-32 h-32 mx-auto mb-8 bg-blue-50 rounded-full flex items-center justify-center">
+                <svg className="w-16 h-16 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                No groups match your search
               </h3>
-              <p className="text-gray-500 max-w-md mx-auto">
-                Try adjusting your search or filters to find a cell group that
-                matches your criteria.
+              <p className="text-gray-600 max-w-md mx-auto mb-8 leading-relaxed">
+                We couldn't find any cell groups matching your criteria. Try adjusting your search terms or explore other zones to find the perfect community for you.
               </p>
-              {(search || activeFilters.length > 0) && (
-                <button
-                  onClick={() => {
-                    setSearch("");
-                    setActiveFilters([]);
-                  }}
-                  className="mt-6 px-6 py-2.5 rounded-lg bg-white/80 backdrop-blur-sm hover:bg-white/90 text-gray-700 inline-block shadow-sm transition-all duration-300"
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                {(search || activeFilters.length > 0) && (
+                  <button
+                    onClick={() => {
+                      setSearch("");
+                      setActiveFilters([]);
+                    }}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
+                  >
+                    Clear Filters
+                  </button>
+                )}
+                <Link 
+                  to="/cell-groups" 
+                  className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium"
                 >
-                  Clear all filters
-                </button>
-              )}
+                  Browse All Zones
+                </Link>
+              </div>
             </motion.div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredGroups.map((group, index) => (
-                <motion.div
+                <div
                   key={group.id}
-                  custom={index}
-                  variants={cardVariants}
-                  initial="hidden"
-                  animate="visible"
-                  whileHover="hover"
-                  className="group relative bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 overflow-hidden transform transition-all duration-500 hover:shadow-2xl"
+                  className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden"
                 >
-                  {/* Premium Glow Effect */}
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-2xl blur opacity-0 group-hover:opacity-20 transition duration-1000 group-hover:duration-200" />
-                  <div className="relative h-56 overflow-hidden rounded-t-xl">
+                  <div className="relative h-48 overflow-hidden">
                     <img
                       src={getImageUrl(group)}
                       alt={group.name}
-                      className="w-full h-full object-cover filter grayscale hover:grayscale-0 transition-all duration-500"
+                      className="w-full h-full object-cover"
                     />
                     <button
                       onClick={() => toggleFavorite(group.id)}
-                      className="absolute top-4 right-4 p-2 rounded-full bg-white/20 backdrop-blur-md hover:bg-white/30 transition-all duration-300 z-10 shadow-md"
+                      className="absolute top-4 right-4 p-2 rounded-full bg-white/80 hover:bg-white transition-colors duration-200 shadow-md"
                       aria-label={
                         favorites.includes(group.id)
                           ? "Remove from favorites"
@@ -929,11 +720,11 @@ const ZoneDetailPage = () => {
                         className={`${
                           favorites.includes(group.id)
                             ? "text-red-500"
-                            : "text-white"
+                            : "text-gray-400"
                         }`}
                       />
                     </button>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                     <div className="absolute bottom-0 left-0 p-4 w-full">
                       <h3 className="text-xl font-bold text-white mb-1">
                         {group.name}
@@ -952,7 +743,7 @@ const ZoneDetailPage = () => {
                         {group.tags.map((tag) => (
                           <span
                             key={tag}
-                            className="px-3 py-1 text-xs rounded-full bg-white/80 backdrop-blur-sm shadow-sm text-gray-700"
+                            className="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-800"
                           >
                             {tag}
                           </span>
@@ -960,45 +751,43 @@ const ZoneDetailPage = () => {
                       </div>
                     )}
 
-                    <p className="text-gray-600 mb-6 line-clamp-3">
+                    <p className="text-gray-600 mb-4 text-sm leading-relaxed">
                       {group.description}
                     </p>
 
                     {/* Meeting Information */}
-                    <div className="flex justify-between text-sm mb-6">
-                      <div className="flex items-center text-gray-700 bg-white/80 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-sm">
-                        <FaCalendarAlt className="mr-2" />
+                    <div className="flex justify-between items-center text-sm mb-4">
+                      <div className="flex items-center text-gray-700 bg-gray-100 rounded-full px-3 py-1.5">
+                        <FaCalendarAlt className="mr-2 text-blue-600" />
                         {group.meetingDay} at {group.meetingTime}
                       </div>
-                      <div className="flex items-center text-gray-700">
-                        {group.capacity && (
-                          <span className="text-xs bg-white/80 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-sm">
-                            {group.capacity}
-                          </span>
-                        )}
-                      </div>
+                      {group.capacity && (
+                        <span className="text-xs bg-green-100 text-green-800 rounded-full px-3 py-1.5">
+                          {group.capacity}
+                        </span>
+                      )}
                     </div>
 
                     {/* Cell Leader Information */}
-                    <div className="flex items-start mb-6 border-t border-b border-gray-100/50 py-4">
-                      <div className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm shadow-md flex-shrink-0 overflow-hidden mr-3">
+                    <div className="flex items-center mb-4 pb-4 border-b border-gray-100">
+                      <div className="w-10 h-10 rounded-full bg-gray-100 flex-shrink-0 overflow-hidden mr-3">
                         {group.leaderImage ? (
                           <img
                             src={group.leaderImage}
                             alt={group.leader}
-                            className="w-full h-full object-cover filter grayscale"
+                            className="w-full h-full object-cover"
                             onError={(e) => {
                               e.target.src = FallbackImage;
                             }}
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-white/90 text-gray-500">
+                          <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500">
                             <FaUser />
                           </div>
                         )}
                       </div>
                       <div>
-                        <div className="font-medium text-gray-900">
+                        <div className="font-medium text-gray-900 text-sm">
                           Led by {group.leader}
                         </div>
                         {group.leaderContact && (
@@ -1010,22 +799,16 @@ const ZoneDetailPage = () => {
                       </div>
                     </div>
 
-                    {/* Premium Join Button */}
-                    <motion.button
+                    {/* Join Button */}
+                    <button
                       onClick={() => setSelectedGroup(group)}
-                      whileHover={{ scale: 1.02, y: -2 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 hover:from-blue-900 hover:via-purple-900 hover:to-pink-900 text-white font-bold py-4 px-6 rounded-xl shadow-xl transition-all duration-500 flex items-center justify-center group relative overflow-hidden"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center text-sm"
                     >
-                      {/* Button Glow Effect */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
-                      <span className="relative z-10">
-                        Join this cell group
-                      </span>
-                      <FaArrowRight className="ml-3 relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
-                    </motion.button>
+                      Join this cell group
+                      <FaArrowRight className="ml-2" />
+                    </button>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           )}

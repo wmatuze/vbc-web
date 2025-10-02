@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import PlaceHolderbanner from "../assets/ministry-banners/ph.png";
-import FallbackImage from "../assets/fallback-image.png";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import HeroSection from "../components/common/HeroSection";
 import useFoundationClassSessions from "../hooks/useFoundationClassSessions";
 import { isAuthenticated } from "../services/api/auth";
 import {
@@ -24,8 +23,12 @@ import {
 } from "react-icons/fa";
 
 const FoundationClasses = () => {
-  const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [expandedFaq, setExpandedFaq] = useState(null);
+  const shouldReduceMotion = useReducedMotion();
+
+  // Helper function to conditionally apply animation props
+  const getAnimationProps = (animationProps) => 
+    shouldReduceMotion ? {} : animationProps;
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -52,6 +55,13 @@ const FoundationClasses = () => {
 
     checkAdmin();
   }, []);
+
+  // Focus management for form submission success
+  useEffect(() => {
+    if (formSubmitted) {
+      document.getElementById('success-heading')?.focus();
+    }
+  }, [formSubmitted]);
 
   // Class curriculum data
   const classSessions = [
@@ -240,94 +250,24 @@ const FoundationClasses = () => {
       </Helmet>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-b-3xl h-[60vh] md:h-[70vh] pt-16 md:pt-20">
-        <motion.div
-          className={`absolute inset-0 ${
-            !isImageLoaded ? "animate-pulse bg-gray-200" : ""
-          }`}
-          style={{
-            backgroundImage: `url(${
-              isImageLoaded ? PlaceHolderbanner : FallbackImage
-            })`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-          initial={{ scale: 1.1 }}
-          animate={{ scale: 1.05 }}
-          transition={{ duration: 12, repeat: Infinity, repeatType: "reverse" }}
-          onLoad={() => setIsImageLoaded(true)}
-          aria-label="Hero background image"
-        >
-          <img
-            src={PlaceHolderbanner}
-            alt="Victory Bible Church banner"
-            className="hidden"
-            onLoad={() => setIsImageLoaded(true)}
-            onError={() => setIsImageLoaded(true)}
-          />
-        </motion.div>
-
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/85 via-indigo-900/80 to-blue-900/85"></div>
-
-        <div className="container mx-auto px-4 relative z-10 h-full flex flex-col justify-center items-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center"
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-              className="inline-block mb-6"
-            >
-              <div className="bg-white/20 backdrop-blur-sm p-4 rounded-full">
-                <FaBookOpen className="text-blue-300 text-4xl md:text-5xl" />
-              </div>
-            </motion.div>
-
-            <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-6 tracking-tight">
-              Foundation <span className="text-blue-300">Classes</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-100 max-w-2xl mx-auto leading-relaxed font-light mb-8">
-              Build a strong biblical foundation and prepare for church
-              membership
-            </p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1, duration: 0.5 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center"
-            >
-              <a
-                href="#register"
-                className="bg-blue-500 hover:bg-blue-600 text-white font-bold px-8 py-4 rounded-full inline-flex items-center justify-center space-x-2 transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
-              >
-                <span>Register Now</span>
-                <FaChevronRight />
-              </a>
-              <a
-                href="#curriculum"
-                className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-semibold px-8 py-4 rounded-full inline-flex items-center justify-center space-x-2 transition-all duration-300"
-              >
-                <span>View Curriculum</span>
-                <FaClipboardList />
-              </a>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
+      <HeroSection
+        title="Foundation Classes"
+        subtitle="Foundation Classes"
+        description="Build a strong biblical foundation and prepare for church membership through our comprehensive 4-week program."
+        primaryAccentText="Foundation"
+        scrollText="EXPLORE CLASSES"
+        backgroundImage="/assets/hero-bg.jpg"
+      />
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-16 max-w-6xl">
+      <div className="container mx-auto px-4 py-20 max-w-6xl">
         {/* Overview Section */}
         <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          {...getAnimationProps({
+            initial: { opacity: 0, y: 20 },
+            whileInView: { opacity: 1, y: 0 },
+            transition: { duration: 0.5 }
+          })}
           viewport={{ once: true }}
           className="mb-20"
         >
@@ -406,7 +346,7 @@ const FoundationClasses = () => {
               <div className="space-y-8">
                 {classSessions.map((session, index) => (
                   <motion.div
-                    key={index}
+                    key={session.week}
                     initial={{ opacity: 0, x: -20 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.4, delay: index * 0.1 }}
@@ -526,10 +466,10 @@ const FoundationClasses = () => {
                       {sessionError}
                     </p>
                     <button
-                      onClick={() => window.location.reload()}
+                      onClick={refreshSessions}
                       className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300"
                     >
-                      Refresh Page
+                      Try Again
                     </button>
                   </div>
                 ) : availableSessions.length === 0 ? (
@@ -601,12 +541,25 @@ const FoundationClasses = () => {
                           className={`block text-center font-medium py-2 px-4 rounded-lg transition-colors duration-300 ${
                             session.spotsLeft > 0
                               ? "bg-blue-600 hover:bg-blue-700 text-white"
-                              : "bg-gray-400 cursor-not-allowed text-white"
+                              : "bg-gray-400 cursor-not-allowed text-white pointer-events-none"
                           }`}
+                          aria-disabled={session.spotsLeft === 0}
                           onClick={(e) => {
                             if (session.spotsLeft === 0) {
                               e.preventDefault();
+                              return;
                             }
+                            // Pre-fill the form with selected session
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              preferredSession: session.id 
+                            }));
+                            // Scroll to form after a brief delay
+                            setTimeout(() => {
+                              document.getElementById('register')?.scrollIntoView({ 
+                                behavior: 'smooth' 
+                              });
+                            }, 100);
                           }}
                         >
                           {session.spotsLeft > 0
@@ -642,28 +595,37 @@ const FoundationClasses = () => {
               {faqItems.map((item, index) => (
                 <div key={index} className="py-4">
                   <button
+                    id={`faq-button-${index}`}
                     className="flex justify-between items-center w-full text-left font-medium text-lg py-2"
                     onClick={() =>
                       setExpandedFaq(expandedFaq === index ? null : index)
                     }
                     aria-expanded={expandedFaq === index}
+                    aria-controls={`faq-panel-${index}`}
                   >
                     <span className="pr-8">{item.question}</span>
                     <motion.div
-                      animate={{ rotate: expandedFaq === index ? 180 : 0 }}
-                      transition={{ duration: 0.3 }}
+                      {...getAnimationProps({
+                        animate: { rotate: expandedFaq === index ? 180 : 0 },
+                        transition: { duration: 0.3 }
+                      })}
                     >
-                      <FaAngleDown className="text-blue-600 dark:text-blue-400 text-xl" />
+                      <FaAngleDown aria-hidden="true" className="text-blue-600 dark:text-blue-400 text-xl" />
                     </motion.div>
                   </button>
 
                   <AnimatePresence>
                     {expandedFaq === index && (
                       <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
+                        id={`faq-panel-${index}`}
+                        role="region"
+                        aria-labelledby={`faq-button-${index}`}
+                        {...getAnimationProps({
+                          initial: { height: 0, opacity: 0 },
+                          animate: { height: "auto", opacity: 1 },
+                          exit: { height: 0, opacity: 0 },
+                          transition: { duration: 0.3 }
+                        })}
                         className="overflow-hidden"
                       >
                         <p className="pt-4 pb-2 text-gray-600 dark:text-gray-300">
@@ -705,7 +667,7 @@ const FoundationClasses = () => {
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full mb-6">
                   <FaCheckCircle className="text-green-600 dark:text-green-400 text-3xl" />
                 </div>
-                <h2 className="text-3xl font-bold mb-4">
+                <h2 id="success-heading" className="text-3xl font-bold mb-4" tabIndex={-1}>
                   Registration Complete!
                 </h2>
                 <p className="text-lg text-gray-700 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
@@ -738,18 +700,22 @@ const FoundationClasses = () => {
                 className="p-8 md:p-12 grid grid-cols-1 md:grid-cols-2 gap-6"
               >
                 <div>
-                  <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
+                  <label htmlFor="fullName" className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
                     <span className="flex items-center gap-2">
-                      <FaUser className="text-blue-600 dark:text-blue-400" />
+                      <FaUser aria-hidden="true" className="text-blue-600 dark:text-blue-400" />
                       Full Name
                     </span>
                   </label>
                   <input
+                    id="fullName"
                     type="text"
                     name="fullName"
                     value={formData.fullName}
                     onChange={handleChange}
                     placeholder="Enter your full name"
+                    autoComplete="name"
+                    aria-invalid={!!formErrors.fullName}
+                    aria-describedby={formErrors.fullName ? "fullName-error" : undefined}
                     className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 ${
                       formErrors.fullName
                         ? "border-red-500 dark:border-red-500"
@@ -757,25 +723,29 @@ const FoundationClasses = () => {
                     }`}
                   />
                   {formErrors.fullName && (
-                    <p className="mt-2 text-red-500 text-sm">
+                    <p id="fullName-error" className="mt-2 text-red-500 text-sm" role="alert">
                       {formErrors.fullName}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
+                  <label htmlFor="email" className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
                     <span className="flex items-center gap-2">
-                      <FaEnvelope className="text-blue-600 dark:text-blue-400" />
+                      <FaEnvelope aria-hidden="true" className="text-blue-600 dark:text-blue-400" />
                       Email Address
                     </span>
                   </label>
                   <input
+                    id="email"
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="Enter your email address"
+                    autoComplete="email"
+                    aria-invalid={!!formErrors.email}
+                    aria-describedby={formErrors.email ? "email-error" : undefined}
                     className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 ${
                       formErrors.email
                         ? "border-red-500 dark:border-red-500"
@@ -783,25 +753,30 @@ const FoundationClasses = () => {
                     }`}
                   />
                   {formErrors.email && (
-                    <p className="mt-2 text-red-500 text-sm">
+                    <p id="email-error" className="mt-2 text-red-500 text-sm" role="alert">
                       {formErrors.email}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
+                  <label htmlFor="phone" className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
                     <span className="flex items-center gap-2">
-                      <FaPhone className="text-blue-600 dark:text-blue-400" />
+                      <FaPhone aria-hidden="true" className="text-blue-600 dark:text-blue-400" />
                       Phone Number
                     </span>
                   </label>
                   <input
+                    id="phone"
                     type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
                     placeholder="Enter your phone number"
+                    autoComplete="tel"
+                    inputMode="tel"
+                    aria-invalid={!!formErrors.phone}
+                    aria-describedby={formErrors.phone ? "phone-error" : undefined}
                     className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 ${
                       formErrors.phone
                         ? "border-red-500 dark:border-red-500"
@@ -809,16 +784,16 @@ const FoundationClasses = () => {
                     }`}
                   />
                   {formErrors.phone && (
-                    <p className="mt-2 text-red-500 text-sm">
+                    <p id="phone-error" className="mt-2 text-red-500 text-sm" role="alert">
                       {formErrors.phone}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
+                  <label htmlFor="preferredSession" className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
                     <span className="flex items-center gap-2">
-                      <FaCalendarAlt className="text-blue-600 dark:text-blue-400" />
+                      <FaCalendarAlt aria-hidden="true" className="text-blue-600 dark:text-blue-400" />
                       Preferred Session
                     </span>
                   </label>
@@ -826,9 +801,12 @@ const FoundationClasses = () => {
                     <div className="w-full h-12 bg-gray-200 dark:bg-gray-600 rounded-lg animate-pulse"></div>
                   ) : (
                     <select
+                      id="preferredSession"
                       name="preferredSession"
                       value={formData.preferredSession}
                       onChange={handleChange}
+                      aria-invalid={!!formErrors.preferredSession}
+                      aria-describedby={formErrors.preferredSession ? "preferredSession-error" : undefined}
                       className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 ${
                         formErrors.preferredSession
                           ? "border-red-500 dark:border-red-500"
@@ -867,7 +845,7 @@ const FoundationClasses = () => {
                     </select>
                   )}
                   {formErrors.preferredSession && (
-                    <p className="mt-2 text-red-500 text-sm">
+                    <p id="preferredSession-error" className="mt-2 text-red-500 text-sm" role="alert">
                       {formErrors.preferredSession}
                     </p>
                   )}
@@ -885,13 +863,14 @@ const FoundationClasses = () => {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
+                  <label htmlFor="questions" className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
                     <span className="flex items-center gap-2">
-                      <FaClipboardList className="text-blue-600 dark:text-blue-400" />
+                      <FaClipboardList aria-hidden="true" className="text-blue-600 dark:text-blue-400" />
                       Questions or Special Requests
                     </span>
                   </label>
                   <textarea
+                    id="questions"
                     name="questions"
                     value={formData.questions}
                     onChange={handleChange}
@@ -963,7 +942,7 @@ const FoundationClasses = () => {
                   </p>
                   <footer className="text-blue-200">
                     <cite>
-                      — John Banda, Completed Foundation Classes in 2023
+                      — Watu Matuze, Completed Foundation Classes in 2023
                     </cite>
                   </footer>
                 </blockquote>

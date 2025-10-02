@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import {
   FaSearch,
   FaMapMarkerAlt,
   FaUser,
   FaUsers,
-  FaChevronDown,
   FaArrowRight,
   FaHome,
   FaHeart,
@@ -15,13 +13,12 @@ import {
   FaPray,
   FaBible,
 } from "react-icons/fa";
-import PlaceHolderbanner from "../assets/ministry-banners/ph.png";
 import FallbackImage from "../assets/fallback-image.png";
 import zonesData from "../data/zonesData";
 import { useZonesQuery } from "../hooks/useZonesQuery";
+import HeroSection from "../components/common/HeroSection";
 
 const ZonesPage = () => {
-  const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [search, setSearch] = useState("");
 
   // Use React Query for fetching zones
@@ -85,26 +82,6 @@ const ZonesPage = () => {
     }
   };
 
-  // Card variants for animation
-  const cardVariants = {
-    hidden: { opacity: 0, y: 50 },
-    visible: (i) => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        delay: i * 0.1,
-        duration: 0.5,
-        ease: "easeOut",
-      },
-    }),
-    hover: {
-      y: -10,
-      boxShadow:
-        "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-      transition: { duration: 0.3 },
-    },
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* SEO Meta Tags */}
@@ -116,103 +93,29 @@ const ZonesPage = () => {
         />
       </Helmet>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-b-3xl h-[85vh]">
-        <motion.div
-          className={`absolute inset-0 ${
-            !isImageLoaded ? "animate-pulse bg-gray-200" : ""
-          }`}
-          style={{
-            backgroundImage: `url(${
-              isImageLoaded ? PlaceHolderbanner : FallbackImage
-            })`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-          initial={{ scale: 1.1 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 10, repeat: Infinity, repeatType: "reverse" }}
-          aria-label="Hero background image"
-        >
-          <img
-            src={PlaceHolderbanner}
-            alt="Victory Bible Church banner for Cell Groups"
-            className="hidden"
-            onLoad={() => setIsImageLoaded(true)}
-            onError={() => setIsImageLoaded(true)}
-          />
-        </motion.div>
-
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-purple-900/70 to-blue-900/80 rounded-b-3xl"></div>
-
-        {/* Enhanced decorative elements */}
-        <div className="absolute inset-0 overflow-hidden rounded-b-3xl">
-          {[...Array(10)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute rounded-full bg-white/10"
-              style={{
-                width: Math.random() * 150 + 50,
-                height: Math.random() * 150 + 50,
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                y: [Math.random() * 100, Math.random() * -100],
-                x: [Math.random() * 50, Math.random() * -50],
-                opacity: [0.1, 0.3, 0.1],
-              }}
-              transition={{
-                duration: Math.random() * 15 + 10,
-                repeat: Infinity,
-                repeatType: "reverse",
-              }}
-            />
-          ))}
-        </div>
-
-        <div className="container mx-auto px-4 relative z-10 h-full flex flex-col justify-center items-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center"
-          >
-            <h1 className="text-4xl lg:text-6xl font-bold text-white text-center mb-6 tracking-tight">
-              Our Church <span className="text-yellow-400">Zones</span>
-            </h1>
-            <p className="text-xl text-white text-center max-w-3xl mx-auto leading-relaxed font-light mb-8">
-              Our church is organized into zones led by dedicated elders, each
-              containing multiple cell groups to help you connect and grow.
-            </p>
-            <motion.div
-              className="h-1 bg-yellow-400 mx-auto mt-8 mb-10"
-              initial={{ width: 0 }}
-              animate={{ width: 120 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
-            />
-          </motion.div>
-        </div>
-      </section>
+      {/* Uniform Hero Section */}
+      <HeroSection
+        title="Find Your Community"
+        subtitle="Church Zones"
+        description="Connect with others in your area through our church zones. Each zone is led by a dedicated elder and contains cell groups where you can grow in faith and build lasting friendships."
+        primaryAccentText="Community"
+        scrollText="EXPLORE OUR ZONES"
+        backgroundImage="/assets/hero-bg.jpg"
+      />
 
       {/* Zones Section */}
       <section className="container mx-auto px-4 py-16 max-w-7xl">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="bg-white/90 backdrop-blur-md shadow-lg rounded-xl p-8 mb-12 border border-white/20"
-        >
+        <div className="bg-white shadow-lg rounded-lg p-8 mb-12">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
             <h2 className="text-3xl font-bold text-gray-900">Find Your Zone</h2>
 
             {/* Search Bar */}
             <div className="relative w-full md:w-64">
-              <div className="relative overflow-hidden rounded-lg shadow-sm bg-white/80 backdrop-blur-sm">
+              <div className="relative">
                 <input
                   type="text"
                   placeholder="Search zones..."
-                  className="w-full pl-10 pr-4 py-2.5 bg-transparent focus:outline-none transition-colors"
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -232,13 +135,13 @@ const ZonesPage = () => {
           {/* Zone Description */}
           <div className="mb-8 text-gray-700">
             <p>
-              Our church is organized into geographical zones, each led by a
-              dedicated elder. These zones help us provide better pastoral care
-              and create stronger community connections. Click on a zone to see
-              all the cell groups in that area.
+              Our church family is organized into zones across different areas, each lovingly led by a 
+              dedicated elder. These zones help us build meaningful relationships and provide pastoral 
+              care right in your neighborhood. Find a zone near you and discover the cell groups where 
+              you can connect, grow, and belong.
             </p>
           </div>
-        </motion.div>
+        </div>
 
         {/* Zones Grid */}
         <div className="mb-16">
@@ -250,14 +153,10 @@ const ZonesPage = () => {
 
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
-              <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-900 border-t-transparent"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
             </div>
           ) : filteredZones.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-16 bg-white/90 backdrop-blur-md rounded-xl shadow-lg border border-white/20"
-            >
+            <div className="text-center py-16 bg-white rounded-lg shadow-md">
               <FaSearch className="mx-auto text-3xl text-gray-300 mb-4" />
               <h3 className="text-xl font-semibold text-gray-700 mb-2">
                 No Zones Found
@@ -268,34 +167,29 @@ const ZonesPage = () => {
               {search && (
                 <button
                   onClick={() => setSearch("")}
-                  className="mt-6 px-6 py-2.5 rounded-lg bg-white/80 backdrop-blur-sm hover:bg-white/90 text-gray-700 inline-block shadow-sm transition-all duration-300"
+                  className="mt-6 px-6 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200"
                 >
                   Clear search
                 </button>
               )}
-            </motion.div>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredZones.map((zone, index) => (
-                <motion.div
+                <div
                   key={zone.id}
-                  custom={index}
-                  variants={cardVariants}
-                  initial="hidden"
-                  animate="visible"
-                  whileHover="hover"
-                  className="bg-white/90 backdrop-blur-md rounded-xl shadow-lg border border-white/20 overflow-hidden transform transition-all duration-300"
+                  className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden"
                 >
-                  <div className="relative h-56 overflow-hidden rounded-t-xl">
+                  <div className="relative h-48 overflow-hidden">
                     <img
                       src={zone.coverImage || FallbackImage}
                       alt={zone.name}
-                      className="w-full h-full object-cover filter grayscale hover:grayscale-0 transition-all duration-500"
+                      className="w-full h-full object-cover"
                       onError={(e) => {
                         e.target.src = FallbackImage;
                       }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                     <div className="absolute bottom-0 left-0 p-4 w-full">
                       <h3 className="text-xl font-bold text-white mb-1">
                         {zone.name}
@@ -308,48 +202,42 @@ const ZonesPage = () => {
                   </div>
 
                   <div className="p-6">
-                    <p className="text-gray-600 mb-6 line-clamp-3">
+                    <p className="text-gray-600 mb-4 text-sm leading-relaxed">
                       {zone.description}
                     </p>
 
                     {/* Elder Information */}
-                    <div className="flex items-start mb-6 border-t border-b border-gray-100/50 py-4">
-                      <div className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm shadow-md flex-shrink-0 overflow-hidden mr-3">
+                    <div className="flex items-center mb-4 pb-4 border-b border-gray-100">
+                      <div className="w-10 h-10 rounded-full bg-gray-100 flex-shrink-0 overflow-hidden mr-3">
                         {zone.elder.image ? (
                           <img
                             src={zone.elder.image}
                             alt={zone.elder.name}
-                            className="w-full h-full object-cover filter grayscale"
+                            className="w-full h-full object-cover"
                             onError={(e) => {
                               e.target.src = FallbackImage;
                             }}
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-white/90 text-gray-500">
+                          <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500">
                             <FaUser />
                           </div>
                         )}
                       </div>
                       <div>
-                        <div className="font-medium text-gray-900">
+                        <div className="font-medium text-gray-900 text-sm">
                           {zone.elder.name}
                         </div>
-                        <div className="text-xs text-gray-500 mt-1">
+                        <div className="text-xs text-gray-500">
                           {zone.elder.title}
                         </div>
                       </div>
                     </div>
 
                     {/* Cell Group Count */}
-                    <div className="flex justify-between text-sm mb-6">
-                      <div className="flex items-center text-gray-700 bg-white/80 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-sm">
-                        {zone.iconName ? (
-                          <span className="mr-2">
-                            {renderIcon(zone.iconName)}
-                          </span>
-                        ) : (
-                          <FaUsers className="mr-2" />
-                        )}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center text-gray-600 text-sm">
+                        <FaUsers className="mr-2 text-blue-600" />
                         {zone.cellCount} Cell Groups
                       </div>
                     </div>
@@ -357,13 +245,13 @@ const ZonesPage = () => {
                     {/* View Zone Button */}
                     <Link
                       to={`/cell-groups/${zone._id || zone.id}`}
-                      className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 px-4 rounded-lg shadow-md transition-all duration-300 flex items-center justify-center"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center text-sm"
                     >
                       View Cell Groups
                       <FaArrowRight className="ml-2" />
                     </Link>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           )}
