@@ -1,17 +1,8 @@
 const jwt = require('jsonwebtoken');
-const fs = require('fs');
-const crypto = require('crypto');
 require('dotenv').config();
 
 // Get JWT secret from environment variable or use fallback
 const JWT_SECRET = process.env.JWT_SECRET || 'vbc-website-fallback-secret-key';
-// Token expiry time (24 hours)
-const TOKEN_EXPIRY = '24h';
-
-// Simple hash function for password comparison
-const hashPassword = (password) => {
-  return crypto.createHash('sha256').update(password).digest('hex');
-};
 
 // Middleware function to handle authentication
 const authMiddleware = (req, res, next) => {
@@ -59,45 +50,6 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-// Function to generate a JWT token
-const generateToken = (user) => {
-  return jwt.sign(
-    { id: user.id, username: user.username, role: user.role },
-    JWT_SECRET,
-    { expiresIn: TOKEN_EXPIRY }
-  );
-};
-
-// Function to verify user credentials
-const verifyCredentials = async (username, password) => {
-  try {
-    // Read the users from db.json
-    const dbFile = fs.readFileSync('./db.json', 'utf8');
-    const data = JSON.parse(dbFile);
-    
-    // Find the user - temporarily still using plaintext passwords
-    // This allows existing users to login while we transition to hashed passwords
-    const user = data.users.find(u => u.username === username && 
-                                  (u.password === password || u.hashedPassword === hashPassword(password)));
-    
-    if (!user) {
-      return null;
-    }
-    
-    // Remove password from returned user object
-    const { password: _, hashedPassword: __, ...userWithoutPassword } = user;
-    
-    return userWithoutPassword;
-  } catch (error) {
-    console.error('Error verifying credentials:', error);
-    throw error;
-  }
-};
-
 module.exports = {
-  authMiddleware,
-  generateToken,
-  verifyCredentials,
-  JWT_SECRET,
-  hashPassword
+  authMiddleware
 };
