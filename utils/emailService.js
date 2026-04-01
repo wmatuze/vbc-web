@@ -3,23 +3,23 @@ require("dotenv").config();
 
 // Email styling constants
 const EMAIL_COLORS = {
-  primary: '#4f46e5',
-  secondary: '#3b82f6',
-  success: '#047857',
-  info: '#1e40af',
-  background: '#f3f4f6',
-  lightBackground: '#f8fafc',
-  border: '#e5e7eb',
-  textMuted: '#6b7280',
-  white: '#ffffff'
+  primary: "#4f46e5",
+  secondary: "#3b82f6",
+  success: "#047857",
+  info: "#1e40af",
+  background: "#f3f4f6",
+  lightBackground: "#f8fafc",
+  border: "#e5e7eb",
+  textMuted: "#6b7280",
+  white: "#ffffff",
 };
 
 // Utility function for consistent date formatting
 const formatDate = (date) => {
-  return new Date(date).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
+  return new Date(date).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 };
 
@@ -28,14 +28,15 @@ const createEmailTemplate = (headerTitle, headerColor, content) => {
   const churchInfo = {
     // Use imgur as a reliable image hosting service for emails
     // Upload your logo to imgur.com and replace this URL
-    logoUrl: process.env.CHURCH_LOGO_URL || "https://i.imgur.com/placeholder.png",
+    logoUrl:
+      process.env.CHURCH_LOGO_URL || "https://i.imgur.com/placeholder.png",
     name: "Victory Bible Church",
     address: "Off Chiwala Road CBU East Gate, Kitwe, Zambia",
-    phone: "+260 123 456 789", 
+    phone: "+260 123 456 789",
     email: "info@victorybiblechurch.org",
-    website: "https://victorybiblechurch.org"
+    website: "https://victorybiblechurch.org",
   };
-  
+
   return `
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid ${EMAIL_COLORS.border};">
   <!-- Header with Your Logo -->
@@ -68,20 +69,27 @@ const createEmailTemplate = (headerTitle, headerColor, content) => {
   `;
 };
 
-
 // Configure email transporter
 let transporter;
 const isDevelopment = process.env.NODE_ENV !== "production";
 
+// Validate required environment variables
+if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+  console.error(
+    "ERROR: EMAIL_USER and EMAIL_PASSWORD must be set in .env file",
+  );
+  process.exit(1);
+}
+
 // Set up the transporter based on environment
 if (isDevelopment || !process.env.NODE_ENV) {
-  // TEMPORARY: Force use of Gmail for testing/demo
-  console.log("FORCING Gmail for email testing/demo");
+  // Development: Use Gmail
+  console.log("Email service configured for development (Gmail)");
   transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-      user: process.env.EMAIL_USER || "watu.matuze@gmail.com",
-      pass: process.env.EMAIL_PASSWORD || "chxp rnip ozqo daxa",
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD,
     },
   });
 } else {
@@ -134,7 +142,9 @@ const sendEmail = async (options) => {
 const sendMembershipRenewalEmails = async (renewal) => {
   // Input validation
   if (!renewal || !renewal.email || !renewal.fullName) {
-    throw new Error("Missing required renewal data: email and fullName are required");
+    throw new Error(
+      "Missing required renewal data: email and fullName are required",
+    );
   }
 
   try {
@@ -177,7 +187,7 @@ Victory Bible Church Team
     <p>If you have any questions, please contact our church office at (123) 456-7890 or email <a href="mailto:renewal@vbc.info" style="color: ${EMAIL_COLORS.primary};">renewal@vbc.info</a>.</p>
 
     <p>Blessings,<br>Victory Bible Church Team</p>
-        `
+        `,
       ),
     });
 
@@ -226,7 +236,7 @@ Please review this renewal in the admin dashboard.
         Review in Admin Dashboard
       </a>
     </p>
-        `
+        `,
       ),
     });
 
@@ -244,7 +254,9 @@ Please review this renewal in the admin dashboard.
 const sendFoundationClassRegistrationEmails = async (registration) => {
   // Input validation
   if (!registration || !registration.email || !registration.fullName) {
-    throw new Error("Missing required registration data: email and fullName are required");
+    throw new Error(
+      "Missing required registration data: email and fullName are required",
+    );
   }
 
   try {
@@ -302,7 +314,7 @@ Victory Bible Church Team
     <p>We look forward to seeing you at the first class! If you have any questions, please contact our church office at (123) 456-7890.</p>
 
     <p>Blessings,<br>Victory Bible Church Team</p>
-        `
+        `,
       ),
     });
 
@@ -349,7 +361,7 @@ Please review this registration in the admin dashboard.
         Review in Admin Dashboard
       </a>
     </p>
-        `
+        `,
       ),
     });
 
@@ -357,7 +369,7 @@ Please review this registration in the admin dashboard.
   } catch (error) {
     console.error(
       "Error sending foundation classes registration emails:",
-      error
+      error,
     );
   }
 };
@@ -369,7 +381,9 @@ Please review this registration in the admin dashboard.
 const sendMembershipApprovalEmail = async (renewal) => {
   // Input validation
   if (!renewal || !renewal.email || !renewal.fullName) {
-    throw new Error("Missing required renewal data: email and fullName are required");
+    throw new Error(
+      "Missing required renewal data: email and fullName are required",
+    );
   }
 
   try {
@@ -429,7 +443,7 @@ Victory Bible Church Team
     <p>If you have any questions about your membership or would like to get more involved, please contact our church office at (123) 456-7890 or email <a href="mailto:membership@vbc.info" style="color: ${EMAIL_COLORS.primary};">membership@vbc.info</a>.</p>
 
     <p>Blessings,<br>Victory Bible Church Team</p>
-        `
+        `,
       ),
     });
 
@@ -447,7 +461,9 @@ Victory Bible Church Team
 const sendFoundationClassCompletionEmail = async (registration) => {
   // Input validation
   if (!registration || !registration.email || !registration.fullName) {
-    throw new Error("Missing required registration data: email and fullName are required");
+    throw new Error(
+      "Missing required registration data: email and fullName are required",
+    );
   }
 
   try {
@@ -508,7 +524,7 @@ Victory Bible Church Team
     <p><strong>Welcome to the family!</strong></p>
 
     <p>In Christ,<br>Victory Bible Church Team</p>
-        `
+        `,
       ),
     });
 
@@ -527,10 +543,14 @@ Victory Bible Church Team
 const sendCellGroupJoinRequestEmails = async (request, cellGroup) => {
   // Input validation
   if (!request || !request.email || !request.name) {
-    throw new Error("Missing required request data: email and name are required");
+    throw new Error(
+      "Missing required request data: email and name are required",
+    );
   }
   if (!cellGroup || !cellGroup.name || !cellGroup.leader) {
-    throw new Error("Missing required cell group data: name and leader are required");
+    throw new Error(
+      "Missing required cell group data: name and leader are required",
+    );
   }
 
   try {
@@ -577,7 +597,7 @@ Victory Bible Church Team
     <p>The cell group leader will contact you soon with more information. If you have any questions in the meantime, please contact our church office.</p>
 
     <p>Blessings,<br>Victory Bible Church Team</p>
-        `
+        `,
       ),
     });
 
@@ -639,7 +659,7 @@ Victory Bible Church Team
     <p>Please contact this person soon to welcome them and provide more information about your cell group.</p>
 
     <p>Blessings,<br>Victory Bible Church Team</p>
-        `
+        `,
       ),
     });
 
@@ -655,11 +675,17 @@ Victory Bible Church Team
  * @param {Object} supportData - Support request data
  */
 const sendSupportRequestEmail = async (supportData) => {
-  if (!supportData || !supportData.name || !supportData.email || !supportData.subject || !supportData.message) {
+  if (
+    !supportData ||
+    !supportData.name ||
+    !supportData.email ||
+    !supportData.subject ||
+    !supportData.message
+  ) {
     throw new Error("Missing required support request data");
   }
 
-  const { name, email, subject, message, priority = 'medium' } = supportData;
+  const { name, email, subject, message, priority = "medium" } = supportData;
 
   try {
     await sendEmail({
@@ -693,7 +719,7 @@ This message was sent from the Victory Bible Church CMS Support Form.
     <p style="font-size: 12px; color: ${EMAIL_COLORS.textMuted}; margin-top: 30px; padding-top: 10px; border-top: 1px solid ${EMAIL_COLORS.border};">
       This message was sent from the Victory Bible Church CMS Support Form.
     </p>
-        `
+        `,
       ),
     });
 

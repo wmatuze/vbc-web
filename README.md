@@ -14,18 +14,18 @@ A custom Content Management System (CMS) for Victory Bible Church website.
 - `/public` - Static assets served directly by the server
 - `/assets` - Media assets organized by category
 - `/uploads` - User-uploaded files
-- `db.json` - The database file for the CMS
-- `start-json-server.js` - Server script to run the CMS backend
 - `auth-middleware.js` - Authentication handlers
 
 ## Getting Started
 
 1. Install dependencies:
+
    ```
    npm install
    ```
 
 2. Start the server:
+
    ```
    npm run server
    ```
@@ -48,12 +48,13 @@ A custom Content Management System (CMS) for Victory Bible Church website.
 ### Default Login Credentials
 
 - Admin:
+
   - Username: admin
-  - Password: 
+  - Password:
 
 - Editor:
   - Username: pastor
-  - Password: 
+  - Password:
 
 ### Content Types
 
@@ -81,7 +82,7 @@ The CMS manages several types of content:
 
 - Authentication uses JWT tokens
 - Passwords are stored with SHA-256 hashing
-- Environment variables control server configuration 
+- Environment variables control server configuration
 
 ## Troubleshooting
 
@@ -92,4 +93,4 @@ If you experience image loading or CORS issues:
 3. Verify that all asset directories exist
 4. Check browser console for specific errors
 
-For any technical issues, please contact the system administrator. 
+For any technical issues, please contact the system administrator.
