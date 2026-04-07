@@ -2,17 +2,17 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import {
-  FaSearch,
-  FaMapMarkerAlt,
-  FaUser,
-  FaUsers,
-  FaArrowRight,
-  FaHome,
-  FaHeart,
-  FaHandsHelping,
-  FaPray,
-  FaBible,
-} from "react-icons/fa";
+  Search,
+  MapPin,
+  User,
+  Users,
+  ArrowRight,
+  Home,
+  Heart,
+  Handshake,
+  Sparkles,
+  Book,
+} from "lucide-react";
 import FallbackImage from "../assets/fallback-image.png";
 import zonesData from "../data/zonesData";
 import { useZonesQuery } from "../hooks/useZonesQuery";
@@ -66,17 +66,17 @@ const ZonesPage = () => {
   const renderIcon = (iconName) => {
     switch (iconName) {
       case "FaUsers":
-        return <FaUsers />;
+        return <Users />;
       case "FaHome":
-        return <FaHome />;
+        return <Home />;
       case "FaHeart":
-        return <FaHeart />;
+        return <Heart />;
       case "FaHandsHelping":
-        return <FaHandsHelping />;
+        return <Handshake />;
       case "FaPray":
-        return <FaPray />;
+        return <Sparkles />;
       case "FaBible":
-        return <FaBible />;
+        return <Book />;
       default:
         return <FaUsers />;
     }
@@ -119,7 +119,7 @@ const ZonesPage = () => {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
-                <FaSearch className="absolute left-3 top-3 text-gray-400" />
+                <Search className="absolute left-3 top-3 text-gray-400" />
                 {search && (
                   <button
                     onClick={() => setSearch("")}
@@ -135,10 +135,11 @@ const ZonesPage = () => {
           {/* Zone Description */}
           <div className="mb-8 text-gray-700">
             <p>
-              Our church family is organized into zones across different areas, each lovingly led by a 
-              dedicated elder. These zones help us build meaningful relationships and provide pastoral 
-              care right in your neighborhood. Find a zone near you and discover the cell groups where 
-              you can connect, grow, and belong.
+              Our church family is organized into zones across different areas,
+              each lovingly led by a dedicated elder. These zones help us build
+              meaningful relationships and provide pastoral care right in your
+              neighborhood. Find a zone near you and discover the cell groups
+              where you can connect, grow, and belong.
             </p>
           </div>
         </div>
@@ -195,7 +196,7 @@ const ZonesPage = () => {
                         {zone.name}
                       </h3>
                       <div className="flex items-center text-sm text-white/90">
-                        <FaMapMarkerAlt className="mr-1" />
+                        <MapPin className="mr-1" />
                         {zone.location}
                       </div>
                     </div>
@@ -220,7 +221,7 @@ const ZonesPage = () => {
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500">
-                            <FaUser />
+                            <User />
                           </div>
                         )}
                       </div>
@@ -237,7 +238,7 @@ const ZonesPage = () => {
                     {/* Cell Group Count */}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center text-gray-600 text-sm">
-                        <FaUsers className="mr-2 text-blue-600" />
+                        <Users className="mr-2 text-blue-600" />
                         {zone.cellCount} Cell Groups
                       </div>
                     </div>
@@ -248,7 +249,7 @@ const ZonesPage = () => {
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center text-sm"
                     >
                       View Cell Groups
-                      <FaArrowRight className="ml-2" />
+                      <ArrowRight className="ml-2" />
                     </Link>
                   </div>
                 </div>

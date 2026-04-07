@@ -2,9 +2,8 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useEventsQuery } from "../../hooks/useEventsQuery";
 import EventCard from "../../components/ChurchCalendar/EventsCard";
-import PlaceHolderbanner from "../../assets/ministry-banners/ph.png";
-import FallbackImage from "../../assets/fallback-image.png"; // Import fallback image
-import { Helmet } from "react-helmet"; // Import Helmet
+import HeroSection from "../../components/common/HeroSection";
+import { Helmet } from "react-helmet-async"; // Import Helmet
 
 const MensMinistry = () => {
   // Use React Query for fetching events
@@ -23,7 +22,7 @@ const MensMinistry = () => {
     if (events && events.length > 0) {
       // Filter events for Men's Ministry
       const filteredEvents = events.filter(
-        (event) => event?.ministry === "Men's Ministry"
+        (event) => event?.ministry === "Men's Ministry",
       );
       setMensMinistryEvents(filteredEvents);
     }
@@ -99,88 +98,21 @@ const MensMinistry = () => {
         />
       </Helmet>
 
-      {/* Hero Section - Implemented similar to About Us */}
-      <section className="relative overflow-hidden rounded-b-3xl h-[85vh]">
-        <motion.div
-          className={`absolute inset-0 ${
-            !isImageLoaded ? "animate-pulse bg-gray-200" : ""
-          }`}
-          style={{
-            backgroundImage: `url(${
-              isImageLoaded ? PlaceHolderbanner : FallbackImage
-            })`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-          initial={{ scale: 1.1 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 10, repeat: Infinity, repeatType: "reverse" }}
-          onLoad={() => setIsImageLoaded(true)} // Update loading state
-          aria-label="Hero background image" // Accessibility
-        >
-          <img
-            src={PlaceHolderbanner}
-            alt="Victory Bible Church banner for Men's Ministry"
-            className="hidden"
-            onLoad={() => setIsImageLoaded(true)}
-            onError={() => setIsImageLoaded(true)} // Fallback on error
-          />
-        </motion.div>
-        <div className="absolute inset-0 bg-gradient-to-r from-red-900/80 via-red-900/70 to-red-900/80 rounded-b-3xl"></div>{" "}
-        {/* Red gradient overlay */}
-        {/* Decorative elements */}
-        <div className="absolute inset-0 overflow-hidden rounded-b-3xl">
-          {[...Array(4)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute rounded-full bg-white/10"
-              style={{
-                width: Math.random() * 100 + 50,
-                height: Math.random() * 100 + 50,
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                y: [Math.random() * 100, Math.random() * -100],
-                opacity: [0.1, 0.3, 0.1],
-              }}
-              transition={{
-                duration: Math.random() * 10 + 10,
-                repeat: Infinity,
-                repeatType: "reverse",
-              }}
-            />
-          ))}
-        </div>
-        <div className="container mx-auto px-4 relative z-10 h-full flex flex-col justify-center items-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center"
-          >
-            <h1 className="text-4xl lg:text-5xl font-bold text-white text-center mb-4 tracking-tight drop-shadow-lg">
-              <span className="text-red-400">Men's</span> Ministry
-            </h1>
-            <p className="text-lg text-white text-center max-w-3xl mx-auto leading-relaxed font-light drop-shadow-md">
-              Connect, grow, and serve with Victory Bible Church Men's Ministry.
-              Join us as we journey together in faith.
-            </p>
-            <motion.div
-              className="h-1 bg-red-400 mx-auto mt-8"
-              initial={{ width: 0 }}
-              animate={{ width: 100 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
-            />
-          </motion.div>
-        </div>
-      </section>
+      {/* Consistent Hero Section */}
+      <HeroSection
+        title="Men's Ministry"
+        subtitle="Men's Ministry"
+        description="Connect, grow, and serve with Victory Bible Church Men's Ministry. Join us as we journey together in faith."
+        primaryAccentText="Men's"
+        scrollText="EXPLORE MEN'S MINISTRY"
+        backgroundImage="/assets/hero-bg.jpg"
+      />
 
-      {/* About Us Section - Redesigned with card-like appearance */}
+      {/* About Us Section */}
       <section className="py-16">
         <div className="container mx-auto px-4 max-w-5xl">
           <motion.div
-            className="bg-white rounded-xl shadow-lg p-8 transform -mt-20 relative z-20"
+            className="bg-white rounded-xl shadow-lg p-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}

@@ -1,16 +1,16 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Helmet } from "react-helmet"; // Added for SEO
+import { Helmet } from "react-helmet-async"; // Added for SEO
 // Removed unused image imports - now using consistent hero background
 import { motion } from "framer-motion";
 import {
-  FaChevronDown,
-  FaPlay,
-  FaUsers,
-  FaChurch,
-  FaBookOpen,
-  FaHeart,
-} from "react-icons/fa";
+  ChevronDown,
+  Play,
+  Users,
+  Building2,
+  BookOpen,
+  Heart,
+} from "lucide-react";
 import HeroSection from "../components/common/HeroSection";
 
 // Reusable NavCard Component
@@ -67,10 +67,10 @@ const AboutUs = () => {
 
   // Navigation links data
   const navItems = [
-    { label: "Our Story", icon: <FaChurch size={20} /> },
-    { label: "Leadership Team", icon: <FaUsers size={20} /> },
-    { label: "Vision & Mission", icon: <FaBookOpen size={20} /> },
-    { label: "What We Believe", icon: <FaHeart size={20} /> },
+    { label: "Our Story", icon: <Building2 size={20} /> },
+    { label: "Leadership Team", icon: <Users size={20} /> },
+    { label: "Vision & Mission", icon: <BookOpen size={20} /> },
+    { label: "What We Believe", icon: <Heart size={20} /> },
   ];
 
   // Stats data
@@ -199,7 +199,7 @@ const AboutUs = () => {
                 <div className="flex items-center justify-center h-full">
                   <div className="relative z-10 flex flex-col items-center">
                     <div className="bg-white/20 backdrop-blur-md p-4 rounded-full mb-4 group-hover:bg-yellow-500 transition-colors duration-300">
-                      <FaPlay className="text-white text-2xl" />
+                      <Play className="text-white text-2xl" />
                     </div>
                     <p className="text-white text-center px-4 font-medium">
                       Church Life & Community Video (Coming Soon)
@@ -224,7 +224,7 @@ const AboutUs = () => {
                   whileTap={{ scale: 0.95 }}
                 >
                   <Link
-                    to="/media"
+                    to="/gallery"
                     className="mt-6 inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-full transition-all duration-300 hover:shadow-lg"
                   >
                     Explore more media content

@@ -3,7 +3,7 @@ import { forwardRef, useState, useEffect, useMemo } from "react";
 import { useEventsQuery } from "../../hooks/useEventsQuery";
 import EventCard from "../ChurchCalendar/EventsCard";
 
-// API URL for static assets and uploads - use environment variable for production
+// API URL for dynamic uploads from the backend
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 // Skeleton loader component for events
@@ -21,18 +21,40 @@ const SkeletonLoader = () => (
 const ErrorCard = ({ error, onRetry }) => (
   <div className="card bg-white/5 backdrop-blur-sm border border-red-500/20 p-6">
     <div className="flex items-center space-x-2 mb-2">
-      <svg className="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <svg
+        className="h-5 w-5 text-red-400"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
       </svg>
       <p className="text-red-400 text-sm">Failed to load events</p>
     </div>
-    <p className="text-red-300 text-xs mb-3">{error?.message || error?.toString() || 'An error occurred'}</p>
+    <p className="text-red-300 text-xs mb-3">
+      {error?.message || error?.toString() || "An error occurred"}
+    </p>
     <button
       onClick={onRetry}
       className="text-sm text-primary-400 hover:text-primary-300 flex items-center space-x-1"
     >
-      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      <svg
+        className="h-4 w-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+        />
       </svg>
       <span>Try again</span>
     </button>
@@ -43,11 +65,23 @@ const ErrorCard = ({ error, onRetry }) => (
 const EmptyState = ({ message }) => (
   <div className="card bg-white/5 backdrop-blur-sm border border-white/10 p-6 mb-4 h-32 flex items-center justify-center w-full">
     <div className="text-center">
-      <svg className="h-8 w-8 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2z" />
+      <svg
+        className="h-8 w-8 text-gray-400 mx-auto mb-2"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2z"
+        />
       </svg>
       <p className="text-gray-300 text-lg">{message}</p>
-      <p className="text-gray-400 text-sm mt-2">Check back soon for new events!</p>
+      <p className="text-gray-400 text-sm mt-2">
+        Check back soon for new events!
+      </p>
     </div>
   </div>
 );
@@ -95,7 +129,7 @@ const HeroSection = forwardRef((props, ref) => {
   // Memoized upcoming events processing for better performance
   const upcomingEvents = useMemo(() => {
     if (loading) return [];
-    
+
     if (!events?.length) {
       // Fallback static events when no events are available
       return [
@@ -142,13 +176,14 @@ const HeroSection = forwardRef((props, ref) => {
     today.setHours(0, 0, 0, 0);
 
     return events
-      .map(e => ({ ...e, parsedDate: parseEventDate(e) }))
-      .filter(e => e.parsedDate >= today)
+      .map((e) => ({ ...e, parsedDate: parseEventDate(e) }))
+      .filter((e) => e.parsedDate >= today)
       .sort((a, b) => a.parsedDate - b.parsedDate)
       .slice(0, 4);
   }, [events, loading]);
 
-  const bgImage = `${API_URL}/assets/hero-bg.jpg`;
+  // Serve hero-bg.jpg directly from public/assets (no backend dependency)
+  const bgImage = `/assets/hero-bg.jpg`;
 
   // Church service information
   const serviceInfo = {
@@ -186,11 +221,11 @@ const HeroSection = forwardRef((props, ref) => {
       <div className="absolute inset-0">
         <div
           className="absolute inset-0 bg-cover bg-center transform scale-105 motion-safe:transition-transform motion-safe:duration-[2s]"
-          style={{ 
+          style={{
             backgroundImage: `url('${bgImage}')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat'
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
           }}
           role="img"
           aria-label="Victory Bible Church background"
@@ -303,7 +338,8 @@ const HeroSection = forwardRef((props, ref) => {
                     className="text-yellow-400 text-xs hover:text-yellow-300"
                     onClick={(e) => {
                       e.preventDefault();
-                      const element = document.getElementById("monthly-programs");
+                      const element =
+                        document.getElementById("monthly-programs");
                       if (element) {
                         element.scrollIntoView({
                           behavior: "smooth",
@@ -403,8 +439,8 @@ const HeroSection = forwardRef((props, ref) => {
 
               {/* New Button for "I'm New Here" */}
               <Link
-                to="/about/visitors"
-                className="btn bg-secondary hover:bg-secondary-600 text-white"
+                to="/about"
+                className="btn bg-secondary-500 hover:bg-secondary-600 text-white"
               >
                 I'M NEW HERE
                 <svg

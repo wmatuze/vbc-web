@@ -2,52 +2,46 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  FaSearch,
-  FaMapMarkerAlt,
-  FaUser,
-  FaEnvelope,
-  FaPhone,
-  FaCalendarAlt,
-  FaHeart,
-  FaFilter,
-  FaArrowRight,
-  FaArrowLeft,
-} from "react-icons/fa";
+  Search,
+  MapPin,
+  User,
+  Mail,
+  Phone,
+  Calendar,
+  Heart,
+  Filter,
+  ArrowRight,
+  ArrowLeft,
+} from "lucide-react";
 import {
   useZoneByIdQuery,
   useZoneCellGroupsQuery,
 } from "../hooks/useZonesQuery";
 import { Helmet } from "react-helmet-async";
 import JoinGroupModal from "../components/JoinGroupModal";
-import FallbackImage from "../assets/fallback-image.png";
 import HeroSection from "../components/common/HeroSection";
-
-// Import fallback images in case there are no API images
-import CellGroupImage1 from "../assets/cell-groups/cell-group-1.jpg";
-import CellGroupImage2 from "../assets/cell-groups/cell-group-2.jpg";
-import CellGroupImage3 from "../assets/cell-groups/cell-group-3.jpg";
-import CellGroupImage4 from "../assets/cell-groups/cell-group-4.jpg";
 
 // Import mock data for fallback
 import zonesData from "../data/zonesData";
 import cellGroupsData from "../data/cellGroupsData";
 
-// Fallback images map
-const fallbackImages = {
-  1: CellGroupImage1,
-  2: CellGroupImage2,
-  3: CellGroupImage3,
-  4: CellGroupImage4,
-};
+// Fallback served from public/ - avoids bundling large images into JS
+const CELL_GROUP_FALLBACK = "/assets/placeholder.jpg";
 
 // Breadcrumb Component
 const Breadcrumb = ({ zoneName }) => (
   <nav className="flex items-center space-x-2 text-sm mb-6">
-    <Link to="/" className="text-gray-500 hover:text-blue-600 transition-colors">
+    <Link
+      to="/"
+      className="text-gray-500 hover:text-blue-600 transition-colors"
+    >
       Home
     </Link>
     <span className="text-gray-400">/</span>
-    <Link to="/cell-groups" className="text-gray-500 hover:text-blue-600 transition-colors">
+    <Link
+      to="/cell-groups"
+      className="text-gray-500 hover:text-blue-600 transition-colors"
+    >
       Zones
     </Link>
     <span className="text-gray-400">/</span>
@@ -60,7 +54,7 @@ const ElderCard = ({ elder }) => (
   <div className="bg-blue-50 rounded-xl shadow-lg p-8 relative overflow-hidden max-w-sm mx-auto">
     {/* Decorative element */}
     <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100 rounded-full -mr-16 -mt-16 opacity-50" />
-    
+
     {/* Content */}
     <div className="relative">
       {/* Zone Elder Badge */}
@@ -81,7 +75,7 @@ const ElderCard = ({ elder }) => (
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500">
-            <FaUser className="text-2xl" />
+            <User className="text-2xl" />
           </div>
         )}
       </div>
@@ -90,9 +84,10 @@ const ElderCard = ({ elder }) => (
       <div className="text-center">
         <h3 className="text-xl font-bold text-gray-900 mb-1">{elder?.name}</h3>
         <p className="text-blue-600 mb-4 font-medium">{elder?.title}</p>
-        
+
         <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-          {elder?.bio || "Leading with faith, serving with love, building community together."}
+          {elder?.bio ||
+            "Leading with faith, serving with love, building community together."}
         </p>
 
         {/* Contact Options */}
@@ -191,14 +186,7 @@ const ZoneDetailPage = () => {
         ? group.imageUrl
         : group.imageUrl;
     }
-    // Use a more reliable way to get fallback images
-    const index = (group.id ? group.id % 4 : 0) + 1;
-    try {
-      return fallbackImages[index] || FallbackImage;
-    } catch (error) {
-      console.error("Error loading fallback image:", error);
-      return FallbackImage;
-    }
+    return CELL_GROUP_FALLBACK;
   };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -222,7 +210,7 @@ const ZoneDetailPage = () => {
     setActiveFilters((prev) =>
       prev.includes(filter)
         ? prev.filter((f) => f !== filter)
-        : [...prev, filter]
+        : [...prev, filter],
     );
   };
 
@@ -230,10 +218,9 @@ const ZoneDetailPage = () => {
     setFavorites((prev) =>
       prev.includes(groupId)
         ? prev.filter((id) => id !== groupId)
-        : [...prev, groupId]
+        : [...prev, groupId],
     );
   };
-
 
   // State for fallback data
   const [fallbackZone, setFallbackZone] = useState(null);
@@ -245,7 +232,7 @@ const ZoneDetailPage = () => {
       console.log("Using fallback zone data for", zoneId);
       // Find the zone in the mock data - try both id and _id
       const mockZone = zonesData.find(
-        (z) => z.id === zoneId || z._id === zoneId
+        (z) => z.id === zoneId || z._id === zoneId,
       );
       if (mockZone) {
         console.log("Found fallback zone:", mockZone.name);
@@ -253,7 +240,7 @@ const ZoneDetailPage = () => {
 
         // Find cell groups for this zone - try both zoneId and zone
         const mockCellGroups = cellGroupsData.filter(
-          (group) => group.zoneId === zoneId || group.zone === zoneId
+          (group) => group.zoneId === zoneId || group.zone === zoneId,
         );
         console.log(`Found ${mockCellGroups.length} fallback cell groups`);
         setFallbackCellGroups(mockCellGroups);
@@ -287,7 +274,7 @@ const ZoneDetailPage = () => {
         (filter) =>
           (group.tags && group.tags.includes(filter)) ||
           group.location === filter ||
-          group.meetingDay === filter
+          group.meetingDay === filter,
       );
 
     return matchesSearch && matchesFilters;
@@ -310,7 +297,7 @@ const ZoneDetailPage = () => {
             to="/cell-groups"
             className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 inline-flex items-center"
           >
-            <FaArrowLeft className="mr-2" /> Return to Zones
+            <ArrowLeft className="mr-2" /> Return to Zones
           </Link>
         </div>
       </div>
@@ -367,11 +354,13 @@ const ZoneDetailPage = () => {
                       Back to All Zones
                     </Link>
                   </div>
-                  <h2 className="text-3xl font-bold text-gray-900 mb-4">{displayZone.name}</h2>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                    {displayZone.name}
+                  </h2>
                   <div className="flex items-center text-gray-600 mb-4">
                     <FaMapMarkerAlt className="mr-2 text-blue-600" />
-                        {displayZone.location}
-                    </div>
+                    {displayZone.location}
+                  </div>
                   <p className="text-gray-700 leading-relaxed">
                     {displayZone.description}
                   </p>
@@ -388,13 +377,15 @@ const ZoneDetailPage = () => {
                     </div>
                   </div>
                   <div className="bg-green-50 rounded-lg p-6 text-center">
-                    <div className="text-3xl font-bold text-green-600 mb-2">127</div>
+                    <div className="text-3xl font-bold text-green-600 mb-2">
+                      127
+                    </div>
                     <div className="text-sm text-gray-600 uppercase tracking-wider">
                       Members
                     </div>
                   </div>
-            </div>
-          </div>
+                </div>
+              </div>
 
               {/* Elder Card */}
               <div className="lg:col-span-1">
@@ -429,14 +420,14 @@ const ZoneDetailPage = () => {
               </div>
               <div className="flex items-center space-x-4">
                 <div className="relative w-64">
-                    <input
-                      type="text"
-                      placeholder="Search..."
+                  <input
+                    type="text"
+                    placeholder="Search..."
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                    />
-                    <FaSearch className="absolute left-3 top-3 text-gray-400" />
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                  <FaSearch className="absolute left-3 top-3 text-gray-400" />
                 </div>
               </div>
             </div>
@@ -451,7 +442,6 @@ const ZoneDetailPage = () => {
         className="container mx-auto px-4 py-16 max-w-7xl"
       >
         <div className="bg-white shadow-lg rounded-lg p-8 mb-12">
-        
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
             <h2 className="text-3xl font-bold text-gray-900">
               Find a Cell Group in{" "}
@@ -476,8 +466,18 @@ const ZoneDetailPage = () => {
                     onClick={() => setSearch("")}
                     className="absolute right-3 top-3 p-1 rounded-full hover:bg-gray-100 transition-colors duration-200"
                   >
-                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <svg
+                      className="w-5 h-5 text-gray-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </motion.button>
                 )}
@@ -504,8 +504,18 @@ const ZoneDetailPage = () => {
                       onClick={() => setSearch("")}
                       className="absolute right-3 top-3 p-1 rounded-full hover:bg-gray-100 transition-colors duration-200"
                     >
-                      <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <svg
+                        className="w-5 h-5 text-gray-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </motion.button>
                   )}
@@ -664,15 +674,27 @@ const ZoneDetailPage = () => {
               className="text-center py-16 bg-white rounded-xl shadow-lg"
             >
               <div className="w-32 h-32 mx-auto mb-8 bg-blue-50 rounded-full flex items-center justify-center">
-                <svg className="w-16 h-16 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                <svg
+                  className="w-16 h-16 text-blue-300"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                  />
                 </svg>
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">
                 No groups match your search
               </h3>
               <p className="text-gray-600 max-w-md mx-auto mb-8 leading-relaxed">
-                We couldn't find any cell groups matching your criteria. Try adjusting your search terms or explore other zones to find the perfect community for you.
+                We couldn't find any cell groups matching your criteria. Try
+                adjusting your search terms or explore other zones to find the
+                perfect community for you.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 {(search || activeFilters.length > 0) && (
@@ -686,8 +708,8 @@ const ZoneDetailPage = () => {
                     Clear Filters
                   </button>
                 )}
-                <Link 
-                  to="/cell-groups" 
+                <Link
+                  to="/cell-groups"
                   className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium"
                 >
                   Browse All Zones

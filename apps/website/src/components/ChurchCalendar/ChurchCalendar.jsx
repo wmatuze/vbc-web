@@ -6,16 +6,15 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import Modal from "react-modal";
 import { useNavigate } from "react-router-dom";
-import PlaceHolderbanner from "../../assets/ministry-banners/ph.png"; // Using the same placeholder banner as ministry pages
-import FallbackImage from "../../assets/fallback-image.png"; // Import fallback image
+
 import config from "../../config";
 import { motion } from "framer-motion";
-import { Helmet } from "react-helmet"; // Added for SEO
+import { Helmet } from "react-helmet-async"; // Added for SEO
 import EventSignUpForm from "../EventSignUpForm"; // Import the sign-up form component
 import { toast } from "react-toastify"; // Import toast notifications
 
 // Set the app element for react-modal
-Modal.setAppElement('#root');
+Modal.setAppElement("#root");
 
 const API_URL = config.API_URL;
 
@@ -49,22 +48,25 @@ const ChurchCalendar = () => {
   // Function to check if signup button should be shown
   const shouldShowSignupButton = (event) => {
     if (!event) return false;
-    
+
     // Check if signup is enabled (new signupMode or legacy signupRequired)
-    const isSignupEnabled = event.signupMode === 'required' || event.signupMode === 'optional' || event.signupRequired;
-    
+    const isSignupEnabled =
+      event.signupMode === "required" ||
+      event.signupMode === "optional" ||
+      event.signupRequired;
+
     if (!isSignupEnabled) return false;
-    
+
     // Check if we're within the signup deadline
     if (event.signupDeadline) {
       const now = new Date();
       const deadline = new Date(event.signupDeadline);
       if (now > deadline) {
-        console.log('Signup deadline has passed for event:', event.title);
+        console.log("Signup deadline has passed for event:", event.title);
         return false;
       }
     }
-    
+
     return true;
   };
 
@@ -83,7 +85,7 @@ const ChurchCalendar = () => {
       result = result.filter(
         (event) =>
           event?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          event?.description?.toLowerCase().includes(searchTerm.toLowerCase())
+          event?.description?.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
@@ -119,11 +121,11 @@ const ChurchCalendar = () => {
     const formattedEnd = endDate.toISOString().replace(/-|:|\.\d+/g, "");
 
     const googleCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
-      event.title
+      event.title,
     )}&details=${encodeURIComponent(
-      event.description || ""
+      event.description || "",
     )}&location=${encodeURIComponent(
-      event.location || "Victory Bible Church"
+      event.location || "Victory Bible Church",
     )}&dates=${formattedStart}/${formattedEnd}`;
 
     window.open(googleCalendarUrl, "_blank");
@@ -171,7 +173,7 @@ const ChurchCalendar = () => {
         console.error(
           `Error parsing startDate for calendar:`,
           err,
-          event.startDate
+          event.startDate,
         );
       }
     }
@@ -199,7 +201,7 @@ const ChurchCalendar = () => {
 
               if (!isNaN(eventDate.getTime())) {
                 console.log(
-                  `Using formatted date+time for calendar event: ${eventDate}`
+                  `Using formatted date+time for calendar event: ${eventDate}`,
                 );
               } else {
                 eventDate = undefined; // Reset if invalid
@@ -213,7 +215,7 @@ const ChurchCalendar = () => {
           eventDate = new Date(dateStr);
           if (!isNaN(eventDate.getTime())) {
             console.log(
-              `Using standard date+time for calendar event: ${eventDate}`
+              `Using standard date+time for calendar event: ${eventDate}`,
             );
           } else {
             eventDate = undefined; // Reset if invalid
@@ -224,7 +226,7 @@ const ChurchCalendar = () => {
           `Error parsing date+time for calendar:`,
           err,
           event.date,
-          event.time
+          event.time,
         );
       }
     }
@@ -233,7 +235,7 @@ const ChurchCalendar = () => {
     if (!eventDate || isNaN(eventDate.getTime())) {
       eventDate = new Date();
       console.warn(
-        `Using fallback current date for calendar event: ${event?.title}`
+        `Using fallback current date for calendar event: ${event?.title}`,
       );
     }
 
@@ -260,56 +262,60 @@ const ChurchCalendar = () => {
   const getEventType = (event) => {
     // Check title for event type if not explicitly set
     if (event.type) return event.type;
-    
-    const title = event.title?.toLowerCase() || '';
-    
-    if (title.includes('baptism')) return 'baptism';
-    if (title.includes('baby dedication') || title.includes('dedication')) return 'babyDedication';
-    
-    return 'event'; // Default type
+
+    const title = event.title?.toLowerCase() || "";
+
+    if (title.includes("baptism")) return "baptism";
+    if (title.includes("baby dedication") || title.includes("dedication"))
+      return "babyDedication";
+
+    return "event"; // Default type
   };
 
   // When opening the signup form, set the type
   const handleOpenSignupForm = () => {
     try {
       console.log("handleOpenSignupForm called with event:", selectedEvent);
-      
+
       // Check if we have a selected event
       if (!selectedEvent) {
         console.error("No event selected for sign up");
         toast.error("No event selected. Please try again.");
         return;
       }
-      
+
       // Add the event type if not already set
       // If it's a baptism event but type is not set correctly
-      const eventTitle = selectedEvent.title?.toLowerCase() || '';
-      
+      const eventTitle = selectedEvent.title?.toLowerCase() || "";
+
       // Determine event type from title if not explicitly set
-      let eventType = selectedEvent.type || 'event';
-      
-      if (eventTitle.includes('baptism')) {
-        eventType = 'baptism';
+      let eventType = selectedEvent.type || "event";
+
+      if (eventTitle.includes("baptism")) {
+        eventType = "baptism";
         console.log("Detected baptism event from title");
-      } else if (eventTitle.includes('dedication') || eventTitle.includes('baby')) {
-        eventType = 'babyDedication';
+      } else if (
+        eventTitle.includes("dedication") ||
+        eventTitle.includes("baby")
+      ) {
+        eventType = "babyDedication";
         console.log("Detected baby dedication event from title");
       }
-      
+
       // Create a copy with the explicitly set type
       const updatedEvent = {
         ...selectedEvent,
-        type: eventType
+        type: eventType,
       };
-      
+
       console.log("Setting selected event for signup:", updatedEvent);
-      
+
       // First close the modal
       setIsModalOpen(false);
-      
+
       // Then update the event and open the form in sequence
       setSelectedEvent(updatedEvent);
-      
+
       // Use a more reliable approach with a slightly longer delay
       setTimeout(() => {
         // Double check we still have the event
@@ -323,7 +329,9 @@ const ChurchCalendar = () => {
       }, 500);
     } catch (error) {
       console.error("Error opening signup form:", error);
-      toast.error("There was a problem opening the signup form. Please try again.");
+      toast.error(
+        "There was a problem opening the signup form. Please try again.",
+      );
     }
   };
 
@@ -360,7 +368,7 @@ const ChurchCalendar = () => {
             const parsedDate = new Date(`${month} ${day}, ${year}`);
             if (!isNaN(parsedDate.getTime())) {
               console.log(
-                `Successfully parsed date from event.date: ${parsedDate}`
+                `Successfully parsed date from event.date: ${parsedDate}`,
               );
               return parsedDate;
             }
@@ -374,7 +382,7 @@ const ChurchCalendar = () => {
         const parsedDate = new Date(event.startDate);
         if (!isNaN(parsedDate.getTime())) {
           console.log(
-            `Successfully parsed date from event.startDate: ${parsedDate}`
+            `Successfully parsed date from event.startDate: ${parsedDate}`,
           );
           return parsedDate;
         }
@@ -385,7 +393,7 @@ const ChurchCalendar = () => {
         const parsedDate = new Date(event.date);
         if (!isNaN(parsedDate.getTime())) {
           console.log(
-            `Successfully parsed date from event.date fallback: ${parsedDate}`
+            `Successfully parsed date from event.date fallback: ${parsedDate}`,
           );
           return parsedDate;
         }
@@ -428,26 +436,15 @@ const ChurchCalendar = () => {
             !isImageLoaded ? "animate-pulse bg-gray-200" : ""
           }`}
           style={{
-            backgroundImage: `url(${
-              isImageLoaded ? PlaceHolderbanner : FallbackImage
-            })`,
+            backgroundImage: `url(/assets/hero-bg.jpg)`,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
           initial={{ scale: 1.1 }}
           animate={{ scale: 1 }}
           transition={{ duration: 10, repeat: Infinity, repeatType: "reverse" }}
-          onLoad={() => setIsImageLoaded(true)} // Update loading state
-          aria-label="Hero background image" // Accessibility
-        >
-          <img
-            src={PlaceHolderbanner}
-            alt="Victory Bible Church banner for Church Calendar"
-            className="hidden"
-            onLoad={() => setIsImageLoaded(true)}
-            onError={() => setIsImageLoaded(true)} // Fallback on error
-          />
-        </motion.div>
+          aria-label="Hero background image"
+        />
 
         <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-purple-900/70 to-blue-900/80 rounded-b-3xl"></div>
 
@@ -560,7 +557,11 @@ const ChurchCalendar = () => {
           </div>
         ) : error ? (
           <div className="text-center py-12">
-            <p className="text-xl text-gray-600">{error.message || error.toString() || 'An error occurred while loading events'}</p>
+            <p className="text-xl text-gray-600">
+              {error.message ||
+                error.toString() ||
+                "An error occurred while loading events"}
+            </p>
             <button
               className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               onClick={() => refetchEvents()}
@@ -782,7 +783,9 @@ const ChurchCalendar = () => {
                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
-                    <span className="truncate">{selectedEvent?.time || "TBA"}</span>
+                    <span className="truncate">
+                      {selectedEvent?.time || "TBA"}
+                    </span>
                   </div>
                   {selectedEvent?.location && (
                     <div className="flex items-center mt-1 text-sm sm:text-base text-gray-600">
@@ -814,7 +817,9 @@ const ChurchCalendar = () => {
 
               {/* Description */}
               <div className="mb-4 sm:mb-6">
-                <h3 className="text-base sm:text-lg font-semibold mb-2">About This Event</h3>
+                <h3 className="text-base sm:text-lg font-semibold mb-2">
+                  About This Event
+                </h3>
                 <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
                   {selectedEvent?.description || "No description available."}
                 </p>
@@ -824,37 +829,41 @@ const ChurchCalendar = () => {
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 {/* Only show Sign Up button if signup is enabled and within deadline */}
                 {shouldShowSignupButton(selectedEvent) && (
-                                      <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setIsModalOpen(false);
-                        // Give time for the modal to close before opening the signup form
-                        setTimeout(() => {
-                          handleOpenSignupForm();
-                        }, 300);
-                      }}
-                      className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-sm sm:text-base text-white rounded-lg transition-colors ${
-                        selectedEvent.signupMode === 'required' || selectedEvent.signupRequired
-                          ? 'bg-red-600 hover:bg-red-700'
-                          : 'bg-green-600 hover:bg-green-700'
-                      }`}
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setIsModalOpen(false);
+                      // Give time for the modal to close before opening the signup form
+                      setTimeout(() => {
+                        handleOpenSignupForm();
+                      }, 300);
+                    }}
+                    className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-sm sm:text-base text-white rounded-lg transition-colors ${
+                      selectedEvent.signupMode === "required" ||
+                      selectedEvent.signupRequired
+                        ? "bg-red-600 hover:bg-red-700"
+                        : "bg-green-600 hover:bg-green-700"
+                    }`}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-                        />
-                      </svg>
-                      {selectedEvent.signupMode === 'required' || selectedEvent.signupRequired ? 'Sign Up Required' : 'Sign Up (Optional)'}
-                    </button>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                      />
+                    </svg>
+                    {selectedEvent.signupMode === "required" ||
+                    selectedEvent.signupRequired
+                      ? "Sign Up Required"
+                      : "Sign Up (Optional)"}
+                  </button>
                 )}
                 <button
                   onClick={() => addToCalendar(selectedEvent)}

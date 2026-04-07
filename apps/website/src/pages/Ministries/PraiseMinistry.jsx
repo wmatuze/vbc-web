@@ -3,8 +3,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useEventsQuery } from "../../hooks/useEventsQuery";
 import EventCard from "../../components/ChurchCalendar/EventsCard";
-import PlaceHolderbanner from "../../assets/ministry-banners/ph.png"; //Using placeholder banner, you can replace with a Praise Ministry specific banner
-import FallbackImage from "../../assets/fallback-image.png"; // Import fallback image
+import HeroSection from "../../components/common/HeroSection";
 
 const PraiseMinistry = () => {
   // Use React Query for fetching events
@@ -23,7 +22,7 @@ const PraiseMinistry = () => {
     if (events && events.length > 0) {
       // Filter events for Praise Ministry
       const filteredEvents = events.filter(
-        (event) => event?.ministry === "Praise Ministry"
+        (event) => event?.ministry === "Praise Ministry",
       );
       setPraiseMinistryEvents(filteredEvents);
     }
@@ -91,32 +90,19 @@ const PraiseMinistry = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* **Hero Section** */}
-      <section
-        className="bg-blue-700 rounded-b-lg relative"
-        style={{
-          backgroundImage: `url(${PlaceHolderbanner})`, // Replace PlaceHolderbanner with your Praise Ministry banner image
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        <div className="container mx-auto px-4 relative z-10 h-screen flex flex-col justify-center">
-          <h1 className="text-4xl lg:text-5xl font-bold text-white text-center mb-4">
-            Praise Ministry
-          </h1>
-          <p className="text-lg text-white text-center">
-            Our Praise Ministry is dedicated to leading our congregation in
-            worship and creating an atmosphere where everyone can encounter
-            God's presence... (rest of your "About Us" intro paragraph)
-          </p>
-        </div>
-        <div className="absolute inset-0 bg-black/50 rounded-b-lg"></div>
-      </section>
+      <HeroSection
+        title="Praise Ministry"
+        subtitle="Praise Ministry"
+        description="Dedicated to leading our congregation in worship and creating an atmosphere where everyone can encounter God's presence."
+        primaryAccentText="Praise"
+        scrollText="EXPLORE PRAISE MINISTRY"
+        backgroundImage="/assets/hero-bg.jpg"
+      />
 
-      {/* **About Us Section** - Redesigned with card-like appearance */}
+      {/* About Us Section */}
       <section className="py-16">
         <div className="container mx-auto px-4 max-w-5xl">
-          <div className="bg-white rounded-xl shadow-lg p-8 transform -mt-20 relative z-20">
+          <div className="bg-white rounded-xl shadow-lg p-8">
             <div className="flex items-center mb-8">
               <div className="w-2 h-12 bg-blue-600 rounded-full mr-4"></div>
               <h2 className="text-3xl font-bold text-gray-800">

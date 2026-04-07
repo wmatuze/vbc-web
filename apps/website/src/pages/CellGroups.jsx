@@ -1,40 +1,26 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  FaSearch,
-  FaMapMarkerAlt,
-  FaUser,
-  FaUsers,
-  FaEnvelope,
-  FaChevronDown,
-  FaCalendarAlt,
-  FaHeart,
-  FaFilter,
-  FaArrowRight,
-} from "react-icons/fa";
+  Search,
+  MapPin,
+  User,
+  Users,
+  Mail,
+  ChevronDown,
+  Calendar,
+  Heart,
+  Filter,
+  ArrowRight,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import JoinGroupModal from "../components/JoinGroupModal";
-import PlaceHolderbanner from "../assets/ministry-banners/ph.png";
+
 import cellGroupPlaceholderImage from "../assets/placeholders/default-cell-group.svg";
 import { Helmet } from "react-helmet-async";
 import { getCellGroups } from "../services/api/cell-groups";
 import config from "../config";
 
-// Constants
-
-// Import fallback images in case there are no API images
-import CellGroupImage1 from "../assets/cell-groups/cell-group-1.jpg";
-import CellGroupImage2 from "../assets/cell-groups/cell-group-2.jpg";
-import CellGroupImage3 from "../assets/cell-groups/cell-group-3.jpg";
-import CellGroupImage4 from "../assets/cell-groups/cell-group-4.jpg";
-import FallbackImage from "../assets/fallback-image.png";
-
-// Fallback images map
-const fallbackImages = {
-  1: CellGroupImage1,
-  2: CellGroupImage2,
-  3: CellGroupImage3,
-  4: CellGroupImage4,
-};
+// Fallback image served from public/ - no large ES-module import needed
+const CELL_GROUP_FALLBACK = "/assets/placeholder.jpg";
 
 const CellGroups = () => {
   const [cellGroupsData, setCellGroupsData] = useState([]);
@@ -79,9 +65,9 @@ const CellGroups = () => {
     ...new Set(
       cellGroupsData
         .map((group) =>
-          typeof group.zone === "object" ? group.zone.name : null
+          typeof group.zone === "object" ? group.zone.name : null,
         )
-        .filter(Boolean)
+        .filter(Boolean),
     ),
   ];
 
@@ -95,21 +81,14 @@ const CellGroups = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Get image URL (either from API or fallback)
+  // Get image URL (either from API or public fallback)
   const getImageUrl = (group) => {
     if (group.imageUrl) {
       return group.imageUrl.startsWith("http")
         ? group.imageUrl
         : `${config.API_URL}${group.imageUrl}`;
     }
-    // Use a more reliable way to get fallback images
-    const index = (group.id ? group.id % 4 : 0) + 1;
-    try {
-      return fallbackImages[index] || cellGroupPlaceholderImage;
-    } catch (error) {
-      console.error("Error loading fallback image:", error);
-      return cellGroupPlaceholderImage;
-    }
+    return cellGroupPlaceholderImage || CELL_GROUP_FALLBACK;
   };
 
   // Filter groups based on search and active filters
@@ -130,7 +109,7 @@ const CellGroups = () => {
           group.meetingDay === filter ||
           (group.zone &&
             typeof group.zone === "object" &&
-            group.zone.name === filter)
+            group.zone.name === filter),
       );
 
     return matchesSearch && matchesFilters;
@@ -155,7 +134,7 @@ const CellGroups = () => {
     setActiveFilters((prev) =>
       prev.includes(filter)
         ? prev.filter((f) => f !== filter)
-        : [...prev, filter]
+        : [...prev, filter],
     );
   };
 
@@ -163,7 +142,7 @@ const CellGroups = () => {
     setFavorites((prev) =>
       prev.includes(groupId)
         ? prev.filter((id) => id !== groupId)
-        : [...prev, groupId]
+        : [...prev, groupId],
     );
   };
 
@@ -207,13 +186,9 @@ const CellGroups = () => {
       {/* Hero Section with Parallax effect */}
       <section className="relative overflow-hidden rounded-b-3xl h-[85vh]">
         <motion.div
-          className={`absolute inset-0 ${
-            !isImageLoaded ? "animate-pulse bg-gray-200" : ""
-          }`}
+          className="absolute inset-0"
           style={{
-            backgroundImage: `url(${
-              isImageLoaded ? PlaceHolderbanner : cellGroupPlaceholderImage
-            })`,
+            backgroundImage: `url(/assets/hero-bg.jpg)`,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
@@ -221,15 +196,7 @@ const CellGroups = () => {
           animate={{ scale: 1 }}
           transition={{ duration: 10, repeat: Infinity, repeatType: "reverse" }}
           aria-label="Hero background image"
-        >
-          <img
-            src={PlaceHolderbanner}
-            alt="Victory Bible Church banner for Cell Groups"
-            className="hidden"
-            onLoad={() => setIsImageLoaded(true)}
-            onError={() => setIsImageLoaded(true)}
-          />
-        </motion.div>
+        />
 
         <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-purple-900/70 to-blue-900/80 rounded-b-3xl"></div>
 
@@ -287,7 +254,7 @@ const CellGroups = () => {
               whileTap={{ scale: 0.95 }}
             >
               Find a Group
-              <FaChevronDown className="ml-2" />
+              <ChevronDown className="ml-2" />
             </motion.button>
           </motion.div>
         </div>

@@ -1,23 +1,16 @@
 import React, { useState, useRef, useEffect } from "react";
 import { EnvelopeIcon, UserCircleIcon } from "@heroicons/react/24/outline";
 import { XMarkIcon } from "@heroicons/react/24/solid";
-import PlaceHolderbanner from "../assets/ministry-banners/ph.png";
-import FallbackImage from "../assets/fallback-image.png"; // Import fallback image
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 import { motion } from "framer-motion"; // Import motion
-import { Helmet } from "react-helmet"; // Import Helmet
+import { Helmet } from "react-helmet-async"; // Import Helmet
 import { useLeadershipQuery } from "../hooks/useLeadershipQuery";
 import config from "../config";
 
-// Import fallback images for leaders
-import bishMain from "../assets/leadership/bishop-main.jpg";
-import placeholderImage from "../assets/leadership/placeholder.jpg";
-
-// Fallback images map
+// Fallback images served from public placeholders (no large ES-module imports)
 const fallbackImages = {
-  "bishop-cyrus": bishMain,
-  default: placeholderImage,
+  default: "/assets/placeholder.jpg",
 };
 
 const Leadership = () => {
@@ -57,7 +50,7 @@ const Leadership = () => {
   useEffect(() => {
     if (selectedLeader) {
       const focusableElements = modalRef.current.querySelectorAll(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
       );
       const firstElement = focusableElements[0];
       const lastElement = focusableElements[focusableElements.length - 1];
@@ -222,19 +215,19 @@ const Leadership = () => {
               </span>
               <div className="h-0.5 w-8 md:w-12 bg-primary-500" />
             </div>
-            
+
             <h1
               id="hero-heading"
               className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 md:mb-8 leading-tight"
             >
               Shepherds of Our <span className="text-primary-400">Faith</span>
             </h1>
-            
+
             <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-8 md:mb-12 leading-relaxed max-w-2xl md:max-w-3xl xl:max-w-4xl mx-auto">
               Meet the compassionate leaders who guide, nurture, and inspire our
               church community with love, wisdom, and unwavering commitment.
             </p>
-            
+
             {/* Golden Ribbon - decorative element */}
             <div className="flex items-center justify-center space-x-3 md:space-x-4 mb-8 md:mb-12">
               <div className="h-px w-12 md:w-16 xl:w-20 bg-yellow-400" />
@@ -243,7 +236,7 @@ const Leadership = () => {
             </div>
 
             {/* Scroll indicator */}
-            <div 
+            <div
               className="flex flex-col items-center animate-bounce cursor-pointer hover:scale-110 transition-transform duration-300 mt-6 md:mt-8"
               onClick={() => {
                 window.scrollTo({

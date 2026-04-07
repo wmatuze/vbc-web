@@ -23,16 +23,16 @@ import {
 } from "../../utils/cellGroupValidation";
 import FormField from "../common/FormField";
 import {
-  FaPlus,
-  FaEdit,
-  FaTrash,
-  FaUser,
-  FaMapMarkerAlt,
-  FaEnvelope,
-  FaPhone,
-  FaLayerGroup,
-  FaUsers,
-} from "react-icons/fa";
+  Plus,
+  Edit,
+  Trash2,
+  User,
+  MapPin,
+  Mail,
+  Phone,
+  Layers,
+  Users,
+} from "lucide-react";
 
 const CellGroupManager = ({ darkMode }) => {
   // State for active tab (zones or cell groups)
@@ -91,7 +91,7 @@ const CellGroupManager = ({ darkMode }) => {
       contact: "",
       phone: "",
     },
-    iconName: "FaUsers",
+    iconName: "Users",
   });
 
   const [zoneFormMode, setZoneFormMode] = useState("add"); // 'add' or 'edit'
@@ -122,7 +122,7 @@ const CellGroupManager = ({ darkMode }) => {
         } catch (err) {
           console.error("Auto-login failed:", err);
           setError(
-            "Authentication failed. Please log in through the admin page."
+            "Authentication failed. Please log in through the admin page.",
           );
         }
       }
@@ -147,7 +147,7 @@ const CellGroupManager = ({ darkMode }) => {
         value.split(",").map((item) => item.trim()),
         cellGroupValidationRules.tags,
         formErrors,
-        setFormErrors
+        setFormErrors,
       );
     } else if (name === "lat" || name === "lng") {
       // Handle nested coordinates
@@ -182,7 +182,7 @@ const CellGroupManager = ({ darkMode }) => {
         value,
         cellGroupValidationRules.zone,
         formErrors,
-        setFormErrors
+        setFormErrors,
       );
     } else {
       // Handle regular fields
@@ -195,7 +195,7 @@ const CellGroupManager = ({ darkMode }) => {
           value,
           cellGroupValidationRules[name],
           formErrors,
-          setFormErrors
+          setFormErrors,
         );
       }
     }
@@ -222,7 +222,7 @@ const CellGroupManager = ({ darkMode }) => {
           value,
           zoneValidationRules.elder.properties[elderProperty],
           zoneFormErrors,
-          setZoneFormErrors
+          setZoneFormErrors,
         );
       }
     } else {
@@ -238,7 +238,7 @@ const CellGroupManager = ({ darkMode }) => {
           value,
           zoneValidationRules[name],
           zoneFormErrors,
-          setZoneFormErrors
+          setZoneFormErrors,
         );
       }
     }
@@ -276,7 +276,7 @@ const CellGroupManager = ({ darkMode }) => {
         contact: "",
         phone: "",
       },
-      iconName: "FaUsers",
+      iconName: "Users",
     });
     setZoneFormMode("add");
     setZoneFormErrors({});
@@ -296,7 +296,7 @@ const CellGroupManager = ({ darkMode }) => {
         // Show error message
         handleError(
           new Error("Please fix the form errors before submitting"),
-          "Form Validation"
+          "Form Validation",
         );
         return;
       }
@@ -342,7 +342,7 @@ const CellGroupManager = ({ darkMode }) => {
     },
     {
       context: "Cell Group Form Submission",
-    }
+    },
   );
 
   const handleEdit = (group) => {
@@ -387,7 +387,7 @@ const CellGroupManager = ({ darkMode }) => {
     },
     {
       context: "Cell Group Deletion",
-    }
+    },
   );
 
   const handleZoneSubmit = withErrorHandling(
@@ -403,7 +403,7 @@ const CellGroupManager = ({ darkMode }) => {
         // Show error message
         handleError(
           new Error("Please fix the form errors before submitting"),
-          "Zone Form Validation"
+          "Zone Form Validation",
         );
         return;
       }
@@ -442,7 +442,7 @@ const CellGroupManager = ({ darkMode }) => {
     },
     {
       context: "Zone Form Submission",
-    }
+    },
   );
 
   const handleZoneEdit = (zone) => {
@@ -454,7 +454,7 @@ const CellGroupManager = ({ darkMode }) => {
     async (id) => {
       // Check if there are cell groups in this zone
       const cellGroupsInZone = cellGroups.filter(
-        (group) => String(group.zone) === String(id)
+        (group) => String(group.zone) === String(id),
       );
 
       if (cellGroupsInZone.length > 0) {
@@ -480,7 +480,7 @@ const CellGroupManager = ({ darkMode }) => {
     },
     {
       context: "Zone Deletion",
-    }
+    },
   );
 
   // Get all unique locations and meeting days for dropdowns
@@ -609,10 +609,10 @@ const CellGroupManager = ({ darkMode }) => {
                     <p>
                       Selected zone:{" "}
                       {zones.find(
-                        (z) => String(z.id) === String(currentGroup.zone)
+                        (z) => String(z.id) === String(currentGroup.zone),
                       )
                         ? zones.find(
-                            (z) => String(z.id) === String(currentGroup.zone)
+                            (z) => String(z.id) === String(currentGroup.zone),
                           ).name
                         : "None selected"}
                     </p>
@@ -915,7 +915,7 @@ const CellGroupManager = ({ darkMode }) => {
                             }
 
                             console.log(
-                              `Cell group ${group.name} has zone ID: ${zoneId}`
+                              `Cell group ${group.name} has zone ID: ${zoneId}`,
                             );
 
                             // Find the zone with matching ID
@@ -1256,13 +1256,13 @@ const CellGroupManager = ({ darkMode }) => {
                             onClick={() => handleZoneEdit(zone)}
                             className="text-blue-600 hover:text-blue-900 mr-3"
                           >
-                            <FaEdit />
+                            <Edit />
                           </button>
                           <button
                             onClick={() => handleZoneDelete(zone.id)}
                             className="text-red-600 hover:text-red-900"
                           >
-                            <FaTrash />
+                            <Trash2 />
                           </button>
                         </td>
                       </tr>

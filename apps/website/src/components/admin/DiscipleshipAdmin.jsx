@@ -1,57 +1,57 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  FaPlus,
-  FaEdit,
-  FaTrash,
-  FaEye,
-  FaUsers,
-  FaCalendarAlt,
-  FaClock,
-  FaMapMarkerAlt,
-  FaBook,
-  FaGraduationCap,
-  FaChevronDown,
-  FaChevronUp,
-  FaSave,
-  FaTimes,
-  FaUserGraduate,
-  FaClipboardList
-} from 'react-icons/fa';
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Users,
+  Calendar,
+  Clock,
+  MapPin,
+  Book,
+  GraduationCap,
+  ChevronDown,
+  ChevronUp,
+  Save,
+  X,
+  User,
+  ClipboardList,
+} from "lucide-react";
 
 const DiscipleshipAdmin = () => {
   const [classes, setClasses] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('classes');
+  const [activeTab, setActiveTab] = useState("classes");
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState('');
+  const [modalType, setModalType] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
   const [expandedClass, setExpandedClass] = useState(null);
 
   // Form states
   const [classForm, setClassForm] = useState({
-    title: '',
-    description: '',
-    duration: { value: 8, unit: 'weeks' },
-    level: 'beginner',
+    title: "",
+    description: "",
+    duration: { value: 8, unit: "weeks" },
+    level: "beginner",
     prerequisites: [],
-    instructor: { name: '', email: '', phone: '', bio: '' },
-    category: 'discipleship',
-    curriculum: []
+    instructor: { name: "", email: "", phone: "", bio: "" },
+    category: "discipleship",
+    curriculum: [],
   });
 
   const [sessionForm, setSessionForm] = useState({
-    classId: '',
-    cohortName: '',
-    startDate: '',
-    endDate: '',
-    schedule: { day: 'Sunday', time: '6:00 PM - 7:30 PM', frequency: 'weekly' },
-    location: '',
+    classId: "",
+    cohortName: "",
+    startDate: "",
+    endDate: "",
+    schedule: { day: "Sunday", time: "6:00 PM - 7:30 PM", frequency: "weekly" },
+    location: "",
     capacity: 15,
-    facilitator: { name: '', email: '', phone: '' },
-    registrationDeadline: ''
+    facilitator: { name: "", email: "", phone: "" },
+    registrationDeadline: "",
   });
 
   useEffect(() => {
@@ -63,10 +63,10 @@ const DiscipleshipAdmin = () => {
       await Promise.all([
         fetchClasses(),
         fetchSessions(),
-        fetchRegistrations()
+        fetchRegistrations(),
       ]);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
@@ -74,92 +74,98 @@ const DiscipleshipAdmin = () => {
 
   const fetchClasses = async () => {
     try {
-      const response = await fetch('/api/discipleship/classes');
+      const response = await fetch("/api/discipleship/classes");
       const data = await response.json();
       if (data.success) {
         setClasses(data.data);
       }
     } catch (error) {
-      console.error('Error fetching classes:', error);
+      console.error("Error fetching classes:", error);
     }
   };
 
   const fetchSessions = async () => {
     try {
-      const response = await fetch('/api/discipleship/sessions');
+      const response = await fetch("/api/discipleship/sessions");
       const data = await response.json();
       if (data.success) {
         setSessions(data.data);
       }
     } catch (error) {
-      console.error('Error fetching sessions:', error);
+      console.error("Error fetching sessions:", error);
     }
   };
 
   const fetchRegistrations = async () => {
     try {
-      const response = await fetch('/api/discipleship/registrations', {
+      const response = await fetch("/api/discipleship/registrations", {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        },
       });
       const data = await response.json();
       if (data.success) {
         setRegistrations(data.data);
       }
     } catch (error) {
-      console.error('Error fetching registrations:', error);
+      console.error("Error fetching registrations:", error);
     }
   };
 
   const handleCreateClass = () => {
-    setModalType('createClass');
+    setModalType("createClass");
     setSelectedItem(null);
     setClassForm({
-      title: '',
-      description: '',
-      duration: { value: 8, unit: 'weeks' },
-      level: 'beginner',
+      title: "",
+      description: "",
+      duration: { value: 8, unit: "weeks" },
+      level: "beginner",
       prerequisites: [],
-      instructor: { name: '', email: '', phone: '', bio: '' },
-      category: 'discipleship',
-      curriculum: []
+      instructor: { name: "", email: "", phone: "", bio: "" },
+      category: "discipleship",
+      curriculum: [],
     });
     setShowModal(true);
   };
 
   const handleEditClass = (classItem) => {
-    setModalType('editClass');
+    setModalType("editClass");
     setSelectedItem(classItem);
     setClassForm(classItem);
     setShowModal(true);
   };
 
-  const handleCreateSession = (classId = '') => {
-    setModalType('createSession');
+  const handleCreateSession = (classId = "") => {
+    setModalType("createSession");
     setSelectedItem(null);
     setSessionForm({
       classId: classId,
-      cohortName: '',
-      startDate: '',
-      endDate: '',
-      schedule: { day: 'Sunday', time: '6:00 PM - 7:30 PM', frequency: 'weekly' },
-      location: '',
+      cohortName: "",
+      startDate: "",
+      endDate: "",
+      schedule: {
+        day: "Sunday",
+        time: "6:00 PM - 7:30 PM",
+        frequency: "weekly",
+      },
+      location: "",
       capacity: 15,
-      facilitator: { name: '', email: '', phone: '' },
-      registrationDeadline: ''
+      facilitator: { name: "", email: "", phone: "" },
+      registrationDeadline: "",
     });
     setShowModal(true);
   };
 
   const handleEditSession = (session) => {
-    setModalType('editSession');
+    setModalType("editSession");
     setSelectedItem(session);
     setSessionForm({
       ...session,
-      startDate: new Date(session.startDate).toISOString().split('T')[0],
-      endDate: new Date(session.endDate).toISOString().split('T')[0],
-      registrationDeadline: new Date(session.registrationDeadline).toISOString().split('T')[0]
+      startDate: new Date(session.startDate).toISOString().split("T")[0],
+      endDate: new Date(session.endDate).toISOString().split("T")[0],
+      registrationDeadline: new Date(session.registrationDeadline)
+        .toISOString()
+        .split("T")[0],
     });
     setShowModal(true);
   };
@@ -167,19 +173,19 @@ const DiscipleshipAdmin = () => {
   const handleSubmitClass = async (e) => {
     e.preventDefault();
     try {
-      const url = selectedItem 
+      const url = selectedItem
         ? `/api/discipleship/classes/${selectedItem._id}`
-        : '/api/discipleship/classes';
-      
-      const method = selectedItem ? 'PUT' : 'POST';
-      
+        : "/api/discipleship/classes";
+
+      const method = selectedItem ? "PUT" : "POST";
+
       const response = await fetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
         },
-        body: JSON.stringify(classForm)
+        body: JSON.stringify(classForm),
       });
 
       const data = await response.json();
@@ -188,29 +194,29 @@ const DiscipleshipAdmin = () => {
         setShowModal(false);
         // Show success message
       } else {
-        console.error('Error saving class:', data.error);
+        console.error("Error saving class:", data.error);
       }
     } catch (error) {
-      console.error('Error submitting class:', error);
+      console.error("Error submitting class:", error);
     }
   };
 
   const handleSubmitSession = async (e) => {
     e.preventDefault();
     try {
-      const url = selectedItem 
+      const url = selectedItem
         ? `/api/discipleship/sessions/${selectedItem._id}`
-        : '/api/discipleship/sessions';
-      
-      const method = selectedItem ? 'PUT' : 'POST';
-      
+        : "/api/discipleship/sessions";
+
+      const method = selectedItem ? "PUT" : "POST";
+
       const response = await fetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
         },
-        body: JSON.stringify(sessionForm)
+        body: JSON.stringify(sessionForm),
       });
 
       const data = await response.json();
@@ -219,21 +225,21 @@ const DiscipleshipAdmin = () => {
         setShowModal(false);
         // Show success message
       } else {
-        console.error('Error saving session:', data.error);
+        console.error("Error saving session:", data.error);
       }
     } catch (error) {
-      console.error('Error submitting session:', error);
+      console.error("Error submitting session:", error);
     }
   };
 
   const handleDeleteClass = async (classId) => {
-    if (window.confirm('Are you sure you want to delete this class?')) {
+    if (window.confirm("Are you sure you want to delete this class?")) {
       try {
         const response = await fetch(`/api/discipleship/classes/${classId}`, {
-          method: 'DELETE',
+          method: "DELETE",
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-          }
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
         });
 
         const data = await response.json();
@@ -241,34 +247,39 @@ const DiscipleshipAdmin = () => {
           await fetchClasses();
         }
       } catch (error) {
-        console.error('Error deleting class:', error);
+        console.error("Error deleting class:", error);
       }
     }
   };
 
   const addCurriculumWeek = () => {
-    setClassForm(prev => ({
+    setClassForm((prev) => ({
       ...prev,
       curriculum: [
         ...prev.curriculum,
-        { week: prev.curriculum.length + 1, title: '', description: '', topics: [] }
-      ]
+        {
+          week: prev.curriculum.length + 1,
+          title: "",
+          description: "",
+          topics: [],
+        },
+      ],
     }));
   };
 
   const updateCurriculumWeek = (index, field, value) => {
-    setClassForm(prev => ({
+    setClassForm((prev) => ({
       ...prev,
-      curriculum: prev.curriculum.map((week, i) => 
-        i === index ? { ...week, [field]: value } : week
-      )
+      curriculum: prev.curriculum.map((week, i) =>
+        i === index ? { ...week, [field]: value } : week,
+      ),
     }));
   };
 
   const removeCurriculumWeek = (index) => {
-    setClassForm(prev => ({
+    setClassForm((prev) => ({
       ...prev,
-      curriculum: prev.curriculum.filter((_, i) => i !== index)
+      curriculum: prev.curriculum.filter((_, i) => i !== index),
     }));
   };
 
@@ -292,14 +303,14 @@ const DiscipleshipAdmin = () => {
             onClick={handleCreateClass}
             className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
           >
-            <FaPlus />
+            <Plus />
             <span>New Class</span>
           </button>
           <button
             onClick={() => handleCreateSession()}
             className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
           >
-            <FaPlus />
+            <Plus />
             <span>New Session</span>
           </button>
         </div>
@@ -309,17 +320,17 @@ const DiscipleshipAdmin = () => {
       <div className="border-b border-gray-200 dark:border-gray-600">
         <nav className="-mb-px flex space-x-8">
           {[
-            { id: 'classes', name: 'Classes', icon: FaBook },
-            { id: 'sessions', name: 'Sessions', icon: FaCalendarAlt },
-            { id: 'registrations', name: 'Registrations', icon: FaUsers }
+            { id: "classes", name: "Classes", icon: FaBook },
+            { id: "sessions", name: "Sessions", icon: FaCalendarAlt },
+            { id: "registrations", name: "Registrations", icon: FaUsers },
           ].map(({ id, name, icon: Icon }) => (
             <button
               key={id}
               onClick={() => setActiveTab(id)}
               className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === id
-                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                  ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                  : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
               }`}
             >
               <Icon />
@@ -331,7 +342,7 @@ const DiscipleshipAdmin = () => {
 
       {/* Content */}
       <div className="mt-6">
-        {activeTab === 'classes' && (
+        {activeTab === "classes" && (
           <div className="space-y-4">
             {classes.map((classItem) => (
               <motion.div
@@ -347,17 +358,19 @@ const DiscipleshipAdmin = () => {
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                           {classItem.title}
                         </h3>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          classItem.level === 'beginner' 
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                            : classItem.level === 'intermediate'
-                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                        }`}>
+                        <span
+                          className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            classItem.level === "beginner"
+                              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                              : classItem.level === "intermediate"
+                                ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                                : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                          }`}
+                        >
                           {classItem.level}
                         </span>
                       </div>
-                      
+
                       <p className="text-gray-600 dark:text-gray-300 mb-4">
                         {classItem.description}
                       </p>
@@ -377,38 +390,55 @@ const DiscipleshipAdmin = () => {
                         </div>
                         <div className="flex items-center text-gray-500 dark:text-gray-400">
                           <FaUsers className="mr-2" />
-                          <span>{sessions.filter(s => s.classId._id === classItem._id).length} cohorts</span>
+                          <span>
+                            {
+                              sessions.filter(
+                                (s) => s.classId._id === classItem._id,
+                              ).length
+                            }{" "}
+                            cohorts
+                          </span>
                         </div>
                       </div>
                     </div>
 
                     <div className="flex space-x-2 ml-4">
                       <button
-                        onClick={() => setExpandedClass(expandedClass === classItem._id ? null : classItem._id)}
+                        onClick={() =>
+                          setExpandedClass(
+                            expandedClass === classItem._id
+                              ? null
+                              : classItem._id,
+                          )
+                        }
                         className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                       >
-                        {expandedClass === classItem._id ? <FaChevronUp /> : <FaChevronDown />}
+                        {expandedClass === classItem._id ? (
+                          <ChevronUp />
+                        ) : (
+                          <ChevronDown />
+                        )}
                       </button>
                       <button
                         onClick={() => handleCreateSession(classItem._id)}
                         className="p-2 text-green-600 hover:text-green-700 dark:text-green-400"
                         title="Add Session"
                       >
-                        <FaPlus />
+                        <Plus />
                       </button>
                       <button
                         onClick={() => handleEditClass(classItem)}
                         className="p-2 text-blue-600 hover:text-blue-700 dark:text-blue-400"
                         title="Edit Class"
                       >
-                        <FaEdit />
+                        <Edit />
                       </button>
                       <button
                         onClick={() => handleDeleteClass(classItem._id)}
                         className="p-2 text-red-600 hover:text-red-700 dark:text-red-400"
                         title="Delete Class"
                       >
-                        <FaTrash />
+                        <Trash2 />
                       </button>
                     </div>
                   </div>
@@ -418,57 +448,88 @@ const DiscipleshipAdmin = () => {
                     {expandedClass === classItem._id && (
                       <motion.div
                         initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
+                        animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3 }}
                         className="overflow-hidden mt-6 pt-6 border-t border-gray-200 dark:border-gray-600"
                       >
                         {/* Prerequisites */}
-                        {classItem.prerequisites && classItem.prerequisites.length > 0 && (
-                          <div className="mb-4">
-                            <h4 className="font-medium text-gray-900 dark:text-white mb-2">Prerequisites:</h4>
-                            <div className="flex flex-wrap gap-2">
-                              {classItem.prerequisites.map((prereq, index) => (
-                                <span key={index} className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-sm rounded">
-                                  {prereq}
-                                </span>
-                              ))}
+                        {classItem.prerequisites &&
+                          classItem.prerequisites.length > 0 && (
+                            <div className="mb-4">
+                              <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                                Prerequisites:
+                              </h4>
+                              <div className="flex flex-wrap gap-2">
+                                {classItem.prerequisites.map(
+                                  (prereq, index) => (
+                                    <span
+                                      key={index}
+                                      className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-sm rounded"
+                                    >
+                                      {prereq}
+                                    </span>
+                                  ),
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )}
 
                         {/* Curriculum */}
-                        {classItem.curriculum && classItem.curriculum.length > 0 && (
-                          <div className="mb-4">
-                            <h4 className="font-medium text-gray-900 dark:text-white mb-2">Curriculum:</h4>
-                            <div className="space-y-2">
-                              {classItem.curriculum.map((week, index) => (
-                                <div key={index} className="bg-gray-50 dark:bg-gray-700 rounded p-3">
-                                  <div className="font-medium text-sm">Week {week.week}: {week.title}</div>
-                                  {week.description && (
-                                    <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">{week.description}</div>
-                                  )}
-                                </div>
-                              ))}
+                        {classItem.curriculum &&
+                          classItem.curriculum.length > 0 && (
+                            <div className="mb-4">
+                              <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                                Curriculum:
+                              </h4>
+                              <div className="space-y-2">
+                                {classItem.curriculum.map((week, index) => (
+                                  <div
+                                    key={index}
+                                    className="bg-gray-50 dark:bg-gray-700 rounded p-3"
+                                  >
+                                    <div className="font-medium text-sm">
+                                      Week {week.week}: {week.title}
+                                    </div>
+                                    {week.description && (
+                                      <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                        {week.description}
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )}
 
                         {/* Sessions for this class */}
                         <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white mb-2">Active Sessions:</h4>
+                          <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                            Active Sessions:
+                          </h4>
                           <div className="space-y-2">
                             {sessions
-                              .filter(session => session.classId._id === classItem._id)
-                              .map(session => (
-                                <div key={session._id} className="bg-gray-50 dark:bg-gray-700 rounded p-3 flex justify-between items-center">
+                              .filter(
+                                (session) =>
+                                  session.classId._id === classItem._id,
+                              )
+                              .map((session) => (
+                                <div
+                                  key={session._id}
+                                  className="bg-gray-50 dark:bg-gray-700 rounded p-3 flex justify-between items-center"
+                                >
                                   <div>
-                                    <div className="font-medium text-sm">{session.cohortName}</div>
-                                    <div className="text-xs text-gray-600 dark:text-gray-400">
-                                      {session.schedule.day}s at {session.schedule.time} • {session.location}
+                                    <div className="font-medium text-sm">
+                                      {session.cohortName}
                                     </div>
                                     <div className="text-xs text-gray-600 dark:text-gray-400">
-                                      {session.enrolledCount}/{session.capacity} enrolled
+                                      {session.schedule.day}s at{" "}
+                                      {session.schedule.time} •{" "}
+                                      {session.location}
+                                    </div>
+                                    <div className="text-xs text-gray-600 dark:text-gray-400">
+                                      {session.enrolledCount}/{session.capacity}{" "}
+                                      enrolled
                                     </div>
                                   </div>
                                   <div className="flex space-x-2">
@@ -492,7 +553,7 @@ const DiscipleshipAdmin = () => {
           </div>
         )}
 
-        {activeTab === 'sessions' && (
+        {activeTab === "sessions" && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {sessions.map((session) => (
               <motion.div
@@ -505,13 +566,15 @@ const DiscipleshipAdmin = () => {
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                     {session.cohortName}
                   </h3>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    session.status === 'upcoming' 
-                      ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                      : session.status === 'active'
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                      : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
-                  }`}>
+                  <span
+                    className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      session.status === "upcoming"
+                        ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                        : session.status === "active"
+                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                          : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+                    }`}
+                  >
                     {session.status}
                   </span>
                 </div>
@@ -527,15 +590,19 @@ const DiscipleshipAdmin = () => {
                   </div>
                   <div className="flex items-center">
                     <FaClock className="mr-2" />
-                    <span>{session.schedule.day}s at {session.schedule.time}</span>
+                    <span>
+                      {session.schedule.day}s at {session.schedule.time}
+                    </span>
                   </div>
                   <div className="flex items-center">
                     <FaMapMarkerAlt className="mr-2" />
                     <span>{session.location}</span>
                   </div>
                   <div className="flex items-center">
-                    <FaUsers className="mr-2" />
-                    <span>{session.enrolledCount}/{session.capacity} enrolled</span>
+                    <Users className="mr-2" />
+                    <span>
+                      {session.enrolledCount}/{session.capacity} enrolled
+                    </span>
                   </div>
                 </div>
 
@@ -544,14 +611,16 @@ const DiscipleshipAdmin = () => {
                     onClick={() => handleEditSession(session)}
                     className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors"
                   >
-                    <FaEdit />
+                    <Edit />
                     <span>Edit</span>
                   </button>
                   <button
-                    onClick={() => {/* Navigate to registrations for this session */}}
+                    onClick={() => {
+                      /* Navigate to registrations for this session */
+                    }}
                     className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded transition-colors"
                   >
-                    <FaClipboardList />
+                    <ClipboardList />
                     <span>Manage</span>
                   </button>
                 </div>
@@ -560,10 +629,12 @@ const DiscipleshipAdmin = () => {
           </div>
         )}
 
-        {activeTab === 'registrations' && (
+        {activeTab === "registrations" && (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
             <div className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Registration Overview</h3>
+              <h3 className="text-lg font-semibold mb-4">
+                Registration Overview
+              </h3>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
                   <thead className="bg-gray-50 dark:bg-gray-700">
@@ -607,18 +678,22 @@ const DiscipleshipAdmin = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            registration.status === 'approved' 
-                              ? 'bg-green-100 text-green-800'
-                              : registration.status === 'pending'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}>
+                          <span
+                            className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              registration.status === "approved"
+                                ? "bg-green-100 text-green-800"
+                                : registration.status === "pending"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-red-100 text-red-800"
+                            }`}
+                          >
                             {registration.status}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                          {new Date(registration.registrationDate).toLocaleDateString()}
+                          {new Date(
+                            registration.registrationDate,
+                          ).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <button className="text-blue-600 hover:text-blue-900 dark:text-blue-400 mr-3">
@@ -656,20 +731,20 @@ const DiscipleshipAdmin = () => {
               <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                    {modalType === 'createClass' && 'Create New Class'}
-                    {modalType === 'editClass' && 'Edit Class'}
-                    {modalType === 'createSession' && 'Create New Session'}
-                    {modalType === 'editSession' && 'Edit Session'}
+                    {modalType === "createClass" && "Create New Class"}
+                    {modalType === "editClass" && "Edit Class"}
+                    {modalType === "createSession" && "Create New Session"}
+                    {modalType === "editSession" && "Edit Session"}
                   </h3>
                   <button
                     onClick={() => setShowModal(false)}
                     className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                   >
-                    <FaTimes />
+                    <X />
                   </button>
                 </div>
 
-                {(modalType === 'createClass' || modalType === 'editClass') && (
+                {(modalType === "createClass" || modalType === "editClass") && (
                   <form onSubmit={handleSubmitClass} className="space-y-6">
                     {/* Class Form Fields */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -680,7 +755,12 @@ const DiscipleshipAdmin = () => {
                         <input
                           type="text"
                           value={classForm.title}
-                          onChange={(e) => setClassForm(prev => ({ ...prev, title: e.target.value }))}
+                          onChange={(e) =>
+                            setClassForm((prev) => ({
+                              ...prev,
+                              title: e.target.value,
+                            }))
+                          }
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                           required
                         />
@@ -692,7 +772,12 @@ const DiscipleshipAdmin = () => {
                         </label>
                         <select
                           value={classForm.level}
-                          onChange={(e) => setClassForm(prev => ({ ...prev, level: e.target.value }))}
+                          onChange={(e) =>
+                            setClassForm((prev) => ({
+                              ...prev,
+                              level: e.target.value,
+                            }))
+                          }
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         >
                           <option value="beginner">Beginner</option>
@@ -708,7 +793,12 @@ const DiscipleshipAdmin = () => {
                       </label>
                       <textarea
                         value={classForm.description}
-                        onChange={(e) => setClassForm(prev => ({ ...prev, description: e.target.value }))}
+                        onChange={(e) =>
+                          setClassForm((prev) => ({
+                            ...prev,
+                            description: e.target.value,
+                          }))
+                        }
                         rows={3}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         required
@@ -723,10 +813,15 @@ const DiscipleshipAdmin = () => {
                         <input
                           type="number"
                           value={classForm.duration.value}
-                          onChange={(e) => setClassForm(prev => ({ 
-                            ...prev, 
-                            duration: { ...prev.duration, value: parseInt(e.target.value) }
-                          }))}
+                          onChange={(e) =>
+                            setClassForm((prev) => ({
+                              ...prev,
+                              duration: {
+                                ...prev.duration,
+                                value: parseInt(e.target.value),
+                              },
+                            }))
+                          }
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         />
                       </div>
@@ -737,10 +832,15 @@ const DiscipleshipAdmin = () => {
                         </label>
                         <select
                           value={classForm.duration.unit}
-                          onChange={(e) => setClassForm(prev => ({ 
-                            ...prev, 
-                            duration: { ...prev.duration, unit: e.target.value }
-                          }))}
+                          onChange={(e) =>
+                            setClassForm((prev) => ({
+                              ...prev,
+                              duration: {
+                                ...prev.duration,
+                                unit: e.target.value,
+                              },
+                            }))
+                          }
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         >
                           <option value="weeks">Weeks</option>
@@ -754,21 +854,32 @@ const DiscipleshipAdmin = () => {
                         </label>
                         <select
                           value={classForm.category}
-                          onChange={(e) => setClassForm(prev => ({ ...prev, category: e.target.value }))}
+                          onChange={(e) =>
+                            setClassForm((prev) => ({
+                              ...prev,
+                              category: e.target.value,
+                            }))
+                          }
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         >
                           <option value="discipleship">Discipleship</option>
                           <option value="leadership">Leadership</option>
                           <option value="ministry">Ministry</option>
-                          <option value="biblical_studies">Biblical Studies</option>
-                          <option value="spiritual_growth">Spiritual Growth</option>
+                          <option value="biblical_studies">
+                            Biblical Studies
+                          </option>
+                          <option value="spiritual_growth">
+                            Spiritual Growth
+                          </option>
                         </select>
                       </div>
                     </div>
 
                     {/* Instructor Information */}
                     <div>
-                      <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Instructor Information</h4>
+                      <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                        Instructor Information
+                      </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -777,10 +888,15 @@ const DiscipleshipAdmin = () => {
                           <input
                             type="text"
                             value={classForm.instructor.name}
-                            onChange={(e) => setClassForm(prev => ({ 
-                              ...prev, 
-                              instructor: { ...prev.instructor, name: e.target.value }
-                            }))}
+                            onChange={(e) =>
+                              setClassForm((prev) => ({
+                                ...prev,
+                                instructor: {
+                                  ...prev.instructor,
+                                  name: e.target.value,
+                                },
+                              }))
+                            }
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                             required
                           />
@@ -793,10 +909,15 @@ const DiscipleshipAdmin = () => {
                           <input
                             type="email"
                             value={classForm.instructor.email}
-                            onChange={(e) => setClassForm(prev => ({ 
-                              ...prev, 
-                              instructor: { ...prev.instructor, email: e.target.value }
-                            }))}
+                            onChange={(e) =>
+                              setClassForm((prev) => ({
+                                ...prev,
+                                instructor: {
+                                  ...prev.instructor,
+                                  email: e.target.value,
+                                },
+                              }))
+                            }
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                           />
                         </div>
@@ -806,20 +927,25 @@ const DiscipleshipAdmin = () => {
                     {/* Curriculum */}
                     <div>
                       <div className="flex justify-between items-center mb-4">
-                        <h4 className="text-lg font-medium text-gray-900 dark:text-white">Curriculum</h4>
+                        <h4 className="text-lg font-medium text-gray-900 dark:text-white">
+                          Curriculum
+                        </h4>
                         <button
                           type="button"
                           onClick={addCurriculumWeek}
                           className="flex items-center space-x-1 px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded"
                         >
-                          <FaPlus />
+                          <Plus />
                           <span>Add Week</span>
                         </button>
                       </div>
 
                       <div className="space-y-3">
                         {classForm.curriculum.map((week, index) => (
-                          <div key={index} className="border border-gray-200 dark:border-gray-600 rounded-md p-4">
+                          <div
+                            key={index}
+                            className="border border-gray-200 dark:border-gray-600 rounded-md p-4"
+                          >
                             <div className="flex justify-between items-center mb-3">
                               <h5 className="font-medium">Week {week.week}</h5>
                               <button
@@ -827,10 +953,10 @@ const DiscipleshipAdmin = () => {
                                 onClick={() => removeCurriculumWeek(index)}
                                 className="text-red-600 hover:text-red-700"
                               >
-                                <FaTrash />
+                                <Trash2 />
                               </button>
                             </div>
-                            
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -839,31 +965,53 @@ const DiscipleshipAdmin = () => {
                                 <input
                                   type="text"
                                   value={week.title}
-                                  onChange={(e) => updateCurriculumWeek(index, 'title', e.target.value)}
+                                  onChange={(e) =>
+                                    updateCurriculumWeek(
+                                      index,
+                                      "title",
+                                      e.target.value,
+                                    )
+                                  }
                                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                 />
                               </div>
-                              
+
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                   Topics (comma-separated)
                                 </label>
                                 <input
                                   type="text"
-                                  value={week.topics ? week.topics.join(', ') : ''}
-                                  onChange={(e) => updateCurriculumWeek(index, 'topics', e.target.value.split(',').map(t => t.trim()))}
+                                  value={
+                                    week.topics ? week.topics.join(", ") : ""
+                                  }
+                                  onChange={(e) =>
+                                    updateCurriculumWeek(
+                                      index,
+                                      "topics",
+                                      e.target.value
+                                        .split(",")
+                                        .map((t) => t.trim()),
+                                    )
+                                  }
                                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                 />
                               </div>
                             </div>
-                            
+
                             <div className="mt-3">
                               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 Description
                               </label>
                               <textarea
                                 value={week.description}
-                                onChange={(e) => updateCurriculumWeek(index, 'description', e.target.value)}
+                                onChange={(e) =>
+                                  updateCurriculumWeek(
+                                    index,
+                                    "description",
+                                    e.target.value,
+                                  )
+                                }
                                 rows={2}
                                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                               />
@@ -886,14 +1034,17 @@ const DiscipleshipAdmin = () => {
                         type="submit"
                         className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md transition-colors flex items-center justify-center space-x-2"
                       >
-                        <FaSave />
-                        <span>{selectedItem ? 'Update Class' : 'Create Class'}</span>
+                        <Save />
+                        <span>
+                          {selectedItem ? "Update Class" : "Create Class"}
+                        </span>
                       </button>
                     </div>
                   </form>
                 )}
 
-                {(modalType === 'createSession' || modalType === 'editSession') && (
+                {(modalType === "createSession" ||
+                  modalType === "editSession") && (
                   <form onSubmit={handleSubmitSession} className="space-y-6">
                     {/* Session Form Fields */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -903,13 +1054,20 @@ const DiscipleshipAdmin = () => {
                         </label>
                         <select
                           value={sessionForm.classId}
-                          onChange={(e) => setSessionForm(prev => ({ ...prev, classId: e.target.value }))}
+                          onChange={(e) =>
+                            setSessionForm((prev) => ({
+                              ...prev,
+                              classId: e.target.value,
+                            }))
+                          }
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                           required
                         >
                           <option value="">Select a class</option>
-                          {classes.map(cls => (
-                            <option key={cls._id} value={cls._id}>{cls.title}</option>
+                          {classes.map((cls) => (
+                            <option key={cls._id} value={cls._id}>
+                              {cls.title}
+                            </option>
                           ))}
                         </select>
                       </div>
@@ -921,7 +1079,12 @@ const DiscipleshipAdmin = () => {
                         <input
                           type="text"
                           value={sessionForm.cohortName}
-                          onChange={(e) => setSessionForm(prev => ({ ...prev, cohortName: e.target.value }))}
+                          onChange={(e) =>
+                            setSessionForm((prev) => ({
+                              ...prev,
+                              cohortName: e.target.value,
+                            }))
+                          }
                           placeholder="e.g., Spring 2024 Discipleship"
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                           required
@@ -937,7 +1100,12 @@ const DiscipleshipAdmin = () => {
                         <input
                           type="date"
                           value={sessionForm.startDate}
-                          onChange={(e) => setSessionForm(prev => ({ ...prev, startDate: e.target.value }))}
+                          onChange={(e) =>
+                            setSessionForm((prev) => ({
+                              ...prev,
+                              startDate: e.target.value,
+                            }))
+                          }
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                           required
                         />
@@ -950,7 +1118,12 @@ const DiscipleshipAdmin = () => {
                         <input
                           type="date"
                           value={sessionForm.endDate}
-                          onChange={(e) => setSessionForm(prev => ({ ...prev, endDate: e.target.value }))}
+                          onChange={(e) =>
+                            setSessionForm((prev) => ({
+                              ...prev,
+                              endDate: e.target.value,
+                            }))
+                          }
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                           required
                         />
@@ -963,7 +1136,12 @@ const DiscipleshipAdmin = () => {
                         <input
                           type="date"
                           value={sessionForm.registrationDeadline}
-                          onChange={(e) => setSessionForm(prev => ({ ...prev, registrationDeadline: e.target.value }))}
+                          onChange={(e) =>
+                            setSessionForm((prev) => ({
+                              ...prev,
+                              registrationDeadline: e.target.value,
+                            }))
+                          }
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                           required
                         />
@@ -977,10 +1155,15 @@ const DiscipleshipAdmin = () => {
                         </label>
                         <select
                           value={sessionForm.schedule.day}
-                          onChange={(e) => setSessionForm(prev => ({ 
-                            ...prev, 
-                            schedule: { ...prev.schedule, day: e.target.value }
-                          }))}
+                          onChange={(e) =>
+                            setSessionForm((prev) => ({
+                              ...prev,
+                              schedule: {
+                                ...prev.schedule,
+                                day: e.target.value,
+                              },
+                            }))
+                          }
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         >
                           <option value="Sunday">Sunday</option>
@@ -1000,10 +1183,15 @@ const DiscipleshipAdmin = () => {
                         <input
                           type="text"
                           value={sessionForm.schedule.time}
-                          onChange={(e) => setSessionForm(prev => ({ 
-                            ...prev, 
-                            schedule: { ...prev.schedule, time: e.target.value }
-                          }))}
+                          onChange={(e) =>
+                            setSessionForm((prev) => ({
+                              ...prev,
+                              schedule: {
+                                ...prev.schedule,
+                                time: e.target.value,
+                              },
+                            }))
+                          }
                           placeholder="6:00 PM - 7:30 PM"
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         />
@@ -1016,7 +1204,12 @@ const DiscipleshipAdmin = () => {
                         <input
                           type="number"
                           value={sessionForm.capacity}
-                          onChange={(e) => setSessionForm(prev => ({ ...prev, capacity: parseInt(e.target.value) }))}
+                          onChange={(e) =>
+                            setSessionForm((prev) => ({
+                              ...prev,
+                              capacity: parseInt(e.target.value),
+                            }))
+                          }
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         />
                       </div>
@@ -1029,7 +1222,12 @@ const DiscipleshipAdmin = () => {
                       <input
                         type="text"
                         value={sessionForm.location}
-                        onChange={(e) => setSessionForm(prev => ({ ...prev, location: e.target.value }))}
+                        onChange={(e) =>
+                          setSessionForm((prev) => ({
+                            ...prev,
+                            location: e.target.value,
+                          }))
+                        }
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         required
                       />
@@ -1037,7 +1235,9 @@ const DiscipleshipAdmin = () => {
 
                     {/* Facilitator Information */}
                     <div>
-                      <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Facilitator Information</h4>
+                      <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                        Facilitator Information
+                      </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -1046,10 +1246,15 @@ const DiscipleshipAdmin = () => {
                           <input
                             type="text"
                             value={sessionForm.facilitator.name}
-                            onChange={(e) => setSessionForm(prev => ({ 
-                              ...prev, 
-                              facilitator: { ...prev.facilitator, name: e.target.value }
-                            }))}
+                            onChange={(e) =>
+                              setSessionForm((prev) => ({
+                                ...prev,
+                                facilitator: {
+                                  ...prev.facilitator,
+                                  name: e.target.value,
+                                },
+                              }))
+                            }
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                             required
                           />
@@ -1062,10 +1267,15 @@ const DiscipleshipAdmin = () => {
                           <input
                             type="email"
                             value={sessionForm.facilitator.email}
-                            onChange={(e) => setSessionForm(prev => ({ 
-                              ...prev, 
-                              facilitator: { ...prev.facilitator, email: e.target.value }
-                            }))}
+                            onChange={(e) =>
+                              setSessionForm((prev) => ({
+                                ...prev,
+                                facilitator: {
+                                  ...prev.facilitator,
+                                  email: e.target.value,
+                                },
+                              }))
+                            }
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                           />
                         </div>
@@ -1085,8 +1295,10 @@ const DiscipleshipAdmin = () => {
                         type="submit"
                         className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md transition-colors flex items-center justify-center space-x-2"
                       >
-                        <FaSave />
-                        <span>{selectedItem ? 'Update Session' : 'Create Session'}</span>
+                        <Save />
+                        <span>
+                          {selectedItem ? "Update Session" : "Create Session"}
+                        </span>
                       </button>
                     </div>
                   </form>

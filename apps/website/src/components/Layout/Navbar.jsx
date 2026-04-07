@@ -33,14 +33,11 @@ const Navbar = ({
   const [isMinistriesDropdownOpen, setIsMinistriesDropdownOpen] =
     useState(false); // State for Desktop Ministries dropdown
   const ministriesDropdownRef = useRef(null); // Ref for Desktop Ministries dropdown
-  const [isProgramsDropdownOpen, setIsProgramsDropdownOpen] =
-    useState(false); // State for Desktop Programs dropdown
+  const [isProgramsDropdownOpen, setIsProgramsDropdownOpen] = useState(false); // State for Desktop Programs dropdown
   const programsDropdownRef = useRef(null); // Ref for Desktop Programs dropdown
-  const [isConnectDropdownOpen, setIsConnectDropdownOpen] =
-    useState(false); // State for Desktop Connect dropdown
+  const [isConnectDropdownOpen, setIsConnectDropdownOpen] = useState(false); // State for Desktop Connect dropdown
   const connectDropdownRef = useRef(null); // Ref for Desktop Connect dropdown
-  const [isMediaDropdownOpen, setIsMediaDropdownOpen] =
-    useState(false); // State for Desktop Media dropdown
+  const [isMediaDropdownOpen, setIsMediaDropdownOpen] = useState(false); // State for Desktop Media dropdown
   const mediaDropdownRef = useRef(null); // Ref for Desktop Media dropdown
   const location = useLocation();
   const [isMobileMinistriesDropdownOpen, setIsMobileMinistriesDropdownOpen] =
@@ -84,6 +81,7 @@ const Navbar = ({
         label: "Media",
         icon: FilmIcon,
         children: [
+          { path: "/sermons", label: "Sermons" },
           { path: "/audio-sermons", label: "Audio Sermons" },
           { path: "/gallery", label: "Gallery" },
           { path: "/resources", label: "Resources" },
@@ -100,7 +98,7 @@ const Navbar = ({
       },
       { path: "/contact", label: "Contact", icon: EnvelopeIcon },
     ],
-    []
+    [],
   );
 
   // Memoized scroll handler
@@ -147,12 +145,12 @@ const Navbar = ({
 
     document.addEventListener(
       "mousedown",
-      handleClickOutsideMinistriesDropdown
+      handleClickOutsideMinistriesDropdown,
     );
     return () =>
       document.removeEventListener(
         "mousedown",
-        handleClickOutsideMinistriesDropdown
+        handleClickOutsideMinistriesDropdown,
       );
   }, [isMinistriesDropdownOpen]);
 
@@ -168,14 +166,11 @@ const Navbar = ({
       }
     };
 
-    document.addEventListener(
-      "mousedown",
-      handleClickOutsideProgramsDropdown
-    );
+    document.addEventListener("mousedown", handleClickOutsideProgramsDropdown);
     return () =>
       document.removeEventListener(
         "mousedown",
-        handleClickOutsideProgramsDropdown
+        handleClickOutsideProgramsDropdown,
       );
   }, [isProgramsDropdownOpen]);
 
@@ -191,14 +186,11 @@ const Navbar = ({
       }
     };
 
-    document.addEventListener(
-      "mousedown",
-      handleClickOutsideConnectDropdown
-    );
+    document.addEventListener("mousedown", handleClickOutsideConnectDropdown);
     return () =>
       document.removeEventListener(
         "mousedown",
-        handleClickOutsideConnectDropdown
+        handleClickOutsideConnectDropdown,
       );
   }, [isConnectDropdownOpen]);
 
@@ -214,14 +206,11 @@ const Navbar = ({
       }
     };
 
-    document.addEventListener(
-      "mousedown",
-      handleClickOutsideMediaDropdown
-    );
+    document.addEventListener("mousedown", handleClickOutsideMediaDropdown);
     return () =>
       document.removeEventListener(
         "mousedown",
-        handleClickOutsideMediaDropdown
+        handleClickOutsideMediaDropdown,
       );
   }, [isMediaDropdownOpen]);
 
@@ -290,14 +279,14 @@ const Navbar = ({
                 />
                 <span
                   className={`text-sm md:text-sm lg:text-base font-bold tracking-tight ${getTextColor(
-                    "text-white"
+                    "text-white",
                   )} font-display pl-1`}
                 >
                   ictory Bible
                 </span>
                 <span
                   className={`text-sm md:text-sm lg:text-base font-bold tracking-tight ${getTextColor(
-                    "text-white"
+                    "text-white",
                   )} font-display ml-1`}
                 >
                   Church
@@ -313,10 +302,15 @@ const Navbar = ({
                     key={link.label}
                     className="relative"
                     ref={
-                      link.label === "Programs" ? programsDropdownRef :
-                      link.label === "Ministries" ? ministriesDropdownRef :
-                      link.label === "Media" ? mediaDropdownRef :
-                      link.label === "Connect" ? connectDropdownRef : null
+                      link.label === "Programs"
+                        ? programsDropdownRef
+                        : link.label === "Ministries"
+                          ? ministriesDropdownRef
+                          : link.label === "Media"
+                            ? mediaDropdownRef
+                            : link.label === "Connect"
+                              ? connectDropdownRef
+                              : null
                     }
                   >
                     <button
@@ -333,7 +327,9 @@ const Navbar = ({
                         if (link.label === "Programs") {
                           setIsProgramsDropdownOpen(!isProgramsDropdownOpen);
                         } else if (link.label === "Ministries") {
-                          setIsMinistriesDropdownOpen(!isMinistriesDropdownOpen);
+                          setIsMinistriesDropdownOpen(
+                            !isMinistriesDropdownOpen,
+                          );
                         } else if (link.label === "Media") {
                           setIsMediaDropdownOpen(!isMediaDropdownOpen);
                         } else if (link.label === "Connect") {
@@ -341,10 +337,15 @@ const Navbar = ({
                         }
                       }}
                       aria-expanded={
-                        link.label === "Programs" ? isProgramsDropdownOpen :
-                        link.label === "Ministries" ? isMinistriesDropdownOpen :
-                        link.label === "Media" ? isMediaDropdownOpen :
-                        link.label === "Connect" ? isConnectDropdownOpen : false
+                        link.label === "Programs"
+                          ? isProgramsDropdownOpen
+                          : link.label === "Ministries"
+                            ? isMinistriesDropdownOpen
+                            : link.label === "Media"
+                              ? isMediaDropdownOpen
+                              : link.label === "Connect"
+                                ? isConnectDropdownOpen
+                                : false
                       }
                       aria-haspopup="true"
                     >
@@ -352,10 +353,19 @@ const Navbar = ({
                       {link.label}
                       <ChevronDownIcon
                         className={`h-2.5 w-2.5 md:h-3 md:w-3 transition-transform duration-300 ${
-                          (link.label === "Programs" ? isProgramsDropdownOpen :
-                           link.label === "Ministries" ? isMinistriesDropdownOpen :
-                           link.label === "Media" ? isMediaDropdownOpen :
-                           link.label === "Connect" ? isConnectDropdownOpen : false) ? "rotate-180" : ""
+                          (
+                            link.label === "Programs"
+                              ? isProgramsDropdownOpen
+                              : link.label === "Ministries"
+                                ? isMinistriesDropdownOpen
+                                : link.label === "Media"
+                                  ? isMediaDropdownOpen
+                                  : link.label === "Connect"
+                                    ? isConnectDropdownOpen
+                                    : false
+                          )
+                            ? "rotate-180"
+                            : ""
                         }`}
                       />
                     </button>
@@ -367,10 +377,17 @@ const Navbar = ({
                         focus:outline-none transform
                         transition-all duration-300 origin-top
                         ${
-                          (link.label === "Programs" ? isProgramsDropdownOpen :
-                           link.label === "Ministries" ? isMinistriesDropdownOpen :
-                           link.label === "Media" ? isMediaDropdownOpen :
-                           link.label === "Connect" ? isConnectDropdownOpen : false)
+                          (
+                            link.label === "Programs"
+                              ? isProgramsDropdownOpen
+                              : link.label === "Ministries"
+                                ? isMinistriesDropdownOpen
+                                : link.label === "Media"
+                                  ? isMediaDropdownOpen
+                                  : link.label === "Connect"
+                                    ? isConnectDropdownOpen
+                                    : false
+                          )
                             ? "opacity-100 scale-100 translate-y-0"
                             : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
                         }
@@ -424,7 +441,7 @@ const Navbar = ({
                     <link.icon className="h-3 w-3 md:h-4 md:w-4" />
                     {link.label}
                   </Link>
-                )
+                ),
               )}
             </div>
 
@@ -497,10 +514,15 @@ const Navbar = ({
                         }
                       `}
                       onClick={
-                        link.label === "Programs" ? toggleMobileProgramsDropdown :
-                        link.label === "Ministries" ? toggleMobileMinistriesDropdown :
-                        link.label === "Media" ? toggleMobileMediaDropdown :
-                        link.label === "Connect" ? toggleMobileConnectDropdown : null
+                        link.label === "Programs"
+                          ? toggleMobileProgramsDropdown
+                          : link.label === "Ministries"
+                            ? toggleMobileMinistriesDropdown
+                            : link.label === "Media"
+                              ? toggleMobileMediaDropdown
+                              : link.label === "Connect"
+                                ? toggleMobileConnectDropdown
+                                : null
                       }
                     >
                       <div className="flex items-center">
@@ -517,19 +539,39 @@ const Navbar = ({
                         className={`
                           h-5 w-5
                           transition-transform duration-300
-                          ${link.label === "Programs" ? (isMobileProgramsDropdownOpen ? "rotate-180" : "") :
-                            link.label === "Ministries" ? (isMobileMinistriesDropdownOpen ? "rotate-180" : "") :
-                            link.label === "Media" ? (isMobileMediaDropdownOpen ? "rotate-180" : "") :
-                            link.label === "Connect" ? (isMobileConnectDropdownOpen ? "rotate-180" : "") : ""}
+                          ${
+                            link.label === "Programs"
+                              ? isMobileProgramsDropdownOpen
+                                ? "rotate-180"
+                                : ""
+                              : link.label === "Ministries"
+                                ? isMobileMinistriesDropdownOpen
+                                  ? "rotate-180"
+                                  : ""
+                                : link.label === "Media"
+                                  ? isMobileMediaDropdownOpen
+                                    ? "rotate-180"
+                                    : ""
+                                  : link.label === "Connect"
+                                    ? isMobileConnectDropdownOpen
+                                      ? "rotate-180"
+                                      : ""
+                                    : ""
+                          }
                           ${hasScrolled ? "text-gray-600" : "text-white/80"}
                           group-hover:text-red-500
                         `}
                       />
                     </button>
-                    {(link.label === "Programs" ? isMobileProgramsDropdownOpen :
-                      link.label === "Ministries" ? isMobileMinistriesDropdownOpen :
-                      link.label === "Media" ? isMobileMediaDropdownOpen :
-                      link.label === "Connect" ? isMobileConnectDropdownOpen : false) && (
+                    {(link.label === "Programs"
+                      ? isMobileProgramsDropdownOpen
+                      : link.label === "Ministries"
+                        ? isMobileMinistriesDropdownOpen
+                        : link.label === "Media"
+                          ? isMobileMediaDropdownOpen
+                          : link.label === "Connect"
+                            ? isMobileConnectDropdownOpen
+                            : false) && (
                       <div className="pl-6">
                         {link.children.map((childLink) => (
                           <Link
@@ -583,7 +625,7 @@ const Navbar = ({
                     />
                     {link.label}
                   </Link>
-                )
+                ),
               )}
             </div>
           </div>

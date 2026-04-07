@@ -1,27 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 import HeroSection from "../components/common/HeroSection";
-import { 
-  FaBook, 
-  FaUsers, 
-  FaChalkboardTeacher, 
-  FaBible, 
-  FaDownload, 
-  FaEye, 
-  FaSearch, 
-  FaFilter,
-  FaFileAlt,
-  FaVideo,
-  FaMusic,
-  FaLink,
-  FaImage,
-  FaFilePowerpoint,
-  FaStar,
-  FaTimes,
-  FaChevronDown
-} from "react-icons/fa";
+import {
+  Book,
+  Users,
+  Presentation,
+  Book as BookAlt,
+  Download,
+  Eye,
+  Search,
+  Filter,
+  FileText,
+  Video,
+  Music,
+  Link as LinkIcon,
+  Image,
+  FileText as FilePPT,
+  Star,
+  X,
+  ChevronDown,
+} from "lucide-react";
 
 // Static navigation cards for main resource categories
 const resourceCategories = [
@@ -29,50 +29,52 @@ const resourceCategories = [
     path: "/foundation-classes",
     title: "Foundation Classes",
     description: "Learn the core beliefs of our church",
-    icon: <FaBook className="text-blue-600 dark:text-blue-300 text-4xl" />,
-    color: "blue"
+    icon: <Book className="text-blue-600 dark:text-blue-300 text-4xl" />,
+    color: "blue",
   },
   {
     path: "/discipleship-classes",
     title: "Discipleship Classes",
     description: "Deepen your faith and walk with Christ",
-    icon: <FaChalkboardTeacher className="text-purple-600 dark:text-purple-300 text-4xl" />,
-    color: "purple"
+    icon: (
+      <Presentation className="text-purple-600 dark:text-purple-300 text-4xl" />
+    ),
+    color: "purple",
   },
   {
     path: "/resources/leadership-training",
     title: "Leadership Training",
     description: "Grow as a leader in ministry",
-    icon: <FaUsers className="text-green-600 dark:text-green-300 text-4xl" />,
-    color: "green"
+    icon: <Users className="text-green-600 dark:text-green-300 text-4xl" />,
+    color: "green",
   },
   {
     path: "/resources/bible-study",
     title: "Bible Study Guides",
     description: "Explore scripture with structured lessons",
-    icon: <FaBible className="text-yellow-600 dark:text-yellow-300 text-4xl" />,
-    color: "yellow"
+    icon: <Book className="text-yellow-600 dark:text-yellow-300 text-4xl" />,
+    color: "yellow",
   },
 ];
 
 const typeIcons = {
-  document: <FaFileAlt />,
-  video: <FaVideo />,
-  audio: <FaMusic />,
-  link: <FaLink />,
-  image: <FaImage />,
-  presentation: <FaFilePowerpoint />,
+  document: <FileText />,
+  video: <Video />,
+  audio: <Music />,
+  link: <LinkIcon />,
+  image: <Image />,
+  presentation: <FileText />,
 };
 
 const categoryColors = {
   audio_sermons: "green",
   foundation: "blue",
-  discipleship: "purple", 
+  discipleship: "purple",
   leadership: "green",
   ministry: "indigo",
   bible_study: "yellow",
   worship: "pink",
-  general: "gray"
+  general: "gray",
 };
 
 const CategoryCard = ({ resource, index }) => (
@@ -102,14 +104,14 @@ const ResourceItem = ({ resource, index }) => {
   const handleDownload = async (e) => {
     e.preventDefault();
     if (resource.isDownloadable) {
-      window.open(`/api/resources/${resource._id}/download`, '_blank');
+      window.open(`/api/resources/${resource._id}/download`, "_blank");
     } else if (resource.url) {
-      window.open(resource.url, '_blank');
+      window.open(resource.url, "_blank");
     }
   };
 
-  const categoryColor = categoryColors[resource.category] || 'gray';
-  
+  const categoryColor = categoryColors[resource.category] || "gray";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -120,30 +122,34 @@ const ResourceItem = ({ resource, index }) => {
       <div className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3">
-            <div className={`text-${categoryColor}-600 dark:text-${categoryColor}-400 text-xl`}>
-              {typeIcons[resource.type] || <FaFileAlt />}
+            <div
+              className={`text-${categoryColor}-600 dark:text-${categoryColor}-400 text-xl`}
+            >
+              {typeIcons[resource.type] || <FileText />}
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {resource.title}
               </h3>
               <div className="flex items-center space-x-2 mt-1">
-                <span className={`px-2 py-1 text-xs font-medium rounded-full bg-${categoryColor}-100 text-${categoryColor}-800 dark:bg-${categoryColor}-900 dark:text-${categoryColor}-200`}>
-                  {resource.category.replace('_', ' ')}
+                <span
+                  className={`px-2 py-1 text-xs font-medium rounded-full bg-${categoryColor}-100 text-${categoryColor}-800 dark:bg-${categoryColor}-900 dark:text-${categoryColor}-200`}
+                >
+                  {resource.category.replace("_", " ")}
                 </span>
                 {resource.featured && (
-                  <FaStar className="text-yellow-500 text-sm" />
+                  <Star className="text-yellow-500 text-sm" />
                 )}
               </div>
             </div>
           </div>
-          
+
           <button
             onClick={handleDownload}
             className="flex items-center space-x-1 px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
           >
-            {resource.type === 'link' ? <FaEye /> : <FaDownload />}
-            <span>{resource.type === 'link' ? 'View' : 'Download'}</span>
+            {resource.type === "link" ? <Eye /> : <Download />}
+            <span>{resource.type === "link" ? "View" : "Download"}</span>
           </button>
         </div>
 
@@ -154,7 +160,10 @@ const ResourceItem = ({ resource, index }) => {
         {resource.tags && resource.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-4">
             {resource.tags.map((tag, i) => (
-              <span key={i} className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
+              <span
+                key={i}
+                className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded"
+              >
                 {tag}
               </span>
             ))}
@@ -164,21 +173,19 @@ const ResourceItem = ({ resource, index }) => {
         <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
           <div className="flex items-center space-x-4">
             <span className="flex items-center">
-              <FaEye className="mr-1" />
+              <Eye className="mr-1" />
               {resource.views || 0}
             </span>
             <span className="flex items-center">
-              <FaDownload className="mr-1" />
+              <Download className="mr-1" />
               {resource.downloads || 0}
             </span>
             {resource.fileSizeFormatted && (
               <span>{resource.fileSizeFormatted}</span>
             )}
           </div>
-          
-          {resource.author && (
-            <span>by {resource.author.name}</span>
-          )}
+
+          {resource.author && <span>by {resource.author.name}</span>}
         </div>
       </div>
     </motion.div>
@@ -189,9 +196,9 @@ const Resources = () => {
   const [resources, setResources] = useState([]);
   const [featuredResources, setFeaturedResources] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedType, setSelectedType] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedType, setSelectedType] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
@@ -202,18 +209,18 @@ const Resources = () => {
   const fetchResources = async () => {
     try {
       const params = new URLSearchParams();
-      if (searchTerm) params.append('search', searchTerm);
-      if (selectedCategory) params.append('category', selectedCategory);
-      if (selectedType) params.append('type', selectedType);
+      if (searchTerm) params.append("search", searchTerm);
+      if (selectedCategory) params.append("category", selectedCategory);
+      if (selectedType) params.append("type", selectedType);
 
       const response = await fetch(`/api/resources?${params}`);
       const data = await response.json();
-      
+
       if (data.success) {
         setResources(data.data);
       }
     } catch (error) {
-      console.error('Error fetching resources:', error);
+      console.error("Error fetching resources:", error);
     } finally {
       setLoading(false);
     }
@@ -221,14 +228,14 @@ const Resources = () => {
 
   const fetchFeaturedResources = async () => {
     try {
-      const response = await fetch('/api/resources/featured/list');
+      const response = await fetch("/api/resources/featured/list");
       const data = await response.json();
-      
+
       if (data.success) {
         setFeaturedResources(data.data);
       }
     } catch (error) {
-      console.error('Error fetching featured resources:', error);
+      console.error("Error fetching featured resources:", error);
     }
   };
 
@@ -241,9 +248,9 @@ const Resources = () => {
   }, [searchTerm, selectedCategory, selectedType]);
 
   const clearFilters = () => {
-    setSearchTerm('');
-    setSelectedCategory('');
-    setSelectedType('');
+    setSearchTerm("");
+    setSelectedCategory("");
+    setSelectedType("");
   };
 
   return (
@@ -272,7 +279,6 @@ const Resources = () => {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-7xl mx-auto"
         >
-
           {/* Main Category Navigation */}
           <section className="mb-16">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8 text-center">
@@ -280,7 +286,11 @@ const Resources = () => {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {resourceCategories.map((resource, index) => (
-                <CategoryCard key={resource.path} resource={resource} index={index} />
+                <CategoryCard
+                  key={resource.path}
+                  resource={resource}
+                  index={index}
+                />
               ))}
             </div>
           </section>
@@ -293,7 +303,11 @@ const Resources = () => {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {featuredResources.slice(0, 6).map((resource, index) => (
-                  <ResourceItem key={resource._id} resource={resource} index={index} />
+                  <ResourceItem
+                    key={resource._id}
+                    resource={resource}
+                    index={index}
+                  />
                 ))}
               </div>
             </section>
@@ -305,7 +319,7 @@ const Resources = () => {
               <div className="flex flex-col md:flex-row gap-4 items-center">
                 {/* Search Bar */}
                 <div className="flex-1 relative">
-                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                   <input
                     type="text"
                     placeholder="Search resources..."
@@ -320,9 +334,11 @@ const Resources = () => {
                   onClick={() => setShowFilters(!showFilters)}
                   className="flex items-center space-x-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
-                  <FaFilter />
+                  <Filter />
                   <span>Filters</span>
-                  <FaChevronDown className={`transform transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+                  <ChevronDown
+                    className={`transform transition-transform ${showFilters ? "rotate-180" : ""}`}
+                  />
                 </button>
 
                 {/* Clear Filters */}
@@ -331,7 +347,7 @@ const Resources = () => {
                     onClick={clearFilters}
                     className="flex items-center space-x-2 px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
                   >
-                    <FaTimes />
+                    <X />
                     <span>Clear</span>
                   </button>
                 )}
@@ -342,7 +358,7 @@ const Resources = () => {
                 {showFilters && (
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
+                    animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.3 }}
                     className="overflow-hidden mt-4 pt-4 border-t border-gray-200 dark:border-gray-600"
@@ -408,16 +424,24 @@ const Resources = () => {
             {loading ? (
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-4 text-gray-600 dark:text-gray-400">Loading resources...</p>
+                <p className="mt-4 text-gray-600 dark:text-gray-400">
+                  Loading resources...
+                </p>
               </div>
             ) : resources.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-600 dark:text-gray-400">No resources found matching your criteria.</p>
+                <p className="text-gray-600 dark:text-gray-400">
+                  No resources found matching your criteria.
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {resources.map((resource, index) => (
-                  <ResourceItem key={resource._id} resource={resource} index={index} />
+                  <ResourceItem
+                    key={resource._id}
+                    resource={resource}
+                    index={index}
+                  />
                 ))}
               </div>
             )}

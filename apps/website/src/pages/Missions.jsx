@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Helmet } from "react-helmet"; // For SEO meta tags
+import { Helmet } from "react-helmet-async"; // For SEO meta tags
 // Removed unused image imports - now using consistent hero background
 import {
-  FaHandsHelping,
-  FaGlobeAfrica,
-  FaUsers,
-  FaChurch,
-  FaPrayingHands,
-  FaHeart,
-  FaArrowRight,
-} from "react-icons/fa";
+  Handshake,
+  Globe,
+  Users,
+  Building2,
+  Sparkles,
+  Heart,
+  ArrowRight,
+} from "lucide-react";
 import HeroSection from "../components/common/HeroSection";
 
 // --- Data ---
@@ -25,7 +25,7 @@ const missionProjects = [
     image: "/images/mission-local.jpg",
     altText: "Volunteers serving food in our local community.",
     link: "/missions/local-outreach",
-    icon: <FaHandsHelping />,
+    icon: <Handshake />,
     howToHelp: [
       "Volunteer at our monthly food drives",
       "Donate non-perishable food items",
@@ -42,7 +42,7 @@ const missionProjects = [
     image: "/images/mission-global.jpg",
     altText: "Missionaries sharing the Gospel around the world.",
     link: "/missions/global",
-    icon: <FaGlobeAfrica />,
+    icon: <Globe />,
     howToHelp: [
       "Join a short-term mission trip",
       "Sponsor a missionary",
@@ -59,7 +59,7 @@ const missionProjects = [
     image: "/images/mission-youth.jpg",
     altText: "Youth engaged in leadership and spiritual development.",
     link: "/missions/youth",
-    icon: <FaUsers />,
+    icon: <Users />,
     howToHelp: [
       "Mentor a young person",
       "Volunteer with youth programs",
@@ -76,7 +76,7 @@ const missionProjects = [
     image: "/images/mission-church.jpg",
     altText: "A newly planted church reaching a new community.",
     link: "/missions/church-planting",
-    icon: <FaChurch />,
+    icon: <Building2 />,
     howToHelp: [
       "Join a church planting team",
       "Provide financial support for new churches",
@@ -210,14 +210,13 @@ const CallToAction = () => (
           <p className="text-gray-400 mt-6 text-lg">Romans 10:15</p>
           <div className="mt-12 space-y-6">
             <p className="flex items-center text-lg">
-              <FaPrayingHands className="mr-4 text-gray-400" /> Pray for our
-              missions
+              <Hands className="mr-4 text-gray-400" /> Pray for our missions
             </p>
             <p className="flex items-center text-lg">
-              <FaHeart className="mr-4 text-gray-400" /> Support a missionary
+              <Heart className="mr-4 text-gray-400" /> Support a missionary
             </p>
             <p className="flex items-center text-lg">
-              <FaUsers className="mr-4 text-gray-400" /> Join a mission team
+              <Users className="mr-4 text-gray-400" /> Join a mission team
             </p>
           </div>
         </div>

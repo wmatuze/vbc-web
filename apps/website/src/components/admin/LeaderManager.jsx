@@ -37,7 +37,6 @@ import {
   ArrowDownTrayIcon,
   DocumentArrowDownIcon,
 } from "@heroicons/react/24/outline";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { useLeaderFilters } from "../../hooks/useLeaderFilters";
 import LeaderCard from "./LeaderCard";
 import ConfirmDialog from "../common/ConfirmDialog";
@@ -107,7 +106,7 @@ const LeaderManager = () => {
     viewMode === "grid"
       ? filteredLeaders.slice(
           (currentPage - 1) * ITEMS_PER_PAGE,
-          currentPage * ITEMS_PER_PAGE
+          currentPage * ITEMS_PER_PAGE,
         )
       : filteredLeaders;
 
@@ -185,7 +184,7 @@ const LeaderManager = () => {
           value,
           leaderValidationRules.socialMedia.properties[platform],
           formErrors,
-          setFormErrors
+          setFormErrors,
         );
       }
     } else if (name === "ministryFocus") {
@@ -201,7 +200,7 @@ const LeaderManager = () => {
         items,
         leaderValidationRules.ministryFocus,
         formErrors,
-        setFormErrors
+        setFormErrors,
       );
     } else {
       setCurrentLeader((prev) => ({
@@ -216,7 +215,7 @@ const LeaderManager = () => {
           type === "checkbox" ? checked : value,
           leaderValidationRules[name],
           formErrors,
-          setFormErrors
+          setFormErrors,
         );
       }
     }
@@ -233,7 +232,7 @@ const LeaderManager = () => {
       if (!validTypes.includes(file.type)) {
         handleError(
           new Error("Please upload a valid image file (JPEG, PNG, or GIF)"),
-          "File Type Validation"
+          "File Type Validation",
         );
         return;
       }
@@ -242,7 +241,7 @@ const LeaderManager = () => {
         // 5MB limit
         handleError(
           new Error("Image size should be less than 5MB"),
-          "File Size Validation"
+          "File Size Validation",
         );
         return;
       }
@@ -267,7 +266,7 @@ const LeaderManager = () => {
         const errorData = await response.text();
         console.error("Server response:", errorData);
         throw new Error(
-          `Failed to upload image: ${response.status} ${response.statusText}`
+          `Failed to upload image: ${response.status} ${response.statusText}`,
         );
       }
 
@@ -282,7 +281,7 @@ const LeaderManager = () => {
     },
     {
       context: "Image Upload",
-    }
+    },
   );
 
   // Handle form submission
@@ -296,7 +295,7 @@ const LeaderManager = () => {
         setFormErrors(errors);
         handleError(
           new Error("Please fix the form errors before submitting"),
-          "Form Validation"
+          "Form Validation",
         );
         return;
       }
@@ -324,7 +323,7 @@ const LeaderManager = () => {
     },
     {
       context: "Leader Form Submission",
-    }
+    },
   );
 
   // Handle delete
@@ -339,7 +338,7 @@ const LeaderManager = () => {
     },
     {
       context: "Leader Deletion",
-    }
+    },
   );
 
   // Handle bulk delete
@@ -348,10 +347,10 @@ const LeaderManager = () => {
       if (selectedLeaders.size === 0) return;
 
       await Promise.all(
-        Array.from(selectedLeaders).map((id) => deleteLeader(id))
+        Array.from(selectedLeaders).map((id) => deleteLeader(id)),
       );
       setSuccessMessage(
-        `Successfully deleted ${selectedLeaders.size} leader(s)`
+        `Successfully deleted ${selectedLeaders.size} leader(s)`,
       );
       setSelectedLeaders(new Set());
       await refetchLeaders();
@@ -361,40 +360,7 @@ const LeaderManager = () => {
     },
     {
       context: "Bulk Leader Deletion",
-    }
-  );
-
-  // Handle drag and drop reordering
-  const handleDragEnd = withErrorHandling(
-    async (result) => {
-      if (!result.destination) return;
-
-      const items = Array.from(leaders);
-      const [reorderedItem] = items.splice(result.source.index, 1);
-      items.splice(result.destination.index, 0, reorderedItem);
-
-      // Update order values
-      const updatedItems = items.map((item, index) => ({
-        ...item,
-        order: index,
-      }));
-
-      // Update local state temporarily until refetch completes
-      // This will be overwritten when refetchLeaders() completes
-
-      await Promise.all(
-        updatedItems.map((leader) => updateLeader(leader.id, leader))
-      );
-      setSuccessMessage("Leader order updated successfully!");
-      setTimeout(() => setSuccessMessage(""), 3000);
     },
-    {
-      context: "Leader Reordering",
-      onError: () => {
-        // Revert to original order on error
-        refetchLeaders();
-      },
-    }
   );
 
   // Handle export
@@ -733,205 +699,175 @@ const LeaderManager = () => {
           )}
         </>
       ) : (
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="w-8 px-6 py-3">
+        <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th scope="col" className="w-8 px-6 py-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedLeaders.size === filteredLeaders.length}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedLeaders(
+                          new Set(filteredLeaders.map((l) => l.id)),
+                        );
+                      } else {
+                        setSelectedLeaders(new Set());
+                      }
+                    }}
+                    className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                  />
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Leader
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Contact
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Department
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Ministry Focus
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {paginatedLeaders.map((leader, index) => (
+                <tr key={leader.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4">
                     <input
                       type="checkbox"
-                      checked={selectedLeaders.size === filteredLeaders.length}
+                      checked={selectedLeaders.has(leader.id)}
                       onChange={(e) => {
+                        const newSelected = new Set(selectedLeaders);
                         if (e.target.checked) {
-                          setSelectedLeaders(
-                            new Set(filteredLeaders.map((l) => l.id))
-                          );
+                          newSelected.add(leader.id);
                         } else {
-                          setSelectedLeaders(new Set());
+                          newSelected.delete(leader.id);
                         }
+                        setSelectedLeaders(newSelected);
                       }}
                       className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
                     />
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Leader
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Contact
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Department
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Ministry Focus
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <Droppable droppableId="leaders">
-                {(provided) => (
-                  <tbody
-                    {...provided.droppableProps}
-                    ref={provided.innerRef}
-                    className="bg-white divide-y divide-gray-200"
-                  >
-                    {paginatedLeaders.map((leader, index) => (
-                      <Draggable
-                        key={leader.id}
-                        draggableId={leader.id.toString()}
-                        index={index}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center">
+                      {leader.imageUrl ? (
+                        <img
+                          src={getImagePreviewUrl(leader.imageUrl)}
+                          alt=""
+                          className="h-10 w-10 rounded-full object-cover cursor-pointer"
+                          onClick={() => {
+                            setSelectedImage(
+                              getImagePreviewUrl(leader.imageUrl),
+                            );
+                            setShowImagePreview(true);
+                          }}
+                          onError={handleImageError}
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
+                          <UserIcon className="h-6 w-6 text-gray-400" />
+                        </div>
+                      )}
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900">
+                          {leader.name}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {leader.title}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <div className="space-y-1">
+                      {leader.email && (
+                        <a
+                          href={`mailto:${leader.email}`}
+                          className="flex items-center hover:text-gray-700"
+                        >
+                          <EnvelopeIcon className="h-4 w-4 mr-1" />
+                          {leader.email}
+                        </a>
+                      )}
+                      {leader.phone && (
+                        <a
+                          href={`tel:${leader.phone}`}
+                          className="flex items-center hover:text-gray-700"
+                        >
+                          <PhoneIcon className="h-4 w-4 mr-1" />
+                          {leader.phone}
+                        </a>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {leader.department && (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {leader.department}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-wrap gap-2">
+                      {leader.ministryFocus?.map((focus) => (
+                        <span
+                          key={focus}
+                          className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
+                        >
+                          {focus}
+                        </span>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => {
+                          setCurrentLeader(leader);
+                          setFormMode("edit");
+                          setShowForm(true);
+                        }}
+                        className="text-blue-400 hover:text-blue-500"
+                        title="Edit"
                       >
-                        {(provided, snapshot) => (
-                          <tr
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            className={
-                              snapshot.isDragging
-                                ? "bg-gray-50"
-                                : "hover:bg-gray-50"
-                            }
-                          >
-                            <td className="px-6 py-4">
-                              <input
-                                type="checkbox"
-                                checked={selectedLeaders.has(leader.id)}
-                                onChange={(e) => {
-                                  const newSelected = new Set(selectedLeaders);
-                                  if (e.target.checked) {
-                                    newSelected.add(leader.id);
-                                  } else {
-                                    newSelected.delete(leader.id);
-                                  }
-                                  setSelectedLeaders(newSelected);
-                                }}
-                                className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
-                              />
-                            </td>
-                            <td
-                              className="px-6 py-4"
-                              {...provided.dragHandleProps}
-                            >
-                              <div className="flex items-center">
-                                {leader.imageUrl ? (
-                                  <img
-                                    src={getImagePreviewUrl(leader.imageUrl)}
-                                    alt=""
-                                    className="h-10 w-10 rounded-full object-cover cursor-pointer"
-                                    onClick={() => {
-                                      setSelectedImage(
-                                        getImagePreviewUrl(leader.imageUrl)
-                                      );
-                                      setShowImagePreview(true);
-                                    }}
-                                    onError={handleImageError}
-                                  />
-                                ) : (
-                                  <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                    <UserIcon className="h-6 w-6 text-gray-400" />
-                                  </div>
-                                )}
-                                <div className="ml-4">
-                                  <div className="text-sm font-medium text-gray-900">
-                                    {leader.name}
-                                  </div>
-                                  <div className="text-sm text-gray-500">
-                                    {leader.title}
-                                  </div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              <div className="space-y-1">
-                                {leader.email && (
-                                  <a
-                                    href={`mailto:${leader.email}`}
-                                    className="flex items-center hover:text-gray-700"
-                                  >
-                                    <EnvelopeIcon className="h-4 w-4 mr-1" />
-                                    {leader.email}
-                                  </a>
-                                )}
-                                {leader.phone && (
-                                  <a
-                                    href={`tel:${leader.phone}`}
-                                    className="flex items-center hover:text-gray-700"
-                                  >
-                                    <PhoneIcon className="h-4 w-4 mr-1" />
-                                    {leader.phone}
-                                  </a>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              {leader.department && (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                  {leader.department}
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="flex flex-wrap gap-2">
-                                {leader.ministryFocus?.map((focus) => (
-                                  <span
-                                    key={focus}
-                                    className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
-                                  >
-                                    {focus}
-                                  </span>
-                                ))}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              <div className="flex items-center space-x-2">
-                                <button
-                                  onClick={() => {
-                                    setCurrentLeader(leader);
-                                    setFormMode("edit");
-                                    setShowForm(true);
-                                  }}
-                                  className="text-blue-400 hover:text-blue-500"
-                                  title="Edit"
-                                >
-                                  <PencilIcon className="h-5 w-5" />
-                                </button>
-                                <button
-                                  onClick={() => handleDelete(leader.id)}
-                                  className="text-red-400 hover:text-red-500"
-                                  title="Delete"
-                                >
-                                  <TrashIcon className="h-5 w-5" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </tbody>
-                )}
-              </Droppable>
-            </table>
-          </div>
-        </DragDropContext>
+                        <PencilIcon className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(leader.id)}
+                        className="text-red-400 hover:text-red-500"
+                        title="Delete"
+                      >
+                        <TrashIcon className="h-5 w-5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {/* Leader Form Modal */}

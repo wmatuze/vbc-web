@@ -1,43 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Helmet } from "react-helmet";
-import PlaceHolderbanner from "../assets/ministry-banners/ph.png";
-import FallbackImage from "../assets/fallback-image.png";
+import { Helmet } from "react-helmet-async";
 import { motion, AnimatePresence } from "framer-motion";
+import HeroSection from "../components/common/HeroSection";
 import {
-  FaChevronDown,
-  FaMapMarkerAlt,
-  FaPhone,
-  FaEnvelope,
-  FaClock,
-  FaFacebook,
-  FaInstagram,
-  FaYoutube,
-  FaWhatsapp,
-  FaDirections,
-  FaQuestionCircle,
-  FaPrayingHands,
-  FaCalendarAlt,
-} from "react-icons/fa";
+  ChevronDown,
+  MapPin,
+  Phone,
+  Mail,
+  Clock,
+  Facebook,
+  Instagram,
+  Youtube,
+  MessageCircle,
+  Navigation,
+  HelpCircle,
+  Sparkles,
+  Calendar,
+} from "lucide-react";
 
 const ContactUs = () => {
   const location = useLocation();
-  const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [activeSection, setActiveSection] = useState("contact-info");
-
-  const scrollToContent = () => {
-    document
-      .getElementById("contact-info-section")
-      .scrollIntoView({ behavior: "smooth" });
-  };
-
-  // Parallax effect on scroll
-  const [scrollY, setScrollY] = useState(0);
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100 overflow-hidden">
@@ -50,112 +34,23 @@ const ContactUs = () => {
         />
       </Helmet>
 
-      {/* Hero Section - Enhanced with parallax and animations */}
-      <section className="relative overflow-hidden rounded-b-3xl h-[90vh]">
-        <motion.div
-          className={`absolute inset-0 ${
-            !isImageLoaded ? "animate-pulse bg-gray-200" : ""
-          }`}
-          style={{
-            backgroundImage: `url(${
-              isImageLoaded ? PlaceHolderbanner : FallbackImage
-            })`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            transform: `translateY(${scrollY * 0.4}px)`,
-          }}
-          initial={{ scale: 1.1 }}
-          animate={{ scale: 1.05 }}
-          transition={{ duration: 12, repeat: Infinity, repeatType: "reverse" }}
-          onLoad={() => setIsImageLoaded(true)}
-          aria-label="Hero background image"
-        >
-          <img
-            src={PlaceHolderbanner}
-            alt="Victory Bible Church banner"
-            className="hidden"
-            onLoad={() => setIsImageLoaded(true)}
-            onError={() => setIsImageLoaded(true)}
-          />
-        </motion.div>
-
-        {/* Enhanced gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/80 via-purple-900/70 to-blue-900/80"></div>
-
-        {/* Animated particles */}
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(12)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute rounded-full bg-white/10"
-              style={{
-                width: Math.random() * 120 + 50,
-                height: Math.random() * 120 + 50,
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                y: [Math.random() * 100, Math.random() * -100],
-                x: [Math.random() * 50, Math.random() * -50],
-                opacity: [0.1, 0.4, 0.1],
-              }}
-              transition={{
-                duration: Math.random() * 12 + 10,
-                repeat: Infinity,
-                repeatType: "reverse",
-              }}
-            />
-          ))}
-        </div>
-
-        <div className="container mx-auto px-4 relative z-10 h-full flex flex-col justify-center items-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center"
-          >
-            <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-6 tracking-tight">
-              Get In{" "}
-              <span className="text-yellow-400 relative">
-                Touch
-                <motion.span
-                  className="absolute bottom-1 left-0 h-1 bg-yellow-400"
-                  initial={{ width: 0 }}
-                  animate={{ width: "100%" }}
-                  transition={{ delay: 0.8, duration: 0.6 }}
-                />
-              </span>
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-100 max-w-2xl mx-auto leading-relaxed font-light">
-              We'd love to hear from you! Reach out for inquiries, prayer
-              requests, or visit information.
-            </p>
-          </motion.div>
-
-          <motion.div
-            className="absolute bottom-10 cursor-pointer bg-white/20 hover:bg-white/30 p-3 rounded-full backdrop-blur-sm transition-all duration-300"
-            animate={{ y: [0, 10, 0] }}
-            transition={{ repeat: Infinity, duration: 1.5 }}
-            onClick={scrollToContent}
-            onKeyDown={(e) => e.key === "Enter" && scrollToContent()}
-            role="button"
-            tabIndex={0}
-            aria-label="Scroll to contact information"
-            whileHover={{ scale: 1.1 }}
-          >
-            <FaChevronDown className="text-white text-xl" />
-          </motion.div>
-        </div>
-      </section>
+      {/* Consistent Hero Section */}
+      <HeroSection
+        title="Get In Touch"
+        subtitle="Contact Us"
+        description="We'd love to hear from you! Reach out for inquiries, prayer requests, or visit information."
+        primaryAccentText="Touch"
+        scrollText="CONTACT INFO BELOW"
+        backgroundImage="/assets/hero-bg.jpg"
+      />
 
       {/* Sticky Navigation Tabs */}
       <div className="sticky top-0 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-md px-4 py-3 -mt-2 rounded-b-xl">
         <div className="container mx-auto flex justify-center gap-4 overflow-x-auto no-scrollbar">
           {[
-            { id: "contact-info", label: "Contact Info", icon: <FaEnvelope /> },
-            { id: "service-times", label: "Service Times", icon: <FaClock /> },
-            { id: "social-media", label: "Social Media", icon: <FaFacebook /> },
+            { id: "contact-info", label: "Contact Info", icon: <Mail /> },
+            { id: "service-times", label: "Service Times", icon: <Clock /> },
+            { id: "social-media", label: "Social Media", icon: <Facebook /> },
           ].map((item) => (
             <button
               key={item.id}
@@ -200,7 +95,7 @@ const ContactUs = () => {
                   whileHover={{ x: 5 }}
                 >
                   <div className="bg-blue-600 rounded-full p-3 text-white mt-1">
-                    <FaMapMarkerAlt />
+                    <MapPin />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold mb-2">Our Location</h3>
@@ -221,7 +116,7 @@ const ContactUs = () => {
                   whileHover={{ x: 5 }}
                 >
                   <div className="bg-blue-600 rounded-full p-3 text-white mt-1">
-                    <FaPhone />
+                    <Phone />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold mb-2">Phone Number</h3>
@@ -240,7 +135,7 @@ const ContactUs = () => {
                   whileHover={{ x: 5 }}
                 >
                   <div className="bg-indigo-600 rounded-full p-3 text-white mt-1">
-                    <FaEnvelope />
+                    <Mail />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold mb-2">
@@ -257,7 +152,7 @@ const ContactUs = () => {
                   whileHover={{ x: 5 }}
                 >
                   <div className="bg-indigo-600 rounded-full p-3 text-white mt-1">
-                    <FaClock />
+                    <Clock />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold mb-2">Office Hours</h3>

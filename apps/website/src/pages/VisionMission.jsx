@@ -1,12 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import { Helmet } from "react-helmet-async";
 import { motion } from "framer-motion";
-import PlaceHolderbanner from "../assets/ministry-banners/ph.png";
-import FallbackImage from "../assets/fallback-image.png";
+
+const HERO_BG = "/assets/hero-bg.jpg";
 
 const VisionMission = () => {
-  const [isImageLoaded, setIsImageLoaded] = useState(false);
-
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       <Helmet>
@@ -20,13 +18,9 @@ const VisionMission = () => {
       {/* Hero Section - Minimalist Black & White Design */}
       <section className="relative overflow-hidden h-[85vh] bg-black">
         <motion.div
-          className={`absolute inset-0 opacity-40 ${
-            !isImageLoaded ? "animate-pulse bg-gray-800" : ""
-          }`}
+          className="absolute inset-0 opacity-40"
           style={{
-            backgroundImage: `url(${
-              isImageLoaded ? PlaceHolderbanner : FallbackImage
-            })`,
+            backgroundImage: `url(${HERO_BG})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
             filter: "grayscale(100%)",
@@ -35,15 +29,7 @@ const VisionMission = () => {
           animate={{ scale: 1 }}
           transition={{ duration: 20, repeat: Infinity, repeatType: "reverse" }}
           aria-label="Hero background image"
-        >
-          <img
-            src={PlaceHolderbanner}
-            alt="Vision & Mission banner"
-            className="hidden"
-            onLoad={() => setIsImageLoaded(true)}
-            onError={() => setIsImageLoaded(true)}
-          />
-        </motion.div>
+        />
 
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-black/80"></div>
 

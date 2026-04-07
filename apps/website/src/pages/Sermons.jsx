@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useSearchParams } from "react-router-dom";
-import { Helmet } from "react-helmet"; // Added Helmet for SEO
+import { Helmet } from "react-helmet-async"; // Added Helmet for SEO
 import config from "../config"; // Import centralized config
 import { useSermonsQuery } from "../hooks/useSermonsQuery";
 import placeholderImage from "../assets/placeholders/default-image.svg";
@@ -21,7 +21,8 @@ const checkYouTubeConnectivity = async () => {
       timeout: 3000,
     });
 
-    if (import.meta.env.DEV) console.log("YouTube connectivity check successful");
+    if (import.meta.env.DEV)
+      console.log("YouTube connectivity check successful");
     return true;
   } catch (error) {
     console.error("YouTube connectivity check failed:", error);
@@ -101,7 +102,7 @@ const Sermons = () => {
 
   // Normalize and sort sermons by date (desc) with fallback logic
   const sermonsToDisplay = useMemo(() => {
-    const source = (sermonsError || !sermons?.length) ? staticSermons : sermons;
+    const source = sermonsError || !sermons?.length ? staticSermons : sermons;
     return [...source].sort((a, b) => {
       const da = new Date(a.date)?.getTime() || 0;
       const db = new Date(b.date)?.getTime() || 0;
@@ -113,17 +114,20 @@ const Sermons = () => {
   const getSermonImageUrl = useCallback((sermon) => {
     // Ensure we have a valid sermon object
     if (!sermon || typeof sermon !== "object") {
-      if (import.meta.env.DEV) console.log("Invalid sermon object, using placeholder");
+      if (import.meta.env.DEV)
+        console.log("Invalid sermon object, using placeholder");
       return placeholderImage;
     }
 
     // For debugging
-    if (import.meta.env.DEV) console.log("Processing sermon image:", sermon.title, sermon.imageUrl);
+    if (import.meta.env.DEV)
+      console.log("Processing sermon image:", sermon.title, sermon.imageUrl);
 
     // 1. First priority: Use YouTube thumbnail if available (most reliable)
     if (sermon.videoId) {
       const youtubeThumb = `https://img.youtube.com/vi/${sermon.videoId}/hqdefault.jpg`;
-      if (import.meta.env.DEV) console.log("Using auto-generated YouTube thumbnail:", youtubeThumb);
+      if (import.meta.env.DEV)
+        console.log("Using auto-generated YouTube thumbnail:", youtubeThumb);
       return youtubeThumb;
     }
 
@@ -140,7 +144,8 @@ const Sermons = () => {
     if (sermon.imageUrl && typeof sermon.imageUrl === "string") {
       // Skip if it's a default image path and we have better options
       if (sermon.imageUrl.includes("default-image")) {
-        if (import.meta.env.DEV) console.log("Skipping default image path, using placeholder");
+        if (import.meta.env.DEV)
+          console.log("Skipping default image path, using placeholder");
         return placeholderImage;
       }
 
@@ -152,7 +157,8 @@ const Sermons = () => {
             const url = parsed.path.startsWith("/")
               ? `${API_URL}${parsed.path}`
               : parsed.path;
-            if (import.meta.env.DEV) console.log("Using parsed imageUrl path:", url);
+            if (import.meta.env.DEV)
+              console.log("Using parsed imageUrl path:", url);
             return url;
           }
         } catch (e) {
@@ -165,7 +171,8 @@ const Sermons = () => {
         sermon.imageUrl.startsWith("http") ||
         sermon.imageUrl.startsWith("data:")
       ) {
-        if (import.meta.env.DEV) console.log("Using absolute imageUrl:", sermon.imageUrl);
+        if (import.meta.env.DEV)
+          console.log("Using absolute imageUrl:", sermon.imageUrl);
         return sermon.imageUrl;
       }
 
@@ -181,7 +188,8 @@ const Sermons = () => {
     if (sermon.image && typeof sermon.image === "string") {
       // Don't prepend API_URL if the URL is already absolute or a data URL
       if (sermon.image.startsWith("http") || sermon.image.startsWith("data:")) {
-        if (import.meta.env.DEV) console.log("Using absolute image string:", sermon.image);
+        if (import.meta.env.DEV)
+          console.log("Using absolute image string:", sermon.image);
         return sermon.image;
       }
 
@@ -205,7 +213,7 @@ const Sermons = () => {
       if (typeof dateString === "object" && !(dateString instanceof Date)) {
         console.warn(
           "Sermon date is an object but not a Date instance:",
-          dateString
+          dateString,
         );
         // Try to extract date from the object if possible
         if (dateString.toString) {
@@ -254,7 +262,7 @@ const Sermons = () => {
       setYoutubeAccessible(canAccessYouTube);
       if (!canAccessYouTube) {
         console.warn(
-          "YouTube appears to be inaccessible. Videos may not play correctly."
+          "YouTube appears to be inaccessible. Videos may not play correctly.",
         );
       }
     };
@@ -282,7 +290,7 @@ const Sermons = () => {
       console.error("Invalid YouTube video ID:", sermon.videoId);
       setVideoError(true);
       setVideoErrorMessage(
-        `Invalid YouTube video ID: ${sermon.videoId || "missing"}`
+        `Invalid YouTube video ID: ${sermon.videoId || "missing"}`,
       );
       setIsLoading(false);
       return;
@@ -290,14 +298,15 @@ const Sermons = () => {
 
     // Set a timeout to prevent indefinite loading
     const timeout = setTimeout(() => {
-      if (import.meta.env.DEV) console.warn("Video loading timeout - forcing completion");
+      if (import.meta.env.DEV)
+        console.warn("Video loading timeout - forcing completion");
       setIsLoading(false);
 
       // Only set error if we're still in loading state
       if (isLoading) {
         setVideoError(true);
         setVideoErrorMessage(
-          "Video loading timed out. Please try again or use a different player."
+          "Video loading timed out. Please try again or use a different player.",
         );
       }
     }, 10000); // 10 second timeout (increased for slower connections)
@@ -307,7 +316,7 @@ const Sermons = () => {
     // Check if YouTube is accessible
     if (!youtubeAccessible) {
       console.warn(
-        "YouTube appears to be inaccessible, but will try to load video anyway."
+        "YouTube appears to be inaccessible, but will try to load video anyway.",
       );
     }
 
@@ -329,7 +338,8 @@ const Sermons = () => {
     // Reset loading states when component mounts
     const resetLoadingState = setTimeout(() => {
       if (isLoading) {
-        if (import.meta.env.DEV) console.log("Force resetting loading state after component mount");
+        if (import.meta.env.DEV)
+          console.log("Force resetting loading state after component mount");
         setIsLoading(false);
 
         if (loadingTimeout) {
@@ -340,12 +350,13 @@ const Sermons = () => {
     }, 3000);
 
     if (sermonsToDisplay && sermonsToDisplay.length > 0) {
-      if (import.meta.env.DEV) console.log("Sermons page - data:", sermonsToDisplay);
+      if (import.meta.env.DEV)
+        console.log("Sermons page - data:", sermonsToDisplay);
 
       // Set the initially selected sermon
       if (videoIdParam) {
         const foundSermon = sermonsToDisplay.find(
-          (sermon) => sermon.videoId === videoIdParam
+          (sermon) => sermon.videoId === videoIdParam,
         );
         if (foundSermon) {
           selectSermon(foundSermon);
@@ -434,8 +445,14 @@ const Sermons = () => {
       >
         {sermonsError && (
           <div className="mb-8 rounded-lg bg-red-50 border border-red-200 p-4 text-red-700 flex items-center justify-between">
-            <span>We couldn't load the latest sermons from the server. Showing backup content.</span>
-            <button onClick={refetchSermons} className="btn btn-sm btn-outline border-red-300 text-red-700 hover:bg-red-100">
+            <span>
+              We couldn't load the latest sermons from the server. Showing
+              backup content.
+            </span>
+            <button
+              onClick={refetchSermons}
+              className="btn btn-sm btn-outline border-red-300 text-red-700 hover:bg-red-100"
+            >
               Retry
             </button>
           </div>
@@ -553,7 +570,8 @@ const Sermons = () => {
                           allowFullScreen
                           loading="eager"
                           onLoad={() => {
-                            if (import.meta.env.DEV) console.log("YouTube iframe loaded successfully");
+                            if (import.meta.env.DEV)
+                              console.log("YouTube iframe loaded successfully");
                             setIsLoading(false);
                             // Clear any existing timeout to prevent race conditions
                             if (loadingTimeout) {
@@ -622,9 +640,10 @@ const Sermons = () => {
                           allowFullScreen
                           loading="eager"
                           onLoad={() => {
-                            if (import.meta.env.DEV) console.log(
-                              "YouTube-nocookie iframe loaded successfully"
-                            );
+                            if (import.meta.env.DEV)
+                              console.log(
+                                "YouTube-nocookie iframe loaded successfully",
+                              );
                             setIsLoading(false);
                             // Clear any existing timeout to prevent race conditions
                             if (loadingTimeout) {
@@ -703,14 +722,15 @@ const Sermons = () => {
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     console.error(
-                      `Failed to load image: ${getSermonImageUrl(sermon)}`
+                      `Failed to load image: ${getSermonImageUrl(sermon)}`,
                     );
                     // First try YouTube thumbnail if available
                     if (
                       sermon.videoId &&
                       !e.target.src.includes(sermon.videoId)
                     ) {
-                      if (import.meta.env.DEV) console.log("Fallback to direct YouTube thumbnail");
+                      if (import.meta.env.DEV)
+                        console.log("Fallback to direct YouTube thumbnail");
                       e.target.src = `https://img.youtube.com/vi/${sermon.videoId}/hqdefault.jpg`;
                     } else {
                       // Otherwise use placeholder image

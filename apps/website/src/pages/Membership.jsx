@@ -1,24 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Helmet } from "react-helmet";
-import PlaceHolderbanner from "../assets/ministry-banners/ph.png";
-import FallbackImage from "../assets/fallback-image.png";
+import { Helmet } from "react-helmet-async";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  FaChevronDown,
-  FaChevronRight,
-  FaUserPlus,
-  FaSync,
-  FaQuestion,
-  FaCheckCircle,
-  FaAngleDown,
-  FaRegLightbulb,
-  FaStar,
-  FaCertificate,
-  FaCalendarCheck,
-  FaUserFriends,
-  FaClipboardList,
-} from "react-icons/fa";
+  ChevronDown,
+  ChevronRight,
+  UserPlus,
+  RefreshCw,
+  HelpCircle,
+  CheckCircle,
+  ChevronDown as ChevronDownAlt,
+  Lightbulb,
+  Star,
+  Award,
+  CalendarCheck,
+  Users,
+  Clipboard,
+} from "lucide-react";
 
 const Membership = () => {
   const location = useLocation();
@@ -111,9 +109,7 @@ const Membership = () => {
             !isImageLoaded ? "animate-pulse bg-gray-200" : ""
           }`}
           style={{
-            backgroundImage: `url(${
-              isImageLoaded ? PlaceHolderbanner : FallbackImage
-            })`,
+            backgroundImage: `url(/assets/hero-bg.jpg)`,
             backgroundSize: "cover",
             backgroundPosition: "center",
             transform: `translateY(${scrollY * 0.4}px)`,
@@ -121,17 +117,8 @@ const Membership = () => {
           initial={{ scale: 1.1 }}
           animate={{ scale: 1.05 }}
           transition={{ duration: 12, repeat: Infinity, repeatType: "reverse" }}
-          onLoad={() => setIsImageLoaded(true)}
           aria-label="Hero background image"
-        >
-          <img
-            src={PlaceHolderbanner}
-            alt="Victory Bible Church banner"
-            className="hidden"
-            onLoad={() => setIsImageLoaded(true)}
-            onError={() => setIsImageLoaded(true)}
-          />
-        </motion.div>
+        />
 
         {/* Enhanced gradient overlay with better color blending */}
         <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/85 via-purple-900/75 to-blue-900/85"></div>
@@ -309,7 +296,7 @@ const Membership = () => {
               <div className="bg-white/10 backdrop-blur-sm p-8 md:p-12 flex items-center justify-center">
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-8 text-white w-full">
                   <h3 className="text-xl font-semibold mb-4 flex items-center">
-                    <FaStar className="text-yellow-300 mr-2" /> Membership
+                    <Star className="text-yellow-300 mr-2" /> Membership
                     Benefits
                   </h3>
                   <ul className="space-y-3">
@@ -412,7 +399,9 @@ const Membership = () => {
 
               <div className="mt-12 flex flex-col items-center text-center">
                 <p className="text-gray-700 dark:text-gray-300 mb-6 max-w-2xl">
-                  Ready to take the first step? Our Foundation Classes will help you establish a biblical foundation and prepare you for membership.
+                  Ready to take the first step? Our Foundation Classes will help
+                  you establish a biblical foundation and prepare you for
+                  membership.
                 </p>
                 <motion.div
                   whileHover={{ scale: 1.05 }}
@@ -500,7 +489,7 @@ const Membership = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Added FAQ about renewal deadline */}
                   <div className="mt-8 p-4 border border-purple-200 dark:border-purple-900 rounded-lg bg-purple-50 dark:bg-purple-900/20">
                     <h4 className="font-semibold flex items-center mb-2">
@@ -508,7 +497,9 @@ const Membership = () => {
                       When is the renewal deadline?
                     </h4>
                     <p className="text-gray-700 dark:text-gray-300">
-                      Annual renewals should be completed before March 31st each year to maintain your membership status without interruption.
+                      Annual renewals should be completed before March 31st each
+                      year to maintain your membership status without
+                      interruption.
                     </p>
                   </div>
                 </div>
@@ -585,41 +576,43 @@ const Membership = () => {
 
             <div className="p-8 md:p-12 divide-y divide-gray-200 dark:divide-gray-700">
               {/* Filtering out the renewal deadline question since we'll move it to the renewal section */}
-              {faqItems.filter(item => !item.question.includes("deadline")).map((item, index) => (
-                <div key={index} className="py-4">
-                  <button
-                    className="flex justify-between items-center w-full text-left font-medium text-lg py-2"
-                    onClick={() =>
-                      setExpandedFaq(expandedFaq === index ? null : index)
-                    }
-                    aria-expanded={expandedFaq === index}
-                  >
-                    <span className="pr-8">{item.question}</span>
-                    <motion.div
-                      animate={{ rotate: expandedFaq === index ? 180 : 0 }}
-                      transition={{ duration: 0.3 }}
+              {faqItems
+                .filter((item) => !item.question.includes("deadline"))
+                .map((item, index) => (
+                  <div key={index} className="py-4">
+                    <button
+                      className="flex justify-between items-center w-full text-left font-medium text-lg py-2"
+                      onClick={() =>
+                        setExpandedFaq(expandedFaq === index ? null : index)
+                      }
+                      aria-expanded={expandedFaq === index}
                     >
-                      <FaAngleDown className="text-indigo-600 dark:text-indigo-400 text-xl" />
-                    </motion.div>
-                  </button>
-
-                  <AnimatePresence>
-                    {expandedFaq === index && (
+                      <span className="pr-8">{item.question}</span>
                       <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
+                        animate={{ rotate: expandedFaq === index ? 180 : 0 }}
                         transition={{ duration: 0.3 }}
-                        className="overflow-hidden"
                       >
-                        <p className="pt-4 pb-2 text-gray-600 dark:text-gray-300">
-                          {item.answer}
-                        </p>
+                        <FaAngleDown className="text-indigo-600 dark:text-indigo-400 text-xl" />
                       </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              ))}
+                    </button>
+
+                    <AnimatePresence>
+                      {expandedFaq === index && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="overflow-hidden"
+                        >
+                          <p className="pt-4 pb-2 text-gray-600 dark:text-gray-300">
+                            {item.answer}
+                          </p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ))}
             </div>
 
             <div className="bg-gray-50 dark:bg-gray-700 p-8 text-center">
@@ -651,17 +644,17 @@ const Membership = () => {
                 <blockquote>
                   <div className="text-5xl text-indigo-300 mb-4">"</div>
                   <p className="text-xl italic mb-6">
-                    Becoming a member of Victory Bible Church has connected me with
-                    a loving community that supports my spiritual growth. The
-                    Foundation Classes gave me a strong biblical foundation, and I'm
-                    thankful to be part of this church family.
+                    Becoming a member of Victory Bible Church has connected me
+                    with a loving community that supports my spiritual growth.
+                    The Foundation Classes gave me a strong biblical foundation,
+                    and I'm thankful to be part of this church family.
                   </p>
                   <footer className="text-indigo-200">
                     <cite>— Maria Mulenga, Member since 2022</cite>
                   </footer>
                 </blockquote>
               </div>
-              
+
               {/* CTA Side */}
               <div className="bg-white/10 backdrop-blur-sm p-8 md:p-10 flex flex-col justify-center">
                 <h2 className="text-3xl font-bold text-white mb-4">
@@ -669,7 +662,8 @@ const Membership = () => {
                 </h2>
                 <p className="text-gray-100 mb-6">
                   Take the first step toward becoming a member of Victory Bible
-                  Church today. We look forward to welcoming you into our family.
+                  Church today. We look forward to welcoming you into our
+                  family.
                 </p>
                 <div className="flex flex-wrap gap-4">
                   <Link

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Masonry from "react-masonry-css";
-import { FaTimes, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import PropTypes from "prop-types";
 
 const galleryImages = [
@@ -56,7 +56,7 @@ const Modal = ({ selectedImage, onClose, onNavigate }) => {
       if (event.key === "ArrowLeft") onNavigate("prev");
       if (event.key === "ArrowRight") onNavigate("next");
     },
-    [onClose, onNavigate]
+    [onClose, onNavigate],
   );
 
   useEffect(() => {
@@ -100,19 +100,19 @@ const Modal = ({ selectedImage, onClose, onNavigate }) => {
               onClick={onClose}
               className="absolute top-4 right-4 text-white bg-gray-700 rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-600 focus:outline-none"
             >
-              <FaTimes />
+              <X />
             </button>
             <button
               onClick={() => onNavigate("prev")}
               className="absolute top-1/2 left-4 transform -translate-y-1/2 text-white bg-gray-700 rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-600 focus:outline-none"
             >
-              <FaChevronLeft />
+              <ChevronLeft />
             </button>
             <button
               onClick={() => onNavigate("next")}
               className="absolute top-1/2 right-4 transform -translate-y-1/2 text-white bg-gray-700 rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-600 focus:outline-none"
             >
-              <FaChevronRight />
+              <ChevronRight />
             </button>
           </motion.div>
         </motion.div>

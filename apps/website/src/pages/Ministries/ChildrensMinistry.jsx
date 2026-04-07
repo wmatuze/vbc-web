@@ -2,8 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useEventsQuery } from "../../hooks/useEventsQuery";
 import EventCard from "../../components/ChurchCalendar/EventsCard";
-import PlaceHolderbanner from "../../assets/ministry-banners/ph.png"; //Using placeholder banner, you can replace with a Children's Ministry specific banner
-import FallbackImage from "../../assets/fallback-image.png"; // Import fallback image
+import HeroSection from "../../components/common/HeroSection";
 import { motion } from "framer-motion";
 
 const ChildrensMinistry = () => {
@@ -23,7 +22,7 @@ const ChildrensMinistry = () => {
     if (events && events.length > 0) {
       // Filter events for Children's Ministry
       const filteredEvents = events.filter(
-        (event) => event?.ministry === "Children's Ministry"
+        (event) => event?.ministry === "Children's Ministry",
       );
       setChildrensMinistryEvents(filteredEvents);
     }
@@ -91,33 +90,19 @@ const ChildrensMinistry = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* **Hero Section** */}
-      <section
-        className="bg-yellow-500 rounded-b-lg relative"
-        style={{
-          backgroundImage: `url(${PlaceHolderbanner})`, // Replace PlaceHolderbanner with your Children's Ministry banner image
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        <div className="container mx-auto px-4 relative z-10 h-screen flex flex-col justify-center">
-          <h1 className="text-4xl lg:text-5xl font-bold text-white text-center mb-4">
-            Children's Ministry
-          </h1>
-          <p className="text-lg text-white text-center">
-            Our Children's Ministry is a fun and engaging place where kids
-            discover Jesus, build friendships, and grow in their faith through
-            interactive learning and activities... (rest of your "About Us"
-            intro paragraph)
-          </p>
-        </div>
-        <div className="absolute inset-0 bg-black/50 rounded-b-lg"></div>
-      </section>
+      <HeroSection
+        title="Children's Ministry"
+        subtitle="Children's Ministry"
+        description="A fun and engaging place where kids discover Jesus, build friendships, and grow in their faith through interactive learning and activities."
+        primaryAccentText="Children's"
+        scrollText="EXPLORE CHILDREN'S MINISTRY"
+        backgroundImage="/assets/hero-bg.jpg"
+      />
 
-      {/* **About Us Section** - Redesigned with card-like appearance */}
+      {/* About Us Section */}
       <section className="py-16">
         <div className="container mx-auto px-4 max-w-5xl">
-          <div className="bg-white rounded-xl shadow-lg p-8 transform -mt-20 relative z-20">
+          <div className="bg-white rounded-xl shadow-lg p-8">
             <div className="flex items-center mb-8">
               <div className="w-2 h-12 bg-yellow-400 rounded-full mr-4"></div>
               <h2 className="text-3xl font-bold text-gray-800">

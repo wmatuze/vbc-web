@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import events from "../../assets/data/events";
+import { useEventsQuery } from "../../hooks/useEventsQuery";
 import EventCard from "../../components/ChurchCalendar/EventsCard";
-import PlaceHolderbanner from "../../assets/ministry-banners/ph.png";
-import YouthMinistryHero from "/images/youth-ministry.jpg";
 import youthGallery1 from "../../assets/images/youth/gallery1.jpg"; // Replace with actual youth event images
 import youthGallery2 from "../../assets/images/youth/gallery2.jpg";
 import youthGallery3 from "../../assets/images/youth/gallery3.jpg";
@@ -11,17 +9,18 @@ import cbuLogo from "../../assets/images/cbu-logo.png"; // Add a CBU logo image
 import litNationLogo from "../../assets/images/litnationlogo.png"; // Add your Lit Nation logo
 
 const YouthMinistry = () => {
+  const { data: events = [] } = useEventsQuery();
   const [activeTab, setActiveTab] = useState("main");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   // Smooth scroll function for the arrow
   const scrollToContent = () => {
-    const element = document.getElementById('main-content');
+    const element = document.getElementById("main-content");
     if (element) {
-      element.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'start'
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
       });
     }
   };
@@ -60,10 +59,11 @@ const YouthMinistry = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Filter events for Youth Ministry
+  // Filter events for Youth Ministry from live API data
   const youthMinistryEvents = events.filter(
     (event) =>
-      event.ministry === "Youth Ministry" || event.ministry === "CBU Fellowship"
+      event?.ministry === "Youth Ministry" ||
+      event?.ministry === "CBU Fellowship",
   );
 
   // Sample testimonials data
@@ -71,21 +71,24 @@ const YouthMinistry = () => {
     {
       id: 1,
       name: "Alex Johnson",
-      quote: "Lit Nation is my second family. The friends I've made and the spiritual growth I've experienced have changed my life.",
-      role: "Member since 2021, Age 17"
+      quote:
+        "Lit Nation is my second family. The friends I've made and the spiritual growth I've experienced have changed my life.",
+      role: "Member since 2021, Age 17",
     },
     {
       id: 2,
       name: "Sophia Williams",
-      quote: "I love how our youth group makes the Bible relevant to our everyday lives. The leaders really understand what we're going through.",
-      role: "Member since 2022, Age 16"
+      quote:
+        "I love how our youth group makes the Bible relevant to our everyday lives. The leaders really understand what we're going through.",
+      role: "Member since 2022, Age 16",
     },
     {
       id: 3,
       name: "Nathan Thompson",
-      quote: "The worship sessions and retreats have helped me build a personal relationship with God. I've never felt more connected to my faith.",
-      role: "Member since 2020, Age 19"
-    }
+      quote:
+        "The worship sessions and retreats have helped me build a personal relationship with God. I've never felt more connected to my faith.",
+      role: "Member since 2020, Age 19",
+    },
   ];
 
   // FAQ data
@@ -93,23 +96,27 @@ const YouthMinistry = () => {
     {
       id: 1,
       question: "What ages does Lit Nation Youth Ministry serve?",
-      answer: "Lit Nation welcomes youth ages 13-25. We have separate programs tailored for middle school students (13-14), high school students (15-18), and young adults (19-25)."
+      answer:
+        "Lit Nation welcomes youth ages 13-25. We have separate programs tailored for middle school students (13-14), high school students (15-18), and young adults (19-25).",
     },
     {
       id: 2,
       question: "When and where do you meet?",
-      answer: "We meet every Friday at 6:30PM in the Main Sanctuary for our main youth service. We also have Sunday youth classes at 9:30AM and small discipleship groups on Wednesdays at 4:00PM."
+      answer:
+        "We meet every Friday at 6:30PM in the Main Sanctuary for our main youth service. We also have Sunday youth classes at 9:30AM and small discipleship groups on Wednesdays at 4:00PM.",
     },
     {
       id: 3,
       question: "Do I need to be a member of the church to attend?",
-      answer: "Not at all! Everyone is welcome at Lit Nation. Many of our youth attend regularly but aren't formal church members. We encourage you to come as you are!"
+      answer:
+        "Not at all! Everyone is welcome at Lit Nation. Many of our youth attend regularly but aren't formal church members. We encourage you to come as you are!",
     },
     {
       id: 4,
       question: "What can I expect at a typical Friday night service?",
-      answer: "Our Friday night services include dynamic worship, relevant teaching, interactive activities or games, small group discussions, and time to hang out and build friendships. First-time visitors are welcomed but never put on the spot."
-    }
+      answer:
+        "Our Friday night services include dynamic worship, relevant teaching, interactive activities or games, small group discussions, and time to hang out and build friendships. First-time visitors are welcomed but never put on the spot.",
+    },
   ];
 
   return (
@@ -121,7 +128,7 @@ const YouthMinistry = () => {
             !isImageLoaded ? "animate-pulse bg-gray-200" : ""
           }`}
           style={{
-            backgroundImage: `url(${YouthMinistryHero})`,
+            backgroundImage: `url(/assets/hero-bg.jpg)`,
             filter: isImageLoaded ? "brightness(0.7)" : "none",
           }}
           initial={{ scale: 1.1 }}
@@ -171,26 +178,26 @@ const YouthMinistry = () => {
                 >
                   New Here?
                 </motion.div>
-                
+
                 {/* Main CTA Button with Pulse */}
                 <motion.a
                   href="#join-us"
                   className="relative px-8 sm:px-10 py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-full transform hover:scale-105 transition-all shadow-xl text-center text-lg overflow-hidden"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  animate={{ 
+                  animate={{
                     boxShadow: [
                       "0 0 0 0 rgba(16, 185, 129, 0.4)",
                       "0 0 0 20px rgba(16, 185, 129, 0)",
-                      "0 0 0 0 rgba(16, 185, 129, 0)"
-                    ]
+                      "0 0 0 0 rgba(16, 185, 129, 0)",
+                    ],
                   }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
                   Join Lit Nation
                 </motion.a>
               </div>
-              
+
               {/* Friendly Subtext */}
               <motion.p
                 className="text-white/90 text-sm mt-3 font-medium"
@@ -236,10 +243,13 @@ const YouthMinistry = () => {
       {/* Navigation Tabs */}
       <div className="bg-white sticky top-0 z-30 shadow-md">
         <div className="container mx-auto px-4">
-          <div className="flex overflow-x-auto overflow-y-hidden scrollbar-hide py-4 space-x-1" style={{
-            scrollbarWidth: 'none', /* Firefox */
-            msOverflowStyle: 'none', /* IE and Edge */
-          }}>
+          <div
+            className="flex overflow-x-auto overflow-y-hidden scrollbar-hide py-4 space-x-1"
+            style={{
+              scrollbarWidth: "none" /* Firefox */,
+              msOverflowStyle: "none" /* IE and Edge */,
+            }}
+          >
             <style jsx>{`
               div::-webkit-scrollbar {
                 display: none; /* Chrome, Safari, Opera */
@@ -418,17 +428,30 @@ const YouthMinistry = () => {
                       transition={{ delay: testimonial.id * 0.1 }}
                     >
                       <div className="mb-4">
-                        <svg className="h-8 w-8 text-green-400 mb-4" fill="currentColor" viewBox="0 0 32 32">
+                        <svg
+                          className="h-8 w-8 text-green-400 mb-4"
+                          fill="currentColor"
+                          viewBox="0 0 32 32"
+                        >
                           <path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.8 3.456-8.256 9.12-8.256 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z" />
                         </svg>
-                        <p className="text-gray-600 italic mb-4">{testimonial.quote}</p>
+                        <p className="text-gray-600 italic mb-4">
+                          {testimonial.quote}
+                        </p>
                         <div className="flex items-center">
                           <div className="bg-green-100 w-10 h-10 rounded-full flex items-center justify-center text-green-600 font-bold text-sm mr-3">
-                            {testimonial.name.split(' ').map(n => n[0]).join('')}
+                            {testimonial.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
                           </div>
                           <div>
-                            <h4 className="font-semibold text-gray-800">{testimonial.name}</h4>
-                            <p className="text-gray-500 text-sm">{testimonial.role}</p>
+                            <h4 className="font-semibold text-gray-800">
+                              {testimonial.name}
+                            </h4>
+                            <p className="text-gray-500 text-sm">
+                              {testimonial.role}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -703,17 +726,30 @@ const YouthMinistry = () => {
                       transition={{ delay: testimonial.id * 0.1 }}
                     >
                       <div className="mb-4">
-                        <svg className="h-8 w-8 text-purple-400 mb-4" fill="currentColor" viewBox="0 0 32 32">
+                        <svg
+                          className="h-8 w-8 text-purple-400 mb-4"
+                          fill="currentColor"
+                          viewBox="0 0 32 32"
+                        >
                           <path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.8 3.456-8.256 9.12-8.256 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z" />
                         </svg>
-                        <p className="text-gray-600 italic mb-4">{testimonial.quote}</p>
+                        <p className="text-gray-600 italic mb-4">
+                          {testimonial.quote}
+                        </p>
                         <div className="flex items-center">
                           <div className="bg-purple-100 w-10 h-10 rounded-full flex items-center justify-center text-purple-600 font-bold text-sm mr-3">
-                            {testimonial.name.split(' ').map(n => n[0]).join('')}
+                            {testimonial.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
                           </div>
                           <div>
-                            <h4 className="font-semibold text-gray-800">{testimonial.name}</h4>
-                            <p className="text-purple-600 text-sm">{testimonial.program}</p>
+                            <h4 className="font-semibold text-gray-800">
+                              {testimonial.name}
+                            </h4>
+                            <p className="text-purple-600 text-sm">
+                              {testimonial.program}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -756,7 +792,7 @@ const YouthMinistry = () => {
                           <svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
                             <rect width="100%" height="100%" fill="#10B981"/>
                             <text x="50%" y="50%" font-family="Arial" font-size="24" text-anchor="middle" fill="white" dominant-baseline="middle">
-                              ${image.caption || 'Youth Ministry'}
+                              ${image.caption || "Youth Ministry"}
                             </text>
                           </svg>
                         `)}`;
@@ -792,7 +828,8 @@ const YouthMinistry = () => {
                   onClick={() =>
                     setCurrentSlide(
                       (prev) =>
-                        (prev - 1 + galleryImages.length) % galleryImages.length
+                        (prev - 1 + galleryImages.length) %
+                        galleryImages.length,
                     )
                   }
                   aria-label="Previous image"
@@ -845,34 +882,34 @@ const YouthMinistry = () => {
                 {[
                   {
                     title: "Worship Nights",
-                    color: "#10B981"
+                    color: "#10B981",
                   },
                   {
                     title: "Summer Camp",
-                    color: "#F59E0B"
+                    color: "#F59E0B",
                   },
                   {
                     title: "Mission Trips",
-                    color: "#EF4444"
+                    color: "#EF4444",
                   },
                   {
                     title: "Game Nights",
-                    color: "#8B5CF6"
+                    color: "#8B5CF6",
                   },
                   {
                     title: "Community Service",
-                    color: "#06B6D4"
+                    color: "#06B6D4",
                   },
                   {
                     title: "Bible Studies",
-                    color: "#F97316"
+                    color: "#F97316",
                   },
                 ].map((category, i) => (
                   <div
                     key={i}
                     className="group relative overflow-hidden rounded-xl h-60 shadow-md"
                   >
-                    <div 
+                    <div
                       className="w-full h-full flex items-center justify-center group-hover:scale-110 transition-transform duration-500"
                       style={{ backgroundColor: category.color }}
                     >
@@ -973,7 +1010,7 @@ const YouthMinistry = () => {
               </motion.div>
 
               {/* Add Annual Calendar */}
-              <motion.div 
+              <motion.div
                 className="mt-12 bg-yellow-50 p-6 rounded-xl border border-yellow-100"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -1026,7 +1063,7 @@ const YouthMinistry = () => {
                       className="flex items-center p-3 bg-white rounded-lg shadow-sm"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.4 + (i * 0.1) }}
+                      transition={{ delay: 0.4 + i * 0.1 }}
                     >
                       <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mr-4">
                         <span className="font-bold text-yellow-700">
@@ -1056,7 +1093,7 @@ const YouthMinistry = () => {
                 </h2>
               </div>
 
-              <motion.p 
+              <motion.p
                 className="text-gray-700 text-lg mb-10 leading-relaxed"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -1118,7 +1155,7 @@ const YouthMinistry = () => {
               </div>
 
               {/* Get Involved */}
-              <motion.div 
+              <motion.div
                 className="bg-red-50 p-8 rounded-xl border border-red-100"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -1136,7 +1173,11 @@ const YouthMinistry = () => {
 
                 <div className="flex flex-col sm:flex-row gap-4">
                   <motion.button
-                    onClick={() => alert('Volunteer application form coming soon! Please contact us directly for now.')}
+                    onClick={() =>
+                      alert(
+                        "Volunteer application form coming soon! Please contact us directly for now.",
+                      )
+                    }
                     className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -1164,7 +1205,7 @@ const YouthMinistry = () => {
         className="py-16 bg-gradient-to-b from-green-900 to-green-800 text-white"
       >
         <div className="container mx-auto px-4 text-center">
-          <motion.h2 
+          <motion.h2
             className="text-4xl font-bold mb-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1172,7 +1213,7 @@ const YouthMinistry = () => {
           >
             Join Lit Nation This Friday!
           </motion.h2>
-          <motion.p 
+          <motion.p
             className="text-xl max-w-3xl mx-auto mb-10"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1182,7 +1223,7 @@ const YouthMinistry = () => {
             you grow in your faith. All youth are welcome - bring a friend!
           </motion.p>
 
-          <motion.div 
+          <motion.div
             className="bg-white/10 backdrop-blur-sm p-8 rounded-xl inline-block"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1258,8 +1299,8 @@ const YouthMinistry = () => {
                 <p>Ages 13-25 Welcome</p>
               </div>
             </div>
-            
-            <motion.div 
+
+            <motion.div
               className="mt-8"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

@@ -1,13 +1,13 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
-import { Helmet } from "react-helmet";
-import { 
-  PlayIcon, 
-  PauseIcon, 
+import { Helmet } from "react-helmet-async";
+import {
+  PlayIcon,
+  PauseIcon,
   SpeakerWaveIcon,
   ArrowDownTrayIcon,
   CalendarIcon,
-  ClockIcon 
+  ClockIcon,
 } from "@heroicons/react/24/outline";
 import HeroSection from "../components/common/HeroSection";
 import { getAudioSermons } from "../services/api/resources";
@@ -20,35 +20,38 @@ const staticAudioSermons = [
     title: "Faith That Moves Mountains",
     author: { name: "Pastor John Doe" },
     createdAt: "2024-01-21",
-    file: { 
+    file: {
       path: "/audio/faith-moves-mountains.mp3",
-      originalName: "faith-moves-mountains.mp3"
+      originalName: "faith-moves-mountains.mp3",
     },
-    description: "A powerful message about faith and its transformative power in our lives.",
+    description:
+      "A powerful message about faith and its transformative power in our lives.",
     tags: ["Walking in Faith"],
   },
   {
     id: 2,
     title: "Walking in God's Purpose",
-    author: { name: "Pastor Jane Smith" }, 
+    author: { name: "Pastor Jane Smith" },
     createdAt: "2024-01-14",
-    file: { 
+    file: {
       path: "/audio/walking-in-purpose.mp3",
-      originalName: "walking-in-purpose.mp3"
+      originalName: "walking-in-purpose.mp3",
     },
-    description: "Discovering and fulfilling God's unique purpose for your life.",
+    description:
+      "Discovering and fulfilling God's unique purpose for your life.",
     tags: ["Purpose Driven Life"],
   },
   {
     id: 3,
     title: "The Power of Prayer",
     author: { name: "Pastor John Doe" },
-    createdAt: "2024-01-07", 
-    file: { 
+    createdAt: "2024-01-07",
+    file: {
       path: "/audio/power-of-prayer.mp3",
-      originalName: "power-of-prayer.mp3"
+      originalName: "power-of-prayer.mp3",
     },
-    description: "Understanding how prayer transforms our relationship with God.",
+    description:
+      "Understanding how prayer transforms our relationship with God.",
     tags: ["Spiritual Disciplines"],
   },
 ];
@@ -57,11 +60,11 @@ const AudioPlayer = ({ sermon, isPlaying, onPlayPause }) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const audioRef = useRef(null);
-  
+
   // Get audio URL from resource
-  const audioUrl = sermon.file?.path ? 
-    `${config.API_URL || 'http://localhost:3000'}/${sermon.file.path}` : 
-    sermon.audioUrl; // fallback for static data
+  const audioUrl = sermon.file?.path
+    ? `${config.API_URL || "http://localhost:3000"}/${sermon.file.path}`
+    : sermon.audioUrl; // fallback for static data
 
   // Initialize audio only once
   useEffect(() => {
@@ -86,14 +89,14 @@ const AudioPlayer = ({ sermon, isPlaying, onPlayPause }) => {
       onPlayPause(null);
     };
 
-    audio.addEventListener('loadeddata', handleLoadedData);
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener("loadeddata", handleLoadedData);
+    audio.addEventListener("timeupdate", handleTimeUpdate);
+    audio.addEventListener("ended", handleEnded);
 
     return () => {
-      audio.removeEventListener('loadeddata', handleLoadedData);
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener("loadeddata", handleLoadedData);
+      audio.removeEventListener("timeupdate", handleTimeUpdate);
+      audio.removeEventListener("ended", handleEnded);
     };
   }, [onPlayPause, audioUrl]);
 
@@ -102,8 +105,8 @@ const AudioPlayer = ({ sermon, isPlaying, onPlayPause }) => {
     if (!audio) return;
 
     if (isPlaying) {
-      audio.play().catch(error => {
-        console.error('Error playing audio:', error);
+      audio.play().catch((error) => {
+        console.error("Error playing audio:", error);
       });
     } else {
       audio.pause();
@@ -124,7 +127,7 @@ const AudioPlayer = ({ sermon, isPlaying, onPlayPause }) => {
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
   const handleSeek = (e) => {
@@ -146,7 +149,8 @@ const AudioPlayer = ({ sermon, isPlaying, onPlayPause }) => {
             {sermon.title}
           </h3>
           <p className="text-gray-600 dark:text-gray-400">
-            {sermon.author?.name || 'Unknown Speaker'} • {new Date(sermon.createdAt).toLocaleDateString()}
+            {sermon.author?.name || "Unknown Speaker"} •{" "}
+            {new Date(sermon.createdAt).toLocaleDateString()}
           </p>
         </div>
         <button
@@ -169,12 +173,14 @@ const AudioPlayer = ({ sermon, isPlaying, onPlayPause }) => {
         >
           <div
             className="bg-primary-600 h-2 rounded-full transition-all duration-300"
-            style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
+            style={{
+              width: `${duration ? (currentTime / duration) * 100 : 0}%`,
+            }}
           />
         </div>
         <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-1">
           <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(duration) || sermon.duration || '00:00'}</span>
+          <span>{formatTime(duration) || sermon.duration || "00:00"}</span>
         </div>
       </div>
 
@@ -218,7 +224,7 @@ const SermonCard = ({ sermon, onPlay }) => {
           </h3>
           <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm mb-2">
             <SpeakerWaveIcon className="h-4 w-4 mr-2" />
-            <span>{sermon.author?.name || 'Unknown Speaker'}</span>
+            <span>{sermon.author?.name || "Unknown Speaker"}</span>
           </div>
           <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm mb-2">
             <CalendarIcon className="h-4 w-4 mr-2" />
@@ -250,7 +256,11 @@ const SermonCard = ({ sermon, onPlay }) => {
           </span>
         )}
         <a
-          href={sermon.file?.path ? `${config.API_URL || 'http://localhost:3000'}/${sermon.file.path}` : sermon.audioUrl}
+          href={
+            sermon.file?.path
+              ? `${config.API_URL || "http://localhost:3000"}/${sermon.file.path}`
+              : sermon.audioUrl
+          }
           download={sermon.file?.originalName || sermon.title}
           className="text-primary-600 hover:text-primary-700 transition-colors text-sm"
         >
@@ -277,16 +287,16 @@ const AudioSermons = () => {
         setLoading(true);
         setError(null);
         const response = await getAudioSermons();
-        
+
         if (response?.data && Array.isArray(response.data)) {
           setAudioSermons(response.data);
         } else {
-          console.warn('Invalid API response, using fallback data');
+          console.warn("Invalid API response, using fallback data");
           setAudioSermons(staticAudioSermons);
         }
       } catch (err) {
-        console.error('Error fetching audio sermons:', err);
-        setError('Failed to load audio sermons');
+        console.error("Error fetching audio sermons:", err);
+        setError("Failed to load audio sermons");
         setAudioSermons(staticAudioSermons); // Use static data as fallback
       } finally {
         setLoading(false);
@@ -299,19 +309,26 @@ const AudioSermons = () => {
   // Get unique series for filter
   const series = useMemo(() => {
     const allSeries = audioSermons
-      .map(sermon => sermon.tags && sermon.tags.length > 0 ? sermon.tags[0] : null)
+      .map((sermon) =>
+        sermon.tags && sermon.tags.length > 0 ? sermon.tags[0] : null,
+      )
       .filter(Boolean);
     return [...new Set(allSeries)];
   }, [audioSermons]);
 
   // Filter sermons
   const filteredSermons = useMemo(() => {
-    return audioSermons.filter(sermon => {
-      const matchesSearch = sermon.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           (sermon.author?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           sermon.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const sermonSeries = sermon.tags && sermon.tags.length > 0 ? sermon.tags[0] : null;
-      const matchesSeries = selectedSeries === "all" || sermonSeries === selectedSeries;
+    return audioSermons.filter((sermon) => {
+      const matchesSearch =
+        sermon.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (sermon.author?.name || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        sermon.description.toLowerCase().includes(searchTerm.toLowerCase());
+      const sermonSeries =
+        sermon.tags && sermon.tags.length > 0 ? sermon.tags[0] : null;
+      const matchesSeries =
+        selectedSeries === "all" || sermonSeries === selectedSeries;
       return matchesSearch && matchesSeries;
     });
   }, [audioSermons, searchTerm, selectedSeries]);
@@ -322,7 +339,9 @@ const AudioSermons = () => {
       setSelectedSermon(null);
     } else {
       setCurrentlyPlaying(sermonId);
-      const sermon = audioSermons.find(s => s.id === sermonId || s._id === sermonId);
+      const sermon = audioSermons.find(
+        (s) => s.id === sermonId || s._id === sermonId,
+      );
       setSelectedSermon(sermon);
     }
   };
@@ -378,7 +397,9 @@ const AudioSermons = () => {
             </h2>
             <AudioPlayer
               sermon={selectedSermon}
-              isPlaying={currentlyPlaying === (selectedSermon.id || selectedSermon._id)}
+              isPlaying={
+                currentlyPlaying === (selectedSermon.id || selectedSermon._id)
+              }
               onPlayPause={handlePlayPause}
             />
           </motion.div>
@@ -403,8 +424,10 @@ const AudioSermons = () => {
                 className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
               >
                 <option value="all">All Series</option>
-                {series.map(s => (
-                  <option key={s} value={s}>{s}</option>
+                {series.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
                 ))}
               </select>
             </div>
@@ -417,8 +440,9 @@ const AudioSermons = () => {
             Weekly Sermon Recordings
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Access MP3 recordings of our Sunday sermons. Download them to your device 
-            or listen online. These are the same audio files shared in our church WhatsApp groups.
+            Access MP3 recordings of our Sunday sermons. Download them to your
+            device or listen online. These are the same audio files shared in
+            our church WhatsApp groups.
           </p>
         </div>
 
@@ -426,7 +450,10 @@ const AudioSermons = () => {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 animate-pulse">
+              <div
+                key={i}
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 animate-pulse"
+              >
                 <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
                 <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
                 <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>

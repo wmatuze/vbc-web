@@ -2,14 +2,14 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  FaUser,
-  FaEnvelope,
-  FaPhone,
-  FaComment,
-  FaCalendarAlt,
-  FaMapMarkerAlt,
-  FaWhatsapp,
-} from "react-icons/fa";
+  User,
+  Mail,
+  Phone,
+  MessageCircle,
+  Calendar,
+  MapPin,
+  MessageCircle as WhatsAppIcon,
+} from "lucide-react";
 import { submitCellGroupJoinRequest } from "../services/api/cell-groups";
 
 const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
@@ -88,13 +88,13 @@ const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
             {/* Group Info */}
             <div className="bg-white/80 backdrop-blur-sm p-4 rounded-lg mb-6 shadow-sm">
               <div className="flex items-center mb-2">
-                <FaCalendarAlt className="text-gray-500 mr-2" />
+                <Calendar className="text-gray-500 mr-2" />
                 <span className="text-gray-700">
                   {group.meetingDay} at {group.meetingTime}
                 </span>
               </div>
               <div className="flex items-center">
-                <FaMapMarkerAlt className="text-gray-500 mr-2" />
+                <MapPin className="text-gray-500 mr-2" />
                 <span className="text-gray-700">{group.location}</span>
               </div>
             </div>
@@ -114,7 +114,7 @@ const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FaUser className="text-gray-400" />
+                    <User className="text-gray-400" />
                   </div>
                   <input
                     type="text"
@@ -135,7 +135,7 @@ const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FaEnvelope className="text-gray-400" />
+                    <Mail className="text-gray-400" />
                   </div>
                   <input
                     type="email"
@@ -156,7 +156,7 @@ const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FaPhone className="text-gray-400" />
+                    <Phone className="text-gray-400" />
                   </div>
                   <input
                     type="tel"
@@ -177,7 +177,7 @@ const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FaWhatsapp className="text-gray-400" />
+                    <WhatsAppIcon className="text-gray-400" />
                   </div>
                   <input
                     type="tel"
@@ -200,7 +200,7 @@ const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
                 </label>
                 <div className="relative">
                   <div className="absolute top-3 left-3 pointer-events-none">
-                    <FaComment className="text-gray-400" />
+                    <MessageCircle className="text-gray-400" />
                   </div>
                   <textarea
                     className="w-full pl-10 p-3 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 shadow-sm"
@@ -234,7 +234,7 @@ const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
 
               {error && (
                 <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">
-                  {error?.message || error?.toString() || 'An error occurred'}
+                  {error?.message || error?.toString() || "An error occurred"}
                 </div>
               )}
 

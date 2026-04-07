@@ -1,33 +1,33 @@
 import React, { useState, useEffect } from "react";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import HeroSection from "../components/common/HeroSection";
 import useFoundationClassSessions from "../hooks/useFoundationClassSessions";
 import { isAuthenticated } from "../services/api/auth";
 import {
-  FaBookOpen,
-  FaCalendarAlt,
-  FaChevronRight,
-  FaClipboardList,
-  FaUser,
-  FaEnvelope,
-  FaPhone,
-  FaPray,
-  FaBible,
-  FaHandHoldingHeart,
-  FaChurch,
-  FaCheckCircle,
-  FaAngleDown,
-  FaGraduationCap,
-} from "react-icons/fa";
+  BookOpen,
+  Calendar,
+  ChevronRight,
+  Clipboard,
+  User,
+  Mail,
+  Phone,
+  Sparkles,
+  Book,
+  Heart,
+  Building2,
+  CheckCircle,
+  ChevronDown,
+  GraduationCap,
+} from "lucide-react";
 
 const FoundationClasses = () => {
   const [expandedFaq, setExpandedFaq] = useState(null);
   const shouldReduceMotion = useReducedMotion();
 
   // Helper function to conditionally apply animation props
-  const getAnimationProps = (animationProps) => 
+  const getAnimationProps = (animationProps) =>
     shouldReduceMotion ? {} : animationProps;
   const [formData, setFormData] = useState({
     fullName: "",
@@ -59,7 +59,7 @@ const FoundationClasses = () => {
   // Focus management for form submission success
   useEffect(() => {
     if (formSubmitted) {
-      document.getElementById('success-heading')?.focus();
+      document.getElementById("success-heading")?.focus();
     }
   }, [formSubmitted]);
 
@@ -76,7 +76,7 @@ const FoundationClasses = () => {
         "The purpose of the local church",
         "Introduction to our church's history",
       ],
-      icon: <FaPray className="text-blue-500" />,
+      icon: <Sparkles className="text-blue-500" />,
     },
     {
       week: 2,
@@ -89,7 +89,7 @@ const FoundationClasses = () => {
         "Developing a consistent prayer life",
         "Types of prayer",
       ],
-      icon: <FaBible className="text-blue-500" />,
+      icon: <Book className="text-blue-500" />,
     },
     {
       week: 3,
@@ -102,7 +102,7 @@ const FoundationClasses = () => {
         "Areas of service in the church",
         "The importance of volunteering",
       ],
-      icon: <FaHandHoldingHeart className="text-blue-500" />,
+      icon: <Heart className="text-blue-500" />,
     },
     {
       week: 4,
@@ -115,7 +115,7 @@ const FoundationClasses = () => {
         "Financial stewardship",
         "Next steps after membership",
       ],
-      icon: <FaChurch className="text-blue-500" />,
+      icon: <Building2 className="text-blue-500" />,
     },
   ];
 
@@ -212,7 +212,7 @@ const FoundationClasses = () => {
     // Find the selected session
     const selectedSessionId = formData.preferredSession;
     const selectedSession = availableSessions.find(
-      (session) => session.id === selectedSessionId
+      (session) => session.id === selectedSessionId,
     );
 
     if (!selectedSession) {
@@ -266,7 +266,7 @@ const FoundationClasses = () => {
           {...getAnimationProps({
             initial: { opacity: 0, y: 20 },
             whileInView: { opacity: 1, y: 0 },
-            transition: { duration: 0.5 }
+            transition: { duration: 0.5 },
           })}
           viewport={{ once: true }}
           className="mb-20"
@@ -288,7 +288,7 @@ const FoundationClasses = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-xl">
                   <div className="w-12 h-12 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center mb-4">
-                    <FaCalendarAlt className="text-blue-600 dark:text-blue-400 text-xl" />
+                    <Calendar className="text-blue-600 dark:text-blue-400 text-xl" />
                   </div>
                   <h3 className="text-xl font-semibold mb-2">4-Week Program</h3>
                   <p className="text-gray-700 dark:text-gray-300">
@@ -299,7 +299,7 @@ const FoundationClasses = () => {
 
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-xl">
                   <div className="w-12 h-12 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center mb-4">
-                    <FaGraduationCap className="text-blue-600 dark:text-blue-400 text-xl" />
+                    <GraduationCap className="text-blue-600 dark:text-blue-400 text-xl" />
                   </div>
                   <h3 className="text-xl font-semibold mb-2">
                     Membership Pathway
@@ -312,7 +312,7 @@ const FoundationClasses = () => {
 
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-xl">
                   <div className="w-12 h-12 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center mb-4">
-                    <FaCheckCircle className="text-blue-600 dark:text-blue-400 text-xl" />
+                    <CheckCircle className="text-blue-600 dark:text-blue-400 text-xl" />
                   </div>
                   <h3 className="text-xl font-semibold mb-2">No Cost</h3>
                   <p className="text-gray-700 dark:text-gray-300">
@@ -501,7 +501,7 @@ const FoundationClasses = () => {
                       </div>
                       <div className="p-6">
                         <div className="flex items-start gap-3 mb-4">
-                          <FaCalendarAlt className="text-blue-500 mt-1 flex-shrink-0" />
+                          <Calendar className="text-blue-500 mt-1 flex-shrink-0" />
                           <div>
                             <div className="font-medium">
                               {new Date(session.startDate).toLocaleDateString(
@@ -510,7 +510,7 @@ const FoundationClasses = () => {
                                   year: "numeric",
                                   month: "long",
                                   day: "numeric",
-                                }
+                                },
                               )}{" "}
                               -{" "}
                               {new Date(session.endDate).toLocaleDateString(
@@ -519,7 +519,7 @@ const FoundationClasses = () => {
                                   year: "numeric",
                                   month: "long",
                                   day: "numeric",
-                                }
+                                },
                               )}
                             </div>
                             <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -528,7 +528,7 @@ const FoundationClasses = () => {
                           </div>
                         </div>
                         <div className="flex items-start gap-3 mb-6">
-                          <FaChurch className="text-blue-500 mt-1 flex-shrink-0" />
+                          <Building2 className="text-blue-500 mt-1 flex-shrink-0" />
                           <div>
                             <div className="font-medium">Location</div>
                             <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -550,15 +550,17 @@ const FoundationClasses = () => {
                               return;
                             }
                             // Pre-fill the form with selected session
-                            setFormData(prev => ({ 
-                              ...prev, 
-                              preferredSession: session.id 
+                            setFormData((prev) => ({
+                              ...prev,
+                              preferredSession: session.id,
                             }));
                             // Scroll to form after a brief delay
                             setTimeout(() => {
-                              document.getElementById('register')?.scrollIntoView({ 
-                                behavior: 'smooth' 
-                              });
+                              document
+                                .getElementById("register")
+                                ?.scrollIntoView({
+                                  behavior: "smooth",
+                                });
                             }, 100);
                           }}
                         >
@@ -607,10 +609,13 @@ const FoundationClasses = () => {
                     <motion.div
                       {...getAnimationProps({
                         animate: { rotate: expandedFaq === index ? 180 : 0 },
-                        transition: { duration: 0.3 }
+                        transition: { duration: 0.3 },
                       })}
                     >
-                      <FaAngleDown aria-hidden="true" className="text-blue-600 dark:text-blue-400 text-xl" />
+                      <FaAngleDown
+                        aria-hidden="true"
+                        className="text-blue-600 dark:text-blue-400 text-xl"
+                      />
                     </motion.div>
                   </button>
 
@@ -624,7 +629,7 @@ const FoundationClasses = () => {
                           initial: { height: 0, opacity: 0 },
                           animate: { height: "auto", opacity: 1 },
                           exit: { height: 0, opacity: 0 },
-                          transition: { duration: 0.3 }
+                          transition: { duration: 0.3 },
                         })}
                         className="overflow-hidden"
                       >
@@ -665,9 +670,13 @@ const FoundationClasses = () => {
                 className="p-8 md:p-12 text-center"
               >
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full mb-6">
-                  <FaCheckCircle className="text-green-600 dark:text-green-400 text-3xl" />
+                  <CheckCircle className="text-green-600 dark:text-green-400 text-3xl" />
                 </div>
-                <h2 id="success-heading" className="text-3xl font-bold mb-4" tabIndex={-1}>
+                <h2
+                  id="success-heading"
+                  className="text-3xl font-bold mb-4"
+                  tabIndex={-1}
+                >
                   Registration Complete!
                 </h2>
                 <p className="text-lg text-gray-700 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
@@ -700,9 +709,15 @@ const FoundationClasses = () => {
                 className="p-8 md:p-12 grid grid-cols-1 md:grid-cols-2 gap-6"
               >
                 <div>
-                  <label htmlFor="fullName" className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
+                  <label
+                    htmlFor="fullName"
+                    className="block text-gray-700 dark:text-gray-300 font-medium mb-2"
+                  >
                     <span className="flex items-center gap-2">
-                      <FaUser aria-hidden="true" className="text-blue-600 dark:text-blue-400" />
+                      <FaUser
+                        aria-hidden="true"
+                        className="text-blue-600 dark:text-blue-400"
+                      />
                       Full Name
                     </span>
                   </label>
@@ -715,7 +730,9 @@ const FoundationClasses = () => {
                     placeholder="Enter your full name"
                     autoComplete="name"
                     aria-invalid={!!formErrors.fullName}
-                    aria-describedby={formErrors.fullName ? "fullName-error" : undefined}
+                    aria-describedby={
+                      formErrors.fullName ? "fullName-error" : undefined
+                    }
                     className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 ${
                       formErrors.fullName
                         ? "border-red-500 dark:border-red-500"
@@ -723,16 +740,26 @@ const FoundationClasses = () => {
                     }`}
                   />
                   {formErrors.fullName && (
-                    <p id="fullName-error" className="mt-2 text-red-500 text-sm" role="alert">
+                    <p
+                      id="fullName-error"
+                      className="mt-2 text-red-500 text-sm"
+                      role="alert"
+                    >
                       {formErrors.fullName}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
+                  <label
+                    htmlFor="email"
+                    className="block text-gray-700 dark:text-gray-300 font-medium mb-2"
+                  >
                     <span className="flex items-center gap-2">
-                      <FaEnvelope aria-hidden="true" className="text-blue-600 dark:text-blue-400" />
+                      <FaEnvelope
+                        aria-hidden="true"
+                        className="text-blue-600 dark:text-blue-400"
+                      />
                       Email Address
                     </span>
                   </label>
@@ -745,7 +772,9 @@ const FoundationClasses = () => {
                     placeholder="Enter your email address"
                     autoComplete="email"
                     aria-invalid={!!formErrors.email}
-                    aria-describedby={formErrors.email ? "email-error" : undefined}
+                    aria-describedby={
+                      formErrors.email ? "email-error" : undefined
+                    }
                     className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 ${
                       formErrors.email
                         ? "border-red-500 dark:border-red-500"
@@ -753,16 +782,26 @@ const FoundationClasses = () => {
                     }`}
                   />
                   {formErrors.email && (
-                    <p id="email-error" className="mt-2 text-red-500 text-sm" role="alert">
+                    <p
+                      id="email-error"
+                      className="mt-2 text-red-500 text-sm"
+                      role="alert"
+                    >
                       {formErrors.email}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label htmlFor="phone" className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
+                  <label
+                    htmlFor="phone"
+                    className="block text-gray-700 dark:text-gray-300 font-medium mb-2"
+                  >
                     <span className="flex items-center gap-2">
-                      <FaPhone aria-hidden="true" className="text-blue-600 dark:text-blue-400" />
+                      <FaPhone
+                        aria-hidden="true"
+                        className="text-blue-600 dark:text-blue-400"
+                      />
                       Phone Number
                     </span>
                   </label>
@@ -776,7 +815,9 @@ const FoundationClasses = () => {
                     autoComplete="tel"
                     inputMode="tel"
                     aria-invalid={!!formErrors.phone}
-                    aria-describedby={formErrors.phone ? "phone-error" : undefined}
+                    aria-describedby={
+                      formErrors.phone ? "phone-error" : undefined
+                    }
                     className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 ${
                       formErrors.phone
                         ? "border-red-500 dark:border-red-500"
@@ -784,16 +825,26 @@ const FoundationClasses = () => {
                     }`}
                   />
                   {formErrors.phone && (
-                    <p id="phone-error" className="mt-2 text-red-500 text-sm" role="alert">
+                    <p
+                      id="phone-error"
+                      className="mt-2 text-red-500 text-sm"
+                      role="alert"
+                    >
                       {formErrors.phone}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label htmlFor="preferredSession" className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
+                  <label
+                    htmlFor="preferredSession"
+                    className="block text-gray-700 dark:text-gray-300 font-medium mb-2"
+                  >
                     <span className="flex items-center gap-2">
-                      <FaCalendarAlt aria-hidden="true" className="text-blue-600 dark:text-blue-400" />
+                      <FaCalendarAlt
+                        aria-hidden="true"
+                        className="text-blue-600 dark:text-blue-400"
+                      />
                       Preferred Session
                     </span>
                   </label>
@@ -806,7 +857,11 @@ const FoundationClasses = () => {
                       value={formData.preferredSession}
                       onChange={handleChange}
                       aria-invalid={!!formErrors.preferredSession}
-                      aria-describedby={formErrors.preferredSession ? "preferredSession-error" : undefined}
+                      aria-describedby={
+                        formErrors.preferredSession
+                          ? "preferredSession-error"
+                          : undefined
+                      }
                       className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 ${
                         formErrors.preferredSession
                           ? "border-red-500 dark:border-red-500"
@@ -830,13 +885,13 @@ const FoundationClasses = () => {
                               {
                                 month: "long",
                                 year: "numeric",
-                              }
+                              },
                             )}
                           </option>
                         ))}
                       {availableSessions.length > 0 &&
                         availableSessions.filter(
-                          (session) => session.spotsLeft > 0
+                          (session) => session.spotsLeft > 0,
                         ).length === 0 && (
                           <option value="" disabled>
                             No available sessions at this time
@@ -845,7 +900,11 @@ const FoundationClasses = () => {
                     </select>
                   )}
                   {formErrors.preferredSession && (
-                    <p id="preferredSession-error" className="mt-2 text-red-500 text-sm" role="alert">
+                    <p
+                      id="preferredSession-error"
+                      className="mt-2 text-red-500 text-sm"
+                      role="alert"
+                    >
                       {formErrors.preferredSession}
                     </p>
                   )}
@@ -863,9 +922,15 @@ const FoundationClasses = () => {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label htmlFor="questions" className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
+                  <label
+                    htmlFor="questions"
+                    className="block text-gray-700 dark:text-gray-300 font-medium mb-2"
+                  >
                     <span className="flex items-center gap-2">
-                      <FaClipboardList aria-hidden="true" className="text-blue-600 dark:text-blue-400" />
+                      <FaClipboardList
+                        aria-hidden="true"
+                        className="text-blue-600 dark:text-blue-400"
+                      />
                       Questions or Special Requests
                     </span>
                   </label>
@@ -962,14 +1027,14 @@ const FoundationClasses = () => {
                     href="#register"
                     className="inline-flex items-center gap-2 bg-white hover:bg-gray-100 text-blue-700 font-semibold px-6 py-3 rounded-lg transition-colors duration-300 shadow-md hover:shadow-lg"
                   >
-                    <FaCalendarAlt />
+                    <Calendar />
                     <span>Reserve Your Spot</span>
                   </a>
                   <Link
                     to="/contact"
                     className="inline-flex items-center gap-2 border-2 border-white text-white hover:bg-white/10 font-semibold px-6 py-3 rounded-lg transition-colors duration-300"
                   >
-                    <FaEnvelope />
+                    <Mail />
                     <span>Contact Us</span>
                   </Link>
                 </div>

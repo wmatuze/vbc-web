@@ -1,31 +1,31 @@
 import React, { useState, useEffect } from "react";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 // Removed unused image imports - now using consistent hero background
 import { isAuthenticated } from "../services/api/auth";
 import HeroSection from "../components/common/HeroSection";
 import {
-  FaBookOpen,
-  FaCalendarAlt,
-  FaChevronRight,
-  FaClipboardList,
-  FaUser,
-  FaEnvelope,
-  FaPhone,
-  FaPray,
-  FaBible,
-  FaHandHoldingHeart,
-  FaChurch,
-  FaCheckCircle,
-  FaAngleDown,
-  FaGraduationCap,
-  FaClock,
-  FaMapMarkerAlt,
-  FaUsers,
-  FaStar,
-  FaChalkboardTeacher,
-} from "react-icons/fa";
+  BookOpen,
+  Calendar,
+  ChevronRight,
+  Clipboard,
+  User,
+  Mail,
+  Phone,
+  Sparkles,
+  Book,
+  Heart,
+  Building2,
+  CheckCircle,
+  ChevronDown,
+  GraduationCap,
+  Clock,
+  MapPin,
+  Users,
+  Star,
+  Presentation,
+} from "lucide-react";
 
 const DiscipleshipClasses = () => {
   const [expandedFaq, setExpandedFaq] = useState(null);
@@ -44,9 +44,9 @@ const DiscipleshipClasses = () => {
     emergencyContact: {
       name: "",
       phone: "",
-      relationship: ""
+      relationship: "",
     },
-    motivationReason: ""
+    motivationReason: "",
   });
   const [formErrors, setFormErrors] = useState({});
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -75,25 +75,27 @@ const DiscipleshipClasses = () => {
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const response = await fetch('/api/discipleship/classes');
+        const response = await fetch("/api/discipleship/classes");
         const data = await response.json();
         if (data.success) {
           setClasses(data.data);
         }
       } catch (error) {
-        console.error('Error fetching discipleship classes:', error);
+        console.error("Error fetching discipleship classes:", error);
       }
     };
 
     const fetchSessions = async () => {
       try {
-        const response = await fetch('/api/discipleship/sessions?status=upcoming');
+        const response = await fetch(
+          "/api/discipleship/sessions?status=upcoming",
+        );
         const data = await response.json();
         if (data.success) {
           setSessions(data.data);
         }
       } catch (error) {
-        console.error('Error fetching discipleship sessions:', error);
+        console.error("Error fetching discipleship sessions:", error);
       } finally {
         setLoading(false);
       }
@@ -106,64 +108,78 @@ const DiscipleshipClasses = () => {
   // FAQ data
   const faqItems = [
     {
-      question: "What's the difference between Foundation Classes and Discipleship Classes?",
-      answer: "Foundation Classes cover basic Christian beliefs and church membership, while Discipleship Classes are deeper, longer programs focusing on spiritual growth, leadership development, and specific ministry areas.",
+      question:
+        "What's the difference between Foundation Classes and Discipleship Classes?",
+      answer:
+        "Foundation Classes cover basic Christian beliefs and church membership, while Discipleship Classes are deeper, longer programs focusing on spiritual growth, leadership development, and specific ministry areas.",
     },
     {
       question: "Do I need to complete Foundation Classes first?",
-      answer: "While not always required, we highly recommend completing Foundation Classes first as they provide essential groundwork. Some advanced discipleship classes may have specific prerequisites.",
+      answer:
+        "While not always required, we highly recommend completing Foundation Classes first as they provide essential groundwork. Some advanced discipleship classes may have specific prerequisites.",
     },
     {
       question: "How long do discipleship classes run?",
-      answer: "Discipleship classes vary in length from 6 weeks to 6 months, depending on the program. Each class page shows the specific duration and time commitment required.",
+      answer:
+        "Discipleship classes vary in length from 6 weeks to 6 months, depending on the program. Each class page shows the specific duration and time commitment required.",
     },
     {
       question: "Can I join a class that's already started?",
-      answer: "This depends on the specific class and how far it has progressed. Contact the class facilitator to discuss your options - sometimes makeup sessions or resources are available.",
+      answer:
+        "This depends on the specific class and how far it has progressed. Contact the class facilitator to discuss your options - sometimes makeup sessions or resources are available.",
     },
     {
       question: "Are there any costs for discipleship classes?",
-      answer: "Most discipleship classes are free, though some may require purchasing books or materials. Any costs will be clearly stated when you register.",
+      answer:
+        "Most discipleship classes are free, though some may require purchasing books or materials. Any costs will be clearly stated when you register.",
     },
     {
       question: "What if I miss classes due to travel or illness?",
-      answer: "We understand life happens! Most classes provide recorded sessions or makeup opportunities. Contact your facilitator to discuss how to stay on track.",
+      answer:
+        "We understand life happens! Most classes provide recorded sessions or makeup opportunities. Contact your facilitator to discuss how to stay on track.",
     },
   ];
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    if (name.includes('.')) {
-      const [parent, child] = name.split('.');
-      setFormData(prev => ({
+    if (name.includes(".")) {
+      const [parent, child] = name.split(".");
+      setFormData((prev) => ({
         ...prev,
         [parent]: {
           ...prev[parent],
-          [child]: value
-        }
+          [child]: value,
+        },
       }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
     // Clear error when user starts typing
     if (formErrors[name]) {
-      setFormErrors(prev => ({ ...prev, [name]: "" }));
+      setFormErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
   const validateForm = () => {
     const errors = {};
-    
+
     if (!formData.fullName.trim()) errors.fullName = "Full name is required";
     if (!formData.email.trim()) errors.email = "Email is required";
     if (!formData.phone.trim()) errors.phone = "Phone number is required";
-    if (!formData.preferredSession.trim()) errors.preferredSession = "Please select a session";
-    if (!formData.motivationReason.trim()) errors.motivationReason = "Please explain your motivation for taking this class";
+    if (!formData.preferredSession.trim())
+      errors.preferredSession = "Please select a session";
+    if (!formData.motivationReason.trim())
+      errors.motivationReason =
+        "Please explain your motivation for taking this class";
 
     // Emergency contact validation
-    if (!formData.emergencyContact.name.trim()) errors.emergencyContactName = "Emergency contact name is required";
-    if (!formData.emergencyContact.phone.trim()) errors.emergencyContactPhone = "Emergency contact phone is required";
-    if (!formData.emergencyContact.relationship.trim()) errors.emergencyContactRelationship = "Emergency contact relationship is required";
+    if (!formData.emergencyContact.name.trim())
+      errors.emergencyContactName = "Emergency contact name is required";
+    if (!formData.emergencyContact.phone.trim())
+      errors.emergencyContactPhone = "Emergency contact phone is required";
+    if (!formData.emergencyContact.relationship.trim())
+      errors.emergencyContactRelationship =
+        "Emergency contact relationship is required";
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -177,34 +193,36 @@ const DiscipleshipClasses = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errors = validateForm();
-    
+
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       return;
     }
 
     setSubmitting(true);
-    
+
     try {
-      const response = await fetch('/api/discipleship/register', {
-        method: 'POST',
+      const response = await fetch("/api/discipleship/register", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         setFormSubmitted(true);
         setShowRegistrationForm(false);
       } else {
-        setFormErrors({ submit: data.error || 'Registration failed. Please try again.' });
+        setFormErrors({
+          submit: data.error || "Registration failed. Please try again.",
+        });
       }
     } catch (error) {
-      console.error('Error submitting registration:', error);
-      setFormErrors({ submit: 'Network error. Please try again.' });
+      console.error("Error submitting registration:", error);
+      setFormErrors({ submit: "Network error. Please try again." });
     } finally {
       setSubmitting(false);
     }
@@ -213,7 +231,7 @@ const DiscipleshipClasses = () => {
   const openRegistrationForm = (classItem, session) => {
     setSelectedClass(classItem);
     setSelectedSession(session);
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       preferredSession: session.cohortName,
       sessionId: session._id,
@@ -231,7 +249,9 @@ const DiscipleshipClasses = () => {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading discipleship classes...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">
+            Loading discipleship classes...
+          </p>
         </div>
       </div>
     );
@@ -267,8 +287,10 @@ const DiscipleshipClasses = () => {
             className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg shadow-lg z-50"
           >
             <div className="flex items-center">
-              <FaCheckCircle className="text-green-500 mr-2" />
-              <span>Registration submitted successfully! We'll contact you soon.</span>
+              <CheckCircle className="text-green-500 mr-2" />
+              <span>
+                Registration submitted successfully! We'll contact you soon.
+              </span>
             </div>
           </motion.div>
         )}
@@ -276,7 +298,6 @@ const DiscipleshipClasses = () => {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-16 max-w-6xl">
-        
         {/* Available Classes */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
@@ -288,7 +309,7 @@ const DiscipleshipClasses = () => {
           <h2 className="text-3xl font-bold mb-8 text-center text-gray-900 dark:text-white">
             Available Discipleship Programs
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {classes.map((classItem, index) => (
               <motion.div
@@ -303,51 +324,57 @@ const DiscipleshipClasses = () => {
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                       {classItem.title}
                     </h3>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      classItem.level === 'beginner' 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                        : classItem.level === 'intermediate'
-                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                        : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                    }`}>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        classItem.level === "beginner"
+                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                          : classItem.level === "intermediate"
+                            ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                            : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                      }`}
+                    >
                       {classItem.level}
                     </span>
                   </div>
-                  
+
                   <p className="text-gray-600 dark:text-gray-300 mb-4">
                     {classItem.description}
                   </p>
-                  
+
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                      <FaClock className="mr-2" />
+                      <Clock className="mr-2" />
                       <span>{classItem.durationDisplay}</span>
                     </div>
                     <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                      <FaChalkboardTeacher className="mr-2" />
+                      <Presentation className="mr-2" />
                       <span>{classItem.instructor.name}</span>
                     </div>
                     <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                      <FaBookOpen className="mr-2" />
+                      <BookOpen className="mr-2" />
                       <span>{classItem.curriculumLength} sessions</span>
                     </div>
                   </div>
 
                   {/* Prerequisites */}
-                  {classItem.prerequisites && classItem.prerequisites.length > 0 && (
-                    <div className="mb-4">
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Prerequisites:
-                      </p>
-                      <div className="flex flex-wrap gap-1">
-                        {classItem.prerequisites.map((prereq, i) => (
-                          <span key={i} className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded">
-                            {prereq}
-                          </span>
-                        ))}
+                  {classItem.prerequisites &&
+                    classItem.prerequisites.length > 0 && (
+                      <div className="mb-4">
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Prerequisites:
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {classItem.prerequisites.map((prereq, i) => (
+                            <span
+                              key={i}
+                              className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded"
+                            >
+                              {prereq}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   {/* Available Sessions */}
                   <div className="space-y-2">
@@ -355,9 +382,14 @@ const DiscipleshipClasses = () => {
                       Upcoming Sessions:
                     </p>
                     {sessions
-                      .filter(session => session.classId._id === classItem._id)
-                      .map(session => (
-                        <div key={session._id} className="border border-gray-200 dark:border-gray-600 rounded p-3">
+                      .filter(
+                        (session) => session.classId._id === classItem._id,
+                      )
+                      .map((session) => (
+                        <div
+                          key={session._id}
+                          className="border border-gray-200 dark:border-gray-600 rounded p-3"
+                        >
                           <div className="flex justify-between items-start mb-2">
                             <h4 className="font-medium text-gray-900 dark:text-white">
                               {session.cohortName}
@@ -368,28 +400,37 @@ const DiscipleshipClasses = () => {
                           </div>
                           <div className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
                             <div className="flex items-center">
-                              <FaCalendarAlt className="mr-2 text-xs" />
+                              <Calendar className="mr-2 text-xs" />
                               <span>{session.dateRange}</span>
                             </div>
                             <div className="flex items-center">
-                              <FaClock className="mr-2 text-xs" />
-                              <span>{session.schedule.day}s at {session.schedule.time}</span>
+                              <Clock className="mr-2 text-xs" />
+                              <span>
+                                {session.schedule.day}s at{" "}
+                                {session.schedule.time}
+                              </span>
                             </div>
                             <div className="flex items-center">
-                              <FaMapMarkerAlt className="mr-2 text-xs" />
+                              <MapPin className="mr-2 text-xs" />
                               <span>{session.location}</span>
                             </div>
                           </div>
                           <button
-                            onClick={() => openRegistrationForm(classItem, session)}
+                            onClick={() =>
+                              openRegistrationForm(classItem, session)
+                            }
                             className="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors"
                             disabled={!session.registrationOpen}
                           >
-                            {session.registrationOpen ? 'Register Now' : 'Registration Closed'}
+                            {session.registrationOpen
+                              ? "Register Now"
+                              : "Registration Closed"}
                           </button>
                         </div>
                       ))}
-                    {sessions.filter(session => session.classId._id === classItem._id).length === 0 && (
+                    {sessions.filter(
+                      (session) => session.classId._id === classItem._id,
+                    ).length === 0 && (
                       <p className="text-sm text-gray-500 dark:text-gray-400 italic">
                         No upcoming sessions scheduled
                       </p>
@@ -412,7 +453,7 @@ const DiscipleshipClasses = () => {
           <h2 className="text-3xl font-bold mb-8 text-center text-gray-900 dark:text-white">
             Frequently Asked Questions
           </h2>
-          
+
           <div className="max-w-3xl mx-auto space-y-4">
             {faqItems.map((faq, index) => (
               <motion.div
@@ -429,7 +470,7 @@ const DiscipleshipClasses = () => {
                   <span className="font-medium text-gray-900 dark:text-white">
                     {faq.question}
                   </span>
-                  <FaAngleDown
+                  <ChevronDown
                     className={`text-gray-500 transition-transform ${
                       expandedFaq === index ? "rotate-180" : ""
                     }`}
@@ -493,7 +534,10 @@ const DiscipleshipClasses = () => {
                     </h4>
                     <div className="space-y-1 text-sm text-blue-700 dark:text-blue-300">
                       <p>{selectedSession.dateRange}</p>
-                      <p>{selectedSession.schedule.day}s at {selectedSession.schedule.time}</p>
+                      <p>
+                        {selectedSession.schedule.day}s at{" "}
+                        {selectedSession.schedule.time}
+                      </p>
                       <p>{selectedSession.location}</p>
                     </div>
                   </div>
@@ -515,7 +559,9 @@ const DiscipleshipClasses = () => {
                         required
                       />
                       {formErrors.fullName && (
-                        <p className="text-red-500 text-sm mt-1">{formErrors.fullName}</p>
+                        <p className="text-red-500 text-sm mt-1">
+                          {formErrors.fullName}
+                        </p>
                       )}
                     </div>
 
@@ -532,7 +578,9 @@ const DiscipleshipClasses = () => {
                         required
                       />
                       {formErrors.email && (
-                        <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>
+                        <p className="text-red-500 text-sm mt-1">
+                          {formErrors.email}
+                        </p>
                       )}
                     </div>
 
@@ -549,7 +597,9 @@ const DiscipleshipClasses = () => {
                         required
                       />
                       {formErrors.phone && (
-                        <p className="text-red-500 text-sm mt-1">{formErrors.phone}</p>
+                        <p className="text-red-500 text-sm mt-1">
+                          {formErrors.phone}
+                        </p>
                       )}
                     </div>
 
@@ -587,7 +637,9 @@ const DiscipleshipClasses = () => {
                           required
                         />
                         {formErrors.emergencyContactName && (
-                          <p className="text-red-500 text-sm mt-1">{formErrors.emergencyContactName}</p>
+                          <p className="text-red-500 text-sm mt-1">
+                            {formErrors.emergencyContactName}
+                          </p>
                         )}
                       </div>
 
@@ -604,7 +656,9 @@ const DiscipleshipClasses = () => {
                           required
                         />
                         {formErrors.emergencyContactPhone && (
-                          <p className="text-red-500 text-sm mt-1">{formErrors.emergencyContactPhone}</p>
+                          <p className="text-red-500 text-sm mt-1">
+                            {formErrors.emergencyContactPhone}
+                          </p>
                         )}
                       </div>
 
@@ -622,7 +676,9 @@ const DiscipleshipClasses = () => {
                           required
                         />
                         {formErrors.emergencyContactRelationship && (
-                          <p className="text-red-500 text-sm mt-1">{formErrors.emergencyContactRelationship}</p>
+                          <p className="text-red-500 text-sm mt-1">
+                            {formErrors.emergencyContactRelationship}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -642,7 +698,9 @@ const DiscipleshipClasses = () => {
                       required
                     />
                     {formErrors.motivationReason && (
-                      <p className="text-red-500 text-sm mt-1">{formErrors.motivationReason}</p>
+                      <p className="text-red-500 text-sm mt-1">
+                        {formErrors.motivationReason}
+                      </p>
                     )}
                   </div>
 
@@ -661,7 +719,9 @@ const DiscipleshipClasses = () => {
                   </div>
 
                   {formErrors.submit && (
-                    <div className="text-red-500 text-sm">{formErrors.submit}</div>
+                    <div className="text-red-500 text-sm">
+                      {formErrors.submit}
+                    </div>
                   )}
 
                   {/* Submit Button */}

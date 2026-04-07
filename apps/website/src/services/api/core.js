@@ -112,7 +112,7 @@ export const postData = async (endpoint, data) => {
     // Log the request for debugging
     console.log(
       `Making POST request to ${endpoint} with auth headers:`,
-      authHeaders.Authorization ? "Bearer token present" : "No auth token"
+      authHeaders.Authorization ? "Bearer token present" : "No auth token",
     );
 
     const response = await fetch(`${API_URL}/${endpoint}`, {
@@ -124,41 +124,15 @@ export const postData = async (endpoint, data) => {
       body: JSON.stringify(data),
     });
 
-    // Handle authentication errors specifically
+    // Handle authentication errors - session has expired, redirect to login
     if (response.status === 401) {
-      console.warn(
-        "Authentication error (401) detected, attempting to refresh token"
-      );
-
-      // Try to refresh the token by logging in again
-      // Note: login function will be imported from auth.js in the future
-      const loginSuccess = await import("./auth").then((auth) =>
-        auth.login("admin", "admin")
-      );
-
-      if (loginSuccess) {
-        console.log("Token refreshed, retrying request");
-
-        // Retry the request with fresh auth headers
-        const retryResponse = await fetch(`${API_URL}/${endpoint}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...getAuthHeaders(), // Get fresh headers after login
-          },
-          body: JSON.stringify(data),
-        });
-
-        if (!retryResponse.ok) {
-          throw new Error(
-            `API error after token refresh: ${retryResponse.status}`
-          );
-        }
-
-        return await retryResponse.json();
-      } else {
-        throw new Error("Authentication failed. Please log in again.");
+      console.warn("Session expired or invalid. Redirecting to admin login.");
+      localStorage.removeItem("auth");
+      // Only redirect if we're in a browser context (not SSR)
+      if (typeof window !== "undefined") {
+        window.location.href = "/admin";
       }
+      throw new Error("Session expired. Please log in again.");
     }
 
     if (!response.ok) {
@@ -200,7 +174,7 @@ export const updateData = async (endpoint, id, data) => {
     // Log the request for debugging
     console.log(
       `Making PUT request to ${apiUrl} with auth headers:`,
-      authHeaders.Authorization ? "Bearer token present" : "No auth token"
+      authHeaders.Authorization ? "Bearer token present" : "No auth token",
     );
 
     const response = await fetch(apiUrl, {
@@ -214,51 +188,14 @@ export const updateData = async (endpoint, id, data) => {
 
     console.log(`Update response status: ${response.status}`);
 
-    // Handle authentication errors specifically
+    // Handle authentication errors - session has expired, redirect to login
     if (response.status === 401) {
-      console.warn(
-        "Authentication error (401) detected, attempting to refresh token"
-      );
-
-      // Try to refresh the token by logging in again
-      // Note: login function will be imported from auth.js in the future
-      const loginSuccess = await import("./auth").then((auth) =>
-        auth.login("admin", "admin")
-      );
-
-      if (loginSuccess) {
-        console.log("Token refreshed, retrying request");
-
-        // Retry the request with fresh auth headers
-        const retryResponse = await fetch(apiUrl, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            ...getAuthHeaders(), // Get fresh headers after login
-          },
-          body: JSON.stringify(cleanData),
-        });
-
-        if (!retryResponse.ok) {
-          let errorMessage;
-          try {
-            const errorData = await retryResponse.json();
-            errorMessage =
-              errorData.message ||
-              `API error after token refresh: ${retryResponse.status}`;
-          } catch (e) {
-            errorMessage = `API error after token refresh: ${retryResponse.status}`;
-          }
-          console.error(`Error response after token refresh:`, errorMessage);
-          throw new Error(errorMessage);
-        }
-
-        const responseData = await retryResponse.json();
-        console.log(`Updated successfully after token refresh:`, responseData);
-        return responseData;
-      } else {
-        throw new Error("Authentication failed. Please log in again.");
+      console.warn("Session expired or invalid. Redirecting to admin login.");
+      localStorage.removeItem("auth");
+      if (typeof window !== "undefined") {
+        window.location.href = "/admin";
       }
+      throw new Error("Session expired. Please log in again.");
     }
 
     if (!response.ok) {
