@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useDarkMode } from "../../contexts/DarkModeContext";
 import {
   createCellGroup,
   updateCellGroup,
@@ -34,7 +35,8 @@ import {
   Users,
 } from "lucide-react";
 
-const CellGroupManager = ({ darkMode }) => {
+const CellGroupManager = () => {
+  const { darkMode } = useDarkMode();
   // State for active tab (zones or cell groups)
   const [activeTab, setActiveTab] = useState("cellGroups"); // 'zones' or 'cellGroups'
 

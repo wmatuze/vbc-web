@@ -1,6 +1,5 @@
 // File upload API functions
-import { API_URL, getAuthToken } from './core';
-import { login } from './auth';
+import { API_URL, getAuthToken } from "./core";
 
 /**
  * Upload a file using FormData
@@ -26,52 +25,12 @@ export const uploadFile = async (file, title, category, onProgress) => {
       throw new Error("File is too large. Maximum size allowed is 5MB");
     }
 
-    // First check if we have a valid auth token
-    let token = getAuthToken();
+    // Get the current auth token (getAuthToken handles dev token creation automatically)
+    const token = getAuthToken();
     console.log("Auth token available:", !!token);
 
     if (!token) {
-      console.log(
-        "No auth token found, attempting login with default credentials"
-      );
-      // Try to log in with default credentials
-      try {
-        const loginSuccess = await login("admin", "admin");
-        if (loginSuccess) {
-          console.log("Auto-login successful");
-          // Get the new token
-          token = getAuthToken();
-        } else {
-          console.warn("Auto-login failed, creating fallback token");
-          const uniqueToken = `dev-token-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
-          const defaultAuth = {
-            isAuthenticated: true,
-            token: uniqueToken,
-            user: { username: "admin", role: "admin" },
-            timestamp: Date.now(),
-          };
-          localStorage.setItem("auth", JSON.stringify(defaultAuth));
-          token = uniqueToken;
-        }
-      } catch (loginErr) {
-        console.error("Auto-login error:", loginErr);
-
-        // Create a fallback token for development
-        if (
-          process.env.NODE_ENV === "development" ||
-          window.location.hostname === "localhost"
-        ) {
-          const uniqueToken = `dev-token-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
-          const defaultAuth = {
-            isAuthenticated: true,
-            token: uniqueToken,
-            user: { username: "admin", role: "admin" },
-            timestamp: Date.now(),
-          };
-          localStorage.setItem("auth", JSON.stringify(defaultAuth));
-          token = uniqueToken;
-        }
-      }
+      throw new Error("Not authenticated. Please log in to upload files.");
     }
 
     // Try multiple authentication methods
@@ -125,7 +84,7 @@ export const uploadFile = async (file, title, category, onProgress) => {
           window.location.hostname === "localhost"
         ) {
           console.log(
-            "Standard upload failed, trying direct upload for development"
+            "Standard upload failed, trying direct upload for development",
           );
           return directUpload(file, title, category, onProgress);
         }
@@ -134,17 +93,17 @@ export const uploadFile = async (file, title, category, onProgress) => {
         const errorText = await response.text();
         console.error(
           `Upload failed with status ${response.status}:`,
-          errorText
+          errorText,
         );
 
         try {
           const jsonError = JSON.parse(errorText);
           throw new Error(
-            `Upload failed (${response.status}): ${jsonError.error || jsonError.message || "Unknown error"}`
+            `Upload failed (${response.status}): ${jsonError.error || jsonError.message || "Unknown error"}`,
           );
         } catch (e) {
           throw new Error(
-            `Upload failed (${response.status}): ${errorText || "Unknown error"}`
+            `Upload failed (${response.status}): ${errorText || "Unknown error"}`,
           );
         }
       }
@@ -157,7 +116,7 @@ export const uploadFile = async (file, title, category, onProgress) => {
           error.message.includes("authorization"))
       ) {
         console.log(
-          "Token-based upload failed, trying direct upload for development"
+          "Token-based upload failed, trying direct upload for development",
         );
         return directUpload(file, title, category, onProgress);
       }
@@ -247,52 +206,10 @@ export const directUpload = async (file, title, category, onProgress) => {
       // Fall through to next option
     }
 
-    // Option 3: In development mode, we can simulate a successful upload
-    if (
-      process.env.NODE_ENV === "development" ||
-      window.location.hostname === "localhost"
-    ) {
-      console.log("Simulating successful upload for development");
-
-      // Generate a mock successful response
-      const mockResponse = {
-        id: `mock-${Date.now()}`,
-        path: `/uploads/${file.name}`,
-        filename: file.name,
-        title: title || file.name,
-        category: category || "general",
-        uploadDate: new Date().toISOString(),
-        fileUrl: `${API_URL}/uploads/${file.name}`,
-        thumbnailUrl: `${API_URL}/uploads/${file.name}`,
-      };
-
-      console.log("Created mock response:", mockResponse);
-
-      // Create a local URL for the file so it can be displayed
-      try {
-        mockResponse.localUrl = URL.createObjectURL(file);
-      } catch (e) {
-        console.error("Could not create object URL for file:", e);
-      }
-
-      // Save to session storage so it persists during this session
-      try {
-        const existingMedia = JSON.parse(
-          sessionStorage.getItem("cachedMedia") || "[]"
-        );
-        existingMedia.unshift(mockResponse);
-        sessionStorage.setItem("cachedMedia", JSON.stringify(existingMedia));
-        console.log("Updated session storage with mock media");
-      } catch (e) {
-        console.error("Could not update session storage:", e);
-      }
-
-      return mockResponse;
-    }
-
-    // If all options failed and we're not in development mode
+    // All real upload options have failed – surface the error to the caller
     throw new Error(
-      "All upload methods failed. Server may not support direct uploads."
+      "Upload failed: could not reach the server upload endpoint. " +
+        "Please ensure you are logged in and the server is running.",
     );
   } catch (error) {
     console.error("Direct upload error:", error);

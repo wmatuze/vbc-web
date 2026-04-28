@@ -8,9 +8,7 @@ import QueryProvider from "./providers/QueryProvider";
 // ── Always-loaded layout / shell components ────────────────────────────────
 import Navbar from "./components/Layout/Navbar";
 import Footer from "./components/Layout/Footer";
-import ErrorBoundary from "./components/ErrorBoundary";
 import GlobalErrorBoundary from "./components/GlobalErrorBoundary";
-import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 // ── Home page sections (loaded on first visit, shared across sessions) ─────
 import HeroSection from "./components/Home/HeroSection";
@@ -50,7 +48,22 @@ const PraiseMinistry = lazy(() => import("./pages/Ministries/PraiseMinistry"));
 const CouplesMinistry = lazy(
   () => import("./pages/Ministries/CouplesMinistry"),
 );
-const Admin = lazy(() => import("./pages/Admin"));
+// ── Admin ─────────────────────────────────────────────────────────────────
+const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
+const AdminLogin = lazy(() => import("./components/admin/AdminLogin"));
+const DashboardContent = lazy(() => import("./components/admin/DashboardContent"));
+const SermonManagerWrapper = lazy(() => import("./components/admin/SermonManagerWrapper"));
+const EventManager = lazy(() => import("./components/admin/EventManager"));
+const RecurringEventManager = lazy(() => import("./components/admin/RecurringEventManager"));
+const LeaderManager = lazy(() => import("./components/admin/LeaderManager"));
+const CellGroupManager = lazy(() => import("./components/admin/CellGroupManager"));
+const RequestsManager = lazy(() => import("./components/admin/RequestsManager"));
+const FoundationClassSessionManager = lazy(() => import("./components/admin/FoundationClassSessionManager"));
+const DiscipleshipAdmin = lazy(() => import("./components/admin/DiscipleshipAdmin"));
+const ResourceAdmin = lazy(() => import("./components/admin/ResourceAdmin"));
+const ReportsAdmin = lazy(() => import("./components/admin/ReportsAdmin"));
+const MediaManager = lazy(() => import("./components/admin/MediaManager"));
+const SettingsContent = lazy(() => import("./components/admin/SettingsContent"));
 const AdminGuide = lazy(() => import("./pages/admin/AdminGuide"));
 const Support = lazy(() => import("./pages/admin/Support"));
 const ErrorTester = lazy(() => import("./components/ErrorTester"));
@@ -70,21 +83,14 @@ const ScrollToTop = () => {
   return null;
 };
 
-const NavbarWrapper = ({ heroRef, isNavHidden }) => {
+const NavbarWrapper = ({ isNavHidden }) => {
   const location = useLocation();
-  const isAdminPage = location.pathname.startsWith("/admin");
-
-  return <Navbar isHidden={isNavHidden} forceOpaque={isAdminPage} />;
+  if (location.pathname.startsWith("/admin")) return null;
+  return <Navbar isHidden={isNavHidden} />;
 };
 
 const PageWrapper = ({ children, noPadding }) => (
-  <div
-    className={
-      noPadding ? "" : "pt-20 pb-16 2xl:pt-24 2xl:pb-20 3xl:pt-28 3xl:pb-24"
-    }
-  >
-    {children}
-  </div>
+  <div className={noPadding ? "" : "pt-20 2xl:pt-24 3xl:pt-28"}>{children}</div>
 );
 
 // Create a new AppContent component that uses Router-dependent hooks
@@ -108,7 +114,7 @@ const AppContent = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <ScrollToTop />
-      <NavbarWrapper isNavHidden={isNavHidden} heroRef={heroRef} />
+      <NavbarWrapper isNavHidden={isNavHidden} />
 
       <main className="flex-grow relative">
         <div
@@ -356,35 +362,27 @@ const AppContent = () => {
                 }
               />
 
-              {/* Admin Dashboard and related pages */}
-              <Route
-                path="/admin"
-                element={
-                  <PageWrapper>
-                    <Admin />
-                  </PageWrapper>
-                }
-              />
-              <Route
-                path="/admin/help"
-                element={
-                  <ProtectedRoute>
-                    <PageWrapper>
-                      <AdminGuide darkMode={false} />
-                    </PageWrapper>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/support"
-                element={
-                  <ProtectedRoute>
-                    <PageWrapper>
-                      <Support darkMode={false} />
-                    </PageWrapper>
-                  </ProtectedRoute>
-                }
-              />
+              {/* Admin login (standalone, outside layout) */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+
+              {/* Admin — nested routes under shared layout */}
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<DashboardContent />} />
+                <Route path="sermons" element={<SermonManagerWrapper />} />
+                <Route path="events" element={<EventManager />} />
+                <Route path="recurring-events" element={<RecurringEventManager />} />
+                <Route path="leaders" element={<LeaderManager />} />
+                <Route path="cell-groups" element={<CellGroupManager />} />
+                <Route path="members" element={<RequestsManager />} />
+                <Route path="foundation-classes" element={<FoundationClassSessionManager />} />
+                <Route path="discipleship" element={<DiscipleshipAdmin />} />
+                <Route path="resources" element={<ResourceAdmin />} />
+                <Route path="reports" element={<ReportsAdmin />} />
+                <Route path="media" element={<MediaManager />} />
+                <Route path="settings" element={<SettingsContent />} />
+                <Route path="help" element={<AdminGuide />} />
+                <Route path="support" element={<Support />} />
+              </Route>
 
               {/* Sermons Debug route removed */}
 

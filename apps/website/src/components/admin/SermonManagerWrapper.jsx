@@ -1,10 +1,9 @@
-import React from "react";
 import SermonManager from "./SermonManager";
 import SafeRender from "../common/SafeRender";
+import { useDarkMode } from "../../contexts/DarkModeContext";
 
-// This wrapper component catches and handles any rendering errors
-// related to objects being rendered directly as React children
-const SermonManagerWrapper = ({ darkMode }) => {
+const SermonManagerWrapper = () => {
+  const { darkMode } = useDarkMode();
   return (
     <SafeRender darkMode={darkMode}>
       <SermonManager darkMode={darkMode} />

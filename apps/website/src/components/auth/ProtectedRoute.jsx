@@ -34,8 +34,7 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (!isAuthorized) {
-    // Redirect to admin login page if not authenticated
-    return <Navigate to="/admin" replace />;
+    return <Navigate to="/admin/login" replace />;
   }
 
   // If authenticated, render the protected component

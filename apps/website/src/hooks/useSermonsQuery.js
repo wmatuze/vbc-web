@@ -30,13 +30,13 @@ export const useSermonsQuery = (options = {}) => {
             if (typeof value === "object" && !(value instanceof Date)) {
               console.warn(
                 "Sermon date is an object but not a Date instance:",
-                value
+                value,
               );
 
               // If the object has an imageUrl property, it's definitely corrupted
               if (value.imageUrl) {
                 console.log(
-                  "Detected corrupted date object with imageUrl, replacing with current date"
+                  "Detected corrupted date object with imageUrl, replacing with current date",
                 );
                 const now = new Date();
                 safeSermom[key] = now.toLocaleDateString("en-US", {
@@ -99,7 +99,7 @@ export const useSermonsQuery = (options = {}) => {
           // Handle arrays - ensure each item is safe
           else if (Array.isArray(value)) {
             safeSermom[key] = value.map((item) =>
-              typeof item === "object" ? JSON.stringify(item) : String(item)
+              typeof item === "object" ? JSON.stringify(item) : String(item),
             );
           }
         });
@@ -146,12 +146,6 @@ export const useSermonsQuery = (options = {}) => {
         return safeSermom;
       });
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
-    retry: 1,
-    onError: (error) => {
-      console.error("Error fetching sermons:", error);
-    },
     ...options,
   });
 };
@@ -183,13 +177,13 @@ export const useSermonByIdQuery = (id) => {
           if (typeof value === "object" && !(value instanceof Date)) {
             console.warn(
               "Sermon date is an object but not a Date instance:",
-              value
+              value,
             );
 
             // If the object has an imageUrl property, it's definitely corrupted
             if (value.imageUrl) {
               console.log(
-                "Detected corrupted date object with imageUrl, replacing with current date"
+                "Detected corrupted date object with imageUrl, replacing with current date",
               );
               const now = new Date();
               safeSermom[key] = now.toLocaleDateString("en-US", {
@@ -252,7 +246,7 @@ export const useSermonByIdQuery = (id) => {
         // Handle arrays - ensure each item is safe
         else if (Array.isArray(value)) {
           safeSermom[key] = value.map((item) =>
-            typeof item === "object" ? JSON.stringify(item) : String(item)
+            typeof item === "object" ? JSON.stringify(item) : String(item),
           );
         }
       });
@@ -285,7 +279,7 @@ export const useSermonByIdQuery = (id) => {
           safeSermom.imageUrl = youtubeThumb;
           console.log(
             "Using YouTube thumbnail for single sermon:",
-            safeSermom.title
+            safeSermom.title,
           );
         }
       }
@@ -301,12 +295,6 @@ export const useSermonByIdQuery = (id) => {
 
       return safeSermom;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
-    retry: 1,
     enabled: !!id, // Only run the query if we have an ID
-    onError: (error) => {
-      console.error(`Error fetching sermon with ID ${id}:`, error);
-    },
   });
 };

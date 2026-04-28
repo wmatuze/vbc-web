@@ -13,12 +13,6 @@ export const useRecurringEventsQuery = (options = {}) => {
   return useQuery({
     queryKey: ["recurring-events"],
     queryFn: getRecurringEvents,
-    staleTime: 60 * 1000, // 1 minute (reduced from 5 minutes for more frequent updates)
-    refetchOnWindowFocus: true, // Changed to true to refresh data when user returns to the tab
-    retry: 1,
-    onError: (error) => {
-      console.error("Error fetching recurring events:", error);
-    },
     ...options,
   });
 };
@@ -32,12 +26,6 @@ export const useRecurringEventByIdQuery = (id) => {
   return useQuery({
     queryKey: ["recurring-events", id],
     queryFn: () => getRecurringEventById(id),
-    staleTime: 60 * 1000, // 1 minute (reduced from 5 minutes for more frequent updates)
-    refetchOnWindowFocus: true, // Changed to true to refresh data when user returns to the tab
-    retry: 1,
     enabled: !!id, // Only run the query if we have an ID
-    onError: (error) => {
-      console.error(`Error fetching recurring event with ID ${id}:`, error);
-    },
   });
 };

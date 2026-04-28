@@ -1,5 +1,8 @@
-import React from 'react';
-import { ArrowUpTrayIcon as UploadIcon } from '@heroicons/react/24/outline';
+import React from "react";
+import {
+  ArrowUpTrayIcon as UploadIcon,
+  PhotoIcon,
+} from "@heroicons/react/24/outline";
 
 const LeaderForm = ({
   currentLeader,
@@ -10,19 +13,23 @@ const LeaderForm = ({
   onChange,
   onCancel,
   onImageUpload,
-  fileInputRef
+  onMediaBrowse,
+  fileInputRef,
 }) => {
   return (
     <form onSubmit={onSubmit} className="bg-white shadow-sm rounded-lg p-6">
       <h3 className="text-lg font-medium mb-6">
-        {formMode === 'add' ? 'Add New Leader' : 'Edit Leader'}
+        {formMode === "add" ? "Add New Leader" : "Edit Leader"}
       </h3>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Basic Information */}
         <div className="space-y-6">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700"
+            >
               Name *
             </label>
             <input
@@ -32,10 +39,10 @@ const LeaderForm = ({
               value={currentLeader.name}
               onChange={onChange}
               className={`mt-1 block w-full rounded-md shadow-sm ${
-                formErrors.name ? 'border-red-300' : 'border-gray-300'
+                formErrors.name ? "border-red-300" : "border-gray-300"
               } focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
               required
-              aria-describedby={formErrors.name ? 'name-error' : undefined}
+              aria-describedby={formErrors.name ? "name-error" : undefined}
             />
             {formErrors.name && (
               <p className="mt-2 text-sm text-red-600" id="name-error">
@@ -45,7 +52,10 @@ const LeaderForm = ({
           </div>
 
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="title"
+              className="block text-sm font-medium text-gray-700"
+            >
               Title *
             </label>
             <input
@@ -55,10 +65,10 @@ const LeaderForm = ({
               value={currentLeader.title}
               onChange={onChange}
               className={`mt-1 block w-full rounded-md shadow-sm ${
-                formErrors.title ? 'border-red-300' : 'border-gray-300'
+                formErrors.title ? "border-red-300" : "border-gray-300"
               } focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
               required
-              aria-describedby={formErrors.title ? 'title-error' : undefined}
+              aria-describedby={formErrors.title ? "title-error" : undefined}
             />
             {formErrors.title && (
               <p className="mt-2 text-sm text-red-600" id="title-error">
@@ -68,7 +78,10 @@ const LeaderForm = ({
           </div>
 
           <div>
-            <label htmlFor="department" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="department"
+              className="block text-sm font-medium text-gray-700"
+            >
               Department
             </label>
             <input
@@ -82,7 +95,10 @@ const LeaderForm = ({
           </div>
 
           <div>
-            <label htmlFor="order" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="order"
+              className="block text-sm font-medium text-gray-700"
+            >
               Display Order
             </label>
             <input
@@ -103,7 +119,10 @@ const LeaderForm = ({
         {/* Contact Information */}
         <div className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700"
+            >
               Email *
             </label>
             <input
@@ -113,10 +132,10 @@ const LeaderForm = ({
               value={currentLeader.email}
               onChange={onChange}
               className={`mt-1 block w-full rounded-md shadow-sm ${
-                formErrors.email ? 'border-red-300' : 'border-gray-300'
+                formErrors.email ? "border-red-300" : "border-gray-300"
               } focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
               required
-              aria-describedby={formErrors.email ? 'email-error' : undefined}
+              aria-describedby={formErrors.email ? "email-error" : undefined}
             />
             {formErrors.email && (
               <p className="mt-2 text-sm text-red-600" id="email-error">
@@ -126,7 +145,10 @@ const LeaderForm = ({
           </div>
 
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="phone"
+              className="block text-sm font-medium text-gray-700"
+            >
               Phone
             </label>
             <input
@@ -136,9 +158,9 @@ const LeaderForm = ({
               value={currentLeader.phone}
               onChange={onChange}
               className={`mt-1 block w-full rounded-md shadow-sm ${
-                formErrors.phone ? 'border-red-300' : 'border-gray-300'
+                formErrors.phone ? "border-red-300" : "border-gray-300"
               } focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
-              aria-describedby={formErrors.phone ? 'phone-error' : undefined}
+              aria-describedby={formErrors.phone ? "phone-error" : undefined}
             />
             {formErrors.phone && (
               <p className="mt-2 text-sm text-red-600" id="phone-error">
@@ -151,38 +173,62 @@ const LeaderForm = ({
             <label className="block text-sm font-medium text-gray-700">
               Profile Image
             </label>
-            <div className="mt-1 flex items-center">
-              {currentLeader.imageUrl ? (
-                <div className="relative">
-                  <img
-                    src={currentLeader.imageUrl}
-                    alt="Profile"
-                    className="h-32 w-32 object-cover rounded-lg"
-                  />
+            <div className="mt-1 flex items-start space-x-3">
+              {/* Image preview / upload click target */}
+              <div className="relative shrink-0">
+                {currentLeader.imageUrl ? (
+                  <>
+                    <img
+                      src={currentLeader.imageUrl}
+                      alt="Profile"
+                      className="h-32 w-32 object-cover rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="absolute bottom-2 right-2 p-1 bg-white rounded-full shadow-sm hover:bg-gray-50"
+                      title="Upload new image"
+                    >
+                      <UploadIcon className="h-4 w-4 text-gray-600" />
+                    </button>
+                  </>
+                ) : (
                   <button
                     type="button"
-                    onClick={() => {
-                      fileInputRef.current?.click();
-                    }}
-                    className="absolute bottom-2 right-2 p-1 bg-white rounded-full shadow-sm hover:bg-gray-50"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="h-32 w-32 border-2 border-gray-300 border-dashed rounded-lg flex items-center justify-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    title="Upload image"
                   >
-                    <UploadIcon className="h-5 w-5 text-gray-600" />
+                    <UploadIcon className="h-8 w-8 text-gray-400" />
                   </button>
-                </div>
-              ) : (
+                )}
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex flex-col space-y-2 pt-1">
                 <button
                   type="button"
-                  onClick={() => {
-                    fileInputRef.current?.click();
-                  }}
-                  className="h-32 w-32 border-2 border-gray-300 border-dashed rounded-lg flex items-center justify-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
-                  <UploadIcon className="h-8 w-8 text-gray-400" />
+                  <UploadIcon className="h-4 w-4 mr-2 text-gray-400" />
+                  Upload New
                 </button>
-              )}
+                {onMediaBrowse && (
+                  <button
+                    type="button"
+                    onClick={onMediaBrowse}
+                    className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    <PhotoIcon className="h-4 w-4 mr-2 text-gray-400" />
+                    Browse Library
+                  </button>
+                )}
+              </div>
             </div>
             <p className="mt-2 text-sm text-gray-500">
-              Upload a square image (JPG, PNG, GIF). Max 5MB.
+              Upload a new image (JPG, PNG, GIF, max 5MB) or pick one from the
+              Media Library.
             </p>
           </div>
         </div>
@@ -190,7 +236,10 @@ const LeaderForm = ({
 
       {/* Bio */}
       <div className="mt-6">
-        <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
+        <label
+          htmlFor="bio"
+          className="block text-sm font-medium text-gray-700"
+        >
           Bio *
         </label>
         <textarea
@@ -200,10 +249,10 @@ const LeaderForm = ({
           onChange={onChange}
           rows="4"
           className={`mt-1 block w-full rounded-md shadow-sm ${
-            formErrors.bio ? 'border-red-300' : 'border-gray-300'
+            formErrors.bio ? "border-red-300" : "border-gray-300"
           } focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
           required
-          aria-describedby={formErrors.bio ? 'bio-error' : undefined}
+          aria-describedby={formErrors.bio ? "bio-error" : undefined}
         />
         {formErrors.bio && (
           <p className="mt-2 text-sm text-red-600" id="bio-error">
@@ -214,14 +263,17 @@ const LeaderForm = ({
 
       {/* Ministry Focus */}
       <div className="mt-6">
-        <label htmlFor="ministryFocus" className="block text-sm font-medium text-gray-700">
+        <label
+          htmlFor="ministryFocus"
+          className="block text-sm font-medium text-gray-700"
+        >
           Ministry Focus Areas
         </label>
         <input
           type="text"
           id="ministryFocus"
           name="ministryFocus"
-          value={currentLeader.ministryFocus.join(', ')}
+          value={currentLeader.ministryFocus.join(", ")}
           onChange={onChange}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           placeholder="e.g. Youth, Worship, Outreach"
@@ -236,7 +288,10 @@ const LeaderForm = ({
         <h4 className="text-sm font-medium text-gray-700 mb-4">Social Media</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label htmlFor="social-facebook" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="social-facebook"
+              className="block text-sm font-medium text-gray-700"
+            >
               Facebook URL
             </label>
             <input
@@ -251,7 +306,10 @@ const LeaderForm = ({
           </div>
 
           <div>
-            <label htmlFor="social-twitter" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="social-twitter"
+              className="block text-sm font-medium text-gray-700"
+            >
               Twitter URL
             </label>
             <input
@@ -266,7 +324,10 @@ const LeaderForm = ({
           </div>
 
           <div>
-            <label htmlFor="social-linkedin" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="social-linkedin"
+              className="block text-sm font-medium text-gray-700"
+            >
               LinkedIn URL
             </label>
             <input
@@ -281,7 +342,10 @@ const LeaderForm = ({
           </div>
 
           <div>
-            <label htmlFor="social-instagram" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="social-instagram"
+              className="block text-sm font-medium text-gray-700"
+            >
               Instagram URL
             </label>
             <input
@@ -299,7 +363,7 @@ const LeaderForm = ({
 
       {/* Form Actions */}
       <div className="mt-6 flex items-center justify-end space-x-3">
-        {formMode === 'edit' && (
+        {formMode === "edit" && (
           <button
             type="button"
             onClick={onCancel}
@@ -313,11 +377,15 @@ const LeaderForm = ({
           disabled={loading}
           className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Saving...' : formMode === 'add' ? 'Add Leader' : 'Save Changes'}
+          {loading
+            ? "Saving..."
+            : formMode === "add"
+              ? "Add Leader"
+              : "Save Changes"}
         </button>
       </div>
     </form>
   );
 };
 
-export default LeaderForm; 
+export default LeaderForm;

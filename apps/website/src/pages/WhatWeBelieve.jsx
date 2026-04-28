@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { motion } from "framer-motion";
 
@@ -61,6 +62,35 @@ const WhatWeBelieve = () => {
 
       {/* Hero Section - Minimalist Black & White Design */}
       <section className="relative overflow-hidden h-[85vh] bg-black">
+        {/* Breadcrumb navigation */}
+        <div className="absolute top-20 left-0 right-0 z-20 px-4 sm:px-6 lg:px-8 pointer-events-none">
+          <nav aria-label="Breadcrumb" className="pointer-events-auto">
+            <ol className="flex items-center space-x-1.5 text-sm text-white/80">
+              <li>
+                <Link to="/" className="hover:text-white transition-colors">
+                  Home
+                </Link>
+              </li>
+              <li aria-hidden="true">
+                <span className="mx-1">›</span>
+              </li>
+              <li>
+                <Link
+                  to="/about"
+                  className="hover:text-white transition-colors"
+                >
+                  About
+                </Link>
+              </li>
+              <li aria-hidden="true">
+                <span className="mx-1">›</span>
+              </li>
+              <li className="text-white font-medium" aria-current="page">
+                What We Believe
+              </li>
+            </ol>
+          </nav>
+        </div>
         <motion.div
           className="absolute inset-0 opacity-40"
           style={{

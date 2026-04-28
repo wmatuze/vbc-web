@@ -37,13 +37,8 @@ const ChurchCalendar = () => {
   const navigate = useNavigate();
   const [isImageLoaded, setIsImageLoaded] = useState(false); // Loading state for Hero Image
 
-  // Log events data when it changes
-  useEffect(() => {
-    if (events && events.length > 0) {
-      console.log("ChurchCalendar - API events data:", events);
-      setFilteredEvents(events);
-    }
-  }, [events]);
+  // The filtering useEffect (below) already syncs filteredEvents whenever
+  // `events` changes, so this separate setter is no longer needed.
 
   // Function to check if signup button should be shown
   const shouldShowSignupButton = (event) => {
@@ -419,7 +414,7 @@ const ChurchCalendar = () => {
   }, [isSignUpFormOpen, selectedEvent]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       {/* SEO Meta Tags */}
       <Helmet>
         <title>Church Calendar - Victory Bible Church</title>
@@ -552,37 +547,96 @@ const ChurchCalendar = () => {
       {/* Content Section (Events Grid, List, Calendar) - Below Search/Filter */}
       <div className="max-w-7xl mx-auto bg-white rounded-lg shadow-md p-4 md:p-6">
         {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+          /* Loading skeleton — 6 card placeholders */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="animate-pulse bg-gray-50 border border-gray-100 rounded-xl overflow-hidden"
+              >
+                <div className="h-40 bg-gray-200" />
+                <div className="p-4 space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-3/4" />
+                  <div className="h-3 bg-gray-200 rounded w-1/2" />
+                  <div className="h-3 bg-gray-200 rounded w-full" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : error ? (
-          <div className="text-center py-12">
-            <p className="text-xl text-gray-600">
+          <div className="text-center py-12 px-4 bg-red-50 rounded-xl border border-red-200">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-12 w-12 text-red-400 mx-auto mb-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <p className="text-red-700 font-semibold mb-1">
+              Failed to load events
+            </p>
+            <p className="text-red-500 text-sm mb-4">
               {error.message ||
-                error.toString() ||
-                "An error occurred while loading events"}
+                "An unexpected error occurred. Please try again."}
             </p>
             <button
-              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              className="mt-2 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               onClick={() => refetchEvents()}
             >
               Retry
             </button>
           </div>
         ) : filteredEvents.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-xl text-gray-600">
-              No events found matching your criteria.
-            </p>
-            <button
-              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              onClick={() => {
-                setSearchTerm("");
-                setSelectedCategory("All");
-              }}
+          <div className="text-center py-16 px-4">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-14 w-14 text-gray-300 mx-auto mb-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              Reset Filters
-            </button>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            {searchTerm || selectedCategory !== "All" ? (
+              <>
+                <p className="text-gray-500 text-lg font-medium">
+                  No events match your filters
+                </p>
+                <p className="text-gray-400 text-sm mt-1 mb-4">
+                  Try adjusting your search or category selection.
+                </p>
+                <button
+                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setSelectedCategory("All");
+                  }}
+                >
+                  Clear Filters
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-gray-500 text-lg font-medium">
+                  No upcoming events
+                </p>
+                <p className="text-gray-400 text-sm mt-1">
+                  Events added via the Admin panel will appear here.
+                </p>
+              </>
+            )}
           </div>
         ) : viewMode === "grid" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

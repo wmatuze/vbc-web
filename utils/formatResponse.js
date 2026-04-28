@@ -39,7 +39,13 @@ const formatObject = (item) => {
       obj.type = "event";
     } else if ((obj.speaker || obj.preacher) && obj.title) {
       obj.type = "sermon";
-    } else if (obj.position && obj.name) {
+    } else if (
+      (obj.position || obj.title) &&
+      obj.name &&
+      obj.bio !== undefined
+    ) {
+      // Leader model uses "title" (not "position"), so check both.
+      // The presence of "bio" distinguishes leaders from other named objects.
       obj.type = "leader";
     } else if (obj.meetingDay && obj.meetingTime) {
       obj.type = "cell-group";
@@ -69,7 +75,8 @@ const formatObject = (item) => {
         } else if (obj.type === "zone" || obj.category === "zone") {
           obj.imageUrl = "/assets/placeholders/default-zone.svg";
         } else {
-          obj.imageUrl = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f3f4f6'/%3E%3Ctext x='200' y='150' text-anchor='middle' fill='%23d1d5db' font-family='Arial' font-size='16'%3ENo Image%3C/text%3E%3C/svg%3E";
+          obj.imageUrl =
+            "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f3f4f6'/%3E%3Ctext x='200' y='150' text-anchor='middle' fill='%23d1d5db' font-family='Arial' font-size='16'%3ENo Image%3C/text%3E%3C/svg%3E";
         }
       }
     }
@@ -87,7 +94,8 @@ const formatObject = (item) => {
     } else if (obj.type === "zone" || obj.category === "zone") {
       obj.imageUrl = "/assets/placeholders/default-zone.svg";
     } else {
-      obj.imageUrl = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f3f4f6'/%3E%3Ctext x='200' y='150' text-anchor='middle' fill='%23d1d5db' font-family='Arial' font-size='16'%3ENo Image%3C/text%3E%3C/svg%3E";
+      obj.imageUrl =
+        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f3f4f6'/%3E%3Ctext x='200' y='150' text-anchor='middle' fill='%23d1d5db' font-family='Arial' font-size='16'%3ENo Image%3C/text%3E%3C/svg%3E";
     }
   }
 
@@ -182,14 +190,14 @@ const formatObject = (item) => {
         if (typeof obj.date === "object" && !(obj.date instanceof Date)) {
           console.warn(
             "Sermon date is an object but not a Date instance:",
-            obj.date
+            obj.date,
           );
 
           // If the object has an imageUrl property, it's definitely corrupted
           // In this case, we need to preserve the original date from the database
           if (obj.date.imageUrl) {
             console.log(
-              "Detected corrupted date object with imageUrl, preserving original date"
+              "Detected corrupted date object with imageUrl, preserving original date",
             );
 
             // Check if we have the original date in _doc (Mongoose document)
@@ -265,7 +273,7 @@ const formatObject = (item) => {
       // If no date is provided, check if we have the original date in _doc
       if (obj._doc && obj._doc.date && obj._doc.date instanceof Date) {
         console.log(
-          "Using original date from Mongoose document for missing date"
+          "Using original date from Mongoose document for missing date",
         );
         const date = obj._doc.date;
         const month = date.toLocaleString("default", { month: "long" });
@@ -291,13 +299,13 @@ const formatObject = (item) => {
         ) {
           console.log(
             "Membership birthday is an object but not a Date instance:",
-            obj.birthday
+            obj.birthday,
           );
 
           // If the object has an imageUrl property, it's definitely corrupted
           if (obj.birthday.imageUrl) {
             console.log(
-              "Detected corrupted birthday object with imageUrl, preserving original date"
+              "Detected corrupted birthday object with imageUrl, preserving original date",
             );
 
             // Check if we have the original date in _doc (Mongoose document)
@@ -373,7 +381,7 @@ const formatObject = (item) => {
           obj._doc.birthday instanceof Date
         ) {
           console.log(
-            "Using original birthday from Mongoose document after error"
+            "Using original birthday from Mongoose document after error",
           );
           const date = obj._doc.birthday;
           const month = date.toLocaleString("default", { month: "long" });
@@ -397,13 +405,13 @@ const formatObject = (item) => {
         ) {
           console.log(
             "Membership renewalDate is an object but not a Date instance:",
-            obj.renewalDate
+            obj.renewalDate,
           );
 
           // If the object has an imageUrl property, it's definitely corrupted
           if (obj.renewalDate.imageUrl) {
             console.log(
-              "Detected corrupted renewalDate object with imageUrl, preserving original date"
+              "Detected corrupted renewalDate object with imageUrl, preserving original date",
             );
 
             // Check if we have the original date in _doc (Mongoose document)
@@ -479,7 +487,7 @@ const formatObject = (item) => {
           obj._doc.renewalDate instanceof Date
         ) {
           console.log(
-            "Using original renewalDate from Mongoose document after error"
+            "Using original renewalDate from Mongoose document after error",
           );
           const date = obj._doc.renewalDate;
           const month = date.toLocaleString("default", { month: "long" });

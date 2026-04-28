@@ -9,13 +9,18 @@ import { getEvents, getEventById } from "../services/api/events";
 export const useEventsQuery = (options = {}) => {
   return useQuery({
     queryKey: ["events"],
-    queryFn: getEvents,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
-    retry: 1,
-    onError: (error) => {
-      console.error("Error fetching events:", error);
+    queryFn: async () => {
+      const data = await getEvents();
+      if (!Array.isArray(data)) {
+        console.error("useEventsQuery: unexpected response shape", data);
+        return [];
+      }
+      return data;
     },
+    // Re-fetch on mount so navigating back to the Calendar page always picks up new events.
+    refetchOnMount: true,
+    staleTime: 60 * 1000, // 60 seconds
+    retry: 2,
     ...options,
   });
 };
@@ -32,13 +37,10 @@ export const useMinistryEventsQuery = (ministry) => {
       const events = await getEvents();
       return events.filter((event) => event?.ministry === ministry);
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
-    retry: 1,
+    refetchOnMount: true,
+    staleTime: 60 * 1000, // 60 seconds
+    retry: 2,
     enabled: !!ministry, // Only run the query if we have a ministry
-    onError: (error) => {
-      console.error(`Error fetching events for ministry ${ministry}:`, error);
-    },
   });
 };
 
@@ -51,12 +53,9 @@ export const useEventByIdQuery = (id) => {
   return useQuery({
     queryKey: ["events", id],
     queryFn: () => getEventById(id),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
-    retry: 1,
+    refetchOnMount: true,
+    staleTime: 60 * 1000, // 60 seconds
+    retry: 2,
     enabled: !!id, // Only run the query if we have an ID
-    onError: (error) => {
-      console.error(`Error fetching event with ID ${id}:`, error);
-    },
   });
 };

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
-import AdminFooter from '../../components/admin/AdminFooter';
+import { useDarkMode } from '../../contexts/DarkModeContext';
 
 // FAQ Accordion Component
 const FaqItem = ({ question, answer, isOpen, toggle }) => {
@@ -27,7 +27,8 @@ const FaqItem = ({ question, answer, isOpen, toggle }) => {
   );
 };
 
-const AdminGuide = ({ darkMode }) => {
+const AdminGuide = () => {
+  const { darkMode } = useDarkMode();
   const navigate = useNavigate();
   const [openFaq, setOpenFaq] = useState(null);
 
@@ -206,7 +207,6 @@ const AdminGuide = ({ darkMode }) => {
           </div>
         </div>
       </div>
-      <AdminFooter darkMode={darkMode} />
     </div>
   );
 };

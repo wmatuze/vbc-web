@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeftIcon,
@@ -6,10 +6,11 @@ import {
   PhoneIcon,
   ChatBubbleLeftRightIcon,
 } from "@heroicons/react/24/outline";
-import AdminFooter from "../../components/admin/AdminFooter";
 import axios from "axios";
+import { useDarkMode } from "../../contexts/DarkModeContext";
 
-const Support = ({ darkMode }) => {
+const Support = () => {
+  const { darkMode } = useDarkMode();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
@@ -403,7 +404,6 @@ const Support = ({ darkMode }) => {
           </div>
         </div>
       </div>
-      <AdminFooter darkMode={darkMode} />
     </div>
   );
 };

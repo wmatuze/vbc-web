@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useDarkMode } from "../../contexts/DarkModeContext";
 import useErrorHandler from "../../hooks/useErrorHandler";
 import { validateSermon, validateField } from "../../utils/validationUtils";
 import FormField from "../common/FormField";
@@ -33,6 +34,14 @@ import { format, parseISO } from "date-fns";
 import config from "../../config";
 
 const API_URL = config.API_URL;
+
+const getThumb = (sermon) => {
+  if (sermon?.videoId) return `https://img.youtube.com/vi/${sermon.videoId}/mqdefault.jpg`;
+  const raw = sermon?.imageUrl;
+  if (!raw || raw.includes("default-sermon") || raw.includes("default-image")) return null;
+  if (raw.startsWith("http") || raw.startsWith("data:")) return raw;
+  return `${API_URL}${raw}`;
+};
 
 // Helper function to format sermon dates
 const formatSermonDate = (dateString) => {
@@ -85,6 +94,8 @@ const formatSermonDate = (dateString) => {
 };
 
 const SermonManager = () => {
+  const { darkMode } = useDarkMode();
+
   // Use React Query for fetching sermons
   const {
     data: sermons = [],
@@ -645,34 +656,26 @@ const SermonManager = () => {
   };
 
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Sermons</h2>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage your sermon library
-          </p>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => {
-              setFormMode("add");
-              setShowForm(true);
-            }}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            <PlusIcon className="h-5 w-5 mr-2" />
-            Add Sermon
-          </button>
-
+    <div>
+      {/* Action bar */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
+        <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+          {(sermons || []).length} sermon{(sermons || []).length !== 1 ? "s" : ""} in library
+        </p>
+        <div className="flex items-center gap-2">
           <button
             onClick={() => refetchSermons()}
-            className="p-2 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-lg"
-            title="Refresh sermons"
+            className={`p-2 rounded-lg transition-colors ${darkMode ? "text-gray-400 hover:bg-gray-700" : "text-gray-400 hover:bg-gray-100"}`}
+            title="Refresh"
           >
             <RefreshIcon className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => { setFormMode("add"); setShowForm(true); }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm"
+          >
+            <PlusIcon className="h-4 w-4" />
+            Add Sermon
           </button>
         </div>
       </div>
@@ -712,145 +715,157 @@ const SermonManager = () => {
       )}
 
       {/* Search and Filter Bar */}
-      <div className="mb-6 flex flex-col sm:flex-row gap-4">
+      <div className="mb-5 flex flex-col sm:flex-row gap-3">
         <div className="flex-1 relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <SearchIcon className="h-5 w-5 text-gray-400" />
-          </div>
+          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
           <input
             type="text"
-            placeholder="Search sermons..."
+            placeholder="Search sermons…"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            className={`block w-full pl-9 pr-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400" : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"}`}
           />
         </div>
-
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           <select
             value={filterSeries}
             onChange={(e) => setFilterSeries(e.target.value)}
-            className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg"
+            className={`py-2 pl-3 pr-8 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300 text-gray-700"}`}
           >
             <option value="all">All Series</option>
-            {seriesList
-              .filter((s) => s !== "all")
-              .map((series) => (
-                <option key={series} value={series}>
-                  {series}
-                </option>
-              ))}
+            {seriesList.filter((s) => s !== "all").map((series) => (
+              <option key={series} value={series}>{series}</option>
+            ))}
           </select>
-
           <select
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
-            className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg"
+            className={`py-2 pl-3 pr-8 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300 text-gray-700"}`}
           >
             <option value="all">All Dates</option>
-            <option value="recent">Recent Sermons</option>
-            <option value="past">Past Sermons</option>
+            <option value="recent">Recent</option>
+            <option value="past">Past</option>
           </select>
-
           <button
-            onClick={() =>
-              setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))
-            }
-            className="p-2 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-lg"
+            onClick={() => setSortOrder((p) => (p === "asc" ? "desc" : "asc"))}
+            className={`p-2 rounded-lg transition-colors ${darkMode ? "text-gray-400 hover:bg-gray-700" : "text-gray-400 hover:bg-gray-100"}`}
             title="Toggle sort order"
           >
-            <SortAscendingIcon
-              className={`h-5 w-5 transform ${sortOrder === "desc" ? "rotate-180" : ""}`}
-            />
+            <SortAscendingIcon className={`h-5 w-5 transition-transform ${sortOrder === "desc" ? "rotate-180" : ""}`} />
           </button>
         </div>
       </div>
 
       {/* Sermons List */}
       {sermonsLoading && sermons.length === 0 ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className={`flex gap-4 p-4 rounded-xl border animate-pulse ${darkMode ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-100"}`}>
+              <div className={`w-28 h-16 rounded-lg flex-shrink-0 ${darkMode ? "bg-gray-600" : "bg-gray-200"}`} />
+              <div className="flex-1 space-y-2 py-1">
+                <div className={`h-4 rounded w-3/4 ${darkMode ? "bg-gray-600" : "bg-gray-200"}`} />
+                <div className={`h-3 rounded w-1/2 ${darkMode ? "bg-gray-600" : "bg-gray-200"}`} />
+              </div>
+            </div>
+          ))}
         </div>
       ) : filteredSermons.length === 0 ? (
-        <div className="text-center py-12">
-          <VideoCameraIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">
-            No sermons found
-          </h3>
-          <p className="mt-1 text-sm text-gray-500">
-            {searchTerm || filterSeries !== "all"
-              ? "Try adjusting your search or filter settings"
-              : "Get started by adding a new sermon"}
+        <div className={`text-center py-16 rounded-xl border ${darkMode ? "border-gray-700" : "border-gray-100"}`}>
+          <VideoCameraIcon className={`mx-auto h-10 w-10 mb-3 ${darkMode ? "text-gray-600" : "text-gray-300"}`} />
+          <p className={`text-sm font-medium ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+            {searchTerm || filterSeries !== "all" ? "No sermons match your filters" : "No sermons yet"}
           </p>
+          {!searchTerm && filterSeries === "all" && (
+            <button
+              onClick={() => { setFormMode("add"); setShowForm(true); }}
+              className="mt-3 text-sm text-blue-500 hover:underline"
+            >
+              Add your first sermon →
+            </button>
+          )}
         </div>
       ) : (
-        <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-          <ul className="divide-y divide-gray-200">
-            {filteredSermons.map((sermon) => (
-              <li key={sermon.id} className="hover:bg-gray-50">
-                <div className="px-4 py-4 sm:px-6">
-                  <div className="flex items-center justify-between">
+        <div className={`rounded-xl border overflow-hidden ${darkMode ? "border-gray-700" : "border-gray-100"}`}>
+          <ul className={`divide-y ${darkMode ? "divide-gray-700" : "divide-gray-100"}`}>
+            {filteredSermons.map((sermon) => {
+              const thumb = getThumb(sermon);
+              return (
+                <li key={sermon.id || sermon._id} className={`transition-colors ${darkMode ? "hover:bg-gray-700/40" : "hover:bg-gray-50"}`}>
+                  <div className="flex items-center gap-4 px-4 py-3">
+                    {/* Thumbnail */}
+                    <div className={`flex-shrink-0 w-28 h-16 rounded-lg overflow-hidden ${darkMode ? "bg-gray-700" : "bg-gray-100"}`}>
+                      {thumb ? (
+                        <img
+                          src={thumb}
+                          alt=""
+                          className="w-full h-full object-cover"
+                          onError={(e) => { e.target.style.display = "none"; }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <VideoCameraIcon className={`h-6 w-6 ${darkMode ? "text-gray-500" : "text-gray-300"}`} />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Content */}
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-lg font-medium text-gray-900 truncate">
+                      <p className={`text-sm font-semibold truncate ${darkMode ? "text-white" : "text-gray-900"}`}>
                         {safeRenderValue(sermon.title, "Untitled Sermon")}
-                      </h4>
-                      <div className="mt-2 flex items-center text-sm text-gray-500">
-                        <UserIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
-                        <span>
-                          {safeRenderValue(sermon.speaker, "Unknown Speaker")}
+                      </p>
+                      <div className={`mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                        <span className="flex items-center gap-1">
+                          <UserIcon className="h-3.5 w-3.5" />
+                          {safeRenderValue(sermon.speaker, "Unknown")}
                         </span>
-                        <CalendarIcon className="flex-shrink-0 ml-4 mr-1.5 h-5 w-5 text-gray-400" />
-                        <span>{formatSermonDate(sermon.date)}</span>
+                        <span className="flex items-center gap-1">
+                          <CalendarIcon className="h-3.5 w-3.5" />
+                          {formatSermonDate(sermon.date)}
+                        </span>
                         {sermon.duration && (
-                          <>
-                            <ClockIcon className="flex-shrink-0 ml-4 mr-1.5 h-5 w-5 text-gray-400" />
-                            <span>
-                              {safeRenderValue(
-                                sermon.duration,
-                                "Unknown duration"
-                              )}
-                            </span>
-                          </>
+                          <span className="flex items-center gap-1">
+                            <ClockIcon className="h-3.5 w-3.5" />
+                            {safeRenderValue(sermon.duration, "")}
+                          </span>
                         )}
                       </div>
-                      {sermon.series && (
-                        <span className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          {safeRenderValue(sermon.series, "Uncategorized")}
-                        </span>
-                      )}
-                      {sermon.tags && sermon.tags.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {sermon.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
-                            >
-                              {safeRenderValue(tag, "tag")}
+                      {(sermon.series || (sermon.tags?.length > 0)) && (
+                        <div className="mt-1.5 flex flex-wrap gap-1.5">
+                          {sermon.series && (
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${darkMode ? "bg-blue-900/40 text-blue-300" : "bg-blue-50 text-blue-700"}`}>
+                              {safeRenderValue(sermon.series, "")}
+                            </span>
+                          )}
+                          {sermon.tags?.slice(0, 3).map((tag) => (
+                            <span key={tag} className={`px-2 py-0.5 rounded-full text-xs ${darkMode ? "bg-gray-700 text-gray-400" : "bg-gray-100 text-gray-600"}`}>
+                              {safeRenderValue(tag, "")}
                             </span>
                           ))}
                         </div>
                       )}
                     </div>
-                    <div className="flex items-center space-x-2">
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-1 flex-shrink-0">
                       <button
                         onClick={() => handleEdit(sermon)}
-                        className="p-2 text-gray-400 hover:text-gray-500"
+                        className={`p-2 rounded-lg transition-colors ${darkMode ? "text-gray-400 hover:bg-gray-700 hover:text-white" : "text-gray-400 hover:bg-gray-100 hover:text-gray-600"}`}
                         title="Edit"
                       >
-                        <PencilIcon className="h-5 w-5" />
+                        <PencilIcon className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => handleDelete(sermon.id)}
-                        className="p-2 text-red-400 hover:text-red-500"
+                        onClick={() => handleDelete(sermon.id || sermon._id)}
+                        className={`p-2 rounded-lg transition-colors ${darkMode ? "text-red-400 hover:bg-red-900/30" : "text-red-400 hover:bg-red-50"}`}
                         title="Delete"
                       >
-                        <TrashIcon className="h-5 w-5" />
+                        <TrashIcon className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
-                </div>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
@@ -858,19 +873,24 @@ const SermonManager = () => {
       {/* Add/Edit Form Modal */}
       {showForm && (
         <div className="fixed inset-0 overflow-y-auto z-50">
-          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20">
+            <div className="fixed inset-0 bg-black/60" onClick={resetForm} />
 
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div className={`relative w-full max-w-lg rounded-xl shadow-2xl overflow-hidden ${darkMode ? "bg-gray-800 text-white" : "bg-white text-gray-900"}`}>
               <form onSubmit={handleSubmit}>
-                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                  <div className="mb-4">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      {formMode === "add" ? "Add New Sermon" : "Edit Sermon"}
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      Fill in the sermon details below
-                    </p>
+                <div className="px-6 pt-6 pb-4">
+                  <div className="flex items-center justify-between mb-5">
+                    <div>
+                      <h3 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-gray-900"}`}>
+                        {formMode === "add" ? "Add New Sermon" : "Edit Sermon"}
+                      </h3>
+                      <p className={`mt-0.5 text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                        Fill in the sermon details below
+                      </p>
+                    </div>
+                    <button type="button" onClick={resetForm} className={`p-1.5 rounded-lg ${darkMode ? "hover:bg-gray-700 text-gray-400" : "hover:bg-gray-100 text-gray-400"}`}>
+                      <XIcon className="h-5 w-5" />
+                    </button>
                   </div>
 
                   <div className="space-y-4">
@@ -1094,48 +1114,21 @@ const SermonManager = () => {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm ${
-                      loading ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                  >
-                    {loading ? (
-                      <>
-                        <svg
-                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                        Saving...
-                      </>
-                    ) : (
-                      "Save Sermon"
-                    )}
-                  </button>
+                <div className={`px-6 py-4 flex justify-end gap-3 border-t ${darkMode ? "border-gray-700 bg-gray-800/50" : "border-gray-100 bg-gray-50"}`}>
                   <button
                     type="button"
                     onClick={resetForm}
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${darkMode ? "border-gray-600 text-gray-300 hover:bg-gray-700" : "border-gray-300 text-gray-700 hover:bg-gray-50"}`}
                   >
                     Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors inline-flex items-center gap-2"
+                  >
+                    {loading && <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>}
+                    {loading ? "Saving…" : "Save Sermon"}
                   </button>
                 </div>
               </form>
@@ -1153,8 +1146,8 @@ const SermonManager = () => {
               onClick={() => setIsMediaSelectorOpen(false)}
             ></div>
 
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl sm:w-full">
-              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div className={`relative w-full max-w-5xl rounded-xl shadow-2xl overflow-hidden ${darkMode ? "bg-gray-800" : "bg-white"}`}>
+              <div className="px-6 pt-5 pb-4">
                 <div className="sm:flex sm:items-start">
                   <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
                     <div className="flex justify-between items-center">
@@ -1243,23 +1236,14 @@ const SermonManager = () => {
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button
-                  type="button"
-                  disabled={!selectedMediaItem}
-                  className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm ${
-                    !selectedMediaItem ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
-                  onClick={handleMediaSelection}
-                >
-                  Select Image
-                </button>
-                <button
-                  type="button"
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                  onClick={() => setIsMediaSelectorOpen(false)}
-                >
+              <div className={`px-6 py-4 flex justify-end gap-3 border-t ${darkMode ? "border-gray-700 bg-gray-800/50" : "border-gray-100 bg-gray-50"}`}>
+                <button type="button" onClick={() => setIsMediaSelectorOpen(false)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${darkMode ? "border-gray-600 text-gray-300 hover:bg-gray-700" : "border-gray-300 text-gray-700 hover:bg-gray-50"}`}>
                   Cancel
+                </button>
+                <button type="button" disabled={!selectedMediaItem} onClick={handleMediaSelection}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                  Use Selected Image
                 </button>
               </div>
             </div>

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { EnvelopeIcon, UserCircleIcon } from "@heroicons/react/24/outline";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { LazyLoadImage } from "react-lazy-load-image-component";
@@ -137,7 +138,7 @@ const Leadership = () => {
   } = categorizeLeaders(leaders);
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       {/* SEO Meta Tags */}
       <Helmet>
         <title>Our Leadership - Victory Bible Church</title>
@@ -149,6 +150,35 @@ const Leadership = () => {
 
       {/* Hero Section with Accessibility Improvements */}
       <section className="relative min-h-screen overflow-hidden">
+        {/* Breadcrumb navigation */}
+        <div className="absolute top-20 left-0 right-0 z-20 px-4 sm:px-6 lg:px-8 pointer-events-none">
+          <nav aria-label="Breadcrumb" className="pointer-events-auto">
+            <ol className="flex items-center space-x-1.5 text-sm text-white/80">
+              <li>
+                <Link to="/" className="hover:text-white transition-colors">
+                  Home
+                </Link>
+              </li>
+              <li aria-hidden="true">
+                <span className="mx-1">›</span>
+              </li>
+              <li>
+                <Link
+                  to="/about"
+                  className="hover:text-white transition-colors"
+                >
+                  About
+                </Link>
+              </li>
+              <li aria-hidden="true">
+                <span className="mx-1">›</span>
+              </li>
+              <li className="text-white font-medium" aria-current="page">
+                Leadership Team
+              </li>
+            </ol>
+          </nav>
+        </div>
         <motion.div
           className={`absolute inset-0 ${
             !isImageLoaded ? "animate-pulse bg-gray-200" : ""
@@ -282,25 +312,74 @@ const Leadership = () => {
         </h2>
 
         {isLoading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-pulse flex flex-col items-center">
-              <div className="rounded-full bg-gray-300 dark:bg-gray-700 h-16 w-16 mb-4"></div>
-              <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-48 mb-2"></div>
-              <div className="h-3 bg-gray-300 dark:bg-gray-700 rounded w-32"></div>
-            </div>
+          /* Loading skeleton — 4 card placeholders in a grid */
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+            {[...Array(4)].map((_, i) => (
+              <div
+                key={i}
+                className="animate-pulse bg-white rounded-2xl shadow overflow-hidden"
+              >
+                <div className="aspect-[4/5] bg-gray-200" />
+                <div className="p-4 space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-3/4" />
+                  <div className="h-3 bg-gray-200 rounded w-1/2" />
+                  <div className="h-3 bg-gray-200 rounded w-full" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : error ? (
-          <div className="text-center py-8 px-4">
-            <div className="text-red-500 mb-2">
+          <div className="text-center py-12 px-4 bg-red-50 rounded-xl border border-red-200">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-12 w-12 text-red-400 mx-auto mb-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <p className="text-red-700 font-semibold mb-1">
+              Failed to load leadership information
+            </p>
+            <p className="text-red-500 text-sm mb-4">
               {error.message ||
-                "Failed to load leadership information. Please try again later."}
-            </div>
+                "An unexpected error occurred. Please try again."}
+            </p>
             <button
-              className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600"
+              className="bg-yellow-500 text-white px-6 py-2 rounded-lg hover:bg-yellow-600 transition-colors"
               onClick={() => window.location.reload()}
             >
               Try Again
             </button>
+          </div>
+        ) : leaders.length === 0 ? (
+          <div className="text-center py-12 px-4">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-12 w-12 text-gray-300 mx-auto mb-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"
+              />
+            </svg>
+            <p className="text-gray-500 text-lg">
+              No leadership profiles found.
+            </p>
+            <p className="text-gray-400 text-sm mt-1">
+              Leadership profiles added via the Admin panel will appear here.
+            </p>
           </div>
         ) : (
           <div className="space-y-16">
@@ -594,7 +673,7 @@ const Leadership = () => {
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 };
 

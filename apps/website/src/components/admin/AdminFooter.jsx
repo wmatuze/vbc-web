@@ -1,7 +1,8 @@
-import React from "react";
 import { Link } from "react-router-dom";
+import { useDarkMode } from "../../contexts/DarkModeContext";
 
-const AdminFooter = ({ darkMode }) => {
+const AdminFooter = () => {
+  const { darkMode } = useDarkMode();
   const currentYear = new Date().getFullYear();
 
   return (

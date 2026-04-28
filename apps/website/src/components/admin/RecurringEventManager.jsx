@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useDarkMode } from "../../contexts/DarkModeContext";
 import useErrorHandler from "../../hooks/useErrorHandler";
 import useRecurringEventForm from "../../hooks/useRecurringEventForm";
 import RecurringEventForm from "./RecurringEventForm";
@@ -19,7 +20,8 @@ import {
   ArrowPathIcon as RefreshIcon,
 } from "@heroicons/react/24/outline";
 
-const RecurringEventManager = ({ darkMode }) => {
+const RecurringEventManager = () => {
+  const { darkMode } = useDarkMode();
   // Use React Query for fetching recurring events
   const {
     data: recurringEvents = [],

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useDarkMode } from "../../contexts/DarkModeContext";
 import { motion } from "framer-motion";
 import {
   BarChart3,
@@ -17,7 +18,8 @@ import {
   RefreshCw,
 } from "lucide-react";
 
-const ReportsAdmin = ({ darkMode }) => {
+const ReportsAdmin = () => {
+  const { darkMode } = useDarkMode();
   const [reportData, setReportData] = useState({
     discipleshipClasses: [],
     sessions: [],

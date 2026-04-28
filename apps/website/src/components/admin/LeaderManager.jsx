@@ -4,8 +4,10 @@ import {
   updateLeader,
   deleteLeader,
 } from "../../services/api/leaders";
+import { getAuthToken } from "../../services/api/core";
 import { useLeadersQuery } from "../../hooks/useLeadersQuery";
 import useErrorHandler from "../../hooks/useErrorHandler";
+import MediaSelector from "../common/MediaSelector";
 import { validateField } from "../../utils/validationUtils";
 import {
   validateLeader,
@@ -73,6 +75,7 @@ const LeaderManager = () => {
   const [selectedLeaders, setSelectedLeaders] = useState(new Set());
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [isMediaSelectorOpen, setIsMediaSelectorOpen] = useState(false);
 
   // Dialog state
   const [confirmDialog, setConfirmDialog] = useState({
@@ -254,10 +257,11 @@ const LeaderManager = () => {
 
       // Important: Don't set Content-Type header when using FormData
       // The browser will automatically set the correct multipart/form-data with boundary
+      const token = getAuthToken();
       const response = await fetch(`${API_URL}/api/upload`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });
@@ -272,7 +276,12 @@ const LeaderManager = () => {
 
       const data = await response.json();
       console.log("Upload success:", data);
-      setCurrentLeader((prev) => ({ ...prev, imageUrl: data.path }));
+      // Store both imageUrl (for display) and image ObjectId (for database reference)
+      setCurrentLeader((prev) => ({
+        ...prev,
+        imageUrl: data.path,
+        image: data.id || data._id || null,
+      }));
       clearError(); // Clear any previous errors
       setSuccessMessage("Image uploaded successfully!");
 
@@ -283,6 +292,21 @@ const LeaderManager = () => {
       context: "Image Upload",
     },
   );
+
+  // Handle selection from the Media Library
+  const handleMediaSelection = (selectedItem) => {
+    if (selectedItem) {
+      const imagePath = selectedItem.path
+        ? selectedItem.path
+        : `/uploads/${selectedItem.filename}`;
+      setCurrentLeader((prev) => ({
+        ...prev,
+        imageUrl: imagePath,
+        image: selectedItem.id || selectedItem._id || null,
+      }));
+    }
+    setIsMediaSelectorOpen(false);
+  };
 
   // Handle form submission
   const handleSubmit = withErrorHandling(
@@ -891,6 +915,7 @@ const LeaderManager = () => {
                 onChange={handleInputChange}
                 onCancel={resetForm}
                 onImageUpload={handleImageUpload}
+                onMediaBrowse={() => setIsMediaSelectorOpen(true)}
                 fileInputRef={fileInputRef}
               />
             </div>
@@ -928,6 +953,13 @@ const LeaderManager = () => {
         className="hidden"
         accept="image/*"
         onChange={handleImageUpload}
+      />
+
+      {/* Media Library Selector */}
+      <MediaSelector
+        isOpen={isMediaSelectorOpen}
+        onClose={() => setIsMediaSelectorOpen(false)}
+        onSelect={handleMediaSelection}
       />
     </div>
   );

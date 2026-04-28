@@ -1,11 +1,40 @@
+import { Link } from "react-router-dom";
 import Timeline from "../components/Timeline/Timeline";
 
 const OurStory = () => {
-
   return (
     <div className="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {/* Hero Section with dark background for navbar contrast */}
       <section className="relative min-h-screen overflow-hidden">
+        {/* Breadcrumb navigation */}
+        <div className="absolute top-20 left-0 right-0 z-20 px-4 sm:px-6 lg:px-8 pointer-events-none">
+          <nav aria-label="Breadcrumb" className="pointer-events-auto">
+            <ol className="flex items-center space-x-1.5 text-sm text-white/80">
+              <li>
+                <Link to="/" className="hover:text-white transition-colors">
+                  Home
+                </Link>
+              </li>
+              <li aria-hidden="true">
+                <span className="mx-1">›</span>
+              </li>
+              <li>
+                <Link
+                  to="/about"
+                  className="hover:text-white transition-colors"
+                >
+                  About
+                </Link>
+              </li>
+              <li aria-hidden="true">
+                <span className="mx-1">›</span>
+              </li>
+              <li className="text-white font-medium" aria-current="page">
+                Our Story
+              </li>
+            </ol>
+          </nav>
+        </div>
         {/* Background with dark gradient overlay */}
         <div className="absolute inset-0">
           <div
@@ -25,17 +54,17 @@ const OurStory = () => {
               </span>
               <div className="h-0.5 w-8 md:w-12 bg-primary-500" />
             </div>
-            
+
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl 3xl:text-9xl font-bold text-white mb-6 md:mb-8 leading-tight">
               Our Journey of <span className="text-primary-400">Faith</span>
             </h1>
-            
+
             <p className="text-lg sm:text-xl md:text-2xl xl:text-3xl 2xl:text-4xl text-gray-300 mb-8 md:mb-12 leading-relaxed max-w-2xl md:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl mx-auto">
               Victory Bible Church has been on a remarkable journey since our
               founding. What began as a small gathering of believers has grown
               into a vibrant community of faith.
             </p>
-            
+
             <div className="flex items-center justify-center space-x-3 md:space-x-4 mb-8 md:mb-12">
               <div className="h-px w-12 md:w-16 xl:w-20 bg-yellow-400" />
               <div className="w-2 h-2 xl:w-3 xl:h-3 bg-yellow-400 rounded-full" />
@@ -43,7 +72,7 @@ const OurStory = () => {
             </div>
 
             {/* Scroll indicator - positioned below yellow ribbon */}
-            <div 
+            <div
               className="flex flex-col items-center animate-bounce cursor-pointer hover:scale-110 transition-transform duration-300 mt-6 md:mt-8"
               onClick={() => {
                 window.scrollTo({
@@ -72,7 +101,6 @@ const OurStory = () => {
                 </svg>
               </div>
             </div>
-
           </div>
         </div>
       </section>
@@ -89,8 +117,9 @@ const OurStory = () => {
             reached out to our community and beyond.
           </p>
           <p className="text-lg text-gray-600 mb-8">
-            Each milestone in our history represents countless stories of lives changed, faith
-            strengthened, and communities transformed through the power of Christ.
+            Each milestone in our history represents countless stories of lives
+            changed, faith strengthened, and communities transformed through the
+            power of Christ.
           </p>
           <div className="w-24 h-1 bg-yellow-400 mx-auto mb-12 rounded-full"></div>
         </div>
