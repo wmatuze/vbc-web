@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useEventsQuery } from "../../hooks/useEventsQuery";
 import EventCard from "./EventsCard";
 import ToggleView from "./ToggleView";
@@ -9,9 +9,10 @@ import { useNavigate } from "react-router-dom";
 
 import config from "../../config";
 import { motion } from "framer-motion";
-import { Helmet } from "react-helmet-async"; // Added for SEO
-import EventSignUpForm from "../EventSignUpForm"; // Import the sign-up form component
-import { toast } from "react-toastify"; // Import toast notifications
+import { Helmet } from "react-helmet-async";
+import EventSignUpForm from "../EventSignUpForm";
+import { toast } from "react-toastify";
+import eventPlaceholderImage from "../../assets/placeholders/default-event.svg";
 
 // Set the app element for react-modal
 Modal.setAppElement("#root");
@@ -19,6 +20,19 @@ Modal.setAppElement("#root");
 const API_URL = config.API_URL;
 
 const ChurchCalendar = () => {
+  const currentYear = new Date().getFullYear();
+
+  // Stable random circle positions — computed once, never on re-render
+  const circles = useMemo(() =>
+    Array.from({ length: 4 }, () => ({
+      size: Math.random() * 100 + 50,
+      left: `${Math.random() * 100}%`,
+      top:  `${Math.random() * 100}%`,
+      yRange: [Math.random() * 100, Math.random() * -100],
+      opacity: [0.1, 0.3, 0.1],
+      duration: Math.random() * 10 + 10,
+    })), []);
+
   const [viewMode, setViewMode] = useState("grid"); // Default to grid view
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,7 +49,6 @@ const ChurchCalendar = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const navigate = useNavigate();
-  const [isImageLoaded, setIsImageLoaded] = useState(false); // Loading state for Hero Image
 
   // The filtering useEffect (below) already syncs filteredEvents whenever
   // `events` changes, so this separate setter is no longer needed.
@@ -57,7 +70,6 @@ const ChurchCalendar = () => {
       const now = new Date();
       const deadline = new Date(event.signupDeadline);
       if (now > deadline) {
-        console.log("Signup deadline has passed for event:", event.title);
         return false;
       }
     }
@@ -128,7 +140,7 @@ const ChurchCalendar = () => {
 
   // Get image URL with fallback
   const getImageUrl = (event) => {
-    if (!event?.imageUrl && !event?.image) return FallbackImage;
+    if (!event?.imageUrl && !event?.image) return eventPlaceholderImage;
 
     if (event.imageUrl) {
       // Handle API uploaded images
@@ -140,106 +152,22 @@ const ChurchCalendar = () => {
       return event.image;
     }
 
-    return FallbackImage;
+    return eventPlaceholderImage;
   };
 
-  // Format events for FullCalendar with robust date parsing
+  // Format events for FullCalendar
   const calendarEvents = events.map((event) => {
-    // Log the event data for debugging
-    console.log("Processing event for calendar:", {
-      id: event?.id,
-      title: event?.title,
-      date: event?.date,
-      startDate: event?.startDate,
-      time: event?.time,
-    });
-
     let eventDate;
-
-    // First try to use startDate if it's a valid date
     if (event?.startDate) {
-      try {
-        const parsedDate = new Date(event.startDate);
-        if (!isNaN(parsedDate.getTime())) {
-          eventDate = parsedDate;
-          console.log(`Using startDate for calendar event: ${eventDate}`);
-        }
-      } catch (err) {
-        console.error(
-          `Error parsing startDate for calendar:`,
-          err,
-          event.startDate,
-        );
-      }
+      const d = new Date(event.startDate);
+      if (!isNaN(d.getTime())) eventDate = d;
     }
-
-    // If startDate didn't work, try to use date + time
     if (!eventDate && event?.date) {
-      try {
-        // If date is in format "April 30, 2025"
-        if (typeof event.date === "string" && event.date.includes(",")) {
-          const parts = event.date.split(",");
-          if (parts.length === 2) {
-            const monthDay = parts[0].trim().split(" ");
-            const year = parts[1].trim();
-            if (monthDay.length === 2) {
-              const month = monthDay[0];
-              const day = parseInt(monthDay[1]);
-              const dateStr = `${month} ${day}, ${year}`;
-
-              // Add time if available
-              if (event.time) {
-                eventDate = new Date(`${dateStr} ${event.time}`);
-              } else {
-                eventDate = new Date(dateStr);
-              }
-
-              if (!isNaN(eventDate.getTime())) {
-                console.log(
-                  `Using formatted date+time for calendar event: ${eventDate}`,
-                );
-              } else {
-                eventDate = undefined; // Reset if invalid
-              }
-            }
-          }
-        } else {
-          // Try standard date parsing
-          const dateStr =
-            event.date + (event.time ? ` ${event.time}` : " 00:00");
-          eventDate = new Date(dateStr);
-          if (!isNaN(eventDate.getTime())) {
-            console.log(
-              `Using standard date+time for calendar event: ${eventDate}`,
-            );
-          } else {
-            eventDate = undefined; // Reset if invalid
-          }
-        }
-      } catch (err) {
-        console.error(
-          `Error parsing date+time for calendar:`,
-          err,
-          event.date,
-          event.time,
-        );
-      }
+      const d = new Date(event.date + (event.time ? ` ${event.time}` : ""));
+      if (!isNaN(d.getTime())) eventDate = d;
     }
-
-    // Fallback to current date if all parsing failed
-    if (!eventDate || isNaN(eventDate.getTime())) {
-      eventDate = new Date();
-      console.warn(
-        `Using fallback current date for calendar event: ${event?.title}`,
-      );
-    }
-
-    return {
-      id: event.id,
-      title: event.title,
-      start: eventDate,
-      extendedProps: { ...event },
-    };
+    if (!eventDate) eventDate = new Date();
+    return { id: event.id, title: event.title, start: eventDate, extendedProps: { ...event } };
   });
 
   // Close modal
@@ -270,11 +198,9 @@ const ChurchCalendar = () => {
   // When opening the signup form, set the type
   const handleOpenSignupForm = () => {
     try {
-      console.log("handleOpenSignupForm called with event:", selectedEvent);
 
       // Check if we have a selected event
       if (!selectedEvent) {
-        console.error("No event selected for sign up");
         toast.error("No event selected. Please try again.");
         return;
       }
@@ -288,13 +214,11 @@ const ChurchCalendar = () => {
 
       if (eventTitle.includes("baptism")) {
         eventType = "baptism";
-        console.log("Detected baptism event from title");
       } else if (
         eventTitle.includes("dedication") ||
         eventTitle.includes("baby")
       ) {
         eventType = "babyDedication";
-        console.log("Detected baby dedication event from title");
       }
 
       // Create a copy with the explicitly set type
@@ -303,7 +227,6 @@ const ChurchCalendar = () => {
         type: eventType,
       };
 
-      console.log("Setting selected event for signup:", updatedEvent);
 
       // First close the modal
       setIsModalOpen(false);
@@ -315,15 +238,12 @@ const ChurchCalendar = () => {
       setTimeout(() => {
         // Double check we still have the event
         if (updatedEvent) {
-          console.log("Opening signup form with event:", updatedEvent);
           setIsSignUpFormOpen(true);
         } else {
-          console.error("Event was lost before opening signup form");
           toast.error("Error preparing the form. Please try again.");
         }
       }, 500);
     } catch (error) {
-      console.error("Error opening signup form:", error);
       toast.error(
         "There was a problem opening the signup form. Please try again.",
       );
@@ -336,78 +256,24 @@ const ChurchCalendar = () => {
     setSelectedEvent(null); // Clear selected event after closing signup form
   };
 
-  // Helper function to get the event date, handling both API and legacy formats
   const getEventDate = (event) => {
-    // Log the event data for debugging
-    console.log("Getting event date for display:", {
-      id: event?.id,
-      title: event?.title,
-      date: event?.date,
-      startDate: event?.startDate,
-    });
-
     try {
-      // First priority: use the date field if it's in the expected format
-      if (
-        event?.date &&
-        typeof event.date === "string" &&
-        event.date.includes(",")
-      ) {
-        const parts = event.date.split(",");
-        if (parts.length === 2) {
-          const monthDay = parts[0].trim().split(" ");
-          const year = parts[1].trim();
-          if (monthDay.length === 2) {
-            const month = monthDay[0];
-            const day = parseInt(monthDay[1]);
-            const parsedDate = new Date(`${month} ${day}, ${year}`);
-            if (!isNaN(parsedDate.getTime())) {
-              console.log(
-                `Successfully parsed date from event.date: ${parsedDate}`,
-              );
-              return parsedDate;
-            }
-          }
-        }
-      }
-
-      // Second priority: use startDate if it's a valid date
       if (event?.startDate) {
-        // If startDate is a string in ISO format or similar
-        const parsedDate = new Date(event.startDate);
-        if (!isNaN(parsedDate.getTime())) {
-          console.log(
-            `Successfully parsed date from event.startDate: ${parsedDate}`,
-          );
-          return parsedDate;
-        }
+        const d = new Date(event.startDate);
+        if (!isNaN(d.getTime())) return d;
       }
-
-      // Third priority: try to parse date field even if it's not in the expected format
       if (event?.date) {
-        const parsedDate = new Date(event.date);
-        if (!isNaN(parsedDate.getTime())) {
-          console.log(
-            `Successfully parsed date from event.date fallback: ${parsedDate}`,
-          );
-          return parsedDate;
-        }
+        const d = new Date(event.date);
+        if (!isNaN(d.getTime())) return d;
       }
-    } catch (err) {
-      console.error(`Error parsing date for event:`, err, event);
-    }
-
-    // Fallback to current date if parsing fails
-    const today = new Date();
-    console.log(`Using fallback current date: ${today}`);
-    return today;
+    } catch {}
+    return new Date();
   };
 
   // Add this useEffect near the other useEffect hooks
   useEffect(() => {
     // Check for invalid state where form is open but event is null
     if (isSignUpFormOpen && !selectedEvent) {
-      console.error("Sign-up form is open but no event is selected");
       toast.error("Error loading form. Please try again.");
       setIsSignUpFormOpen(false);
     }
@@ -427,9 +293,7 @@ const ChurchCalendar = () => {
       {/* Hero Section - Similar to About Us Page */}
       <section className="relative overflow-hidden rounded-b-3xl h-[85vh]">
         <motion.div
-          className={`absolute inset-0 ${
-            !isImageLoaded ? "animate-pulse bg-gray-200" : ""
-          }`}
+          className="absolute inset-0"
           style={{
             backgroundImage: `url(/assets/hero-bg.jpg)`,
             backgroundSize: "cover",
@@ -443,27 +307,15 @@ const ChurchCalendar = () => {
 
         <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-purple-900/70 to-blue-900/80 rounded-b-3xl"></div>
 
-        {/* Decorative elements */}
+        {/* Decorative elements — positions stable across re-renders */}
         <div className="absolute inset-0 overflow-hidden rounded-b-3xl">
-          {[...Array(4)].map((_, i) => (
+          {circles.map((c, i) => (
             <motion.div
               key={i}
               className="absolute rounded-full bg-white/10"
-              style={{
-                width: Math.random() * 100 + 50,
-                height: Math.random() * 100 + 50,
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                y: [Math.random() * 100, Math.random() * -100],
-                opacity: [0.1, 0.3, 0.1],
-              }}
-              transition={{
-                duration: Math.random() * 10 + 10,
-                repeat: Infinity,
-                repeatType: "reverse",
-              }}
+              style={{ width: c.size, height: c.size, left: c.left, top: c.top }}
+              animate={{ y: c.yRange, opacity: c.opacity }}
+              transition={{ duration: c.duration, repeat: Infinity, repeatType: "reverse" }}
             />
           ))}
         </div>
@@ -476,7 +328,7 @@ const ChurchCalendar = () => {
             className="text-center"
           >
             <h1 className="text-4xl lg:text-5xl font-bold text-white text-center mb-4 tracking-tight">
-              Church <span className="text-yellow-400">Calendar</span> 2025
+              Church <span className="text-yellow-400">Calendar</span> {currentYear}
             </h1>
             <p className="text-lg text-white text-center max-w-3xl mx-auto leading-relaxed font-light">
               Explore upcoming events and join us as we grow in faith and
@@ -773,7 +625,7 @@ const ChurchCalendar = () => {
                 alt={selectedEvent?.title || "Event"}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  e.target.src = FallbackImage;
+                  e.target.src = eventPlaceholderImage;
                   e.target.onerror = null;
                 }}
               />

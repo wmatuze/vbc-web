@@ -40,7 +40,6 @@ const EventCard = ({ event, highlight, compact = false }) => {
 
     if (event.imageUrl) {
       // Add console log to debug image URL
-      console.log("Event image URL:", event.imageUrl);
 
       // Handle API uploaded images
       if (event.imageUrl.startsWith("http")) {
@@ -52,7 +51,6 @@ const EventCard = ({ event, highlight, compact = false }) => {
         return `${API_URL}/${event.imageUrl}`;
       }
     } else if (event.image) {
-      console.log("Event image object:", event.image);
 
       // Handle image object
       if (typeof event.image === "object") {
@@ -75,163 +73,32 @@ const EventCard = ({ event, highlight, compact = false }) => {
   // Get the image URL for the event
   const imageUrl = getImageUrl(event);
 
-  // Helper function to format date and time from API data with robust parsing
   const getEventDate = (event) => {
-    // Log the event data for debugging
-    console.log("Event data for date parsing:", {
-      id: event?.id,
-      title: event?.title,
-      date: event?.date,
-      startDate: event?.startDate,
-      type: typeof event?.startDate,
-    });
-
     try {
-      // First priority: use the date field if it's in the expected format
-      if (
-        event?.date &&
-        typeof event.date === "string" &&
-        event.date.includes(",")
-      ) {
-        const parts = event.date.split(",");
-        if (parts.length === 2) {
-          const monthDay = parts[0].trim().split(" ");
-          const year = parts[1].trim();
-          if (monthDay.length === 2) {
-            const month = monthDay[0];
-            const day = parseInt(monthDay[1]);
-            const parsedDate = new Date(`${month} ${day}, ${year}`);
-            if (!isNaN(parsedDate.getTime())) {
-              console.log(
-                `Successfully parsed date from event.date: ${parsedDate}`
-              );
-              return parsedDate;
-            }
-          }
-        }
-      }
-
-      // Second priority: use startDate if it's a valid date
       if (event?.startDate) {
-        // If startDate is a string in ISO format or similar
-        const parsedDate = new Date(event.startDate);
-        if (!isNaN(parsedDate.getTime())) {
-          console.log(
-            `Successfully parsed date from event.startDate: ${parsedDate}`
-          );
-          return parsedDate;
-        }
-
-        // If startDate is a string like "April 30, 2025"
-        if (
-          typeof event.startDate === "string" &&
-          event.startDate.includes(",")
-        ) {
-          const parts = event.startDate.split(",");
-          if (parts.length === 2) {
-            const monthDay = parts[0].trim().split(" ");
-            const year = parts[1].trim();
-            if (monthDay.length === 2) {
-              const month = monthDay[0];
-              const day = parseInt(monthDay[1]);
-              const parsedDate = new Date(`${month} ${day}, ${year}`);
-              if (!isNaN(parsedDate.getTime())) {
-                console.log(
-                  `Successfully parsed date from formatted startDate: ${parsedDate}`
-                );
-                return parsedDate;
-              }
-            }
-          }
-        }
+        const d = new Date(event.startDate);
+        if (!isNaN(d.getTime())) return d;
       }
-
-      // Third priority: try to parse date field even if it's not in the expected format
       if (event?.date) {
-        const parsedDate = new Date(event.date);
-        if (!isNaN(parsedDate.getTime())) {
-          console.log(
-            `Successfully parsed date from event.date fallback: ${parsedDate}`
-          );
-          return parsedDate;
-        }
+        const d = new Date(event.date);
+        if (!isNaN(d.getTime())) return d;
       }
-
-      // If we get here, we couldn't parse a valid date
-      console.warn(`Could not parse a valid date for event: ${event?.title}`);
-    } catch (err) {
-      console.error(`Error parsing date for event:`, err, event);
-    }
-
-    // Fallback to current date if parsing fails
-    const today = new Date();
-    console.log(`Using fallback current date: ${today}`);
-    return today;
+    } catch {}
+    return new Date();
   };
 
-  // Extract time from event with robust parsing
   const getEventTime = (event) => {
-    // Log the event data for debugging
-    console.log("Event data for time parsing:", {
-      id: event?.id,
-      title: event?.title,
-      time: event?.time,
-      startDate: event?.startDate,
-    });
-
-    // First priority: use the time field if available
-    if (
-      event?.time &&
-      typeof event.time === "string" &&
-      event.time.trim() !== ""
-    ) {
-      console.log(`Using event.time: ${event.time}`);
+    if (event?.time && typeof event.time === "string" && event.time.trim()) {
       return event.time;
     }
-
-    // Second priority: extract time from startDate if it's a valid date
     if (event?.startDate) {
       try {
-        const date = new Date(event.startDate);
-        // Check if date is valid
-        if (!isNaN(date.getTime())) {
-          const timeStr = date.toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "numeric",
-            hour12: true,
-          });
-          console.log(`Extracted time from startDate: ${timeStr}`);
-          return timeStr;
+        const d = new Date(event.startDate);
+        if (!isNaN(d.getTime()) && (d.getHours() || d.getMinutes())) {
+          return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "numeric", hour12: true });
         }
-      } catch (err) {
-        console.error(
-          `Error extracting time from startDate:`,
-          err,
-          event.startDate
-        );
-      }
+      } catch {}
     }
-
-    // Third priority: try to extract time from the date we parsed with getEventDate
-    try {
-      const parsedDate = getEventDate(event);
-      if (!isNaN(parsedDate.getTime())) {
-        // Only use the time if it's not midnight (which likely means no time was specified)
-        if (parsedDate.getHours() !== 0 || parsedDate.getMinutes() !== 0) {
-          const timeStr = parsedDate.toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "numeric",
-            hour12: true,
-          });
-          console.log(`Extracted time from parsed date: ${timeStr}`);
-          return timeStr;
-        }
-      }
-    } catch (err) {
-      console.error(`Error extracting time from parsed date:`, err);
-    }
-
-    console.log("Using fallback time: TBA");
     return "TBA";
   };
 
