@@ -1,390 +1,187 @@
-import React from "react";
-import {
-  ArrowUpTrayIcon as UploadIcon,
-  PhotoIcon,
-} from "@heroicons/react/24/outline";
+import { ArrowUpTrayIcon, PhotoIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import placeholderImage from "../../assets/placeholders/default-image.svg";
+
+const Section = ({ title, children, darkMode }) => (
+  <div>
+    <h4 className={`text-xs font-semibold uppercase tracking-wider mb-3 pb-2 border-b ${darkMode ? "text-gray-400 border-gray-700" : "text-gray-400 border-gray-100"}`}>
+      {title}
+    </h4>
+    <div className="space-y-4">{children}</div>
+  </div>
+);
+
+const Field = ({ label, required, error, hint, children }) => (
+  <div>
+    <label className="block text-sm font-medium mb-1">
+      {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+    </label>
+    {children}
+    {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+    {!error && hint && <p className="mt-1 text-xs text-gray-400">{hint}</p>}
+  </div>
+);
 
 const LeaderForm = ({
   currentLeader,
   formMode,
-  loading,
+  isSubmitting,
   formErrors,
+  darkMode,
   onSubmit,
   onChange,
   onCancel,
   onImageUpload,
   onMediaBrowse,
   fileInputRef,
+  getImageUrl,
 }) => {
+  const inp = (name) =>
+    `w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
+      formErrors[name] ? "border-red-500" :
+      darkMode ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+               : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+    }`;
+
+  const previewUrl = currentLeader.imageUrl
+    ? (getImageUrl ? getImageUrl(currentLeader.imageUrl) : currentLeader.imageUrl)
+    : null;
+
   return (
-    <form onSubmit={onSubmit} className="bg-white shadow-sm rounded-lg p-6">
-      <h3 className="text-lg font-medium mb-6">
-        {formMode === "add" ? "Add New Leader" : "Edit Leader"}
-      </h3>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Basic Information */}
-        <div className="space-y-6">
-          <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Name *
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={currentLeader.name}
-              onChange={onChange}
-              className={`mt-1 block w-full rounded-md shadow-sm ${
-                formErrors.name ? "border-red-300" : "border-gray-300"
-              } focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
-              required
-              aria-describedby={formErrors.name ? "name-error" : undefined}
-            />
-            {formErrors.name && (
-              <p className="mt-2 text-sm text-red-600" id="name-error">
-                {formErrors.name}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label
-              htmlFor="title"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Title *
-            </label>
-            <input
-              type="text"
-              id="title"
-              name="title"
-              value={currentLeader.title}
-              onChange={onChange}
-              className={`mt-1 block w-full rounded-md shadow-sm ${
-                formErrors.title ? "border-red-300" : "border-gray-300"
-              } focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
-              required
-              aria-describedby={formErrors.title ? "title-error" : undefined}
-            />
-            {formErrors.title && (
-              <p className="mt-2 text-sm text-red-600" id="title-error">
-                {formErrors.title}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label
-              htmlFor="department"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Department
-            </label>
-            <input
-              type="text"
-              id="department"
-              name="department"
-              value={currentLeader.department}
-              onChange={onChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="order"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Display Order
-            </label>
-            <input
-              type="number"
-              id="order"
-              name="order"
-              value={currentLeader.order}
-              onChange={onChange}
-              min="0"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            />
-            <p className="mt-2 text-sm text-gray-500">
-              Lower numbers appear first (0 is highest priority)
-            </p>
-          </div>
+    <>
+      {/* Panel header */}
+      <div className={`flex items-center justify-between px-6 py-4 border-b flex-shrink-0 ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
+        <div>
+          <h3 className={`text-base font-semibold ${darkMode ? "text-white" : "text-gray-900"}`}>
+            {formMode === "add" ? "Add New Leader" : "Edit Leader"}
+          </h3>
+          <p className={`text-xs mt-0.5 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Fill in the details below</p>
         </div>
+        <button type="button" onClick={onCancel}
+          className={`p-1.5 rounded-lg transition-colors ${darkMode ? "hover:bg-gray-700 text-gray-400" : "hover:bg-gray-100 text-gray-400"}`}>
+          <XMarkIcon className="h-5 w-5" />
+        </button>
+      </div>
 
-        {/* Contact Information */}
-        <div className="space-y-6">
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Email *
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={currentLeader.email}
-              onChange={onChange}
-              className={`mt-1 block w-full rounded-md shadow-sm ${
-                formErrors.email ? "border-red-300" : "border-gray-300"
-              } focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
-              required
-              aria-describedby={formErrors.email ? "email-error" : undefined}
-            />
-            {formErrors.email && (
-              <p className="mt-2 text-sm text-red-600" id="email-error">
-                {formErrors.email}
-              </p>
-            )}
-          </div>
+      {/* Scrollable form body */}
+      <form onSubmit={onSubmit} className="flex-1 overflow-y-auto">
+        <div className="px-6 py-5 space-y-7">
 
-          <div>
-            <label
-              htmlFor="phone"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Phone
-            </label>
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              value={currentLeader.phone}
-              onChange={onChange}
-              className={`mt-1 block w-full rounded-md shadow-sm ${
-                formErrors.phone ? "border-red-300" : "border-gray-300"
-              } focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
-              aria-describedby={formErrors.phone ? "phone-error" : undefined}
-            />
-            {formErrors.phone && (
-              <p className="mt-2 text-sm text-red-600" id="phone-error">
-                {formErrors.phone}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Profile Image
-            </label>
-            <div className="mt-1 flex items-start space-x-3">
-              {/* Image preview / upload click target */}
-              <div className="relative shrink-0">
-                {currentLeader.imageUrl ? (
-                  <>
-                    <img
-                      src={currentLeader.imageUrl}
-                      alt="Profile"
-                      className="h-32 w-32 object-cover rounded-lg"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="absolute bottom-2 right-2 p-1 bg-white rounded-full shadow-sm hover:bg-gray-50"
-                      title="Upload new image"
-                    >
-                      <UploadIcon className="h-4 w-4 text-gray-600" />
-                    </button>
-                  </>
+          {/* ── Profile Image ── */}
+          <Section title="Profile Photo" darkMode={darkMode}>
+            <div className="flex items-start gap-4">
+              {/* Preview */}
+              <div className={`flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden border-2 ${darkMode ? "border-gray-700 bg-gray-700" : "border-gray-200 bg-gray-100"}`}>
+                {previewUrl ? (
+                  <img src={previewUrl} alt="Preview" className="w-full h-full object-cover"
+                    onError={(e) => { e.target.src = placeholderImage; e.target.onerror = null; }} />
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="h-32 w-32 border-2 border-gray-300 border-dashed rounded-lg flex items-center justify-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    title="Upload image"
-                  >
-                    <UploadIcon className="h-8 w-8 text-gray-400" />
-                  </button>
+                  <div className={`w-full h-full flex items-center justify-center text-4xl font-bold ${darkMode ? "text-gray-600" : "text-gray-300"}`}>
+                    {currentLeader.name ? currentLeader.name[0].toUpperCase() : "?"}
+                  </div>
                 )}
               </div>
-
-              {/* Action buttons */}
-              <div className="flex flex-col space-y-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  <UploadIcon className="h-4 w-4 mr-2 text-gray-400" />
-                  Upload New
+              {/* Buttons */}
+              <div className="flex flex-col gap-2">
+                <button type="button" onClick={() => fileInputRef.current?.click()}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm transition-colors ${darkMode ? "border-gray-600 text-gray-300 hover:bg-gray-700" : "border-gray-300 text-gray-700 hover:bg-gray-50"}`}>
+                  <ArrowUpTrayIcon className="h-4 w-4" />
+                  Upload
                 </button>
                 {onMediaBrowse && (
-                  <button
-                    type="button"
-                    onClick={onMediaBrowse}
-                    className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    <PhotoIcon className="h-4 w-4 mr-2 text-gray-400" />
+                  <button type="button" onClick={onMediaBrowse}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm transition-colors ${darkMode ? "border-gray-600 text-gray-300 hover:bg-gray-700" : "border-gray-300 text-gray-700 hover:bg-gray-50"}`}>
+                    <PhotoIcon className="h-4 w-4" />
                     Browse Library
                   </button>
                 )}
+                <p className={`text-xs ${darkMode ? "text-gray-500" : "text-gray-400"}`}>JPG, PNG, GIF · max 5 MB</p>
               </div>
             </div>
-            <p className="mt-2 text-sm text-gray-500">
-              Upload a new image (JPG, PNG, GIF, max 5MB) or pick one from the
-              Media Library.
-            </p>
-          </div>
+          </Section>
+
+          {/* ── Basic Info ── */}
+          <Section title="Basic Info" darkMode={darkMode}>
+            <Field label="Full Name" required error={formErrors.name}>
+              <input name="name" type="text" value={currentLeader.name} onChange={onChange}
+                placeholder="Pastor John Smith" className={inp("name")} required />
+            </Field>
+            <Field label="Title / Role" required error={formErrors.title}>
+              <input name="title" type="text" value={currentLeader.title} onChange={onChange}
+                placeholder="Senior Pastor" className={inp("title")} required />
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Department" error={formErrors.department}>
+                <input name="department" type="text" value={currentLeader.department || ""} onChange={onChange}
+                  placeholder="e.g. Leadership" className={inp("department")} />
+              </Field>
+              <Field label="Display Order" hint="0 = highest priority" error={formErrors.order}>
+                <input name="order" type="number" min="0" value={currentLeader.order ?? 0} onChange={onChange}
+                  className={inp("order")} />
+              </Field>
+            </div>
+          </Section>
+
+          {/* ── Contact ── */}
+          <Section title="Contact" darkMode={darkMode}>
+            <Field label="Email" required error={formErrors.email}>
+              <input name="email" type="email" value={currentLeader.email || ""} onChange={onChange}
+                placeholder="pastor@church.org" className={inp("email")} required />
+            </Field>
+            <Field label="Phone" error={formErrors.phone}>
+              <input name="phone" type="tel" value={currentLeader.phone || ""} onChange={onChange}
+                placeholder="+1 555 000 0000" className={inp("phone")} />
+            </Field>
+          </Section>
+
+          {/* ── Bio & Ministry ── */}
+          <Section title="Bio & Ministry" darkMode={darkMode}>
+            <Field label="Biography" required error={formErrors.bio}>
+              <textarea name="bio" value={currentLeader.bio || ""} onChange={onChange}
+                rows={4} placeholder="Brief bio about this leader…"
+                className={inp("bio")} required />
+            </Field>
+            <Field label="Ministry Focus Areas" hint="Comma-separated: Youth, Worship, Outreach" error={formErrors.ministryFocus}>
+              <input name="ministryFocus" type="text"
+                value={Array.isArray(currentLeader.ministryFocus) ? currentLeader.ministryFocus.join(", ") : ""}
+                onChange={onChange} placeholder="e.g. Youth, Prayer, Evangelism" className={inp("ministryFocus")} />
+            </Field>
+          </Section>
+
+          {/* ── Social Media ── */}
+          <Section title="Social Media" darkMode={darkMode}>
+            <div className="grid grid-cols-1 gap-3">
+              {[
+                { key: "facebook",  placeholder: "https://facebook.com/…",  label: "Facebook" },
+                { key: "twitter",   placeholder: "https://twitter.com/…",   label: "X / Twitter" },
+                { key: "instagram", placeholder: "https://instagram.com/…", label: "Instagram" },
+                { key: "linkedin",  placeholder: "https://linkedin.com/in/…",label: "LinkedIn" },
+              ].map(({ key, placeholder, label }) => (
+                <Field key={key} label={label}>
+                  <input name={`social-${key}`} type="url"
+                    value={currentLeader.socialMedia?.[key] || ""}
+                    onChange={onChange} placeholder={placeholder}
+                    className={inp(`social-${key}`)} />
+                </Field>
+              ))}
+            </div>
+          </Section>
+
         </div>
-      </div>
 
-      {/* Bio */}
-      <div className="mt-6">
-        <label
-          htmlFor="bio"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Bio *
-        </label>
-        <textarea
-          id="bio"
-          name="bio"
-          value={currentLeader.bio}
-          onChange={onChange}
-          rows="4"
-          className={`mt-1 block w-full rounded-md shadow-sm ${
-            formErrors.bio ? "border-red-300" : "border-gray-300"
-          } focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
-          required
-          aria-describedby={formErrors.bio ? "bio-error" : undefined}
-        />
-        {formErrors.bio && (
-          <p className="mt-2 text-sm text-red-600" id="bio-error">
-            {formErrors.bio}
-          </p>
-        )}
-      </div>
-
-      {/* Ministry Focus */}
-      <div className="mt-6">
-        <label
-          htmlFor="ministryFocus"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Ministry Focus Areas
-        </label>
-        <input
-          type="text"
-          id="ministryFocus"
-          name="ministryFocus"
-          value={currentLeader.ministryFocus.join(", ")}
-          onChange={onChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-          placeholder="e.g. Youth, Worship, Outreach"
-        />
-        <p className="mt-2 text-sm text-gray-500">
-          Separate multiple areas with commas
-        </p>
-      </div>
-
-      {/* Social Media */}
-      <div className="mt-6">
-        <h4 className="text-sm font-medium text-gray-700 mb-4">Social Media</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label
-              htmlFor="social-facebook"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Facebook URL
-            </label>
-            <input
-              type="url"
-              id="social-facebook"
-              name="social-facebook"
-              value={currentLeader.socialMedia.facebook}
-              onChange={onChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              placeholder="https://facebook.com/username"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="social-twitter"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Twitter URL
-            </label>
-            <input
-              type="url"
-              id="social-twitter"
-              name="social-twitter"
-              value={currentLeader.socialMedia.twitter}
-              onChange={onChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              placeholder="https://twitter.com/username"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="social-linkedin"
-              className="block text-sm font-medium text-gray-700"
-            >
-              LinkedIn URL
-            </label>
-            <input
-              type="url"
-              id="social-linkedin"
-              name="social-linkedin"
-              value={currentLeader.socialMedia.linkedin}
-              onChange={onChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              placeholder="https://linkedin.com/in/username"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="social-instagram"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Instagram URL
-            </label>
-            <input
-              type="url"
-              id="social-instagram"
-              name="social-instagram"
-              value={currentLeader.socialMedia.instagram}
-              onChange={onChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              placeholder="https://instagram.com/username"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Form Actions */}
-      <div className="mt-6 flex items-center justify-end space-x-3">
-        {formMode === "edit" && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
+        {/* Sticky footer */}
+        <div className={`flex justify-end gap-3 px-6 py-4 border-t flex-shrink-0 sticky bottom-0 ${darkMode ? "border-gray-700 bg-gray-900" : "border-gray-200 bg-white"}`}>
+          <button type="button" onClick={onCancel}
+            className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${darkMode ? "border-gray-600 text-gray-300 hover:bg-gray-800" : "border-gray-300 text-gray-700 hover:bg-gray-50"}`}>
             Cancel
           </button>
-        )}
-        <button
-          type="submit"
-          disabled={loading}
-          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading
-            ? "Saving..."
-            : formMode === "add"
-              ? "Add Leader"
-              : "Save Changes"}
-        </button>
-      </div>
-    </form>
+          <button type="submit" disabled={isSubmitting}
+            className="px-5 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors inline-flex items-center gap-2">
+            {isSubmitting && <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>}
+            {isSubmitting ? "Saving…" : formMode === "add" ? "Add Leader" : "Save Changes"}
+          </button>
+        </div>
+      </form>
+    </>
   );
 };
 
