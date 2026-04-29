@@ -29,6 +29,11 @@ const MediaSchema = new mongoose.Schema({
     type: String,
     default: 'general'
   },
+  // Cloudinary public_id — used to delete the file from Cloudinary if the record is deleted
+  cloudinaryId: {
+    type: String,
+    default: null,
+  },
   uploadDate: {
     type: Date,
     default: Date.now

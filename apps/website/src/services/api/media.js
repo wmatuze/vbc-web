@@ -6,10 +6,9 @@ import {
   updateData,
   deleteData,
 } from "./core";
-import { uploadFile, directUpload } from "./uploads";
+import { uploadFile } from "./uploads";
 
-// Re-export upload functions for backward compatibility
-export { uploadFile, directUpload };
+export { uploadFile };
 
 /**
  * Get all media items with cache busting

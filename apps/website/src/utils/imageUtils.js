@@ -3,60 +3,44 @@ import config from "../config";
 const API_URL = config.API_URL;
 
 /**
- * Get a properly formatted image URL with cache busting
- * @param {string} imageUrl - The raw image URL
- * @param {string} fallbackImage - Optional fallback image if URL is empty
- * @returns {string} Properly formatted image URL
+ * Resolve a stored image URL/path to a fully-qualified URL.
+ *
+ * New uploads: path is already a full Cloudinary HTTPS URL → returned as-is.
+ * Legacy uploads: path is a local server path like /uploads/abc.jpg → prefixed with API_URL.
  */
 export const getImageUrl = (imageUrl, fallbackImage = null) => {
-  // If no image URL is provided, return the fallback
   if (!imageUrl) return fallbackImage;
 
-  // Add cache busting parameter
-  const cacheBuster = `?t=${Date.now()}`;
-
-  // Handle absolute URLs that already include http/https
-  if (imageUrl.startsWith("http")) {
-    // Add cache buster to URL
-    const hasParams = imageUrl.includes("?");
-    return `${imageUrl}${hasParams ? "&" : "?"}t=${Date.now()}`;
+  // Cloudinary URL or any other absolute URL — use directly, no prefix needed
+  if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+    return imageUrl;
   }
 
-  // Handle local server paths
+  // Legacy local server path (/uploads/..., /assets/...)
   if (imageUrl.startsWith("/")) {
-    return `${API_URL}${imageUrl}${cacheBuster}`;
+    return `${API_URL}${imageUrl}`;
   }
 
-  // Handle relative paths
-  return `${API_URL}/${imageUrl}${cacheBuster}`;
+  return `${API_URL}/${imageUrl}`;
 };
 
 /**
- * Process a media item for consistent use in components
- * @param {Object} mediaItem - The media item from the API
- * @returns {Object} Processed media item with normalized properties
+ * Normalise a media item returned from the API so every component
+ * can rely on the same shape.
  */
 export const processMediaItem = (mediaItem) => {
   if (!mediaItem) return null;
-  
-  // Ensure ID is normalized
-  const mediaId = mediaItem.id || mediaItem._id;
-  
-  // Ensure path is properly formatted
-  let imagePath;
-  if (mediaItem.path) {
-    // If path exists, use it directly
-    imagePath = mediaItem.path;
-  } else if (mediaItem.filename) {
-    // If only filename exists, construct path
-    imagePath = `/uploads/${mediaItem.filename}`;
-  }
-  
+
+  const path =
+    mediaItem.path ||
+    (mediaItem.filename ? `/uploads/${mediaItem.filename}` : null);
+
   return {
-    id: mediaId,
-    path: imagePath,
+    id: mediaItem.id || mediaItem._id,
+    path,
     filename: mediaItem.filename,
-    title: mediaItem.title || mediaItem.filename || 'Untitled',
-    imageUrl: imagePath, // For compatibility with direct image URL fields
+    title: mediaItem.title || mediaItem.filename || "Untitled",
+    imageUrl: path,
+    url: path,
   };
-}; 
+};

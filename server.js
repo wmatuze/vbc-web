@@ -7,6 +7,7 @@ const fsExtra = require("fs-extra");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const connectDB = require("./config/database");
+const { uploadBuffer, folderFor } = require("./config/cloudinary");
 const models = require("./models");
 require("dotenv").config();
 
@@ -14,46 +15,34 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Setup required directories
+// Keep local asset dirs for static files that ship with the repo (placeholders, hero, etc.)
 const dirs = {
-  uploads: path.join(__dirname, "uploads"),
   assets: path.join(__dirname, "assets"),
-  sermons: path.join(__dirname, "assets", "sermons"),
-  events: path.join(__dirname, "assets", "events"),
-  leadership: path.join(__dirname, "assets", "leadership"),
-  cellGroups: path.join(__dirname, "assets", "cell-groups"),
-  media: path.join(__dirname, "assets", "media"),
+  uploads: path.join(__dirname, "uploads"), // kept for backward-compat with old local paths
 };
+Object.values(dirs).forEach((dir) => fsExtra.ensureDirSync(dir));
 
-// Ensure all directories exist
-Object.values(dirs).forEach((dir) => {
-  fsExtra.ensureDirSync(dir);
-  console.log(`Directory ensured: ${dir}`);
-});
+// Multer — memory storage (files go to Cloudinary, not local disk)
+const ALLOWED_MIME = new Set([
+  // Images
+  "image/jpeg", "image/png", "image/gif", "image/webp",
+  // Audio
+  "audio/mpeg", "audio/mp3", "audio/wav", "audio/aac", "audio/m4a", "audio/ogg",
+  // Video
+  "video/mp4", "video/quicktime", "video/webm",
+  // Documents
+  "application/pdf",
+]);
 
-// Configure multer storage
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, dirs.uploads);
-  },
-  filename: function (req, file, cb) {
-    // Create a unique filename with original extension
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    cb(null, uniqueSuffix + ext);
-  },
-});
-
-// Create the multer upload middleware
 const upload = multer({
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max file size
-  fileFilter: function (req, file, cb) {
-    // Accept images only
-    if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
-      return cb(new Error("Only image files are allowed!"), false);
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB — Cloudinary enforces its own limits
+  fileFilter: (req, file, cb) => {
+    if (ALLOWED_MIME.has(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`File type not allowed: ${file.mimetype}`), false);
     }
-    cb(null, true);
   },
 });
 
@@ -626,94 +615,54 @@ app.options("/api/auth/login", (req, res) => {
   res.sendStatus(204);
 });
 
-// File upload endpoint
-app.post(
-  "/api/upload",
-  authMiddleware,
-  upload.single("file"),
-  async (req, res) => {
-    try {
-      if (!req.file) {
-        console.error("No file in request");
-        return res.status(400).json({ error: "No file uploaded" });
-      }
-
-      // Log the upload details
-      console.log("File upload initiated:", {
-        originalName: req.file.originalname,
-        size: req.file.size,
-        mimetype: req.file.mimetype,
-        category: req.body.category || "general",
-      });
-
-      // Get file information
-      const filePath = req.file.path;
-
-      // Verify the file was saved successfully
-      if (!fs.existsSync(filePath)) {
-        console.error("File not found on disk after upload:", filePath);
-        return res.status(500).json({
-          error: "File upload failed - could not verify file existence",
-        });
-      }
-
-      // Check file size on disk to make sure it wasn't corrupted
-      const fileStats = fs.statSync(filePath);
-      if (fileStats.size === 0 || fileStats.size !== req.file.size) {
-        console.error(
-          `File size mismatch: reported ${req.file.size}, actual ${fileStats.size}`
-        );
-        // Try to clean up corrupted file
-        try {
-          fs.unlinkSync(filePath);
-        } catch (cleanupErr) {
-          console.error("Failed to clean up corrupted file:", cleanupErr);
-        }
-        return res
-          .status(500)
-          .json({ error: "File upload failed - file appears to be corrupted" });
-      }
-
-      // Save to MongoDB
-      const newMedia = new models.Media({
-        filename: req.file.filename,
-        originalName: req.file.originalname,
-        path: `/uploads/${req.file.filename}`,
-        type: req.file.mimetype,
-        size: req.file.size,
-        title:
-          req.body.title ||
-          path.basename(
-            req.file.originalname,
-            path.extname(req.file.originalname)
-          ),
-        category: req.body.category || "general",
-      });
-
-      await newMedia.save();
-
-      // Return the new media object with absolute URLs for convenience
-      const mediaWithUrls = {
-        ...newMedia._doc,
-        id: newMedia._id,
-        fullPath: `http://localhost:${PORT}${newMedia.path}`,
-        thumbnailUrl: `http://localhost:${PORT}${newMedia.path}`,
-      };
-
-      console.log(
-        "Upload successful, returning:",
-        mediaWithUrls.id,
-        mediaWithUrls.path
-      );
-      res.status(200).json(mediaWithUrls);
-    } catch (error) {
-      console.error("Upload error:", error);
-      res
-        .status(500)
-        .json({ error: "Failed to upload file: " + error.message });
+// File upload endpoint — streams file to Cloudinary, stores URL in MongoDB
+app.post("/api/upload", authMiddleware, upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
     }
+
+    const category = req.body.category || "general";
+    const title =
+      req.body.title ||
+      path.basename(req.file.originalname, path.extname(req.file.originalname));
+
+    // Upload buffer to Cloudinary
+    const result = await uploadBuffer(req.file.buffer, {
+      folder: folderFor(category),
+      public_id: `${Date.now()}-${title.replace(/\s+/g, "_").slice(0, 50)}`,
+      overwrite: false,
+      // For images: auto-format (serve WebP/AVIF to modern browsers), auto-quality
+      ...(req.file.mimetype.startsWith("image/") && {
+        transformation: [{ fetch_format: "auto", quality: "auto" }],
+      }),
+    });
+
+    // Persist to MongoDB
+    const newMedia = new models.Media({
+      filename: result.public_id,
+      originalName: req.file.originalname,
+      path: result.secure_url,       // full Cloudinary HTTPS URL
+      cloudinaryId: result.public_id,
+      type: req.file.mimetype,
+      size: result.bytes,
+      title,
+      category,
+    });
+    await newMedia.save();
+
+    res.status(200).json({
+      ...newMedia._doc,
+      id: newMedia._id,
+      path: result.secure_url,
+      url: result.secure_url,
+      thumbnailUrl: result.secure_url,
+    });
+  } catch (error) {
+    console.error("Upload error:", error);
+    res.status(500).json({ error: "Failed to upload file: " + error.message });
   }
-);
+});
 
 // Auth status route
 app.get("/auth/status", authMiddleware, (req, res) => {
@@ -1949,47 +1898,6 @@ app.post("/api/test-event-create", authMiddleware, (req, res) => {
   }
 });
 
-// Add explicit image upload test endpoint
-app.post(
-  "/api/test-upload",
-  authMiddleware,
-  upload.single("file"),
-  (req, res) => {
-    console.log("Test upload endpoint accessed");
-
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "No file received",
-        requestDetails: {
-          body: req.body,
-          headers: req.headers,
-        },
-      });
-    }
-
-    console.log("Test file upload received:", {
-      filename: req.file.filename,
-      originalname: req.file.originalname,
-      mimetype: req.file.mimetype,
-      size: req.file.size,
-      path: req.file.path,
-    });
-
-    res.json({
-      success: true,
-      message: "File upload test successful",
-      fileDetails: {
-        filename: req.file.filename,
-        originalname: req.file.originalname,
-        mimetype: req.file.mimetype,
-        size: req.file.size,
-        path: `/uploads/${req.file.filename}`,
-        fullUrl: `http://localhost:${PORT}/uploads/${req.file.filename}`,
-      },
-    });
-  }
-);
 
 // Import seed functions
 const { seedAllData } = require("./seedData");
