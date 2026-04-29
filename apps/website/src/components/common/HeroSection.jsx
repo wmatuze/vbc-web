@@ -10,7 +10,7 @@ const HeroSection = ({
   className = "",
   titleClassName = "",
   showScrollIndicator = true,
-  showGoldenRibbon = true,
+  showGoldenRibbon = false,
 }) => {
   const handleScrollDown = () => {
     window.scrollTo({
@@ -34,15 +34,11 @@ const HeroSection = ({
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl xl:max-w-5xl 2xl:max-w-6xl 3xl:max-w-7xl mx-auto text-center">
           
-          {/* Primary Ribbon with subtitle */}
+          {/* Eyebrow label */}
           {subtitle && (
-            <div className="flex items-center justify-center space-x-4 mb-6 md:mb-8">
-              <div className="h-0.5 w-8 md:w-12 bg-primary-500" />
-              <span className="font-medium text-white text-base md:text-lg xl:text-xl tracking-wider">
-                {subtitle}
-              </span>
-              <div className="h-0.5 w-8 md:w-12 bg-primary-500" />
-            </div>
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-6 md:mb-8">
+              {subtitle}
+            </p>
           )}
 
           {/* Main Title */}

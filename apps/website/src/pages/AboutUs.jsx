@@ -1,100 +1,45 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Helmet } from "react-helmet-async"; // Added for SEO
-// Removed unused image imports - now using consistent hero background
-import { motion } from "framer-motion";
-import {
-  ChevronDown,
-  Play,
-  Users,
-  Building2,
-  BookOpen,
-  Heart,
-} from "lucide-react";
+import { Helmet } from "react-helmet-async";
+import { Play, Users, Building2, BookOpen, Heart } from "lucide-react";
+import { ArrowRightIcon } from "@heroicons/react/24/outline";
 import HeroSection from "../components/common/HeroSection";
-
-// Reusable NavCard Component
-const NavCard = ({ label, icon, path, activeTab }) => (
-  <Link
-    to={path}
-    className={`flex items-center justify-center flex-col md:flex-row md:justify-start text-lg font-semibold transition-all duration-300 px-6 py-4 rounded-xl ${
-      activeTab === path
-        ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white transform shadow-lg"
-        : "hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 hover:shadow"
-    }`}
-    aria-label={`Navigate to ${label}`} // Accessibility improvement
-  >
-    <div
-      className={`${
-        activeTab === path ? "text-white" : "text-blue-600 dark:text-blue-400"
-      } mb-2 md:mb-0 md:mr-3`}
-    >
-      {icon}
-    </div>
-    {label}
-  </Link>
-);
-
-// Reusable StatCard Component
-const StatCard = ({ number, label, color, index }) => (
-  <motion.div
-    className="bg-gray-50 dark:bg-gray-900 rounded-2xl shadow-lg p-8 text-center"
-    whileHover={{ y: -10 }}
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5, delay: index * 0.1 }}
-    viewport={{ once: true }}
-  >
-    <div
-      className={`text-5xl font-bold mb-2 bg-gradient-to-r ${color} inline-block text-transparent bg-clip-text`}
-    >
-      {number}
-    </div>
-    <div className="text-gray-600 dark:text-gray-400 text-lg">{label}</div>
-  </motion.div>
-);
 
 const AboutUs = () => {
   const location = useLocation();
   const activeTab = location.pathname;
-  const [isImageLoaded, setIsImageLoaded] = useState(false); // Loading state
 
-  const scrollToContent = () => {
-    document
-      .getElementById("nav-section")
-      .scrollIntoView({ behavior: "smooth" });
-  };
-
-  // Navigation links data
   const navItems = [
-    { label: "Our Story", icon: <Building2 size={20} /> },
-    { label: "Leadership Team", icon: <Users size={20} /> },
-    { label: "Vision & Mission", icon: <BookOpen size={20} /> },
-    { label: "What We Believe", icon: <Heart size={20} /> },
+    {
+      label: "Our Story",
+      description: "How Victory Bible Church began and grew over 25+ years of faithful ministry.",
+      icon: <Building2 size={20} />,
+    },
+    {
+      label: "Leadership Team",
+      description: "Meet the pastors and leaders who shepherd our congregation.",
+      icon: <Users size={20} />,
+    },
+    {
+      label: "Vision & Mission",
+      description: "The purpose and direction that guides everything we do as a church.",
+      icon: <BookOpen size={20} />,
+    },
+    {
+      label: "What We Believe",
+      description: "The biblical foundations and core beliefs of our faith community.",
+      icon: <Heart size={20} />,
+    },
   ];
 
-  // Stats data
   const stats = [
-    {
-      number: "25+",
-      label: "Years of Service",
-      color: "from-blue-500 to-blue-600",
-    },
-    {
-      number: "1,200+",
-      label: "Church Members",
-      color: "from-yellow-500 to-yellow-600",
-    },
-    {
-      number: "30+",
-      label: "Community Programs",
-      color: "from-green-500 to-green-600",
-    },
+    { number: "25+", label: "Years of Service" },
+    { number: "1,200+", label: "Church Members" },
+    { number: "30+", label: "Community Programs" },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100">
-      {/* SEO Meta Tags */}
+    <div className="bg-white">
       <Helmet>
         <title>About Us - Victory Bible Church</title>
         <meta
@@ -103,155 +48,138 @@ const AboutUs = () => {
         />
       </Helmet>
 
-      {/* Hero Section */}
       <HeroSection
-        title="About Us"
-        subtitle="About Us"
-        description="Get to know Victory Bible Church: our story, leadership, vision, mission, and beliefs."
-        primaryAccentText="Us"
+        title="About Victory Bible Church"
+        subtitle="Who We Are"
+        description="Get to know our story, our leaders, our vision, and what we believe."
+        primaryAccentText="Victory Bible Church"
         scrollText="EXPLORE OUR STORY"
         backgroundImage="/assets/hero-bg.jpg"
       />
 
-      {/* Navigation Section */}
-      <div id="nav-section" className="relative">
-        <div className="container mx-auto px-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl -mt-16 relative z-20 p-6">
-            <nav className="flex flex-wrap justify-center gap-4">
-              {navItems.map(({ label, icon }) => {
-                const path = `/about/${label
-                  .toLowerCase()
-                  .replace(/ & /g, "-")
-                  .replace(/ /g, "-")}`;
-                return (
-                  <NavCard
-                    key={path}
-                    label={label}
-                    icon={icon}
-                    path={path}
-                    activeTab={activeTab}
-                  />
-                );
-              })}
-            </nav>
+      {/* Stats strip — overlaps the bottom of the hero */}
+      <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 -mt-16">
+        <div className="bg-vbc-section border border-white/10 grid grid-cols-3 divide-x divide-white/10">
+          {stats.map(({ number, label }, i) => (
+            <div key={i} className="py-7 px-4 md:px-8 text-center">
+              <div className="text-3xl md:text-4xl font-bold text-white mb-1">{number}</div>
+              <div className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em]">
+                {label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Numbered editorial nav grid */}
+      <section className="bg-white pt-16 pb-0 px-4 sm:px-6">
+        <div className="max-w-3xl mx-auto">
+          <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-8">
+            Explore
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-gray-200">
+            {navItems.map(({ label, description }, i) => {
+              const path = `/about/${label
+                .toLowerCase()
+                .replace(/ & /g, "-")
+                .replace(/ /g, "-")}`;
+              const isActive = activeTab === path;
+              const num = String(i + 1).padStart(2, "0");
+
+              return (
+                <Link
+                  key={path}
+                  to={path}
+                  className={`relative overflow-hidden flex flex-col justify-between min-h-[200px] p-8 group transition-colors ${
+                    isActive ? "bg-gray-50" : "bg-white hover:bg-gray-50"
+                  }`}
+                >
+                  {/* Ghost number decoration */}
+                  <span className="absolute -top-2 right-4 text-[7rem] font-black text-gray-100 select-none leading-none pointer-events-none">
+                    {num}
+                  </span>
+
+                  <div className="relative">
+                    <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-3">
+                      {num}
+                    </p>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">{label}</h3>
+                    <p className="text-gray-400 text-sm leading-relaxed">{description}</p>
+                  </div>
+
+                  <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-gray-400 group-hover:text-gray-900 transition-colors mt-6 relative">
+                    Explore{" "}
+                    <ArrowRightIcon className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
+      </section>
 
-        {/* Why We Exist Section */}
-        <section className="py-16 px-6 mt-12">
-          <motion.div
-            className="container mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            viewport={{ once: true }}
-          >
-            <div className="flex flex-col md:flex-row">
-              <div className="md:w-1/3 bg-gradient-to-br from-blue-600 to-blue-800 p-8 flex items-center justify-center">
-                <h2 className="text-3xl font-bold text-white">Why We Exist</h2>
-              </div>
-              <div className="md:w-2/3 p-8 md:p-12">
-                <p className="text-2xl text-gray-700 dark:text-gray-300 leading-relaxed font-light">
-                  ...to{" "}
-                  <span className="font-bold text-blue-600 dark:text-blue-400">
-                    BE WITH JESUS
-                  </span>
-                  ,
-                  <span className="font-bold text-blue-600 dark:text-blue-400">
-                    {" "}
-                    BECOME LIKE JESUS
-                  </span>
-                  , and
-                  <span className="font-bold text-blue-600 dark:text-blue-400">
-                    {" "}
-                    CARRY ON THE MISSION OF JESUS
-                  </span>{" "}
-                  TO THE WORLD.
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        </section>
+      {/* Why We Exist — editorial typography */}
+      <section className="bg-gray-50 py-20 md:py-28 px-4 sm:px-6">
+        <div className="max-w-3xl mx-auto">
+          <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-10">
+            Our Purpose
+          </p>
+          <p className="text-gray-400 text-lg md:text-xl font-light mb-4">...to</p>
+          <h2 className="text-5xl sm:text-6xl md:text-7xl font-black text-gray-900 leading-none mb-1 uppercase">
+            Be With Jesus,
+          </h2>
+          <h2 className="text-5xl sm:text-6xl md:text-7xl font-black text-gray-900 leading-none mb-8 uppercase">
+            Become Like Jesus,
+          </h2>
+          <p className="text-gray-400 text-lg md:text-xl font-light mb-4">and</p>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-primary-600 leading-tight uppercase">
+            Carry On the Mission of Jesus to the World.
+          </h2>
+        </div>
+      </section>
 
-        {/* Video Section */}
-        <section className="py-16 px-6 bg-gray-100 dark:bg-gray-900 rounded-t-3xl -mt-6">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold inline-block relative">
-                More About Us
-                <motion.div
-                  className="h-1 bg-gradient-to-r from-yellow-400 to-yellow-500 absolute -bottom-2 left-0"
-                  initial={{ width: 0 }}
-                  whileInView={{ width: "100%" }}
-                  transition={{ duration: 0.8 }}
-                  viewport={{ once: true }}
-                />
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-              <motion.div
-                className="w-full aspect-video bg-gray-800 rounded-2xl shadow-lg overflow-hidden relative group"
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-                <div className="flex items-center justify-center h-full">
-                  <div className="relative z-10 flex flex-col items-center">
-                    <div className="bg-white/20 backdrop-blur-md p-4 rounded-full mb-4 group-hover:bg-yellow-500 transition-colors duration-300">
-                      <Play className="text-white text-2xl" />
-                    </div>
-                    <p className="text-white text-center px-4 font-medium">
-                      Church Life & Community Video (Coming Soon)
-                    </p>
-                  </div>
+      {/* Community — video placeholder + text */}
+      <section className="bg-white py-16 md:py-20 px-4 sm:px-6">
+        <div className="max-w-3xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            {/* Video placeholder */}
+            <div className="aspect-video bg-vbc-section flex items-center justify-center group cursor-pointer">
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-14 h-14 border border-white/20 flex items-center justify-center group-hover:bg-brand-red group-hover:border-brand-red transition-all duration-300">
+                  <Play className="text-white w-5 h-5 ml-0.5" />
                 </div>
-              </motion.div>
-
-              <div className="flex flex-col justify-center">
-                <h3 className="text-2xl font-semibold mb-4 text-blue-700 dark:text-blue-400">
-                  Our Community & Life at Victory Bible Church
-                </h3>
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg">
-                  At Victory Bible Church, we believe in creating a vibrant,
-                  welcoming community where everyone can experience God's love.
-                  Our diverse congregation comes together not just for Sunday
-                  services, but throughout the week for small groups, outreach
-                  events, and fellowship activities.
+                <p className="text-white/30 text-xs uppercase tracking-widest">
+                  Coming Soon
                 </p>
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Link
-                    to="/gallery"
-                    className="mt-6 inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-full transition-all duration-300 hover:shadow-lg"
-                  >
-                    Explore more media content
-                  </Link>
-                </motion.div>
               </div>
             </div>
-          </div>
-        </section>
 
-        {/* Stats Section */}
-        <section className="py-16 px-6 bg-white dark:bg-gray-800">
-          <div className="container mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {stats.map((stat, index) => (
-                <StatCard
-                  key={index}
-                  number={stat.number}
-                  label={stat.label}
-                  color={stat.color}
-                  index={index}
-                />
-              ))}
+            {/* Text */}
+            <div>
+              <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-4">
+                Community Life
+              </p>
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 leading-snug">
+                Life at Victory{" "}
+                <span className="text-primary-600">Bible Church</span>
+              </h3>
+              <p className="text-gray-500 leading-relaxed mb-8">
+                At Victory Bible Church, we believe in creating a vibrant, welcoming
+                community where everyone can experience God's love. Our diverse
+                congregation comes together not just for Sunday services, but throughout
+                the week for small groups, outreach events, and fellowship activities.
+              </p>
+              <Link
+                to="/gallery"
+                className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors group/link"
+              >
+                Explore our media{" "}
+                <ArrowRightIcon className="h-3 w-3 group-hover/link:translate-x-1 transition-transform" />
+              </Link>
             </div>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
     </div>
   );
 };
