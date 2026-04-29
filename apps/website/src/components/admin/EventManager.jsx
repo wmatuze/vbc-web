@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import useErrorHandler from "../../hooks/useErrorHandler";
+import { getAuthToken } from "../../services/api/core";
 import { useEventForm } from "../../hooks/useEventForm";
 import { useDarkMode } from "../../contexts/DarkModeContext";
 import FormField from "../common/FormField";
@@ -31,6 +32,7 @@ import {
   TagIcon,
   StarIcon,
   ClipboardDocumentListIcon,
+  ArrowUpTrayIcon,
 } from "@heroicons/react/24/outline";
 import { format, parseISO, isValid } from "date-fns";
 import config from "../../config";
@@ -88,6 +90,8 @@ const EventManager = () => {
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [isMediaSelectorOpen, setIsMediaSelectorOpen] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (eventsError) handleError(eventsError, "Failed to load events");
@@ -115,9 +119,37 @@ const EventManager = () => {
   const handleMediaSelection = (item) => {
     if (item) {
       const p = processMediaItem(item);
-      setCurrentEvent((prev) => ({ ...prev, imageUrl: p.path, image: p }));
+      setCurrentEvent((prev) => ({ ...prev, imageUrl: p.path, image: p.id || p._id || null }));
     }
   };
+
+  const handleImageUpload = withErrorHandling(async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      handleError(new Error("Image must be less than 10 MB"), "File Validation");
+      return;
+    }
+    setImageUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("title", file.name.replace(/\.[^.]+$/, "") || "Event image");
+      formData.append("category", "events");
+      const token = getAuthToken();
+      const res = await fetch(`${API_URL}/api/upload`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
+      const data = await res.json();
+      setCurrentEvent((prev) => ({ ...prev, imageUrl: data.path, image: data.id || data._id || null }));
+    } finally {
+      setImageUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }, { context: "Image Upload" });
 
   const handleDateChange = (e) => {
     const val = e.target.value;
@@ -500,25 +532,49 @@ const EventManager = () => {
                   )}
                 </FormSection>
 
-                {/* ── Image ── */}
+                {/* ── Event Image ── */}
                 <FormSection title="Event Image" darkMode={darkMode}>
-                  <div>
-                    <div className="flex gap-2">
-                      <input name="imageUrl" type="text" value={currentEvent.imageUrl || ""} onChange={handleInputChange}
-                        placeholder="/uploads/image.jpg or https://…" className={`${inp(false)} flex-1`} />
-                      <button type="button" onClick={() => setIsMediaSelectorOpen(true)}
-                        className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm transition-colors ${darkMode ? "border-gray-600 text-gray-300 hover:bg-gray-700" : "border-gray-300 text-gray-700 hover:bg-gray-50"}`}>
-                        <PhotoIcon className="h-4 w-4" />
-                        Browse
-                      </button>
-                    </div>
-                    {currentEvent.imageUrl && (
-                      <div className="mt-2 relative rounded-lg overflow-hidden h-28 bg-gray-100">
-                        <img src={resolveImageUrl(currentEvent.imageUrl) || currentEvent.imageUrl}
+                  <div className="flex items-start gap-5">
+                    {/* Preview — landscape ratio */}
+                    <div className={`flex-shrink-0 w-40 h-28 rounded-xl overflow-hidden border-2 ${darkMode ? "border-gray-600 bg-gray-700" : "border-gray-200 bg-gray-100"}`}>
+                      {currentEvent.imageUrl ? (
+                        <img
+                          src={resolveImageUrl(currentEvent.imageUrl) || currentEvent.imageUrl}
                           alt="Preview" className="w-full h-full object-cover"
-                          onError={(e) => { e.target.style.display = "none"; }} />
-                      </div>
-                    )}
+                          onError={(e) => { e.target.src = eventPlaceholderImage; e.target.onerror = null; }}
+                        />
+                      ) : (
+                        <div className={`w-full h-full flex items-center justify-center ${darkMode ? "text-gray-600" : "text-gray-300"}`}>
+                          <PhotoIcon className="h-10 w-10" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Buttons */}
+                    <div className="flex flex-col gap-2 pt-1">
+                      <button type="button" onClick={() => fileInputRef.current?.click()} disabled={imageUploading}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-colors disabled:opacity-50 ${darkMode ? "border-gray-600 text-gray-300 hover:bg-gray-700" : "border-gray-300 text-gray-700 hover:bg-gray-50"}`}>
+                        {imageUploading
+                          ? <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                          : <ArrowUpTrayIcon className="h-4 w-4" />}
+                        {imageUploading ? "Uploading…" : "Upload Image"}
+                      </button>
+                      <button type="button" onClick={() => setIsMediaSelectorOpen(true)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${darkMode ? "border-gray-600 text-gray-300 hover:bg-gray-700" : "border-gray-300 text-gray-700 hover:bg-gray-50"}`}>
+                        <PhotoIcon className="h-4 w-4" />
+                        Browse Library
+                      </button>
+                      {currentEvent.imageUrl && (
+                        <button type="button"
+                          onClick={() => setCurrentEvent((prev) => ({ ...prev, imageUrl: "", image: null }))}
+                          className="text-xs text-red-400 hover:text-red-600 text-left transition-colors">
+                          Remove image
+                        </button>
+                      )}
+                      <p className={`text-xs leading-relaxed ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
+                        JPG, PNG, WebP<br/>Max 10 MB
+                      </p>
+                    </div>
                   </div>
                 </FormSection>
 
@@ -563,6 +619,7 @@ const EventManager = () => {
         </>
       )}
 
+      <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
       <MediaSelector
         isOpen={isMediaSelectorOpen}
         onClose={() => setIsMediaSelectorOpen(false)}
