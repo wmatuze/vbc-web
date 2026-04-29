@@ -792,11 +792,81 @@ app.delete("/api/leaders/:id", authMiddleware, async (req, res) => {
   }
 });
 
+// Zone routes
+app.get("/api/zones", async (req, res) => {
+  try {
+    const zones = await models.Zone.find().sort({ name: 1 });
+    res.json(zones);
+  } catch (error) {
+    console.error("Error fetching zones:", error);
+    res.status(500).json({ error: "Failed to fetch zones" });
+  }
+});
+
+app.get("/api/zones/:id", async (req, res) => {
+  try {
+    const zone = await models.Zone.findById(req.params.id);
+    if (!zone) return res.status(404).json({ error: "Zone not found" });
+    res.json(zone);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch zone" });
+  }
+});
+
+app.get("/api/zones/:id/cell-groups", async (req, res) => {
+  try {
+    const cellGroups = await models.CellGroup.find({ zone: req.params.id })
+      .populate("image")
+      .sort({ name: 1 });
+    res.json(cellGroups);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch cell groups for zone" });
+  }
+});
+
+app.post("/api/zones", authMiddleware, async (req, res) => {
+  try {
+    const zone = new models.Zone(req.body);
+    await zone.save();
+    res.status(201).json(zone);
+  } catch (error) {
+    console.error("Error creating zone:", error);
+    res.status(500).json({ error: "Failed to create zone" });
+  }
+});
+
+app.put("/api/zones/:id", authMiddleware, async (req, res) => {
+  try {
+    const zone = await models.Zone.findByIdAndUpdate(
+      req.params.id,
+      { ...req.body, updatedAt: Date.now() },
+      { new: true }
+    );
+    if (!zone) return res.status(404).json({ error: "Zone not found" });
+    res.json(zone);
+  } catch (error) {
+    console.error("Error updating zone:", error);
+    res.status(500).json({ error: "Failed to update zone" });
+  }
+});
+
+app.delete("/api/zones/:id", authMiddleware, async (req, res) => {
+  try {
+    const zone = await models.Zone.findByIdAndDelete(req.params.id);
+    if (!zone) return res.status(404).json({ error: "Zone not found" });
+    res.json({ message: "Zone deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting zone:", error);
+    res.status(500).json({ error: "Failed to delete zone" });
+  }
+});
+
 // Cell Group routes
 app.get("/api/cell-groups", async (req, res) => {
   try {
     const cellGroups = await models.CellGroup.find()
       .populate("image")
+      .populate("zone")
       .sort({ name: 1 });
     res.json(cellGroups);
   } catch (error) {

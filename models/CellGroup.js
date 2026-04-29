@@ -9,11 +9,12 @@ const CellGroupSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  contact: String,
+  leaderContact: String, // legacy alias
   leaderImage: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Media",
   },
-  leaderContact: String,
   location: {
     type: String,
     required: true,
@@ -32,9 +33,14 @@ const CellGroupSchema = new mongoose.Schema({
     lat: Number,
     lng: Number,
   },
+  imageUrl: {
+    type: String,
+    default: null,
+  },
   image: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Media",
+    default: null,
   },
   createdAt: {
     type: Date,
