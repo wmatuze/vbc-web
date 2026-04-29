@@ -22,9 +22,6 @@ const Leadership = () => {
 
   // Log leaders data when it changes
   useEffect(() => {
-    if (leaders.length > 0) {
-      console.log("Leadership - Leaders data:", leaders);
-    }
   }, [leaders]);
 
   // Get image URL (either from API or fallback)

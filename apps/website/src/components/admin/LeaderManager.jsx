@@ -127,8 +127,8 @@ const LeaderManager = () => {
       handleError(new Error("Please upload a JPEG, PNG, or GIF"), "File Validation");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      handleError(new Error("Image must be less than 5MB"), "File Validation");
+    if (file.size > 10 * 1024 * 1024) {
+      handleError(new Error("Image must be less than 10 MB"), "File Validation");
       return;
     }
 

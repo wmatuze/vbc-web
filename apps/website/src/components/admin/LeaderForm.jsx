@@ -96,7 +96,7 @@ const LeaderForm = ({
                   </button>
                 )}
                 <p className={`text-xs leading-relaxed ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
-                  JPG, PNG or GIF<br/>Max 5 MB
+                  JPG, PNG or GIF<br/>Max 10 MB
                 </p>
               </div>
             </div>
