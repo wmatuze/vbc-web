@@ -1,303 +1,214 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Search,
-  MapPin,
-  User,
-  Mail,
-  Phone,
-  Calendar,
-  Heart,
-  Filter,
-  ArrowRight,
-  ArrowLeft,
-} from "lucide-react";
-import {
-  useZoneByIdQuery,
-  useZoneCellGroupsQuery,
-} from "../hooks/useZonesQuery";
 import { Helmet } from "react-helmet-async";
+import {
+  MagnifyingGlassIcon,
+  MapPinIcon,
+  UserIcon,
+  UsersIcon,
+  ClockIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  XMarkIcon,
+  EnvelopeIcon,
+  PhoneIcon,
+  HeartIcon,
+  ChevronDownIcon,
+} from "@heroicons/react/24/outline";
+import { HeartIcon as HeartSolid } from "@heroicons/react/24/solid";
+import { useZoneByIdQuery, useZoneCellGroupsQuery } from "../hooks/useZonesQuery";
 import JoinGroupModal from "../components/JoinGroupModal";
-import HeroSection from "../components/common/HeroSection";
+import config from "../config";
+import cellGroupPlaceholder from "../assets/placeholders/default-cell-group.svg";
 
-// Import mock data for fallback
-import zonesData from "../data/zonesData";
-import cellGroupsData from "../data/cellGroupsData";
+const API_URL = config.API_URL;
+const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 
-// Fallback served from public/ - avoids bundling large images into JS
-const CELL_GROUP_FALLBACK = "/assets/placeholder.jpg";
+const resolveImage = (group) => {
+  const src = group.imageUrl || group.image?.path;
+  if (!src) return null;
+  return src.startsWith("http") ? src : `${API_URL}${src}`;
+};
 
-// Breadcrumb Component
-const Breadcrumb = ({ zoneName }) => (
-  <nav className="flex items-center space-x-2 text-sm mb-6">
-    <Link
-      to="/"
-      className="text-gray-500 hover:text-blue-600 transition-colors"
-    >
-      Home
-    </Link>
-    <span className="text-gray-400">/</span>
-    <Link
-      to="/cell-groups"
-      className="text-gray-500 hover:text-blue-600 transition-colors"
-    >
-      Zones
-    </Link>
-    <span className="text-gray-400">/</span>
-    <span className="text-gray-900 font-medium">{zoneName}</span>
-  </nav>
-);
-
-// Enhanced Elder Card Component
+// ── Elder card ────────────────────────────────────────────────────────────────
 const ElderCard = ({ elder }) => (
-  <div className="bg-blue-50 rounded-xl shadow-lg p-8 relative overflow-hidden max-w-sm mx-auto">
-    {/* Decorative element */}
-    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100 rounded-full -mr-16 -mt-16 opacity-50" />
-
-    {/* Content */}
+  <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-6 text-white relative overflow-hidden">
+    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10" />
+    <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-8 -mb-8" />
     <div className="relative">
-      {/* Zone Elder Badge */}
-      <div className="flex justify-center mb-4">
-        <div className="inline-flex items-center bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full">
-          <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-          ZONE ELDER
-        </div>
+      <span className="inline-block bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full mb-4 tracking-wider uppercase">
+        Zone Elder
+      </span>
+      <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4 ring-4 ring-white/30">
+        <UserIcon className="h-10 w-10 text-white/80" />
       </div>
-
-      {/* Elder Image with better styling */}
-      <div className="w-28 h-28 mx-auto mb-6 rounded-full ring-4 ring-white shadow-xl overflow-hidden bg-gray-100">
-        {elder?.image ? (
-          <img
-            src={elder.image}
-            alt={elder.name}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500">
-            <User className="text-2xl" />
-          </div>
+      <h3 className="text-xl font-bold text-center mb-1">{elder?.name || "Zone Elder"}</h3>
+      <p className="text-blue-200 text-sm text-center mb-5">{elder?.title || "Zone Elder"}</p>
+      <div className="space-y-2">
+        {elder?.contact && (
+          <a href={`mailto:${elder.contact}`}
+            className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors">
+            <EnvelopeIcon className="h-4 w-4" />
+            Send Message
+          </a>
+        )}
+        {elder?.phone && (
+          <a href={`tel:${elder.phone}`}
+            className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors">
+            <PhoneIcon className="h-4 w-4" />
+            {elder.phone}
+          </a>
         )}
       </div>
+    </div>
+  </div>
+);
 
-      {/* Elder Info */}
-      <div className="text-center">
-        <h3 className="text-xl font-bold text-gray-900 mb-1">{elder?.name}</h3>
-        <p className="text-blue-600 mb-4 font-medium">{elder?.title}</p>
+// ── Skeleton card ─────────────────────────────────────────────────────────────
+const SkeletonCard = () => (
+  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-pulse">
+    <div className="h-48 bg-gray-200" />
+    <div className="p-5 space-y-3">
+      <div className="h-4 bg-gray-200 rounded w-3/4" />
+      <div className="h-3 bg-gray-100 rounded w-1/2" />
+      <div className="h-9 bg-gray-200 rounded-xl mt-4" />
+    </div>
+  </div>
+);
 
-        <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-          {elder?.bio ||
-            "Leading with faith, serving with love, building community together."}
+// ── Group card ────────────────────────────────────────────────────────────────
+const GroupCard = ({ group, isFavorite, onToggleFavorite, onJoin }) => {
+  const thumb = resolveImage(group);
+  const contact = group.contact || group.leaderContact;
+  const id = group._id || group.id;
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.96 }}
+      className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300 flex flex-col"
+    >
+      <div className="relative h-48 flex-shrink-0 bg-gradient-to-br from-blue-50 to-indigo-50">
+        {thumb ? (
+          <img src={thumb} alt={group.name} className="w-full h-full object-cover"
+            onError={(e) => { e.target.src = cellGroupPlaceholder; e.target.onerror = null; }} />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <UsersIcon className="h-14 w-14 text-blue-200" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+
+        <button onClick={() => onToggleFavorite(id)}
+          className="absolute top-3 right-3 p-2 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/40 transition-colors">
+          {isFavorite
+            ? <HeartSolid className="h-4 w-4 text-red-400" />
+            : <HeartIcon className="h-4 w-4 text-white" />}
+        </button>
+
+        <div className="absolute bottom-0 left-0 right-0 p-4">
+          <h3 className="text-lg font-bold text-white leading-tight">{group.name}</h3>
+          {group.location && (
+            <p className="flex items-center gap-1 text-xs text-white/80 mt-0.5">
+              <MapPinIcon className="h-3.5 w-3.5 flex-shrink-0" />{group.location}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="p-5 flex flex-col flex-1">
+        {group.tags?.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {group.tags.slice(0, 4).map((tag) => (
+              <span key={tag} className="px-2.5 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">{tag}</span>
+            ))}
+          </div>
+        )}
+
+        <p className="text-sm text-gray-500 leading-relaxed line-clamp-2 mb-4 flex-1">
+          {group.description || "A welcoming cell group for fellowship and spiritual growth."}
         </p>
 
-        {/* Contact Options */}
-        <div className="space-y-3">
-          {elder?.contact && (
-            <a
-              href={`mailto:${elder.contact}`}
-              className="flex items-center justify-center space-x-2 bg-white hover:bg-blue-50 rounded-lg p-3 transition-colors duration-200 text-blue-700 shadow-sm"
-            >
-              <FaEnvelope className="text-sm" />
-              <span className="text-sm font-medium">Send Message</span>
-            </a>
-          )}
+        {(group.meetingDay || group.meetingTime) && (
+          <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
+            <ClockIcon className="h-4 w-4 text-blue-500 flex-shrink-0" />
+            {group.meetingDay}{group.meetingTime ? ` · ${group.meetingTime}` : ""}
+            {group.capacity && <span className="ml-auto text-xs text-gray-400">{group.capacity}</span>}
+          </div>
+        )}
 
-          {elder?.phone && (
-            <a
-              href={`tel:${elder.phone}`}
-              className="flex items-center justify-center space-x-2 bg-white hover:bg-green-50 rounded-lg p-3 transition-colors duration-200 text-green-700 shadow-sm"
-            >
-              <FaPhone className="text-sm" />
-              <span className="text-sm font-medium">Call Now</span>
-            </a>
-          )}
-        </div>
-      </div>
-    </div>
-  </div>
-);
+        {group.leader && (
+          <div className="flex items-center gap-2.5 py-3 border-t border-gray-100 mb-4">
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+              <UserIcon className="h-4 w-4 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900">Led by {group.leader}</p>
+              {contact && <p className="text-xs text-gray-400 truncate max-w-[180px]">{contact}</p>}
+            </div>
+          </div>
+        )}
 
-// Loading Skeleton Component
-const CellGroupSkeleton = () => (
-  <div className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
-    <div className="h-48 bg-gray-200" />
-    <div className="p-6">
-      <div className="h-4 bg-gray-200 rounded w-3/4 mb-3" />
-      <div className="h-3 bg-gray-200 rounded w-1/2 mb-4" />
-      <div className="flex gap-2 mb-4">
-        <div className="h-6 bg-gray-200 rounded-full w-16" />
-        <div className="h-6 bg-gray-200 rounded-full w-16" />
+        <button onClick={() => onJoin(group)}
+          className="w-full py-2.5 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+          Join this Group
+        </button>
       </div>
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 bg-gray-200 rounded-full" />
-        <div className="flex-1">
-          <div className="h-3 bg-gray-200 rounded w-2/3 mb-1" />
-          <div className="h-2 bg-gray-200 rounded w-1/2" />
-        </div>
-      </div>
-      <div className="h-10 bg-gray-200 rounded-lg" />
-    </div>
-  </div>
-);
+    </motion.div>
+  );
+};
 
+// ── Main page ─────────────────────────────────────────────────────────────────
 const ZoneDetailPage = () => {
   const { zoneId } = useParams();
-  const [search, setSearch] = useState("");
+
+  const { data: zone, isLoading: zoneLoading, error: zoneError } = useZoneByIdQuery(zoneId);
+  const { data: cellGroups = [], isLoading: groupsLoading } = useZoneCellGroupsQuery(zoneId);
+
+  const isLoading = zoneLoading || groupsLoading;
+
+  const [search, setSearch]             = useState("");
+  const [activeDayFilter, setActiveDayFilter] = useState("");
+  const [showDayDropdown, setShowDayDropdown] = useState(false);
+  const [favorites, setFavorites]       = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
-  const [activeFilters, setActiveFilters] = useState([]);
-  const [showFilters, setShowFilters] = useState(false);
-  const [favorites, setFavorites] = useState([]);
-  const [isHeaderSticky, setIsHeaderSticky] = useState(false);
-  const searchRef = useRef(null);
 
-  // Use React Query for fetching zone data
-  const {
-    data: zone,
-    isLoading: isZoneLoading,
-    error: zoneError,
-  } = useZoneByIdQuery(zoneId);
+  const toggleFavorite = (id) =>
+    setFavorites((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
 
-  // Use React Query for fetching cell groups in this zone
-  const { data: cellGroups = [], isLoading: isCellGroupsLoading } =
-    useZoneCellGroupsQuery(zoneId);
+  const filtered = useMemo(() => {
+    const s = search.toLowerCase();
+    return cellGroups.filter((g) => {
+      const matchSearch = !s ||
+        g.name?.toLowerCase().includes(s) ||
+        g.location?.toLowerCase().includes(s) ||
+        g.leader?.toLowerCase().includes(s) ||
+        g.description?.toLowerCase().includes(s);
+      const matchDay = !activeDayFilter || g.meetingDay === activeDayFilter;
+      return matchSearch && matchDay;
+    });
+  }, [cellGroups, search, activeDayFilter]);
 
-  // Determine if we're in a loading state
-  const isLoading = isZoneLoading || isCellGroupsLoading;
+  const hasFilters = search || activeDayFilter;
+  const clearFilters = () => { setSearch(""); setActiveDayFilter(""); };
 
-  // Scroll to top when component mounts
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [zoneId]);
-
-  // Scroll tracking for sticky header
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsHeaderSticky(window.scrollY > 300);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // Get image URL (either from API or fallback)
-  const getImageUrl = (group) => {
-    if (group.imageUrl) {
-      return group.imageUrl.startsWith("http")
-        ? group.imageUrl
-        : group.imageUrl;
-    }
-    return CELL_GROUP_FALLBACK;
-  };
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleJoinRequest = async (formData) => {
-    setIsSubmitting(true);
-    try {
-      // Add your API call here
-      console.log("Joining group:", selectedGroup.name);
-      console.log("Form data:", formData);
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
-      setSelectedGroup(null);
-    } catch (err) {
-      console.error("Failed to submit request:", err);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const toggleFilter = (filter) => {
-    setActiveFilters((prev) =>
-      prev.includes(filter)
-        ? prev.filter((f) => f !== filter)
-        : [...prev, filter],
-    );
-  };
-
-  const toggleFavorite = (groupId) => {
-    setFavorites((prev) =>
-      prev.includes(groupId)
-        ? prev.filter((id) => id !== groupId)
-        : [...prev, groupId],
-    );
-  };
-
-  // State for fallback data
-  const [fallbackZone, setFallbackZone] = useState(null);
-  const [fallbackCellGroups, setFallbackCellGroups] = useState([]);
-
-  // Use fallback data if API fails
-  useEffect(() => {
-    if ((zoneError || !zone) && !isLoading) {
-      console.log("Using fallback zone data for", zoneId);
-      // Find the zone in the mock data - try both id and _id
-      const mockZone = zonesData.find(
-        (z) => z.id === zoneId || z._id === zoneId,
-      );
-      if (mockZone) {
-        console.log("Found fallback zone:", mockZone.name);
-        setFallbackZone(mockZone);
-
-        // Find cell groups for this zone - try both zoneId and zone
-        const mockCellGroups = cellGroupsData.filter(
-          (group) => group.zoneId === zoneId || group.zone === zoneId,
-        );
-        console.log(`Found ${mockCellGroups.length} fallback cell groups`);
-        setFallbackCellGroups(mockCellGroups);
-      }
-    }
-  }, [zoneError, zone, isLoading, zoneId]);
-
-  // Use fallback data if API fails
-  const displayZone = zone || fallbackZone;
-  const displayCellGroups =
-    cellGroups.length > 0 ? cellGroups : fallbackCellGroups;
-
-  // Get all unique tags for filters (must be after displayCellGroups is defined)
-  const allTags = [
-    ...new Set(displayCellGroups.flatMap((group) => group.tags || [])),
-  ];
-
-  // Filter groups based on search and active filters (must be after displayCellGroups is defined)
-  const filteredGroups = displayCellGroups.filter((group) => {
-    // Match search term
-    const matchesSearch =
-      group.name?.toLowerCase().includes(search.toLowerCase()) ||
-      group.location?.toLowerCase().includes(search.toLowerCase()) ||
-      group.description?.toLowerCase().includes(search.toLowerCase()) ||
-      group.leader?.toLowerCase().includes(search.toLowerCase());
-
-    // Match all active filters or return true if no filters active
-    const matchesFilters =
-      activeFilters.length === 0 ||
-      activeFilters.some(
-        (filter) =>
-          (group.tags && group.tags.includes(filter)) ||
-          group.location === filter ||
-          group.meetingDay === filter,
-      );
-
-    return matchesSearch && matchesFilters;
-  });
-
-  // Show error state if there's an error or zone not found and no fallback data
-  if ((zoneError || !zone) && !isLoading && !fallbackZone) {
+  // ── Error / not found state ──
+  if (!isLoading && (zoneError || !zone)) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            Zone Not Found
-          </h2>
-          <p className="text-gray-600 mb-6">
-            {zoneError
-              ? "There was an error loading this zone. Please try again later."
-              : "The zone you're looking for doesn't exist or has been moved."}
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          <UsersIcon className="mx-auto h-16 w-16 text-gray-200 mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Zone Not Found</h2>
+          <p className="text-gray-500 mb-6">
+            {zoneError ? "There was an error loading this zone." : "This zone doesn't exist or has been removed."}
           </p>
-          <Link
-            to="/cell-groups"
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 inline-flex items-center"
-          >
-            <ArrowLeft className="mr-2" /> Return to Zones
+          <Link to="/cell-groups"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors">
+            <ArrowLeftIcon className="h-4 w-4" />
+            Browse All Groups
           </Link>
         </div>
       </div>
@@ -306,546 +217,209 @@ const ZoneDetailPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* SEO Meta Tags */}
       <Helmet>
-        <title>
-          {displayZone
-            ? `${displayZone.name} - Cell Groups`
-            : "Loading Zone..."}{" "}
-          - Victory Bible Church
-        </title>
-        <meta
-          name="description"
-          content={
-            displayZone
-              ? `Explore cell groups in the ${displayZone.name} led by ${displayZone.elder.name}. Find a group near you for fellowship, growth, and community.`
-              : "Loading zone information..."
-          }
-        />
+        <title>{zone ? `${zone.name} Cell Groups` : "Loading…"} – Victory Bible Church</title>
+        <meta name="description"
+          content={zone ? `Explore cell groups in the ${zone.name} zone. Find a group near you for fellowship, growth, and community.` : "Loading zone information."} />
       </Helmet>
 
-      {/* Uniform Hero Section */}
-      {displayZone && (
-        <HeroSection
-          title={`${displayZone.name} Cell Groups`}
-          subtitle="Zone Details"
-          description={`Connect with others in ${displayZone.location}. Led by ${displayZone.elder.name}, this zone offers ${displayZone.cellCount || filteredGroups.length} cell groups where you can grow in faith and build lasting friendships.`}
-          primaryAccentText="Cell Groups"
-          scrollText="EXPLORE CELL GROUPS"
-          backgroundImage="/assets/hero-bg.jpg"
-        />
-      )}
+      {/* ── Hero ── */}
+      <section className="relative overflow-hidden rounded-b-3xl h-[48vh] min-h-[340px]">
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url(/assets/hero-bg.jpg)" }} />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/90 via-blue-800/80 to-indigo-900/85" />
 
-      {/* Zone Info Section */}
-      {displayZone && (
-        <section className="bg-white py-16">
-          <div className="container mx-auto px-4 max-w-7xl">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
-              {/* Zone Information */}
+        <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4">
+          {isLoading ? (
+            <div className="w-48 h-8 bg-white/20 rounded-xl animate-pulse" />
+          ) : (
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+              <Link to="/cell-groups"
+                className="inline-flex items-center gap-1.5 text-blue-300 text-sm hover:text-white transition-colors mb-4">
+                <ArrowLeftIcon className="h-4 w-4" />
+                All Zones
+              </Link>
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
+                {zone?.name}
+              </h1>
+              {zone?.location && (
+                <p className="flex items-center justify-center gap-1.5 text-white/70 text-sm">
+                  <MapPinIcon className="h-4 w-4" />{zone.location}
+                </p>
+              )}
+              <motion.div className="h-0.5 bg-yellow-400 mx-auto mt-6 rounded-full"
+                initial={{ width: 0 }} animate={{ width: 60 }} transition={{ delay: 0.4, duration: 0.6 }} />
+            </motion.div>
+          )}
+        </div>
+
+        <motion.div className="absolute bottom-6 left-1/2 -translate-x-1/2"
+          animate={{ y: [0, 6, 0] }} transition={{ duration: 1.8, repeat: Infinity }}>
+          <ChevronDownIcon className="h-6 w-6 text-white/40" />
+        </motion.div>
+      </section>
+
+      {/* ── Zone info + Elder ── */}
+      {!isLoading && zone && (
+        <section className="bg-white border-b border-gray-100">
+          <div className="max-w-7xl mx-auto px-4 py-10">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+
+              {/* Zone description + stats */}
               <div className="lg:col-span-2">
-                <div className="mb-8">
-                  <Breadcrumb zoneName={displayZone.name} />
-                  <div className="flex items-center mb-4">
-                    <Link
-                      to="/cell-groups"
-                      className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium"
-                    >
-                      <FaArrowLeft className="mr-2" />
-                      Back to All Zones
-                    </Link>
+                {zone.description && (
+                  <p className="text-gray-600 leading-relaxed mb-6">{zone.description}</p>
+                )}
+                <div className="grid grid-cols-2 gap-4 max-w-xs">
+                  <div className="bg-blue-50 rounded-xl p-4 text-center">
+                    <p className="text-3xl font-bold text-blue-600">{cellGroups.length}</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mt-1">Cell Groups</p>
                   </div>
-                  <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                    {displayZone.name}
-                  </h2>
-                  <div className="flex items-center text-gray-600 mb-4">
-                    <FaMapMarkerAlt className="mr-2 text-blue-600" />
-                    {displayZone.location}
-                  </div>
-                  <p className="text-gray-700 leading-relaxed">
-                    {displayZone.description}
-                  </p>
-                </div>
-
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-6 mb-8">
-                  <div className="bg-blue-50 rounded-lg p-6 text-center">
-                    <div className="text-3xl font-bold text-blue-600 mb-2">
-                      {displayZone.cellCount || filteredGroups.length}
-                    </div>
-                    <div className="text-sm text-gray-600 uppercase tracking-wider">
-                      Cell Groups
-                    </div>
-                  </div>
-                  <div className="bg-green-50 rounded-lg p-6 text-center">
-                    <div className="text-3xl font-bold text-green-600 mb-2">
-                      127
-                    </div>
-                    <div className="text-sm text-gray-600 uppercase tracking-wider">
-                      Members
-                    </div>
+                  <div className="bg-indigo-50 rounded-xl p-4 text-center">
+                    <p className="text-3xl font-bold text-indigo-600">{zone.elder?.name ? "1" : "—"}</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mt-1">Zone Elder</p>
                   </div>
                 </div>
               </div>
 
-              {/* Elder Card */}
-              <div className="lg:col-span-1">
-                <ElderCard elder={displayZone.elder} />
-              </div>
+              {/* Elder card */}
+              {zone.elder?.name && (
+                <div className="lg:col-span-1">
+                  <ElderCard elder={zone.elder} />
+                </div>
+              )}
             </div>
           </div>
         </section>
       )}
 
-      {/* Sticky search header */}
-      <AnimatePresence>
-        {isHeaderSticky && (
-          <motion.div
-            className="fixed top-0 left-0 right-0 z-50 bg-white shadow-lg py-3 px-4"
-            initial={{ y: -100 }}
-            animate={{ y: 0 }}
-            exit={{ y: -100 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          >
-            <div className="max-w-7xl mx-auto flex justify-between items-center">
-              <div className="flex items-center space-x-3">
-                <Link
-                  to="/cell-groups"
-                  className="flex items-center text-gray-700 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-                >
-                  <FaArrowLeft />
-                </Link>
-                <h2 className="text-xl font-bold text-gray-900">
-                  {displayZone ? displayZone.name : "Loading..."} Cell Groups
-                </h2>
-              </div>
-              <div className="flex items-center space-x-4">
-                <div className="relative w-64">
-                  <input
-                    type="text"
-                    placeholder="Search..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                  />
-                  <FaSearch className="absolute left-3 top-3 text-gray-400" />
-                </div>
-              </div>
+      {/* ── Cell groups section ── */}
+      <section className="max-w-7xl mx-auto px-4 py-10">
+
+        {/* Search + Day filter */}
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between mb-6">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">
+              {isLoading ? "Loading groups…" : `${filtered.length} group${filtered.length !== 1 ? "s" : ""}`}
+              {activeDayFilter && <span className="font-normal text-gray-500"> · {activeDayFilter}</span>}
+            </h2>
+          </div>
+
+          <div className="flex gap-2 w-full sm:w-auto">
+            {/* Search */}
+            <div className="relative flex-1 sm:w-64">
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search groups…"
+                className="w-full pl-9 pr-8 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+              {search && (
+                <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                  <XMarkIcon className="h-4 w-4" />
+                </button>
+              )}
             </div>
+
+            {/* Day filter */}
+            <div className="relative flex-shrink-0">
+              <button onClick={() => setShowDayDropdown((p) => !p)}
+                className={`flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
+                  activeDayFilter ? "border-blue-600 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-600 hover:border-gray-300 bg-white"
+                }`}>
+                <ClockIcon className="h-4 w-4" />
+                {activeDayFilter || "Day"}
+              </button>
+              {showDayDropdown && (
+                <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 p-2 z-50 w-44">
+                  <button onClick={() => { setActiveDayFilter(""); setShowDayDropdown(false); }}
+                    className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50">Any day</button>
+                  {DAYS.map((d) => (
+                    <button key={d} onClick={() => { setActiveDayFilter(d); setShowDayDropdown(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                        activeDayFilter === d ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-700 hover:bg-gray-50"
+                      }`}>{d}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {hasFilters && (
+              <button onClick={clearFilters} className="flex items-center gap-1 px-3 py-2.5 rounded-xl text-sm text-gray-500 hover:text-gray-700 border border-gray-200 bg-white">
+                <XMarkIcon className="h-4 w-4" />
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Skeletons */}
+        {isLoading && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!isLoading && filtered.length === 0 && (
+          <div className="text-center py-16">
+            <UsersIcon className="mx-auto h-14 w-14 text-gray-200 mb-4" />
+            <h3 className="text-xl font-semibold text-gray-600 mb-2">
+              {cellGroups.length === 0 ? "No cell groups in this zone yet" : "No groups match your search"}
+            </h3>
+            <p className="text-gray-400 max-w-sm mx-auto mb-6">
+              {cellGroups.length === 0
+                ? "Check back soon — groups will appear here as they're added."
+                : "Try adjusting your search or remove the day filter."}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              {hasFilters && (
+                <button onClick={clearFilters}
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors">
+                  Clear filters
+                </button>
+              )}
+              <Link to="/cell-groups"
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:border-gray-300 hover:bg-gray-50 transition-colors">
+                <ArrowLeftIcon className="h-4 w-4" />
+                Browse all zones
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Grid */}
+        {!isLoading && filtered.length > 0 && (
+          <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <AnimatePresence mode="popLayout">
+              {filtered.map((group) => (
+                <GroupCard
+                  key={group._id || group.id}
+                  group={group}
+                  isFavorite={favorites.includes(group._id || group.id)}
+                  onToggleFavorite={toggleFavorite}
+                  onJoin={setSelectedGroup}
+                />
+              ))}
+            </AnimatePresence>
           </motion.div>
         )}
-      </AnimatePresence>
 
-      {/* Search and filter section */}
-      <section
-        id="cell-groups-section"
-        ref={searchRef}
-        className="container mx-auto px-4 py-16 max-w-7xl"
-      >
-        <div className="bg-white shadow-lg rounded-lg p-8 mb-12">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">
-              Find a Cell Group in{" "}
-              {displayZone ? displayZone.name : "this Zone"}
-            </h2>
-
-            {/* Enhanced Mobile Search Bar */}
-            <div className="w-full md:hidden relative mb-4">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search groups, leaders, or locations..."
-                  className="w-full pl-12 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-                <FaSearch className="absolute left-4 top-4 text-gray-400" />
-                {search && (
-                  <motion.button
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    onClick={() => setSearch("")}
-                    className="absolute right-3 top-3 p-1 rounded-full hover:bg-gray-100 transition-colors duration-200"
-                  >
-                    <svg
-                      className="w-5 h-5 text-gray-500"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </motion.button>
-                )}
-              </div>
-            </div>
-
-            {/* Desktop Controls */}
-            <div className="flex items-center gap-4 w-full md:w-auto">
-              {/* Enhanced Desktop Search */}
-              <div className="relative w-full md:w-80 hidden md:block">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search groups, leaders, or locations..."
-                    className="w-full pl-12 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                  />
-                  <FaSearch className="absolute left-4 top-4 text-gray-400" />
-                  {search && (
-                    <motion.button
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      onClick={() => setSearch("")}
-                      className="absolute right-3 top-3 p-1 rounded-full hover:bg-gray-100 transition-colors duration-200"
-                    >
-                      <svg
-                        className="w-5 h-5 text-gray-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </motion.button>
-                  )}
-                </div>
-              </div>
-
-              {/* Filter Button */}
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`py-2.5 px-4 flex items-center gap-2 rounded-lg ${
-                  activeFilters.length > 0
-                    ? "bg-blue-600 text-white hover:bg-blue-700"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                } transition-colors duration-200`}
-              >
-                <FaFilter size={14} />
-                <span>
-                  Filters{" "}
-                  {activeFilters.length > 0 && `(${activeFilters.length})`}
-                </span>
-              </button>
-            </div>
+        {/* Back link */}
+        {!isLoading && (
+          <div className="mt-12 text-center">
+            <Link to="/cell-groups"
+              className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 transition-colors">
+              <ArrowLeftIcon className="h-4 w-4" />
+              Back to all zones
+            </Link>
           </div>
-
-          {/* Active Filters Display */}
-          {activeFilters.length > 0 && (
-            <div className="flex flex-wrap items-center gap-3 mb-6 pb-6 border-b border-gray-100">
-              <span className="text-sm text-gray-500">Active filters:</span>
-              {activeFilters.map((filter) => (
-                <div
-                  key={filter}
-                  className="flex items-center bg-blue-100 text-blue-800 rounded-full px-4 py-1.5 text-sm"
-                >
-                  {filter}
-                  <button
-                    onClick={() => toggleFilter(filter)}
-                    className="ml-2 text-blue-600 hover:text-blue-800"
-                    aria-label={`Remove ${filter} filter`}
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-              <button
-                onClick={() => setActiveFilters([])}
-                className="text-sm text-gray-500 hover:text-gray-700 underline ml-2"
-              >
-                Clear all
-              </button>
-            </div>
-          )}
-
-          {/* Filter options */}
-          <AnimatePresence>
-            {showFilters && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="overflow-hidden"
-              >
-                <div className="border-t border-gray-100 pt-6">
-                  <h3 className="font-semibold text-gray-900 mb-4">
-                    Filter by:
-                  </h3>
-
-                  {/* Mobile-friendly filter layout */}
-                  <div className="space-y-6 md:space-y-0 md:flex md:flex-wrap md:gap-8">
-                    {/* Tag filters */}
-                    <div className="mb-2">
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">
-                        Group Type
-                      </h4>
-                      <div className="flex flex-wrap gap-2">
-                        {allTags.map((tag) => (
-                          <button
-                            key={tag}
-                            onClick={() => toggleFilter(tag)}
-                            className={`px-4 py-1.5 text-sm rounded-full ${
-                              activeFilters.includes(tag)
-                                ? "bg-blue-600 text-white"
-                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                            } transition-colors duration-200`}
-                          >
-                            {tag}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Day filters */}
-                    <div className="mb-2">
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">
-                        Meeting Day
-                      </h4>
-                      <div className="flex flex-wrap gap-2">
-                        {[
-                          "Monday",
-                          "Tuesday",
-                          "Wednesday",
-                          "Thursday",
-                          "Friday",
-                          "Saturday",
-                          "Sunday",
-                        ].map((day) => (
-                          <button
-                            key={day}
-                            onClick={() => toggleFilter(day)}
-                            className={`px-4 py-1.5 text-sm rounded-full ${
-                              activeFilters.includes(day)
-                                ? "bg-blue-600 text-white"
-                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                            } transition-colors duration-200`}
-                          >
-                            {day}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 flex justify-end">
-                    <button
-                      onClick={() => setShowFilters(false)}
-                      className="px-6 py-2.5 bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-200 rounded-lg"
-                    >
-                      Apply Filters
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Results section */}
-        <div className="mb-16">
-          <div className="flex justify-between items-center mb-8">
-            <h3 className="text-2xl font-bold text-gray-900">
-              {!isLoading && `${filteredGroups.length} Cell Groups`}
-              {!isLoading && activeFilters.length > 0 && " (Filtered)"}
-            </h3>
-          </div>
-
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <CellGroupSkeleton key={i} />
-              ))}
-            </div>
-          ) : filteredGroups.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center py-16 bg-white rounded-xl shadow-lg"
-            >
-              <div className="w-32 h-32 mx-auto mb-8 bg-blue-50 rounded-full flex items-center justify-center">
-                <svg
-                  className="w-16 h-16 text-blue-300"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                No groups match your search
-              </h3>
-              <p className="text-gray-600 max-w-md mx-auto mb-8 leading-relaxed">
-                We couldn't find any cell groups matching your criteria. Try
-                adjusting your search terms or explore other zones to find the
-                perfect community for you.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                {(search || activeFilters.length > 0) && (
-                  <button
-                    onClick={() => {
-                      setSearch("");
-                      setActiveFilters([]);
-                    }}
-                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
-                  >
-                    Clear Filters
-                  </button>
-                )}
-                <Link
-                  to="/cell-groups"
-                  className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium"
-                >
-                  Browse All Zones
-                </Link>
-              </div>
-            </motion.div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredGroups.map((group, index) => (
-                <div
-                  key={group.id}
-                  className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden"
-                >
-                  <div className="relative h-48 overflow-hidden">
-                    <img
-                      src={getImageUrl(group)}
-                      alt={group.name}
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      onClick={() => toggleFavorite(group.id)}
-                      className="absolute top-4 right-4 p-2 rounded-full bg-white/80 hover:bg-white transition-colors duration-200 shadow-md"
-                      aria-label={
-                        favorites.includes(group.id)
-                          ? "Remove from favorites"
-                          : "Add to favorites"
-                      }
-                    >
-                      <FaHeart
-                        className={`${
-                          favorites.includes(group.id)
-                            ? "text-red-500"
-                            : "text-gray-400"
-                        }`}
-                      />
-                    </button>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                    <div className="absolute bottom-0 left-0 p-4 w-full">
-                      <h3 className="text-xl font-bold text-white mb-1">
-                        {group.name}
-                      </h3>
-                      <div className="flex items-center text-sm text-white/90">
-                        <FaMapMarkerAlt className="mr-1" />
-                        {group.location}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-6">
-                    {/* Tags */}
-                    {group.tags && group.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {group.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-800"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    <p className="text-gray-600 mb-4 text-sm leading-relaxed">
-                      {group.description}
-                    </p>
-
-                    {/* Meeting Information */}
-                    <div className="flex justify-between items-center text-sm mb-4">
-                      <div className="flex items-center text-gray-700 bg-gray-100 rounded-full px-3 py-1.5">
-                        <FaCalendarAlt className="mr-2 text-blue-600" />
-                        {group.meetingDay} at {group.meetingTime}
-                      </div>
-                      {group.capacity && (
-                        <span className="text-xs bg-green-100 text-green-800 rounded-full px-3 py-1.5">
-                          {group.capacity}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Cell Leader Information */}
-                    <div className="flex items-center mb-4 pb-4 border-b border-gray-100">
-                      <div className="w-10 h-10 rounded-full bg-gray-100 flex-shrink-0 overflow-hidden mr-3">
-                        {group.leaderImage ? (
-                          <img
-                            src={group.leaderImage}
-                            alt={group.leader}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.target.src = FallbackImage;
-                            }}
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500">
-                            <FaUser />
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900 text-sm">
-                          Led by {group.leader}
-                        </div>
-                        {group.leaderContact && (
-                          <div className="text-xs text-gray-500 mt-1 flex items-center">
-                            <FaEnvelope className="mr-1" size={10} />
-                            {group.leaderContact}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Join Button */}
-                    <button
-                      onClick={() => setSelectedGroup(group)}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center text-sm"
-                    >
-                      Join this cell group
-                      <FaArrowRight className="ml-2" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        )}
       </section>
 
-      {/* Join Group Modal */}
-      {selectedGroup && (
-        <JoinGroupModal
-          group={selectedGroup}
-          onClose={() => setSelectedGroup(null)}
-          onSubmit={handleJoinRequest}
-          isLoading={isSubmitting}
-        />
-      )}
+      {/* Join modal */}
+      <AnimatePresence>
+        {selectedGroup && (
+          <JoinGroupModal group={selectedGroup} onClose={() => setSelectedGroup(null)} />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
