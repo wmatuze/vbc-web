@@ -86,11 +86,9 @@ const ScrollToTop = () => {
 const NavbarWrapper = ({ isNavHidden }) => {
   const location = useLocation();
   if (location.pathname.startsWith("/admin")) return null;
-  // On the homepage the hero is full-screen dark, so the transparent
-  // navbar with white text is correct. On every other page the
-  // background is light, so force the opaque white navbar immediately.
-  const isHome = location.pathname === "/";
-  return <Navbar isHidden={isNavHidden} forceOpaque={!isHome} />;
+  // All public pages open with a dark full-screen hero, so the navbar
+  // starts transparent with white text and transitions to white on scroll.
+  return <Navbar isHidden={isNavHidden} />;
 };
 
 const PageWrapper = ({ children, noPadding }) => (
