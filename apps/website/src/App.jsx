@@ -86,7 +86,11 @@ const ScrollToTop = () => {
 const NavbarWrapper = ({ isNavHidden }) => {
   const location = useLocation();
   if (location.pathname.startsWith("/admin")) return null;
-  return <Navbar isHidden={isNavHidden} />;
+  // On the homepage the hero is full-screen dark, so the transparent
+  // navbar with white text is correct. On every other page the
+  // background is light, so force the opaque white navbar immediately.
+  const isHome = location.pathname === "/";
+  return <Navbar isHidden={isNavHidden} forceOpaque={!isHome} />;
 };
 
 const PageWrapper = ({ children, noPadding }) => (
@@ -112,7 +116,7 @@ const AppContent = () => {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-vbc-dark">
       <ScrollToTop />
       <NavbarWrapper isNavHidden={isNavHidden} />
 
@@ -143,13 +147,11 @@ const AppContent = () => {
                 path="/"
                 element={
                   <PageWrapper noPadding>
-                    <div className="space-y-16 md:space-y-24">
-                      <HeroSection ref={heroRef} />
-                      <MonthlyPrograms />
-                      <Ministries />
-                      <HomeSermons />
-                      <CallToAction />
-                    </div>
+                    <HeroSection ref={heroRef} />
+                    <MonthlyPrograms />
+                    <Ministries />
+                    <HomeSermons />
+                    <CallToAction />
                   </PageWrapper>
                 }
               />

@@ -65,7 +65,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-gray-900 text-white">
+    <footer className="bg-vbc-dark text-white">
       {/* Main Footer Content */}
       <div className="container mx-auto px-4 pt-16 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-8">
@@ -95,7 +95,7 @@ const Footer = () => {
                 </span>
               </div>
             </Link>
-            <p className="text-gray-400">Worship | Grow | Impact</p>
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-widest mt-1">Worship · Grow · Impact</p>
             <address className="not-italic text-gray-400">
               <p>Victory Bible Church - Kitwe</p>
               <p>Off Chiwala Road, CBU East Gate</p>
@@ -122,7 +122,7 @@ const Footer = () => {
 
           {/* About Links */}
           <nav aria-label="About">
-            <h4 className="text-lg font-semibold mb-4 border-b border-gray-700 pb-2">
+            <h4 className="text-lg font-semibold mb-4 border-b border-white/10 pb-2">
               About
             </h4>
             <ul className="space-y-2">
@@ -141,7 +141,7 @@ const Footer = () => {
 
           {/* Programs Links */}
           <nav aria-label="Programs">
-            <h4 className="text-lg font-semibold mb-4 border-b border-gray-700 pb-2">
+            <h4 className="text-lg font-semibold mb-4 border-b border-white/10 pb-2">
               Programs
             </h4>
             <ul className="space-y-2">
@@ -160,7 +160,7 @@ const Footer = () => {
 
           {/* Media Links */}
           <nav aria-label="Media">
-            <h4 className="text-lg font-semibold mb-4 border-b border-gray-700 pb-2">
+            <h4 className="text-lg font-semibold mb-4 border-b border-white/10 pb-2">
               Media
             </h4>
             <ul className="space-y-2">
@@ -179,7 +179,7 @@ const Footer = () => {
 
           {/* Connect Links */}
           <nav aria-label="Connect">
-            <h4 className="text-lg font-semibold mb-4 border-b border-gray-700 pb-2">
+            <h4 className="text-lg font-semibold mb-4 border-b border-white/10 pb-2">
               Connect
             </h4>
             <ul className="space-y-2">
@@ -198,7 +198,7 @@ const Footer = () => {
         </div>
 
         {/* Secondary Footer Info */}
-        <div className="border-t border-gray-800 mt-12 pt-8">
+        <div className="border-t border-white/5 mt-12 pt-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Service Times */}
             <div>
@@ -256,11 +256,11 @@ const Footer = () => {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="Your email address"
                       required
-                      className="px-3 py-2 bg-gray-800 text-white placeholder-gray-500 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary-500 flex-grow text-sm"
+                      className="px-3 py-2 bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary-500 flex-grow text-sm"
                     />
                     <button
                       type="submit"
-                      className="bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-400 text-white px-3 py-2 rounded-r-md transition-colors font-medium"
+                      className="bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-400 text-white px-4 py-2 transition-colors font-semibold text-xs uppercase tracking-wider"
                     >
                       Sign Up
                     </button>
@@ -279,7 +279,7 @@ const Footer = () => {
                     href={social.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-gray-800 hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-400 text-white p-2 rounded-full transition-colors"
+                    className="bg-white/5 hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-400 text-white p-2.5 transition-colors"
                     aria-label={social.label}
                   >
                     {social.icon === "facebook" && (
@@ -331,7 +331,7 @@ const Footer = () => {
       </div>
 
       {/* Copyright */}
-      <div className="border-t border-gray-800">
+      <div className="border-t border-white/5">
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm text-gray-500">

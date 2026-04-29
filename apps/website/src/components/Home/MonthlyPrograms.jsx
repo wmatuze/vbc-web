@@ -1,394 +1,172 @@
-import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useRecurringEventsQuery } from "../../hooks/useRecurringEventsQuery";
+import { ArrowRightIcon, MapPinIcon } from "@heroicons/react/24/outline";
 
-// Icons for different recurring event types
-const getIconForEvent = (iconName) => {
-  switch (iconName) {
-    case "oil-lamp":
-      return (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-8 w-8"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
-          />
-        </svg>
-      );
-    case "communion":
-      return (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-8 w-8"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-          />
-        </svg>
-      );
-    case "praying-hands":
-      return (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-8 w-8"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"
-          />
-        </svg>
-      );
-    default:
-      return (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-8 w-8"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-          />
-        </svg>
-      );
-  }
-};
-
-// Helper function to get schedule text based on recurrence pattern
 const getScheduleText = (event) => {
   if (event.recurrenceType === "monthly") {
-    if (event.weekOfMonth) {
-      return `${event.weekOfMonth.charAt(0).toUpperCase() + event.weekOfMonth.slice(1)} Sunday of each month`;
-    } else if (event.dayOfMonth) {
-      return `The ${event.dayOfMonth}${getDaySuffix(event.dayOfMonth)} of each month`;
+    if (event.weekOfMonth) return `${event.weekOfMonth.charAt(0).toUpperCase() + event.weekOfMonth.slice(1)} Sunday`;
+    if (event.dayOfMonth) {
+      const s = event.dayOfMonth > 3 && event.dayOfMonth < 21 ? "th" : ["st","nd","rd"][((event.dayOfMonth % 10) - 1)] || "th";
+      return `${event.dayOfMonth}${s} of each month`;
     }
   } else if (event.recurrenceType === "weekly") {
-    const days = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ];
+    const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
     return `Every ${days[event.dayOfWeek]}`;
   } else if (event.recurrenceType === "yearly") {
-    const months = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ];
-    return `Annually in ${months[event.month]}`;
+    const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    return `Annually · ${months[event.month]}`;
   }
-  return "Recurring event";
+  return "Recurring";
 };
 
-// Helper function to get day suffix (1st, 2nd, 3rd, etc.)
-const getDaySuffix = (day) => {
-  if (day > 3 && day < 21) return "th";
-  switch (day % 10) {
-    case 1:
-      return "st";
-    case 2:
-      return "nd";
-    case 3:
-      return "rd";
-    default:
-      return "th";
-  }
-};
+// Static service times always shown on the left panel
+const SERVICE_TIMES = [
+  { label: "Sunday Service",    time: "9:30 AM"  },
+  { label: "Wednesday Service", time: "6:00 PM"  },
+];
 
 const MonthlyPrograms = () => {
-  // Use React Query to fetch recurring events
-  const {
-    data: recurringEvents = [],
-    isLoading,
-    error,
-    refetch: refetchEvents,
-  } = useRecurringEventsQuery({
-    staleTime: 60 * 1000, // 1 minute instead of 5 minutes
-  });
+  const { data: recurringEvents = [], isLoading, refetch } = useRecurringEventsQuery();
 
-  // Filter to only show featured events
-  const [featuredPrograms, setFeaturedPrograms] = useState([]);
-
-  useEffect(() => {
-    if (recurringEvents && recurringEvents.length > 0) {
-      // Filter for featured events and map to the format needed for display
-      const featured = recurringEvents
-        .filter((event) => event.featured && event.active)
-        .map((event) => ({
-          id: event.id || event._id,
-          title: event.title,
-          schedule: getScheduleText(event),
-          time: event.time,
-          description: event.description,
-          icon: getIconForEvent(event.icon),
-          color: event.color || "primary",
-        }));
-
-      setFeaturedPrograms(featured);
-    }
+  const programs = useMemo(() => {
+    if (!recurringEvents.length) return [];
+    return recurringEvents
+      .filter((e) => e.featured && e.active)
+      .map((e) => ({
+        id: e.id || e._id,
+        title: e.title,
+        schedule: getScheduleText(e),
+        time: e.time,
+      }));
   }, [recurringEvents]);
 
-  // Helper function to get color classes based on event color or index
-  const getColorClasses = (program, index) => {
-    // Default color mapping if program.color is not specified
-    if (!program.color || program.color === "primary") {
-      switch (index % 3) {
-        case 0:
-          return {
-            icon: "bg-yellow-50 text-yellow-600",
-            text: "text-yellow-500",
-            badge: "bg-yellow-100 text-yellow-800",
-          };
-        case 1:
-          return {
-            icon: "bg-red-50 text-red-600",
-            text: "text-red-500",
-            badge: "bg-red-100 text-red-800",
-          };
-        case 2:
-          return {
-            icon: "bg-blue-50 text-blue-600",
-            text: "text-blue-500",
-            badge: "bg-blue-100 text-blue-800",
-          };
-      }
-    }
-
-    // Map color names to Tailwind classes
-    switch (program.color) {
-      case "yellow":
-        return {
-          icon: "bg-yellow-50 text-yellow-600",
-          text: "text-yellow-500",
-          badge: "bg-yellow-100 text-yellow-800",
-        };
-      case "red":
-        return {
-          icon: "bg-red-50 text-red-600",
-          text: "text-red-500",
-          badge: "bg-red-100 text-red-800",
-        };
-      case "blue":
-        return {
-          icon: "bg-blue-50 text-blue-600",
-          text: "text-blue-500",
-          badge: "bg-blue-100 text-blue-800",
-        };
-      case "green":
-        return {
-          icon: "bg-green-50 text-green-600",
-          text: "text-green-500",
-          badge: "bg-green-100 text-green-800",
-        };
-      case "purple":
-        return {
-          icon: "bg-purple-50 text-purple-600",
-          text: "text-purple-500",
-          badge: "bg-purple-100 text-purple-800",
-        };
-      default:
-        return {
-          icon: "bg-blue-50 text-blue-600",
-          text: "text-blue-500",
-          badge: "bg-blue-100 text-blue-800",
-        };
-    }
-  };
-
   return (
-    <section id="monthly-programs" className="py-16 px-6 bg-white">
-      <div className="container mx-auto">
+    <section id="monthly-programs" className="flex flex-col lg:flex-row min-h-[640px]">
+
+      {/* ── Left panel — photo + service times ──────────────────────────── */}
+      <div className="relative lg:w-5/12 min-h-[420px] lg:min-h-0 overflow-hidden">
+        {/* Background photo */}
+        <div
+          className="absolute inset-0 bg-cover bg-center scale-105"
+          style={{ backgroundImage: "url(/assets/hero-bg.jpg)" }}
+        />
+        {/* Deep navy overlay */}
+        <div className="absolute inset-0 bg-blue-950/88" />
+
+        {/* Thin left red line accent */}
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-red" />
+
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          initial={{ opacity: 0, x: -24 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.7 }}
           viewport={{ once: true }}
-          className="flex flex-col md:flex-row items-center justify-between mb-12"
+          className="relative z-10 h-full flex flex-col justify-center px-12 py-14"
         >
-          <div className="flex items-center">
-            <div className="w-12 h-1 bg-primary-500 mr-4"></div>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-800">
-              Monthly Programs
-            </h2>
-          </div>
-          <p className="text-gray-600 mt-4 md:mt-0 max-w-xl">
-            Join us for our consistent monthly programs designed to enrich your
-            spiritual journey.
+          <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-8">
+            Service Times
           </p>
-        </motion.div>
 
-        {isLoading ? (
-          // Loading state
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-500 border-t-transparent"></div>
+          {/* Service times */}
+          <div className="space-y-8 mb-10">
+            {SERVICE_TIMES.map((s, i) => (
+              <div key={i}>
+                <p className="text-white text-5xl font-bold leading-none">{s.time}</p>
+                <p className="text-white/50 text-xs uppercase tracking-widest mt-2">{s.label}</p>
+                {i < SERVICE_TIMES.length - 1 && (
+                  <div className="h-px bg-white/10 mt-8" />
+                )}
+              </div>
+            ))}
           </div>
-        ) : error ? (
-          // Error state
-          <div className="text-center py-8">
-            <div className="bg-red-50 text-red-700 p-4 rounded-lg inline-block mb-4">
-              <p>Unable to load monthly programs</p>
-              <button
-                onClick={() => refetchEvents()}
-                className="mt-2 text-sm underline hover:text-red-800"
-              >
-                Try again
-              </button>
+
+          {/* Location */}
+          <div className="mt-auto pt-8 border-t border-white/10">
+            <div className="flex items-start gap-2 mb-3">
+              <MapPinIcon className="h-4 w-4 text-brand-red mt-0.5 flex-shrink-0" />
+              <p className="text-white/60 text-sm leading-relaxed">
+                Victory Bible Church – Kitwe<br />
+                Off Chiwala Road, CBU East Gate
+              </p>
             </div>
+            <Link
+              to="/contact"
+              className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-white/40 hover:text-white transition-colors group"
+            >
+              Get Directions
+              <ArrowRightIcon className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </div>
-        ) : featuredPrograms.length === 0 ? (
-          // Empty state
-          <div className="text-center py-8">
-            <p className="text-gray-500">
-              No monthly programs are currently scheduled.
-            </p>
-          </div>
-        ) : (
-          // Programs grid
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {featuredPrograms.map((program, index) => {
-              const colorClasses = getColorClasses(program, index);
+        </motion.div>
+      </div>
 
-              return (
-                <motion.div
-                  key={program.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-                >
-                  <div className="p-6">
-                    <div className="flex items-center mb-4">
-                      <div
-                        className={`p-3 rounded-full ${colorClasses.icon} mr-4`}
-                      >
-                        {program.icon}
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-800">
-                        {program.title}
-                      </h3>
-                    </div>
-
-                    <div className="mb-4 flex items-center text-gray-600">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className={`h-5 w-5 mr-2 ${colorClasses.text}`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
-                      <span className="font-medium">{program.schedule}</span>
-                    </div>
-
-                    <div className="mb-4 flex items-center text-gray-600">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className={`h-5 w-5 mr-2 ${colorClasses.text}`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <span>{program.time}</span>
-                    </div>
-
-                    <p className="text-gray-600 mb-4">{program.description}</p>
-
-                    <div className="mt-2">
-                      <span
-                        className={`inline-block ${colorClasses.badge} text-xs px-3 py-1 rounded-full font-medium`}
-                      >
-                        {program.schedule.includes("week")
-                          ? "Weekly"
-                          : program.schedule.includes("month")
-                            ? "Monthly"
-                            : program.schedule.includes("Annually")
-                              ? "Yearly"
-                              : "Recurring"}
-                      </span>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        )}
-
+      {/* ── Right panel — white + programs list ─────────────────────────── */}
+      <div className="lg:w-7/12 bg-white flex flex-col justify-center px-12 lg:px-16 py-14">
         <motion.div
-          className="mt-12 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
+          initial={{ opacity: 0, x: 24 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.7 }}
           viewport={{ once: true }}
         >
+          <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-3">
+            Regular Services
+          </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-10">
+            Monthly <span className="text-primary-600">Programs</span>
+          </h2>
+
+          {/* Programs list */}
+          {isLoading ? (
+            <div className="divide-y divide-gray-100">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="py-5 flex justify-between animate-pulse">
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-100 rounded w-40" />
+                    <div className="h-3 bg-gray-100 rounded w-24" />
+                  </div>
+                  <div className="h-4 bg-gray-100 rounded w-16" />
+                </div>
+              ))}
+            </div>
+          ) : programs.length === 0 ? (
+            /* Fallback static programs if none from API */
+            <div className="divide-y divide-gray-100">
+              {[
+                { title: "Anointing Service",   schedule: "First Sunday",  time: "9:30 AM" },
+                { title: "Holy Communion",       schedule: "Third Sunday",  time: "9:30 AM" },
+                { title: "Prayer & Fasting",     schedule: "Last Week",     time: "Various" },
+              ].map((p, i) => (
+                <div key={i} className="py-5 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-bold text-gray-900 text-lg leading-tight">{p.title}</p>
+                    <p className="text-gray-400 text-sm mt-0.5">{p.schedule}</p>
+                  </div>
+                  <p className="text-primary-600 font-semibold text-sm flex-shrink-0">{p.time}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {programs.map((p) => (
+                <div key={p.id} className="py-5 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-bold text-gray-900 text-lg leading-tight">{p.title}</p>
+                    <p className="text-gray-400 text-sm mt-0.5">{p.schedule}</p>
+                  </div>
+                  <p className="text-primary-600 font-semibold text-sm flex-shrink-0">{p.time}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
           <Link
             to="/events"
-            className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-300 hover:shadow-lg"
+            className="inline-flex items-center gap-3 mt-10 border border-gray-900 text-gray-900 text-xs font-semibold uppercase tracking-widest px-8 py-4 hover:bg-gray-900 hover:text-white transition-all duration-300 group"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-            View Full Church Calendar
+            View Full Calendar
+            <ArrowRightIcon className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </motion.div>
       </div>

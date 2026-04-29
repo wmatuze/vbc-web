@@ -9,6 +9,16 @@ export default {
         display: ["Playfair Display", "serif"],
       },
       colors: {
+        // VBC dark backgrounds & red accent
+        vbc: {
+          dark:    "#0a0a0a",
+          section: "#111111",
+          card:    "#1a1a1a",
+        },
+        brand: {
+          red:       "#dc2626",
+          "red-light": "#ef4444",
+        },
         primary: {
           50: "#e6f0ff",
           100: "#cce0ff",
