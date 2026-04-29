@@ -66,6 +66,7 @@ const LeaderManager = () => {
   const [isMediaSelectorOpen, setIsMediaSelectorOpen] = useState(false);
   const [currentLeader, setCurrentLeader] = useState(EMPTY_LEADER);
   const [formErrors, setFormErrors] = useState({});
+  const [searchInput, setSearchInput] = useState(""); // local input value (immediate)
   const fileInputRef = useRef(null);
 
   const {
@@ -197,16 +198,95 @@ const LeaderManager = () => {
     await refetchLeaders();
   }, { context: "Leader Deletion" });
 
-  const handleExport = () => {
-    const blob = new Blob([JSON.stringify(leaders, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "leaders-export.json";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const handlePrintExport = () => {
+    const categorize = (list) => {
+      const t1 = [], t2 = [], t3 = [];
+      list.forEach((l) => {
+        const t = l.title?.toLowerCase() || "";
+        if (t.includes("senior pastor") || t.includes("bishop") || t.includes("assistant pastor") || t === "lead pastor") {
+          t1.push(l);
+        } else if (t.includes("pastor") || t.includes("apostle") || t.includes("evangelist") || t.includes("prophet") || t.includes("teacher") || t.includes("director")) {
+          t2.push(l);
+        } else {
+          t3.push(l);
+        }
+      });
+      return { t1, t2, t3 };
+    };
+
+    const { t1, t2, t3 } = categorize(leaders);
+    const date = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+
+    const cardHTML = (l) => {
+      const imgSrc = l.imageUrl
+        ? (l.imageUrl.startsWith("http") ? l.imageUrl : `${API_URL}${l.imageUrl}`)
+        : null;
+      const photo = imgSrc
+        ? `<img src="${imgSrc}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" /><span class="init" style="display:none">${l.name?.[0]?.toUpperCase() ?? "?"}</span>`
+        : `<span class="init">${l.name?.[0]?.toUpperCase() ?? "?"}</span>`;
+      return `
+        <div class="card">
+          <div class="photo">${photo}</div>
+          <div class="info">
+            <strong>${l.name ?? ""}</strong>
+            <em>${l.title ?? ""}</em>
+            ${l.department ? `<span class="dept">${l.department}</span>` : ""}
+            ${l.bio ? `<p class="bio">${l.bio.slice(0, 160)}${l.bio.length > 160 ? "…" : ""}</p>` : ""}
+            ${l.email ? `<a class="contact" href="mailto:${l.email}">${l.email}</a>` : ""}
+            ${l.phone ? `<span class="contact">${l.phone}</span>` : ""}
+          </div>
+        </div>`;
+    };
+
+    const sectionHTML = (heading, members) =>
+      members.length === 0 ? "" : `
+        <section>
+          <h2>${heading}</h2>
+          <div class="grid">${members.map(cardHTML).join("")}</div>
+        </section>`;
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Victory Bible Church — Leadership Directory</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Georgia,'Times New Roman',serif;color:#111;padding:32px 40px;background:#fff}
+    header{text-align:center;border-bottom:2px solid #1d4ed8;padding-bottom:18px;margin-bottom:32px}
+    header h1{font-size:22px;color:#1d4ed8;letter-spacing:1px;font-weight:700}
+    header p{font-size:12px;color:#666;margin-top:5px}
+    section{margin-bottom:32px;break-inside:avoid-page}
+    section h2{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#1d4ed8;border-left:3px solid #1d4ed8;padding-left:8px;margin-bottom:14px}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .card{display:flex;gap:10px;padding:12px;border:1px solid #e5e7eb;border-radius:6px;break-inside:avoid;page-break-inside:avoid}
+    .photo{flex-shrink:0;width:60px;height:68px;border-radius:5px;overflow:hidden;background:#dbeafe;display:flex;align-items:center;justify-content:center}
+    .photo img{width:100%;height:100%;object-fit:cover;object-position:top}
+    .init{font-size:26px;font-weight:700;color:#1d4ed8}
+    .info{flex:1;min-width:0}
+    .info strong{display:block;font-size:12px;font-weight:700;color:#111}
+    .info em{display:block;font-size:10px;color:#1d4ed8;font-style:italic;margin-top:2px}
+    .dept{display:inline-block;font-size:9px;background:#dbeafe;color:#1d4ed8;padding:1px 6px;border-radius:99px;margin-top:3px;font-style:normal;font-family:sans-serif}
+    .bio{font-size:9px;color:#555;line-height:1.5;margin-top:5px;font-family:sans-serif}
+    .contact{display:block;font-size:9px;color:#888;margin-top:3px;text-decoration:none;font-family:sans-serif}
+    @media print{body{padding:16px 20px}.grid{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Victory Bible Church</h1>
+    <p>Leadership Directory &nbsp;·&nbsp; ${date}</p>
+  </header>
+  ${sectionHTML("Senior Leadership", t1)}
+  ${sectionHTML("Pastoral Team", t2)}
+  ${sectionHTML("Ministry Leaders", t3)}
+</body>
+</html>`;
+
+    const win = window.open("", "_blank", "width=900,height=700");
+    win.document.write(html);
+    win.document.close();
+    win.addEventListener("load", () => setTimeout(() => win.print(), 300));
   };
 
   const getImageUrl = useCallback((url) => {
@@ -222,7 +302,8 @@ const LeaderManager = () => {
                : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
     }`;
 
-  const sel = `w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+  // sel — no w-full so it doesn't force full-width in the flex toolbar
+  const sel = `px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
     darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300 text-gray-900"
   }`;
 
@@ -246,18 +327,26 @@ const LeaderManager = () => {
 
       {/* ── Toolbar ── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5">
-        <div className="flex items-center gap-2 flex-1 max-w-sm">
-          <div className="relative flex-1">
+        {/* Left — search + dept filter */}
+        <div className="flex items-center gap-2 flex-1 min-w-0 max-w-md">
+          <div className="relative flex-1 min-w-0">
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
             <input
               type="text"
               placeholder="Search leaders…"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={searchInput}
+              onChange={(e) => {
+                setSearchInput(e.target.value);
+                setSearchTerm(e.target.value); // debounced — only triggers filter
+              }}
               className={`${inp(false)} pl-9`}
             />
           </div>
-          <select value={filterDepartment} onChange={(e) => setFilterDepartment(e.target.value)} className={sel} style={{width:"auto"}}>
+          <select
+            value={filterDepartment}
+            onChange={(e) => setFilterDepartment(e.target.value)}
+            className={sel}
+          >
             <option value="all">All Depts</option>
             {departmentList.filter((d) => d !== "all").map((d) => (
               <option key={d} value={d}>{d}</option>
@@ -265,41 +354,59 @@ const LeaderManager = () => {
           </select>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Sort */}
-          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className={`${sel} w-auto`}>
+        {/* Right — sort, view, actions */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className={sel}>
             <option value="order">By Order</option>
             <option value="name">By Name</option>
           </select>
-          <button onClick={() => setSortOrder((p) => p === "asc" ? "desc" : "asc")}
+          <button
+            onClick={() => setSortOrder((p) => p === "asc" ? "desc" : "asc")}
             className={`p-2 rounded-lg transition-colors ${darkMode ? "text-gray-400 hover:bg-gray-700" : "text-gray-400 hover:bg-gray-100"}`}
-            title={`Sort ${sortOrder === "asc" ? "ascending" : "descending"}`}>
+            title={sortOrder === "asc" ? "Sort descending" : "Sort ascending"}
+          >
             {sortOrder === "asc" ? <ArrowUpIcon className="h-4 w-4" /> : <ArrowDownIcon className="h-4 w-4" />}
           </button>
 
           {/* View toggle */}
           <div className={`flex rounded-lg border overflow-hidden ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
-            <button onClick={() => setViewMode("grid")}
-              className={`p-2 transition-colors ${viewMode === "grid" ? "bg-blue-600 text-white" : darkMode ? "bg-gray-800 text-gray-400 hover:bg-gray-700" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
+            <button
+              onClick={() => setViewMode("grid")}
+              className={`p-2 transition-colors ${viewMode === "grid" ? "bg-blue-600 text-white" : darkMode ? "bg-gray-800 text-gray-400 hover:bg-gray-700" : "bg-white text-gray-500 hover:bg-gray-50"}`}
+              title="Grid view"
+            >
               <Squares2X2Icon className="h-4 w-4" />
             </button>
-            <button onClick={() => setViewMode("list")}
-              className={`p-2 transition-colors ${viewMode === "list" ? "bg-blue-600 text-white" : darkMode ? "bg-gray-800 text-gray-400 hover:bg-gray-700" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
+            <button
+              onClick={() => setViewMode("list")}
+              className={`p-2 transition-colors ${viewMode === "list" ? "bg-blue-600 text-white" : darkMode ? "bg-gray-800 text-gray-400 hover:bg-gray-700" : "bg-white text-gray-500 hover:bg-gray-50"}`}
+              title="List view"
+            >
               <ListBulletIcon className="h-4 w-4" />
             </button>
           </div>
 
-          <button onClick={handleExport} title="Export JSON"
-            className={`p-2 rounded-lg transition-colors ${darkMode ? "text-gray-400 hover:bg-gray-700" : "text-gray-400 hover:bg-gray-100"}`}>
+          <button
+            onClick={handlePrintExport}
+            title="Print / Export PDF"
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium transition-colors ${darkMode ? "border-gray-600 text-gray-300 hover:bg-gray-700" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}
+          >
             <DocumentArrowDownIcon className="h-4 w-4" />
+            Print / PDF
           </button>
-          <button onClick={() => refetchLeaders()} title="Refresh"
-            className={`p-2 rounded-lg transition-colors ${darkMode ? "text-gray-400 hover:bg-gray-700" : "text-gray-400 hover:bg-gray-100"}`}>
+
+          <button
+            onClick={() => refetchLeaders()}
+            title="Refresh"
+            className={`p-2 rounded-lg transition-colors ${darkMode ? "text-gray-400 hover:bg-gray-700" : "text-gray-400 hover:bg-gray-100"}`}
+          >
             <ArrowPathIcon className="h-4 w-4" />
           </button>
+
           <button
             onClick={() => { resetForm(); setShowForm(true); }}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm">
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm"
+          >
             <PlusIcon className="h-4 w-4" />
             Add Leader
           </button>
