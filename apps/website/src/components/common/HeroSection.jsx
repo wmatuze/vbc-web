@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const HeroSection = ({
   title,
@@ -30,9 +31,9 @@ const HeroSection = ({
               <li key={i} className="flex items-center gap-1.5">
                 {i > 0 && <span aria-hidden="true">›</span>}
                 {crumb.path ? (
-                  <a href={crumb.path} className="hover:text-white transition-colors">
+                  <Link to={crumb.path} className="hover:text-white transition-colors">
                     {crumb.label}
-                  </a>
+                  </Link>
                 ) : (
                   <span className="text-white/90" aria-current="page">{crumb.label}</span>
                 )}
