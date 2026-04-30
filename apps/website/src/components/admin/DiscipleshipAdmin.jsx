@@ -13,13 +13,11 @@ import {
   ChevronUp,
   Save,
   X,
-  ClipboardList,
 } from "lucide-react";
 
 const DiscipleshipAdmin = () => {
   const [classes, setClasses] = useState([]);
   const [sessions, setSessions] = useState([]);
-  const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("classes");
   const [showModal, setShowModal] = useState(false);
@@ -56,7 +54,7 @@ const DiscipleshipAdmin = () => {
 
   const fetchData = async () => {
     try {
-      await Promise.all([fetchClasses(), fetchSessions(), fetchRegistrations()]);
+      await Promise.all([fetchClasses(), fetchSessions()]);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -84,17 +82,6 @@ const DiscipleshipAdmin = () => {
     }
   };
 
-  const fetchRegistrations = async () => {
-    try {
-      const res = await fetch("/api/discipleship/registrations", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
-      });
-      const data = await res.json();
-      if (data.success) setRegistrations(data.data);
-    } catch (error) {
-      console.error("Error fetching registrations:", error);
-    }
-  };
 
   const handleCreateClass = () => {
     setModalType("createClass");
@@ -269,7 +256,6 @@ const DiscipleshipAdmin = () => {
   const tabs = [
     { id: "classes", name: "Classes", icon: Book },
     { id: "sessions", name: "Sessions", icon: Calendar },
-    { id: "registrations", name: "Registrations", icon: Users },
   ];
 
   if (loading) {
@@ -328,11 +314,6 @@ const DiscipleshipAdmin = () => {
               {id === "sessions" && (
                 <span className="ml-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs px-1.5 py-0.5 rounded-full">
                   {sessions.length}
-                </span>
-              )}
-              {id === "registrations" && (
-                <span className="ml-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs px-1.5 py-0.5 rounded-full">
-                  {registrations.length}
                 </span>
               )}
             </button>
@@ -606,87 +587,6 @@ const DiscipleshipAdmin = () => {
         </div>
       )}
 
-      {/* ── REGISTRATIONS TAB ─────────────────────────────────────────── */}
-      {activeTab === "registrations" && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-          {registrations.length === 0 ? (
-            <div className="text-center py-16">
-              <ClipboardList className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-500 dark:text-gray-400 text-sm">No registrations yet.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-700/50">
-                  <tr>
-                    {["Student", "Class / Session", "Status", "Registered", "Actions"].map(
-                      (h) => (
-                        <th
-                          key={h}
-                          className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400"
-                        >
-                          {h}
-                        </th>
-                      ),
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {registrations.map((reg) => (
-                    <tr
-                      key={reg._id}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
-                    >
-                      <td className="px-4 py-3">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">
-                          {reg.fullName}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {reg.email}
-                        </p>
-                      </td>
-                      <td className="px-4 py-3">
-                        <p className="text-sm text-gray-900 dark:text-white">
-                          {reg.classId?.title}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {reg.sessionId?.cohortName}
-                        </p>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
-                            reg.status === "approved"
-                              ? "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300"
-                              : reg.status === "pending"
-                              ? "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300"
-                              : "bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300"
-                          }`}
-                        >
-                          {reg.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
-                        {new Date(reg.registrationDate).toLocaleDateString()}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex gap-3 text-xs font-medium">
-                          <button className="text-blue-600 dark:text-blue-400 hover:underline">
-                            View
-                          </button>
-                          <button className="text-green-600 dark:text-green-400 hover:underline">
-                            Approve
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
 
       {/* ── MODALS ────────────────────────────────────────────────────── */}
       {showModal && (
