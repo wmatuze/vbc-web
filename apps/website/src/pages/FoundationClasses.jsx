@@ -101,9 +101,11 @@ const FoundationClasses = () => {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    isAuthenticated()
-      .then(setIsAdmin)
-      .catch(() => setIsAdmin(false));
+    try {
+      setIsAdmin(isAuthenticated());
+    } catch {
+      setIsAdmin(false);
+    }
   }, []);
 
   useEffect(() => {
