@@ -1,818 +1,402 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { useEventsQuery } from "../../hooks/useEventsQuery";
-import EventCard from "./EventsCard";
-import ToggleView from "./ToggleView";
+import React, { useState, useEffect } from "react";
+import { Helmet } from "react-helmet-async";
+import Modal from "react-modal";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
-import Modal from "react-modal";
-import { useNavigate } from "react-router-dom";
-
-import config from "../../config";
-import { motion } from "framer-motion";
-import { Helmet } from "react-helmet-async";
-import EventSignUpForm from "../EventSignUpForm";
 import { toast } from "react-toastify";
+import {
+  MagnifyingGlassIcon,
+  Squares2X2Icon,
+  ListBulletIcon,
+  CalendarDaysIcon,
+  ClockIcon,
+  MapPinIcon,
+  XMarkIcon,
+  CalendarIcon,
+  UserPlusIcon,
+  ArrowPathIcon,
+} from "@heroicons/react/24/outline";
+
+import { useEventsQuery } from "../../hooks/useEventsQuery";
+import EventCard, { getEventDate, getEventTime, resolveImageUrl } from "./EventsCard";
+import EventSignUpForm from "../EventSignUpForm";
+import HeroSection from "../common/HeroSection";
 import eventPlaceholderImage from "../../assets/placeholders/default-event.svg";
 
-// Set the app element for react-modal
 Modal.setAppElement("#root");
 
-const API_URL = config.API_URL;
+const MONTH = (d) => d.toLocaleString("default", { month: "short" }).toUpperCase();
 
 const ChurchCalendar = () => {
-  const currentYear = new Date().getFullYear();
+  const { data: events = [], isLoading: loading, error, refetch } = useEventsQuery();
 
-  // Stable random circle positions — computed once, never on re-render
-  const circles = useMemo(() =>
-    Array.from({ length: 4 }, () => ({
-      size: Math.random() * 100 + 50,
-      left: `${Math.random() * 100}%`,
-      top:  `${Math.random() * 100}%`,
-      yRange: [Math.random() * 100, Math.random() * -100],
-      opacity: [0.1, 0.3, 0.1],
-      duration: Math.random() * 10 + 10,
-    })), []);
-
-  const [viewMode, setViewMode] = useState("grid"); // Default to grid view
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSignUpFormOpen, setIsSignUpFormOpen] = useState(false);
-  // Use React Query for fetching events
-  const {
-    data: events = [],
-    isLoading: loading,
-    error,
-    refetch: refetchEvents,
-  } = useEventsQuery();
-
-  const [filteredEvents, setFilteredEvents] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [viewMode,         setViewMode]         = useState("grid");
+  const [selectedEvent,    setSelectedEvent]    = useState(null);
+  const [isModalOpen,      setIsModalOpen]      = useState(false);
+  const [isSignUpOpen,     setIsSignUpOpen]     = useState(false);
+  const [filteredEvents,   setFilteredEvents]   = useState([]);
+  const [searchTerm,       setSearchTerm]       = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const navigate = useNavigate();
 
-  // The filtering useEffect (below) already syncs filteredEvents whenever
-  // `events` changes, so this separate setter is no longer needed.
-
-  // Function to check if signup button should be shown
-  const shouldShowSignupButton = (event) => {
-    if (!event) return false;
-
-    // Check if signup is enabled (new signupMode or legacy signupRequired)
-    const isSignupEnabled =
-      event.signupMode === "required" ||
-      event.signupMode === "optional" ||
-      event.signupRequired;
-
-    if (!isSignupEnabled) return false;
-
-    // Check if we're within the signup deadline
-    if (event.signupDeadline) {
-      const now = new Date();
-      const deadline = new Date(event.signupDeadline);
-      if (now > deadline) {
-        return false;
-      }
-    }
-
-    return true;
-  };
-
-  // Get unique ministries for filter dropdown
   const ministryCategories = [
     "All",
-    ...new Set(events.map((event) => event.ministry).filter(Boolean)),
+    ...new Set(events.map((e) => e.ministry).filter(Boolean)),
   ];
 
-  // Filter events based on search term and category
   useEffect(() => {
     let result = events;
-
-    // Filter by search term
-    if (searchTerm) {
+    if (searchTerm)
       result = result.filter(
-        (event) =>
-          event?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          event?.description?.toLowerCase().includes(searchTerm.toLowerCase()),
+        (e) =>
+          e?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          e?.description?.toLowerCase().includes(searchTerm.toLowerCase()),
       );
-    }
-
-    // Filter by category
-    if (selectedCategory !== "All") {
-      result = result.filter((event) => event?.ministry === selectedCategory);
-    }
-
+    if (selectedCategory !== "All")
+      result = result.filter((e) => e?.ministry === selectedCategory);
     setFilteredEvents(result);
   }, [searchTerm, selectedCategory, events]);
 
-  // Handle event click
+  useEffect(() => {
+    if (isSignUpOpen && !selectedEvent) {
+      toast.error("Error loading form. Please try again.");
+      setIsSignUpOpen(false);
+    }
+  }, [isSignUpOpen, selectedEvent]);
+
   const handleEventClick = (event) => {
     setSelectedEvent(event);
     setIsModalOpen(true);
-    setIsSignUpFormOpen(false); // Ensure signup form is closed when event modal opens
+    setIsSignUpOpen(false);
   };
 
-  // Add to calendar function
-  const addToCalendar = (event) => {
-    // Format date for Google Calendar
-    // Use startDate (API field) if available, otherwise use legacy date and time fields
-    const startDate = event.startDate
-      ? new Date(event.startDate)
-      : new Date(event.date + " " + (event.time || "00:00"));
-
-    // Use endDate (API field) if available, otherwise default to 2 hours duration
-    const endDate = event.endDate
-      ? new Date(event.endDate)
-      : new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
-
-    const formattedStart = startDate.toISOString().replace(/-|:|\.\d+/g, "");
-    const formattedEnd = endDate.toISOString().replace(/-|:|\.\d+/g, "");
-
-    const googleCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
-      event.title,
-    )}&details=${encodeURIComponent(
-      event.description || "",
-    )}&location=${encodeURIComponent(
-      event.location || "Victory Bible Church",
-    )}&dates=${formattedStart}/${formattedEnd}`;
-
-    window.open(googleCalendarUrl, "_blank");
-  };
-
-  // Get image URL with fallback
-  const getImageUrl = (event) => {
-    if (!event?.imageUrl && !event?.image) return eventPlaceholderImage;
-
-    if (event.imageUrl) {
-      // Handle API uploaded images
-      return event.imageUrl.startsWith("http")
-        ? event.imageUrl
-        : `${API_URL}${event.imageUrl}`;
-    } else if (event.image) {
-      // Handle imported local images from the assets folder
-      return event.image;
-    }
-
-    return eventPlaceholderImage;
-  };
-
-  // Format events for FullCalendar
-  const calendarEvents = events.map((event) => {
-    let eventDate;
-    if (event?.startDate) {
-      const d = new Date(event.startDate);
-      if (!isNaN(d.getTime())) eventDate = d;
-    }
-    if (!eventDate && event?.date) {
-      const d = new Date(event.date + (event.time ? ` ${event.time}` : ""));
-      if (!isNaN(d.getTime())) eventDate = d;
-    }
-    if (!eventDate) eventDate = new Date();
-    return { id: event.id, title: event.title, start: eventDate, extendedProps: { ...event } };
-  });
-
-  // Close modal
   const closeModal = () => {
     setIsModalOpen(false);
-    // Don't reset selectedEvent right away in case we need to open the signup form
-    setTimeout(() => {
-      if (!isSignUpFormOpen) {
-        setSelectedEvent(null);
-      }
-    }, 300);
+    setTimeout(() => { if (!isSignUpOpen) setSelectedEvent(null); }, 300);
   };
 
-  // Add this function to determine the event type
-  const getEventType = (event) => {
-    // Check title for event type if not explicitly set
-    if (event.type) return event.type;
-
-    const title = event.title?.toLowerCase() || "";
-
-    if (title.includes("baptism")) return "baptism";
-    if (title.includes("baby dedication") || title.includes("dedication"))
-      return "babyDedication";
-
-    return "event"; // Default type
+  const shouldShowSignupButton = (event) => {
+    if (!event) return false;
+    const enabled =
+      event.signupMode === "required" ||
+      event.signupMode === "optional" ||
+      event.signupRequired;
+    if (!enabled) return false;
+    if (event.signupDeadline && new Date() > new Date(event.signupDeadline)) return false;
+    return true;
   };
 
-  // When opening the signup form, set the type
   const handleOpenSignupForm = () => {
-    try {
-
-      // Check if we have a selected event
-      if (!selectedEvent) {
-        toast.error("No event selected. Please try again.");
-        return;
-      }
-
-      // Add the event type if not already set
-      // If it's a baptism event but type is not set correctly
-      const eventTitle = selectedEvent.title?.toLowerCase() || "";
-
-      // Determine event type from title if not explicitly set
-      let eventType = selectedEvent.type || "event";
-
-      if (eventTitle.includes("baptism")) {
-        eventType = "baptism";
-      } else if (
-        eventTitle.includes("dedication") ||
-        eventTitle.includes("baby")
-      ) {
-        eventType = "babyDedication";
-      }
-
-      // Create a copy with the explicitly set type
-      const updatedEvent = {
-        ...selectedEvent,
-        type: eventType,
-      };
-
-
-      // First close the modal
-      setIsModalOpen(false);
-
-      // Then update the event and open the form in sequence
-      setSelectedEvent(updatedEvent);
-
-      // Use a more reliable approach with a slightly longer delay
-      setTimeout(() => {
-        // Double check we still have the event
-        if (updatedEvent) {
-          setIsSignUpFormOpen(true);
-        } else {
-          toast.error("Error preparing the form. Please try again.");
-        }
-      }, 500);
-    } catch (error) {
-      toast.error(
-        "There was a problem opening the signup form. Please try again.",
-      );
-    }
+    if (!selectedEvent) { toast.error("No event selected."); return; }
+    const title = selectedEvent.title?.toLowerCase() || "";
+    let type = selectedEvent.type || "event";
+    if (title.includes("baptism")) type = "baptism";
+    else if (title.includes("dedication") || title.includes("baby")) type = "babyDedication";
+    const updated = { ...selectedEvent, type };
+    setIsModalOpen(false);
+    setSelectedEvent(updated);
+    setTimeout(() => { if (updated) setIsSignUpOpen(true); else toast.error("Error preparing form."); }, 400);
   };
 
-  // Handle closing signup form
-  const handleCloseSignupForm = () => {
-    setIsSignUpFormOpen(false);
-    setSelectedEvent(null); // Clear selected event after closing signup form
+  const addToCalendar = (event) => {
+    const start = event.startDate ? new Date(event.startDate) : new Date(event.date + " " + (event.time || "00:00"));
+    const end   = event.endDate   ? new Date(event.endDate)   : new Date(start.getTime() + 2 * 60 * 60 * 1000);
+    const fmt   = (d) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
+    window.open(
+      `https://www.google.com/calendar/render?action=TEMPLATE` +
+      `&text=${encodeURIComponent(event.title)}` +
+      `&details=${encodeURIComponent(event.description || "")}` +
+      `&location=${encodeURIComponent(event.location || "Victory Bible Church")}` +
+      `&dates=${fmt(start)}/${fmt(end)}`,
+      "_blank",
+    );
   };
 
-  const getEventDate = (event) => {
-    try {
-      if (event?.startDate) {
-        const d = new Date(event.startDate);
-        if (!isNaN(d.getTime())) return d;
-      }
-      if (event?.date) {
-        const d = new Date(event.date);
-        if (!isNaN(d.getTime())) return d;
-      }
-    } catch {}
-    return new Date();
-  };
-
-  // Add this useEffect near the other useEffect hooks
-  useEffect(() => {
-    // Check for invalid state where form is open but event is null
-    if (isSignUpFormOpen && !selectedEvent) {
-      toast.error("Error loading form. Please try again.");
-      setIsSignUpFormOpen(false);
-    }
-  }, [isSignUpFormOpen, selectedEvent]);
+  const calendarEvents = events.map((e) => {
+    let start = e.startDate ? new Date(e.startDate) : (e.date ? new Date(e.date) : new Date());
+    if (isNaN(start.getTime())) start = new Date();
+    return { id: e.id, title: e.title, start, extendedProps: { ...e } };
+  });
 
   return (
-    <div className="bg-gray-50">
-      {/* SEO Meta Tags */}
+    <div className="bg-white">
       <Helmet>
-        <title>Church Calendar - Victory Bible Church</title>
-        <meta
-          name="description"
-          content="Stay updated with Victory Bible Church's events calendar. Find upcoming services, programs, and community events."
-        />
+        <title>Events — Victory Bible Church</title>
+        <meta name="description" content="Upcoming events at Victory Bible Church Kitwe. Join us for services, programmes, and community gatherings." />
       </Helmet>
 
-      {/* Hero Section - Similar to About Us Page */}
-      <section className="relative overflow-hidden rounded-b-3xl h-[85vh]">
-        <motion.div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `url(/assets/hero-bg.jpg)`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-          initial={{ scale: 1.1 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 10, repeat: Infinity, repeatType: "reverse" }}
-          aria-label="Hero background image"
-        />
+      {/* ── Hero ──────────────────────────────────────────────────── */}
+      <HeroSection
+        subtitle="What's On"
+        title="Events & Gatherings"
+        description="Join us for worship, community, and growth. Something is always happening at Victory Bible Church."
+        backgroundImage="/assets/hero-bg.jpg"
+        breadcrumbs={[{ label: "Home", path: "/" }, { label: "Events" }]}
+      />
 
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-purple-900/70 to-blue-900/80 rounded-b-3xl"></div>
-
-        {/* Decorative elements — positions stable across re-renders */}
-        <div className="absolute inset-0 overflow-hidden rounded-b-3xl">
-          {circles.map((c, i) => (
-            <motion.div
-              key={i}
-              className="absolute rounded-full bg-white/10"
-              style={{ width: c.size, height: c.size, left: c.left, top: c.top }}
-              animate={{ y: c.yRange, opacity: c.opacity }}
-              transition={{ duration: c.duration, repeat: Infinity, repeatType: "reverse" }}
-            />
-          ))}
-        </div>
-
-        <div className="container mx-auto px-4 relative z-10 h-full flex flex-col justify-center items-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center"
-          >
-            <h1 className="text-4xl lg:text-5xl font-bold text-white text-center mb-4 tracking-tight">
-              Church <span className="text-yellow-400">Calendar</span> {currentYear}
-            </h1>
-            <p className="text-lg text-white text-center max-w-3xl mx-auto leading-relaxed font-light">
-              Explore upcoming events and join us as we grow in faith and
-              community.
-            </p>
-            <motion.div
-              className="h-1 bg-yellow-400 mx-auto mt-8"
-              initial={{ width: 0 }}
-              animate={{ width: 100 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
-            />
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Search and Filter Section - Below Hero */}
-      <div className="max-w-7xl mx-auto bg-white p-4 rounded-lg shadow-md mt-8 mb-6">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="relative w-full md:w-1/2">
+      {/* ── Filter bar ────────────────────────────────────────────── */}
+      <div className="sticky top-0 z-30 bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-6 py-3 flex flex-wrap items-center gap-3">
+          {/* Search */}
+          <div className="relative flex-1 min-w-[200px]">
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search events..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              placeholder="Search events…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               disabled={loading}
+              className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 focus:border-brand-red focus:outline-none bg-white text-gray-900 placeholder-gray-400 transition-colors"
             />
-            <span className="absolute right-3 top-2.5 text-gray-400">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </span>
           </div>
 
-          <div className="flex items-center gap-4 w-full md:w-auto">
+          {/* Ministry filter */}
+          {ministryCategories.length > 1 && (
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
               disabled={loading}
+              className="text-sm border border-gray-200 focus:border-brand-red focus:outline-none bg-white text-gray-700 py-2 px-3 transition-colors"
             >
-              {ministryCategories.map((ministry) => (
-                <option
-                  key={ministry || "unknown"}
-                  value={ministry || "unknown"}
-                >
-                  {ministry || "Unknown Ministry"}
-                </option>
+              {ministryCategories.map((m) => (
+                <option key={m || "all"} value={m}>{m}</option>
               ))}
             </select>
+          )}
 
-            <ToggleView viewMode={viewMode} setViewMode={setViewMode} />
+          {/* View toggle */}
+          <div className="flex border border-gray-200">
+            {[
+              { mode: "grid",     Icon: Squares2X2Icon,  label: "Grid" },
+              { mode: "list",     Icon: ListBulletIcon,  label: "List" },
+              { mode: "calendar", Icon: CalendarDaysIcon, label: "Calendar" },
+            ].map(({ mode, Icon, label }) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                title={label}
+                className={`px-3 py-2 transition-colors ${
+                  viewMode === mode
+                    ? "bg-brand-red text-white"
+                    : "bg-white text-gray-500 hover:bg-gray-50"
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Content Section (Events Grid, List, Calendar) - Below Search/Filter */}
-      <div className="max-w-7xl mx-auto bg-white rounded-lg shadow-md p-4 md:p-6">
+      {/* ── Content ───────────────────────────────────────────────── */}
+      <div className="max-w-7xl mx-auto px-6 py-12">
         {loading ? (
-          /* Loading skeleton — 6 card placeholders */
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-gray-100">
             {[...Array(6)].map((_, i) => (
-              <div
-                key={i}
-                className="animate-pulse bg-gray-50 border border-gray-100 rounded-xl overflow-hidden"
-              >
-                <div className="h-40 bg-gray-200" />
-                <div className="p-4 space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-3/4" />
-                  <div className="h-3 bg-gray-200 rounded w-1/2" />
-                  <div className="h-3 bg-gray-200 rounded w-full" />
+              <div key={i} className="animate-pulse bg-white">
+                <div className="h-48 bg-gray-100" />
+                <div className="p-5 space-y-2">
+                  <div className="h-4 bg-gray-100 rounded w-3/4" />
+                  <div className="h-3 bg-gray-100 rounded w-1/2" />
+                  <div className="h-3 bg-gray-100 rounded w-full" />
                 </div>
               </div>
             ))}
           </div>
         ) : error ? (
-          <div className="text-center py-12 px-4 bg-red-50 rounded-xl border border-red-200">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-12 w-12 text-red-400 mx-auto mb-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <p className="text-red-700 font-semibold mb-1">
-              Failed to load events
-            </p>
-            <p className="text-red-500 text-sm mb-4">
-              {error.message ||
-                "An unexpected error occurred. Please try again."}
-            </p>
-            <button
-              className="mt-2 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              onClick={() => refetchEvents()}
-            >
-              Retry
+          <div className="text-center py-20">
+            <p className="text-gray-900 font-semibold mb-1">Failed to load events</p>
+            <p className="text-gray-400 text-sm mb-6">{error.message || "An unexpected error occurred."}</p>
+            <button onClick={() => refetch()} className="inline-flex items-center gap-2 bg-brand-red text-white text-sm font-semibold px-6 py-3 hover:bg-red-700 transition-colors">
+              <ArrowPathIcon className="h-4 w-4" /> Retry
             </button>
           </div>
         ) : filteredEvents.length === 0 ? (
-          <div className="text-center py-16 px-4">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-14 w-14 text-gray-300 mx-auto mb-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
+          <div className="text-center py-20">
+            <CalendarDaysIcon className="h-12 w-12 text-gray-200 mx-auto mb-4" />
             {searchTerm || selectedCategory !== "All" ? (
               <>
-                <p className="text-gray-500 text-lg font-medium">
-                  No events match your filters
-                </p>
-                <p className="text-gray-400 text-sm mt-1 mb-4">
-                  Try adjusting your search or category selection.
-                </p>
-                <button
-                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                  onClick={() => {
-                    setSearchTerm("");
-                    setSelectedCategory("All");
-                  }}
-                >
+                <p className="text-gray-700 font-semibold mb-1">No events match your filters</p>
+                <p className="text-gray-400 text-sm mb-6">Try adjusting your search or ministry selection.</p>
+                <button onClick={() => { setSearchTerm(""); setSelectedCategory("All"); }}
+                  className="bg-brand-red text-white text-sm font-semibold px-6 py-3 hover:bg-red-700 transition-colors">
                   Clear Filters
                 </button>
               </>
             ) : (
               <>
-                <p className="text-gray-500 text-lg font-medium">
-                  No upcoming events
-                </p>
-                <p className="text-gray-400 text-sm mt-1">
-                  Events added via the Admin panel will appear here.
-                </p>
+                <p className="text-gray-700 font-semibold mb-1">No upcoming events</p>
+                <p className="text-gray-400 text-sm">Events added in the admin panel will appear here.</p>
               </>
             )}
           </div>
         ) : viewMode === "grid" ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-gray-100">
             {filteredEvents.map((event) => (
-              <div
-                key={event.id}
-                onClick={() => handleEventClick(event)}
-                className="cursor-pointer"
-              >
+              <div key={event.id} onClick={() => handleEventClick(event)} className="cursor-pointer bg-white">
                 <EventCard event={event} />
               </div>
             ))}
           </div>
         ) : viewMode === "list" ? (
-          <ul className="space-y-4">
-            {filteredEvents.map((event) => (
-              <li
-                key={event.id}
-                className="p-4 bg-white rounded-lg shadow border border-gray-100 hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => handleEventClick(event)}
-              >
-                <div className="flex flex-col md:flex-row md:items-center gap-4">
-                  {/* Date Box */}
-                  <div className="flex flex-col items-center justify-center min-w-20 border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-                    <div className="bg-red-600 text-white text-xs uppercase font-bold py-1 w-full text-center">
-                      {getEventDate(event).toLocaleString("default", {
-                        month: "short",
-                      })}
-                    </div>
-                    <div className="text-gray-800 text-2xl font-bold py-2 w-full text-center">
-                      {getEventDate(event).getDate()}
-                    </div>
+          <div className="divide-y divide-gray-100">
+            {filteredEvents.map((event) => {
+              const d    = getEventDate(event);
+              const time = getEventTime(event);
+              return (
+                <div
+                  key={event.id}
+                  onClick={() => handleEventClick(event)}
+                  className="flex gap-5 py-5 cursor-pointer hover:bg-gray-50 transition-colors group"
+                >
+                  {/* Date box */}
+                  <div className="flex-shrink-0 w-14 text-center">
+                    <div className="bg-brand-red text-white text-[10px] font-bold uppercase tracking-wider py-0.5">{MONTH(d)}</div>
+                    <div className="bg-vbc-dark text-white text-2xl font-black py-1">{d.getDate()}</div>
                   </div>
 
-                  {/* Event Details */}
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-800">
-                          {event?.title || "Unnamed Event"}
-                        </h3>
-                        <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
-                          <span>{event?.time || "TBA"}</span>
-
-                          {event?.location && (
-                            <>
-                              <span className="mx-1">•</span>
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-4 w-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                                />
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                                />
-                              </svg>
-                              <span>{event.location}</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
+                  {/* Details */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-4">
+                      <h3 className="text-base font-bold text-gray-900 group-hover:text-brand-red transition-colors line-clamp-1">
+                        {event?.title}
+                      </h3>
                       {event?.ministry && (
-                        <span className="inline-block px-3 py-1 bg-red-100 text-red-700 text-sm font-medium rounded-full">
+                        <span className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wider text-brand-red border border-brand-red/30 px-2 py-0.5">
                           {event.ministry}
                         </span>
                       )}
                     </div>
-                    <p className="text-gray-600 mt-2 line-clamp-2">
-                      {event?.description || "No description available."}
-                    </p>
+                    <div className="flex items-center gap-4 mt-1.5 text-xs text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <ClockIcon className="h-3.5 w-3.5" />{time}
+                      </span>
+                      {event?.location && (
+                        <span className="flex items-center gap-1 truncate">
+                          <MapPinIcon className="h-3.5 w-3.5 flex-shrink-0" />{event.location}
+                        </span>
+                      )}
+                    </div>
+                    {event?.description && (
+                      <p className="text-sm text-gray-500 mt-2 line-clamp-2 leading-relaxed">{event.description}</p>
+                    )}
                   </div>
                 </div>
-              </li>
-            ))}
-          </ul>
+              );
+            })}
+          </div>
         ) : (
-          <div className="h-96">
+          <div className="border border-gray-100 overflow-hidden" style={{ height: 600 }}>
             <FullCalendar
               plugins={[dayGridPlugin]}
               initialView="dayGridMonth"
               events={calendarEvents}
-              eventClick={(info) => {
-                handleEventClick(info.event.extendedProps);
-              }}
-              headerToolbar={{
-                left: "prev,next today",
-                center: "title",
-                right: "dayGridMonth,dayGridWeek",
-              }}
+              eventClick={(info) => handleEventClick(info.event.extendedProps)}
+              headerToolbar={{ left: "prev,next today", center: "title", right: "dayGridMonth,dayGridWeek" }}
               height="100%"
             />
           </div>
         )}
       </div>
 
-      {/* Event Detail Modal */}
+      {/* ── Event detail modal ────────────────────────────────────── */}
       <Modal
         isOpen={isModalOpen}
         onRequestClose={closeModal}
-        className="w-full max-w-2xl mx-auto my-4 md:my-8 bg-white rounded-lg shadow-xl overflow-hidden outline-none max-h-[90vh] overflow-y-auto"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+        className="w-full max-w-2xl mx-auto my-8 bg-white overflow-hidden outline-none max-h-[90vh] flex flex-col"
+        overlayClassName="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50"
       >
-        {selectedEvent && (
-          <div>
-            {/* Modal Header with Image */}
-            <div className="relative h-32 sm:h-48 md:h-56 bg-gray-200">
-              <img
-                src={getImageUrl(selectedEvent)}
-                alt={selectedEvent?.title || "Event"}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.src = eventPlaceholderImage;
-                  e.target.onerror = null;
-                }}
-              />
-              <button
-                onClick={closeModal}
-                className="absolute top-2 right-2 bg-white p-1.5 sm:p-2 rounded-full shadow-md hover:bg-gray-100"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 sm:h-6 sm:w-6 text-gray-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-              {selectedEvent?.ministry && (
-                <div className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-red-600 text-white py-1 px-2 sm:px-3 rounded-lg font-medium text-xs sm:text-sm">
-                  {selectedEvent.ministry}
-                </div>
-              )}
-            </div>
+        {selectedEvent && (() => {
+          const d    = getEventDate(selectedEvent);
+          const time = getEventTime(selectedEvent);
+          const img  = resolveImageUrl(selectedEvent);
+          const showSignup = shouldShowSignupButton(selectedEvent);
+          return (
+            <div className="flex flex-col max-h-[90vh]">
+              {/* Image header */}
+              <div className="relative h-52 bg-gray-100 flex-shrink-0">
+                <img src={img} alt={selectedEvent.title} className="w-full h-full object-cover"
+                  onError={(e) => { e.target.src = eventPlaceholderImage; e.target.onerror = null; }} />
+                <div className="absolute inset-0 bg-gradient-to-t from-vbc-dark/80 to-transparent" />
 
-            {/* Modal Content */}
-            <div className="p-4 sm:p-6">
-              <div className="flex items-start gap-2 sm:gap-4 mb-4 sm:mb-6">
-                {/* Date Box */}
-                <div className="flex flex-col items-center justify-center min-w-16 sm:min-w-20 border border-gray-200 rounded-lg overflow-hidden shadow-sm flex-shrink-0">
-                  <div className="bg-red-600 text-white text-xs uppercase font-bold py-1 w-full text-center">
-                    {getEventDate(selectedEvent).toLocaleString("default", {
-                      month: "short",
-                    })}
+                {/* Close */}
+                <button onClick={closeModal}
+                  className="absolute top-3 right-3 p-1.5 bg-white/10 hover:bg-white/20 text-white transition-colors">
+                  <XMarkIcon className="h-5 w-5" />
+                </button>
+
+                {/* Date overlay bottom-left */}
+                <div className="absolute bottom-4 left-4 flex items-end gap-3">
+                  <div className="text-center">
+                    <div className="bg-brand-red text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5">{MONTH(d)}</div>
+                    <div className="bg-vbc-dark text-white text-2xl font-black px-3 py-1">{d.getDate()}</div>
                   </div>
-                  <div className="text-gray-800 text-xl sm:text-3xl font-bold py-1 sm:py-2 w-full text-center">
-                    {getEventDate(selectedEvent).getDate()}
+                  <div>
+                    <h2 className="text-white text-xl font-bold leading-tight line-clamp-2">{selectedEvent.title}</h2>
+                    {selectedEvent.ministry && (
+                      <span className="text-brand-red text-xs font-semibold uppercase tracking-wider">{selectedEvent.ministry}</span>
+                    )}
                   </div>
                 </div>
+              </div>
 
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-lg sm:text-2xl font-bold text-gray-800 mb-2 line-clamp-2">
-                    {selectedEvent?.title || "Unnamed Event"}
-                  </h2>
-                  <div className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base text-gray-600">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    <span className="truncate">
-                      {selectedEvent?.time || "TBA"}
-                    </span>
-                  </div>
-                  {selectedEvent?.location && (
-                    <div className="flex items-center mt-1 text-sm sm:text-base text-gray-600">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2 flex-shrink-0"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                      </svg>
-                      <span className="truncate">{selectedEvent.location}</span>
-                    </div>
+              {/* Body */}
+              <div className="flex-1 overflow-y-auto p-6">
+                {/* Meta */}
+                <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-5 pb-5 border-b border-gray-100">
+                  <span className="flex items-center gap-2"><ClockIcon className="h-4 w-4 text-gray-400" />{time}</span>
+                  {selectedEvent.location && (
+                    <span className="flex items-center gap-2"><MapPinIcon className="h-4 w-4 text-gray-400" />{selectedEvent.location}</span>
                   )}
                 </div>
-              </div>
 
-              {/* Description */}
-              <div className="mb-4 sm:mb-6">
-                <h3 className="text-base sm:text-lg font-semibold mb-2">
-                  About This Event
-                </h3>
-                <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
-                  {selectedEvent?.description || "No description available."}
-                </p>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                {/* Only show Sign Up button if signup is enabled and within deadline */}
-                {shouldShowSignupButton(selectedEvent) && (
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setIsModalOpen(false);
-                      // Give time for the modal to close before opening the signup form
-                      setTimeout(() => {
-                        handleOpenSignupForm();
-                      }, 300);
-                    }}
-                    className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-sm sm:text-base text-white rounded-lg transition-colors ${
-                      selectedEvent.signupMode === "required" ||
-                      selectedEvent.signupRequired
-                        ? "bg-red-600 hover:bg-red-700"
-                        : "bg-green-600 hover:bg-green-700"
-                    }`}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-                      />
-                    </svg>
-                    {selectedEvent.signupMode === "required" ||
-                    selectedEvent.signupRequired
-                      ? "Sign Up Required"
-                      : "Sign Up (Optional)"}
-                  </button>
+                {/* Description */}
+                {selectedEvent.description && (
+                  <div className="mb-6">
+                    <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gray-400 mb-2">About This Event</p>
+                    <p className="text-gray-700 text-sm leading-relaxed">{selectedEvent.description}</p>
+                  </div>
                 )}
-                <button
-                  onClick={() => addToCalendar(selectedEvent)}
-                  className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-sm sm:text-base bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+
+                {/* Actions */}
+                <div className="flex flex-wrap gap-3">
+                  {showSignup && (
+                    <button
+                      onClick={(e) => { e.preventDefault(); setIsModalOpen(false); setTimeout(handleOpenSignupForm, 300); }}
+                      className="inline-flex items-center gap-2 bg-brand-red text-white text-sm font-semibold px-5 py-2.5 hover:bg-red-700 transition-colors"
+                    >
+                      <UserPlusIcon className="h-4 w-4" />
+                      {selectedEvent.signupMode === "required" || selectedEvent.signupRequired
+                        ? "Sign Up (Required)"
+                        : "Sign Up (Optional)"}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => addToCalendar(selectedEvent)}
+                    className="inline-flex items-center gap-2 border border-gray-300 text-gray-700 text-sm font-semibold px-5 py-2.5 hover:bg-gray-50 transition-colors"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <span className="truncate">Add to Calendar</span>
-                </button>
-                <button
-                  onClick={closeModal}
-                  className="px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Close
-                </button>
+                    <CalendarIcon className="h-4 w-4" />
+                    Add to Calendar
+                  </button>
+                  <button onClick={closeModal}
+                    className="ml-auto text-sm text-gray-400 hover:text-gray-600 transition-colors px-3 py-2.5">
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </Modal>
 
-      {/* Event Sign-up Form */}
-      {isSignUpFormOpen && selectedEvent && (
+      {/* ── Sign-up form ──────────────────────────────────────────── */}
+      {isSignUpOpen && selectedEvent && (
         <EventSignUpForm
           event={selectedEvent}
-          onClose={handleCloseSignupForm}
+          onClose={() => { setIsSignUpOpen(false); setSelectedEvent(null); }}
           onSubmit={() => {
-            handleCloseSignupForm();
+            setIsSignUpOpen(false);
+            setSelectedEvent(null);
             toast.success("Registration submitted successfully!");
-            // Optionally refetch events if needed
-            // refetchEvents();
           }}
         />
       )}
