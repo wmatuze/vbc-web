@@ -1,304 +1,218 @@
-import React from "react";
-import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { motion } from "framer-motion";
+import HeroSection from "../components/common/HeroSection";
 
-const HERO_BG = "/assets/hero-bg.jpg";
+const missionPillars = [
+  {
+    num: "01",
+    title: "Leadership Development",
+    text: "Equipping and raising up leaders who will impact their spheres of influence with godly character and competence.",
+  },
+  {
+    num: "02",
+    title: "Intercessory Prayer",
+    text: "Establishing a foundation of prayer that supports all aspects of our ministry and impacts our community and nation.",
+  },
+  {
+    num: "03",
+    title: "Social Engagement",
+    text: "Actively participating in community transformation through outreach, service, and addressing social needs.",
+  },
+  {
+    num: "04",
+    title: "Apostolic Government",
+    text: "Establishing biblical principles of leadership and governance in the church and community.",
+  },
+  {
+    num: "05",
+    title: "Fellowship & Discipleship",
+    text: "Building authentic community and intentional discipleship pathways that help believers grow in their faith.",
+  },
+  {
+    num: "06",
+    title: "Economic Empowerment",
+    text: "Equipping our members with biblical financial principles and practical skills for prosperity and kingdom impact.",
+  },
+];
+
+const coreValues = [
+  {
+    num: "01",
+    title: "The Kingdom of God",
+    text: "We prioritize God's kingdom and His righteousness in all we do, seeking to extend His rule and reign in every sphere of life.",
+  },
+  {
+    num: "02",
+    title: "Family",
+    text: "We value strong families as the foundation of church and society, and we are committed to strengthening family relationships.",
+  },
+  {
+    num: "03",
+    title: "Prayer",
+    text: "We believe in the power of prayer and maintain a strong prayer culture that undergirds all our ministries and activities.",
+  },
+  {
+    num: "04",
+    title: "Integrity",
+    text: "We uphold honesty, transparency, and ethical conduct in all our dealings, maintaining consistency between our words and actions.",
+  },
+  {
+    num: "05",
+    title: "Excellence",
+    text: "We pursue excellence in all we do, giving our best as unto the Lord and maintaining high standards in ministry and service.",
+  },
+  {
+    num: "06",
+    title: "Prosperity",
+    text: "We believe in holistic prosperity that encompasses spiritual, physical, and material well-being for the advancement of God's kingdom.",
+  },
+];
 
 const VisionMission = () => {
   return (
-    <div className="bg-white dark:bg-gray-900">
+    <div className="bg-white">
       <Helmet>
         <title>Vision & Mission | Victory Bible Church</title>
         <meta
           name="description"
-          content="Discover the vision and mission of Victory Bible Church - our purpose and calling in the community."
+          content="Discover the vision and mission of Victory Bible Church — our purpose and calling in the community and the world."
         />
       </Helmet>
 
-      {/* Hero Section - Minimalist Black & White Design */}
-      <section className="relative overflow-hidden h-[85vh] bg-black">
-        {/* Breadcrumb navigation */}
-        <div className="absolute top-20 left-0 right-0 z-20 px-4 sm:px-6 lg:px-8 pointer-events-none">
-          <nav aria-label="Breadcrumb" className="pointer-events-auto">
-            <ol className="flex items-center space-x-1.5 text-sm text-white/80">
-              <li>
-                <Link to="/" className="hover:text-white transition-colors">
-                  Home
-                </Link>
-              </li>
-              <li aria-hidden="true">
-                <span className="mx-1">›</span>
-              </li>
-              <li>
-                <Link
-                  to="/about"
-                  className="hover:text-white transition-colors"
-                >
-                  About
-                </Link>
-              </li>
-              <li aria-hidden="true">
-                <span className="mx-1">›</span>
-              </li>
-              <li className="text-white font-medium" aria-current="page">
-                Vision &amp; Mission
-              </li>
-            </ol>
-          </nav>
-        </div>
-        <motion.div
-          className="absolute inset-0 opacity-40"
-          style={{
-            backgroundImage: `url(${HERO_BG})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            filter: "grayscale(100%)",
-          }}
-          initial={{ scale: 1.05 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 20, repeat: Infinity, repeatType: "reverse" }}
-          aria-label="Hero background image"
-        />
+      <HeroSection
+        title="Vision & Mission"
+        subtitle="Our Purpose"
+        description="Our purpose and calling in the community and the world."
+        primaryAccentText="Mission"
+        scrollText="EXPLORE OUR PURPOSE"
+        backgroundImage="/assets/hero-bg.jpg"
+        breadcrumbs={[
+          { label: "Home", path: "/" },
+          { label: "About", path: "/about" },
+          { label: "Vision & Mission" },
+        ]}
+      />
 
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-black/80"></div>
+      {/* ── VISION — dark declaration ───────────────────────────────────── */}
+      <section className="bg-vbc-section py-20 md:py-28 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto">
+          <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-10 md:mb-14">
+            Our Vision
+          </p>
 
-        <div className="container mx-auto px-4 relative z-10 h-full flex flex-col justify-center items-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center max-w-4xl"
-          >
-            <h1 className="text-6xl md:text-8xl font-black text-white mb-8 tracking-tighter leading-none">
-              Vision <span className="font-thin">&</span> Mission
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-200 mx-auto leading-relaxed font-extralight tracking-wide max-w-2xl">
-              Our purpose and calling in the community and the world
+          {/* The declaration — raw, big, left-aligned */}
+          <h2 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white leading-none mb-10 md:mb-14 uppercase">
+            Winning a Generation<br className="hidden md:block" /> for{" "}
+            <span className="text-primary-400">Christ</span>
+          </h2>
+
+          <div className="max-w-2xl border-l-2 border-brand-red pl-6">
+            <p className="text-gray-400 leading-relaxed">
+              Our vision is to reach and transform the current generation with
+              the life-changing message of Jesus Christ, raising up disciples
+              who will impact their communities and the nations. Every programme,
+              every ministry, every gathering exists to serve this single
+              overarching call.
             </p>
-            <motion.div
-              className="h-px w-24 bg-white mx-auto mt-12"
-              initial={{ width: 0 }}
-              animate={{ width: 96 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
-            />
-          </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* Main Content */}
-      <section className="py-20 px-6">
-        <div className="container mx-auto max-w-4xl">
-          {/* Vision Section */}
-          <motion.div
-            className="mb-24"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            viewport={{ once: true }}
-          >
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                Our Vision
-              </h2>
-              <div className="w-16 h-0.5 bg-gray-900 dark:bg-white mx-auto"></div>
-            </div>
+      {/* ── MISSION — light, 2-col split + stacked pillar list ─────────── */}
+      <section className="bg-white py-20 md:py-28 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto">
 
-            <div className="max-w-3xl mx-auto">
-              <p className="text-2xl font-light text-gray-900 dark:text-white leading-relaxed text-center mb-8">
-                "Winning a generation for Christ"
-              </p>
-              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed text-center">
-                Our vision is to reach and transform the current generation with
-                the life-changing message of Jesus Christ, raising up disciples
-                who will impact their communities and the nations.
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Mission Section */}
-          <motion.div
-            className="mb-24"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            viewport={{ once: true }}
-          >
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+          {/* Statement row */}
+          <div className="grid md:grid-cols-5 gap-12 mb-16 md:mb-20 items-start">
+            <div className="md:col-span-2">
+              <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-6">
                 Our Mission
+              </p>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 leading-snug">
+                Building Lives,<br />Impacting Nations,<br />
+                <span className="text-primary-600">Establishing the Kingdom</span>{" "}
+                with Excellence
               </h2>
-              <div className="w-16 h-0.5 bg-gray-900 dark:bg-white mx-auto"></div>
             </div>
+            <div className="md:col-span-3 md:pt-14">
+              <p className="text-gray-500 leading-relaxed">
+                We are committed to developing people spiritually, equipping them
+                to influence their communities and nations, while advancing God's
+                kingdom through a standard of excellence in all we do.
+              </p>
+            </div>
+          </div>
 
-            <div className="max-w-3xl mx-auto mb-16">
-              <p className="text-2xl font-light text-gray-900 dark:text-white leading-relaxed text-center mb-8">
-                "Building lives, impacting nations, establishing the kingdom
-                with excellence"
-              </p>
-              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed text-center">
-                We are committed to developing people spiritually, equipping
-                them to influence their communities and nations, while advancing
-                God's kingdom through a standard of excellence in all we do.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-16">
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    Leadership Development
+          {/* Stacked pillar list */}
+          <div className="border-t border-gray-100">
+            {missionPillars.map((pillar) => (
+              <div
+                key={pillar.num}
+                className="grid md:grid-cols-5 gap-6 md:gap-12 py-7 border-b border-gray-100 group"
+              >
+                {/* Number + title */}
+                <div className="md:col-span-2 flex items-baseline gap-5">
+                  <span className="text-xs font-semibold text-brand-red uppercase tracking-[0.2em] shrink-0 w-6">
+                    {pillar.num}
+                  </span>
+                  <h3 className="text-base font-bold text-gray-900">
+                    {pillar.title}
                   </h3>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    Equipping and raising up leaders who will impact their
-                    spheres of influence with godly character and competence.
-                  </p>
                 </div>
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    Intercessory Prayer
-                  </h3>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    Establishing a foundation of prayer that supports all
-                    aspects of our ministry and impacts our community and
-                    nation.
-                  </p>
-                </div>
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    Social Engagement
-                  </h3>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    Actively participating in community transformation through
-                    outreach, service, and addressing social needs.
-                  </p>
-                </div>
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    Apostolic Government
-                  </h3>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    Establishing biblical principles of leadership and
-                    governance in the church and community.
-                  </p>
-                </div>
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    Fellowship & Discipleship
-                  </h3>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    Building authentic community and intentional discipleship
-                    pathways that help believers grow in their faith.
-                  </p>
-                </div>
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    Economic Empowerment
-                  </h3>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    Equipping our members with biblical financial principles and
-                    practical skills for prosperity and kingdom impact.
-                  </p>
-                </div>
+                {/* Description */}
+                <p className="md:col-span-3 text-gray-500 text-sm leading-relaxed">
+                  {pillar.text}
+                </p>
               </div>
-            </div>
-          </motion.div>
-
-          {/* Core Values Section */}
-          <motion.div
-            className="mb-24"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            viewport={{ once: true }}
-          >
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                Core Values
-              </h2>
-              <div className="w-16 h-0.5 bg-gray-900 dark:bg-white mx-auto"></div>
-            </div>
-
-            <div className="max-w-3xl mx-auto">
-              <p className="text-xl text-gray-700 dark:text-gray-300 leading-relaxed text-center mb-12">
-                These core values guide our decisions, shape our culture, and
-                define who we are as a church.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    01. The Kingdom of God
-                  </h3>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    We prioritize God's kingdom and His righteousness in all we
-                    do, seeking to extend His rule and reign in every sphere of
-                    life.
-                  </p>
-                </div>
-
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    02. Family
-                  </h3>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    We value strong families as the foundation of church and
-                    society, and we are committed to strengthening family
-                    relationships.
-                  </p>
-                </div>
-
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    03. Prayer
-                  </h3>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    We believe in the power of prayer and maintain a strong
-                    prayer culture that undergirds all our ministries and
-                    activities.
-                  </p>
-                </div>
-
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    04. Integrity
-                  </h3>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    We uphold honesty, transparency, and ethical conduct in all
-                    our dealings, maintaining consistency between our words and
-                    actions.
-                  </p>
-                </div>
-
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    05. Excellence
-                  </h3>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    We pursue excellence in all we do, giving our best as unto
-                    the Lord and maintaining high standards in ministry and
-                    service.
-                  </p>
-                </div>
-
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    06. Prosperity
-                  </h3>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    We believe in holistic prosperity that encompasses
-                    spiritual, physical, and material well-being for the
-                    advancement of God's kingdom.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Footer Separator */}
-      <div className="footer-separator">
-        <div className="container mx-auto px-4 py-16">
-          <div className="h-px bg-gray-200 dark:bg-gray-700 max-w-md mx-auto"></div>
+      {/* ── CORE VALUES — dark, stacked manifesto ───────────────────────── */}
+      <section className="bg-vbc-section py-20 md:py-28 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-5 gap-12 mb-16 items-start">
+            <div className="md:col-span-2">
+              <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-6">
+                Core Values
+              </p>
+              <h2 className="text-2xl md:text-3xl font-bold text-white leading-snug">
+                What We Stand For
+              </h2>
+            </div>
+            <div className="md:col-span-3 md:pt-14">
+              <p className="text-gray-400 leading-relaxed">
+                These values guide our decisions, shape our culture, and define
+                who we are as a church — in the sanctuary and in the city.
+              </p>
+            </div>
+          </div>
+
+          {/* Stacked values */}
+          <div className="border-t border-white/10">
+            {coreValues.map((value) => (
+              <div
+                key={value.num}
+                className="grid md:grid-cols-5 gap-6 md:gap-12 py-8 border-b border-white/10 group"
+              >
+                {/* Number + title */}
+                <div className="md:col-span-2 flex items-baseline gap-5">
+                  <span className="text-3xl md:text-4xl font-black text-brand-red leading-none shrink-0 w-12">
+                    {value.num}
+                  </span>
+                  <h3 className="text-base font-bold text-white">
+                    {value.title}
+                  </h3>
+                </div>
+                {/* Description */}
+                <p className="md:col-span-3 text-gray-400 text-sm leading-relaxed">
+                  {value.text}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };
