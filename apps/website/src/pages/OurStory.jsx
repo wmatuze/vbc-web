@@ -22,6 +22,11 @@ const OurStory = () => {
         primaryAccentText="Faith"
         scrollText="EXPLORE OUR JOURNEY"
         backgroundImage="/assets/hero-bg.jpg"
+        breadcrumbs={[
+          { label: "Home", path: "/" },
+          { label: "About", path: "/about" },
+          { label: "Our Story" },
+        ]}
       />
 
       {/* Intro */}

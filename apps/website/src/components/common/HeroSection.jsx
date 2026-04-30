@@ -11,6 +11,7 @@ const HeroSection = ({
   titleClassName = "",
   showScrollIndicator = true,
   showGoldenRibbon = false,
+  breadcrumbs = [],
 }) => {
   const handleScrollDown = () => {
     window.scrollTo({
@@ -21,6 +22,26 @@ const HeroSection = ({
 
   return (
     <section className={`relative min-h-screen overflow-hidden ${className}`}>
+      {/* Breadcrumb */}
+      {breadcrumbs.length > 0 && (
+        <nav aria-label="Breadcrumb" className="absolute top-20 left-0 right-0 z-20 px-4 sm:px-6 lg:px-8">
+          <ol className="flex items-center gap-1.5 text-sm text-white/50">
+            {breadcrumbs.map((crumb, i) => (
+              <li key={i} className="flex items-center gap-1.5">
+                {i > 0 && <span aria-hidden="true">›</span>}
+                {crumb.path ? (
+                  <a href={crumb.path} className="hover:text-white transition-colors">
+                    {crumb.label}
+                  </a>
+                ) : (
+                  <span className="text-white/90" aria-current="page">{crumb.label}</span>
+                )}
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )}
+
       {/* Background with dark gradient overlay */}
       <div className="absolute inset-0">
         <div
