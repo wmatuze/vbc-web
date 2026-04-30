@@ -796,9 +796,9 @@ const RequestsManager = () => {
     !eventSignups.length
   ) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <ArrowPathIcon className="h-8 w-8 text-gray-500 animate-spin" />
-        <p className="ml-2 text-gray-500">Loading requests...</p>
+      <div className="flex justify-center items-center h-64 gap-3">
+        <ArrowPathIcon className="h-6 w-6 text-gray-400 dark:text-gray-500 animate-spin" />
+        <p className="text-sm text-gray-500 dark:text-gray-400">Loading requests…</p>
       </div>
     );
   }
@@ -811,15 +811,17 @@ const RequestsManager = () => {
     !eventSignups.length
   ) {
     return (
-      <div className="text-center p-8 bg-red-50 border border-red-200 rounded-md">
-        <ExclamationCircleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-red-700 mb-2">
+      <div className="text-center p-10 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+        <ExclamationCircleIcon className="h-10 w-10 text-red-500 mx-auto mb-3" />
+        <h3 className="text-base font-semibold text-red-700 dark:text-red-400 mb-2">
           Error Loading Data
         </h3>
-        <p className="text-red-600 mb-4">{error?.message || error?.toString() || 'An error occurred'}</p>
+        <p className="text-sm text-red-600 dark:text-red-400 mb-5">
+          {error?.message || error?.toString() || "An error occurred"}
+        </p>
         <button
           onClick={refreshData}
-          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md transition-colors"
         >
           Try Again
         </button>
@@ -827,40 +829,53 @@ const RequestsManager = () => {
     );
   }
 
+  const tabCounts = {
+    membership:   filteredRenewals.length,
+    foundation:   filteredEnrollments.length,
+    discipleship: filteredDiscipleshipRegistrations.length,
+    events:       filteredEventSignups.length,
+  };
+
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Manage Requests</h1>
+    <div className="space-y-5">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Manage Requests
+        </h1>
         <button
           onClick={refreshData}
           disabled={loading}
-          className={`p-2 rounded-full hover:bg-gray-200 transition-colors ${
-            loading ? "cursor-not-allowed opacity-50" : ""
-          }`}
-          title="Refresh Data"
+          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+          title="Refresh"
         >
           <ArrowPathIcon
-            className={`h-6 w-6 text-gray-600 ${loading ? "animate-spin" : ""}`}
+            className={`h-5 w-5 text-gray-500 dark:text-gray-400 ${loading ? "animate-spin" : ""}`}
           />
         </button>
       </div>
 
-      <RequestsTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm overflow-hidden">
+        <RequestsTabs
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          counts={tabCounts}
+        />
 
-      <SearchFilters
-        searchTerm={searchTerm}
-        onSearchTermChange={setSearchTerm}
-        filterStatus={filterStatus}
-        onFilterStatusChange={setFilterStatus}
-        activeTab={activeTab}
-        onDownloadMembers={downloadMembersList}
-        onDownloadGraduates={downloadFoundationGraduatesList}
-        eventTypeFilter={eventTypeFilter}
-        onEventTypeFilterChange={setEventTypeFilter}
-        onFetchEventSignups={fetchEventSignups}
-      />
+        <SearchFilters
+          searchTerm={searchTerm}
+          onSearchTermChange={setSearchTerm}
+          filterStatus={filterStatus}
+          onFilterStatusChange={setFilterStatus}
+          activeTab={activeTab}
+          onDownloadMembers={downloadMembersList}
+          onDownloadGraduates={downloadFoundationGraduatesList}
+          eventTypeFilter={eventTypeFilter}
+          onEventTypeFilterChange={setEventTypeFilter}
+          onFetchEventSignups={fetchEventSignups}
+          actionLoading={actionLoading}
+        />
 
-      <div className="mt-6 bg-white shadow-lg rounded-lg p-6">
+        <div className="p-6">
         {activeTab === "membership" && (
           <MembershipTab
             sortedRenewals={filteredRenewals}
@@ -903,6 +918,7 @@ const RequestsManager = () => {
             actionLoading={actionLoading}
           />
         )}
+        </div>
       </div>
 
       {/* Modals */}
