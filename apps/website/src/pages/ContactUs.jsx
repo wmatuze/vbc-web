@@ -1,549 +1,313 @@
-import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { motion, AnimatePresence } from "framer-motion";
-import HeroSection from "../components/common/HeroSection";
 import {
-  ChevronDown,
-  MapPin,
-  Phone,
-  Mail,
-  Clock,
-  Facebook,
-  Instagram,
-  Youtube,
-  MessageCircle,
-  Navigation,
-  HelpCircle,
-  Sparkles,
-  Calendar,
-} from "lucide-react";
+  MapPinIcon,
+  PhoneIcon,
+  EnvelopeIcon,
+  ClockIcon,
+  ArrowRightIcon,
+  CheckCircleIcon,
+  ArrowPathIcon,
+} from "@heroicons/react/24/outline";
+import HeroSection from "../components/common/HeroSection";
+import { getApiUrl } from "../services/api/core";
+
+// ── Info panels ───────────────────────────────────────────────────────────────
+const INFO = [
+  {
+    num: "01",
+    Icon: MapPinIcon,
+    label: "Address",
+    value: "Off Chiwala Road CBU East Gate",
+    sub: "Kitwe, Zambia",
+  },
+  {
+    num: "02",
+    Icon: PhoneIcon,
+    label: "Phone",
+    value: "+260 97 000 0000",
+    sub: "Mon – Fri, 8 AM – 5 PM",
+  },
+  {
+    num: "03",
+    Icon: EnvelopeIcon,
+    label: "Email",
+    value: "info@victorybiblechurch.org",
+    sub: "We reply within 24 hours",
+  },
+  {
+    num: "04",
+    Icon: ClockIcon,
+    label: "Office Hours",
+    value: "Mon – Fri",
+    sub: "8:00 AM – 5:00 PM",
+  },
+];
+
+// ── Services ─────────────────────────────────────────────────────────────────
+const SERVICES = [
+  { day: "Sunday",    time: "9:30 AM",   note: "Main Worship Service" },
+  { day: "Wednesday", time: "6:00 PM",   note: "Midweek Service" },
+  { day: "1st Sunday", time: "9:30 AM",  note: "Anointing Service" },
+  { day: "3rd Sunday", time: "9:30 AM",  note: "Holy Communion" },
+  { day: "Last Week",  time: "Various",  note: "Prayer & Fasting" },
+];
+
+// ── Social ────────────────────────────────────────────────────────────────────
+const SOCIAL = [
+  { platform: "Facebook",  handle: "@VictoryBibleChurchKitwe", href: "https://facebook.com/VictoryBibleChurchKitwe", color: "text-blue-400" },
+  { platform: "Instagram", handle: "@victorybiblechurch",       href: "https://instagram.com/victorybiblechurch",    color: "text-pink-400" },
+  { platform: "YouTube",   handle: "@BishopSimwanza",           href: "https://youtube.com/@BishopSimwanza",         color: "text-red-400"  },
+  { platform: "WhatsApp",  handle: "Chat with us",              href: "#",                                           color: "text-green-400"},
+];
+
+// ── Flat input helper ─────────────────────────────────────────────────────────
+const inputCls = (err) =>
+  `w-full bg-transparent border-b-2 px-0 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-colors ${
+    err ? "border-red-400 focus:border-red-500" : "border-gray-200 focus:border-brand-red"
+  }`;
+
+const LabelRow = ({ label, required }) => (
+  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gray-400 mb-2">
+    {label}{required && <span className="text-brand-red ml-0.5">*</span>}
+  </p>
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 const ContactUs = () => {
-  const location = useLocation();
-  const [activeSection, setActiveSection] = useState("contact-info");
+  const [form,     setForm]     = useState({ name: "", email: "", subject: "", message: "" });
+  const [errors,   setErrors]   = useState({});
+  const [sending,  setSending]  = useState(false);
+  const [sent,     setSent]     = useState(false);
+  const [sendErr,  setSendErr]  = useState("");
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: null }));
+  };
+
+  const validate = () => {
+    const e = {};
+    if (!form.name.trim())    e.name    = "Name is required";
+    if (!form.email.trim())   e.email   = "Email is required";
+    else if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = "Enter a valid email";
+    if (!form.subject.trim()) e.subject = "Subject is required";
+    if (!form.message.trim()) e.message = "Message is required";
+    return e;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const errs = validate();
+    if (Object.keys(errs).length) { setErrors(errs); return; }
+
+    setSending(true);
+    setSendErr("");
+
+    try {
+      const res = await fetch(`${getApiUrl()}/api/support`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, priority: "medium" }),
+      });
+      if (!res.ok) throw new Error("Server error");
+      setSent(true);
+    } catch {
+      setSendErr("Message could not be sent. Please try emailing us directly.");
+    } finally {
+      setSending(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100 overflow-hidden">
-      {/* SEO Meta Tags */}
+    <div className="bg-white">
       <Helmet>
-        <title>Contact Us - Victory Bible Church Kitwe</title>
-        <meta
-          name="description"
-          content="Contact Victory Bible Church Kitwe for inquiries, prayer requests, and visit information. Find our address, phone, email, service times, and social media links."
-        />
+        <title>Contact — Victory Bible Church Kitwe</title>
+        <meta name="description" content="Get in touch with Victory Bible Church Kitwe. Find our address, service times, and send us a message." />
       </Helmet>
 
-      {/* Consistent Hero Section */}
+      {/* ── Hero ──────────────────────────────────────────────────── */}
       <HeroSection
-        title="Get In Touch"
-        subtitle="Contact Us"
-        description="We'd love to hear from you! Reach out for inquiries, prayer requests, or visit information."
-        primaryAccentText="Touch"
-        scrollText="CONTACT INFO BELOW"
+        subtitle="Contact"
+        title="Let's Talk"
+        description="We'd love to hear from you — questions, prayer requests, or just saying hello. We're here."
         backgroundImage="/assets/hero-bg.jpg"
+        breadcrumbs={[{ label: "Home", path: "/" }, { label: "Contact" }]}
       />
 
-      {/* Sticky Navigation Tabs */}
-      <div className="sticky top-0 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-md px-4 py-3 -mt-2 rounded-b-xl">
-        <div className="container mx-auto flex justify-center gap-4 overflow-x-auto no-scrollbar">
-          {[
-            { id: "contact-info", label: "Contact Info", icon: <Mail /> },
-            { id: "service-times", label: "Service Times", icon: <Clock /> },
-            { id: "social-media", label: "Social Media", icon: <Facebook /> },
-          ].map((item) => (
-            <button
-              key={item.id}
-              onClick={() => {
-                document
-                  .getElementById(item.id)
-                  .scrollIntoView({ behavior: "smooth" });
-                setActiveSection(item.id);
-              }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 whitespace-nowrap ${
-                activeSection === item.id
-                  ? "bg-blue-600 text-white"
-                  : "hover:bg-gray-100 dark:hover:bg-gray-700"
-              }`}
-            >
-              {item.icon}
-              <span>{item.label}</span>
-            </button>
+      {/* ── Info strip ────────────────────────────────────────────── */}
+      <div className="bg-vbc-dark">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-white/5">
+          {INFO.map(({ num, Icon, label, value, sub }) => (
+            <div key={num} className="bg-vbc-dark px-8 py-10 relative overflow-hidden group">
+              {/* Ghost number */}
+              <p
+                className="absolute -top-4 -right-2 font-black text-white select-none leading-none pointer-events-none"
+                style={{ fontSize: "clamp(5rem, 8vw, 7rem)", opacity: 0.04 }}
+              >
+                {num}
+              </p>
+              <div className="w-8 h-0.5 bg-brand-red mb-5 group-hover:w-12 transition-all duration-300" />
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-red mb-3">{label}</p>
+              <Icon className="h-5 w-5 text-white/30 mb-3" />
+              <p className="text-white font-semibold text-sm leading-snug">{value}</p>
+              <p className="text-white/40 text-xs mt-1">{sub}</p>
+            </div>
           ))}
         </div>
       </div>
 
-      {/* Contact Information Section */}
-      <section id="contact-info" className="py-20 px-6 mt-4">
-        <motion.div
-          className="container mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          viewport={{ once: true }}
-        >
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-white">
-            <h2 className="text-3xl font-bold">Contact Information</h2>
-            <p className="mt-2 opacity-80">Reach out to us anytime</p>
-          </div>
+      {/* ── Form + Map ────────────────────────────────────────────── */}
+      <section className="bg-white py-24">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-0">
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-            <div className="p-8 md:p-12 bg-blue-50 dark:bg-gray-700">
-              <div className="space-y-8">
-                <motion.div
-                  className="flex items-start gap-4"
-                  whileHover={{ x: 5 }}
-                >
-                  <div className="bg-blue-600 rounded-full p-3 text-white mt-1">
-                    <MapPin />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">Our Location</h3>
-                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                      Victory Bible Church, [Street Name], Kitwe, Zambia
-                    </p>
-                    <a
-                      href="#"
-                      className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 mt-2 hover:underline"
-                    >
-                      <FaDirections /> Get directions
-                    </a>
-                  </div>
-                </motion.div>
+          {/* Form */}
+          <div className="pr-0 lg:pr-16 pb-16 lg:pb-0">
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-3">Send a message</p>
+            <h2 className="text-4xl font-black text-gray-900 mb-10 leading-tight">
+              We read every<br />message.
+            </h2>
 
-                <motion.div
-                  className="flex items-start gap-4"
-                  whileHover={{ x: 5 }}
-                >
-                  <div className="bg-blue-600 rounded-full p-3 text-white mt-1">
-                    <Phone />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">Phone Number</h3>
-                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                      [+260 Phone Number]
-                    </p>
-                  </div>
-                </motion.div>
-              </div>
-            </div>
-
-            <div className="p-8 md:p-12">
-              <div className="space-y-8">
-                <motion.div
-                  className="flex items-start gap-4"
-                  whileHover={{ x: 5 }}
-                >
-                  <div className="bg-indigo-600 rounded-full p-3 text-white mt-1">
-                    <Mail />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">
-                      Email Address
-                    </h3>
-                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                      info@victorybiblekitwe.org
-                    </p>
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  className="flex items-start gap-4"
-                  whileHover={{ x: 5 }}
-                >
-                  <div className="bg-indigo-600 rounded-full p-3 text-white mt-1">
-                    <Clock />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">Office Hours</h3>
-                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                      Mon-Fri: 8:00 AM – 5:00 PM
-                    </p>
-                  </div>
-                </motion.div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      </section>
-
-      {/* Contact Form Section */}
-      <section className="py-16 px-6">
-        <motion.div
-          className="container mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 md:p-12"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          viewport={{ once: true }}
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <div>
-              <h2 className="text-3xl font-bold mb-6">Send Us a Message</h2>
-              <p className="text-gray-600 dark:text-gray-300 mb-8">
-                We'd love to hear from you. Fill out the form and we'll get back
-                to you as soon as possible.
-              </p>
-
-              <motion.form
-                className="space-y-6"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-              >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label
-                      htmlFor="name"
-                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                    >
-                      Name
-                    </label>
-                    <input
-                      type="text"
-                      id="name"
-                      className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Your name"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="email"
-                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                    >
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="your@email.com"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="subject"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                  >
-                    Subject
-                  </label>
-                  <input
-                    type="text"
-                    id="subject"
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    placeholder="Message subject"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="message"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                  >
-                    Message
-                  </label>
-                  <textarea
-                    id="message"
-                    rows="5"
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    placeholder="Your message..."
-                  ></textarea>
-                </div>
-
+            {sent ? (
+              <div className="flex flex-col items-start gap-4 py-12">
+                <CheckCircleIcon className="h-10 w-10 text-brand-red" />
+                <h3 className="text-2xl font-black text-gray-900">Message sent.</h3>
+                <p className="text-gray-500 text-sm leading-relaxed max-w-sm">
+                  We've received your message and will get back to you within 24 hours.
+                </p>
                 <button
-                  type="submit"
-                  className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-semibold px-6 py-3 rounded-lg hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300"
+                  onClick={() => { setSent(false); setForm({ name: "", email: "", subject: "", message: "" }); }}
+                  className="text-xs font-semibold uppercase tracking-wider text-brand-red hover:text-red-700 transition-colors mt-2"
                 >
-                  Send Message
+                  Send another →
                 </button>
-              </motion.form>
-            </div>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-8" noValidate>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-8">
+                  <div>
+                    <LabelRow label="Your Name" required />
+                    <input type="text" name="name" value={form.name} onChange={handleChange}
+                      placeholder="John Banda" className={inputCls(errors.name)} />
+                    {errors.name && <p className="mt-1.5 text-xs text-red-500">{errors.name}</p>}
+                  </div>
+                  <div>
+                    <LabelRow label="Email Address" required />
+                    <input type="email" name="email" value={form.email} onChange={handleChange}
+                      placeholder="john@example.com" className={inputCls(errors.email)} />
+                    {errors.email && <p className="mt-1.5 text-xs text-red-500">{errors.email}</p>}
+                  </div>
+                </div>
 
-            <div className="hidden md:block relative rounded-xl overflow-hidden h-[500px]">
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3890.559565493077!2d28.22997607453223!3d-12.807075856521612!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x196ce7fb9948f75b%3A0xe20f6f1190003491!2sVictory%20Christian%20Center%20(Victory%20Bible%20Church)!5e0!3m2!1sen!2szm!4v1743212386447!5m2!1sen!2szm"
-                className="absolute inset-0 w-full h-full border-0"
-                allowFullScreen=""
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              ></iframe>
-            </div>
+                <div>
+                  <LabelRow label="Subject" required />
+                  <input type="text" name="subject" value={form.subject} onChange={handleChange}
+                    placeholder="What's on your mind?" className={inputCls(errors.subject)} />
+                  {errors.subject && <p className="mt-1.5 text-xs text-red-500">{errors.subject}</p>}
+                </div>
+
+                <div>
+                  <LabelRow label="Message" required />
+                  <textarea name="message" value={form.message} onChange={handleChange}
+                    rows={5} placeholder="Tell us more…"
+                    className={`${inputCls(errors.message)} resize-none`} />
+                  {errors.message && <p className="mt-1.5 text-xs text-red-500">{errors.message}</p>}
+                </div>
+
+                {sendErr && (
+                  <p className="text-sm text-red-500 border-l-2 border-red-400 pl-3">{sendErr}</p>
+                )}
+
+                <button type="submit" disabled={sending}
+                  className="inline-flex items-center gap-2 bg-brand-red text-white text-sm font-semibold px-8 py-4 hover:bg-red-700 disabled:opacity-50 transition-colors">
+                  {sending ? <><ArrowPathIcon className="h-4 w-4 animate-spin" /> Sending…</> : <>Send Message <ArrowRightIcon className="h-4 w-4" /></>}
+                </button>
+              </form>
+            )}
           </div>
-        </motion.div>
+
+          {/* Map */}
+          <div className="h-[500px] lg:h-auto min-h-[400px] bg-gray-100">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3890.559565493077!2d28.22997607453223!3d-12.807075856521612!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x196ce7fb9948f75b%3A0xe20f6f1190003491!2sVictory%20Christian%20Center%20(Victory%20Bible%20Church)!5e0!3m2!1sen!2szm!4v1743212386447!5m2!1sen!2szm"
+              className="w-full h-full border-0"
+              allowFullScreen=""
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Victory Bible Church Kitwe location"
+            />
+          </div>
+        </div>
       </section>
 
-      {/* Service Times Section */}
-      <section
-        id="service-times"
-        className="py-16 px-6 bg-gray-100 dark:bg-gray-900 rounded-t-3xl -mt-6"
-      >
-        <motion.div
-          className="container mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          viewport={{ once: true }}
-        >
-          <div className="bg-gradient-to-r from-purple-600 to-indigo-700 p-8 text-white">
-            <h2 className="text-3xl font-bold">Service Times</h2>
-            <p className="mt-2 opacity-80">
-              Join us for worship and fellowship
+      {/* ── Service times ─────────────────────────────────────────── */}
+      <section className="bg-vbc-section py-24">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+
+          {/* Editorial statement */}
+          <div className="lg:sticky lg:top-24">
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-4">When we meet</p>
+            <h2
+              className="font-black text-white leading-[0.9] mb-6"
+              style={{ fontSize: "clamp(3.5rem, 8vw, 6rem)" }}
+            >
+              WE<br />GATHER.
+            </h2>
+            <p className="text-white/40 text-sm leading-relaxed max-w-xs mb-10">
+              Every week, without fail. Come as you are — you are welcome at our table.
             </p>
+            <Link to="/events"
+              className="inline-flex items-center gap-2 border border-white/20 text-white text-xs font-semibold uppercase tracking-wider px-6 py-3 hover:bg-white/5 transition-colors">
+              View Events Calendar <ArrowRightIcon className="h-3.5 w-3.5" />
+            </Link>
           </div>
 
-          <div className="p-8 md:p-12">
-            <h3 className="text-2xl font-bold mb-6 text-center">
-              Weekly Services
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-              <motion.div
-                className="bg-purple-50 dark:bg-gray-700 p-6 rounded-xl text-center"
-                whileHover={{
-                  y: -5,
-                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
-                }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <div className="bg-purple-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-white">
-                  <FaPrayingHands className="text-2xl" />
+          {/* Services list */}
+          <div className="divide-y divide-white/10">
+            {SERVICES.map(({ day, time, note }) => (
+              <div key={day} className="flex items-center justify-between gap-6 py-6 group">
+                <div className="flex items-center gap-4">
+                  <div className="w-0.5 h-10 bg-brand-red flex-shrink-0" />
+                  <div>
+                    <p className="text-white font-bold text-base leading-tight">{day}</p>
+                    <p className="text-white/40 text-xs mt-0.5">{note}</p>
+                  </div>
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Sunday Worship</h3>
-                <p className="text-gray-700 dark:text-gray-300 text-lg">
-                  9:30 AM
-                </p>
-              </motion.div>
-
-              <motion.div
-                className="bg-indigo-50 dark:bg-gray-700 p-6 rounded-xl text-center"
-                whileHover={{
-                  y: -5,
-                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
-                }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <div className="bg-indigo-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-white">
-                  <FaQuestionCircle className="text-2xl" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Midweek Service</h3>
-                <p className="text-gray-700 dark:text-gray-300 text-lg">
-                  Wednesday, 6:00 PM
-                </p>
-              </motion.div>
-            </div>
-
-            <h3 className="text-2xl font-bold mb-6 text-center">
-              Monthly Programs
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <motion.div
-                className="bg-yellow-50 dark:bg-gray-700 p-6 rounded-xl text-center"
-                whileHover={{
-                  y: -5,
-                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
-                }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <div className="bg-yellow-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-white">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold mb-2">
-                  Anointing Service
-                </h3>
-                <p className="text-gray-700 dark:text-gray-300 text-lg">
-                  First Sunday of each month
-                </p>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
-                  9:30 AM
-                </p>
-              </motion.div>
-
-              <motion.div
-                className="bg-red-50 dark:bg-gray-700 p-6 rounded-xl text-center"
-                whileHover={{
-                  y: -5,
-                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
-                }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <div className="bg-red-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-white">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Holy Communion</h3>
-                <p className="text-gray-700 dark:text-gray-300 text-lg">
-                  Third Sunday of each month
-                </p>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
-                  9:30 AM
-                </p>
-              </motion.div>
-
-              <motion.div
-                className="bg-blue-50 dark:bg-gray-700 p-6 rounded-xl text-center"
-                whileHover={{
-                  y: -5,
-                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
-                }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <div className="bg-blue-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-white">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Prayer & Fasting</h3>
-                <p className="text-gray-700 dark:text-gray-300 text-lg">
-                  Last week of each month
-                </p>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
-                  Various times
-                </p>
-              </motion.div>
-            </div>
-
-            <div className="text-center mt-10">
-              <Link
-                to="/events"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-700 text-white font-medium px-6 py-3 rounded-lg hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300"
-              >
-                <FaCalendarAlt /> View Full Church Calendar
-              </Link>
-            </div>
+                <p className="text-white/70 text-xl font-black tracking-tight flex-shrink-0">{time}</p>
+              </div>
+            ))}
           </div>
-        </motion.div>
+
+        </div>
       </section>
 
-      {/* Social Media Links Section */}
-      <section
-        id="social-media"
-        className="py-16 px-6 bg-white dark:bg-gray-800"
-      >
-        <motion.div
-          className="container mx-auto bg-gradient-to-br from-blue-600 to-indigo-800 rounded-2xl shadow-xl p-8 md:p-12 text-white"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          viewport={{ once: true }}
-        >
-          <h2 className="text-3xl font-bold mb-8 text-center">
-            Connect With Us
-          </h2>
-          <p className="text-center text-white/80 max-w-2xl mx-auto mb-10">
-            Follow us on social media to stay updated with our latest events,
-            sermons, and community activities.
-          </p>
+      {/* ── Social ────────────────────────────────────────────────── */}
+      <section className="bg-vbc-dark py-24">
+        <div className="max-w-7xl mx-auto px-6">
+          <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-3">Find us online</p>
+          <h2 className="text-4xl font-black text-white mb-14">Stay connected.</h2>
 
-          <div className="flex flex-wrap justify-center gap-8 md:gap-16">
-            <motion.div
-              whileHover={{ y: -10, scale: 1.1 }}
-              className="text-center"
-            >
-              <Link
-                to="https://www.facebook.com/VictoryBibleChurchKitwe/"
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-white/5">
+            {SOCIAL.map(({ platform, handle, href, color }) => (
+              <a
+                key={platform}
+                href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Facebook"
-                className="block"
+                className="bg-vbc-dark flex items-center justify-between gap-6 px-8 py-7 group hover:bg-white/5 transition-colors"
               >
-                <div className="bg-white/20 hover:bg-white/30 p-6 rounded-full backdrop-blur-sm mb-3 mx-auto">
-                  <FaFacebook className="text-white text-3xl" />
+                <div className="flex items-center gap-5">
+                  <p className={`text-xs font-bold uppercase tracking-[0.2em] ${color}`}>{platform}</p>
+                  <p className="text-white/40 text-sm">{handle}</p>
                 </div>
-                <span className="block">Facebook</span>
-              </Link>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ y: -10, scale: 1.1 }}
-              className="text-center"
-            >
-              <Link
-                to="#"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Instagram"
-                className="block"
-              >
-                <div className="bg-white/20 hover:bg-white/30 p-6 rounded-full backdrop-blur-sm mb-3 mx-auto">
-                  <FaInstagram className="text-white text-3xl" />
-                </div>
-                <span className="block">Instagram</span>
-              </Link>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ y: -10, scale: 1.1 }}
-              className="text-center"
-            >
-              <Link
-                to="#"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="YouTube"
-                className="block"
-              >
-                <div className="bg-white/20 hover:bg-white/30 p-6 rounded-full backdrop-blur-sm mb-3 mx-auto">
-                  <FaYoutube className="text-white text-3xl" />
-                </div>
-                <span className="block">YouTube</span>
-              </Link>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ y: -10, scale: 1.1 }}
-              className="text-center"
-            >
-              <Link
-                to="#"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="WhatsApp"
-                className="block"
-              >
-                <div className="bg-white/20 hover:bg-white/30 p-6 rounded-full backdrop-blur-sm mb-3 mx-auto">
-                  <FaWhatsapp className="text-white text-3xl" />
-                </div>
-                <span className="block">WhatsApp</span>
-              </Link>
-            </motion.div>
+                <ArrowRightIcon className="h-4 w-4 text-white/20 group-hover:text-brand-red group-hover:translate-x-1 transition-all duration-200 flex-shrink-0" />
+              </a>
+            ))}
           </div>
-        </motion.div>
+        </div>
       </section>
     </div>
   );
