@@ -14,8 +14,7 @@ import {
 import { useEventsQuery } from "../../hooks/useEventsQuery";
 import EventCard from "../../components/ChurchCalendar/EventsCard";
 
-import litNationLogo from "../../assets/images/litnationlogo.png";
-import cbuLogo       from "../../assets/images/cbu-logo.png";
+import cbuLogo from "../../assets/images/cbu-logo.png";
 import youthGallery1 from "../../assets/images/youth/gallery1.jpg";
 import youthGallery2 from "../../assets/images/youth/gallery2.jpg";
 import youthGallery3 from "../../assets/images/youth/gallery3.jpg";
@@ -38,9 +37,9 @@ const VALUES = [
 ];
 
 const SCHEDULE = [
-  { name: "Friday Night Live",   time: "6:30 PM",    day: "Every Friday",    venue: "Main Sanctuary",     note: "Worship · Teaching · Games · Community" },
-  { name: "Sunday Youth Class",  time: "9:30 AM",    day: "Every Sunday",    venue: "Youth Room",         note: "Biblical grounding for the week ahead" },
-  { name: "Discipleship Groups", time: "4:00 PM",    day: "Wednesdays",      venue: "Various Locations",  note: "Small-group faith conversations" },
+  { name: "Lit Nation",     time: "13:00 – 15:00", day: "Every Sunday",   venue: "Main Sanctuary",     note: "After main church service" },
+  { name: "CBU Fellowship", time: "18:00 – 20:00", day: "Every Tuesday",  venue: "Victory Bible Church", note: "Bible study · Worship · Community" },
+  { name: "CBU Prayer Marathon", time: "21:00 – 04:00", day: "Last Friday of the month", venue: "Victory Bible Church", note: "All-night prayer & intercession" },
 ];
 
 const TESTIMONIALS = [
@@ -67,9 +66,9 @@ const ANNUAL_CALENDAR = [
 ];
 
 const LEADERS = [
-  { name: "Youth Leader",       title: "Youth Pastor",              bio: "Passionate about helping young people discover their purpose and grow in faith." },
-  { name: "Assistant Leader",   title: "Assistant Youth Leader",    bio: "Creative and energetic leader dedicated to building authentic community." },
-  { name: "CBU Coordinator",    title: "CBU Fellowship Coordinator",bio: "Connects church and campus life for university students with understanding and vision." },
+  { name: "Deacon Philip Sinyangwe", title: "Leader — Youth Ministry",      bio: "Passionate about raising a generation of young people who are grounded in faith and walking boldly in their God-given purpose." },
+  { name: "Landilani Mwanza",        title: "Youth Director",               bio: "Dedicated to building an environment where youth encounter God, form lasting friendships, and discover who they are in Christ." },
+  { name: "Abigail Kanchebele",      title: "CBU Fellowship Chairwoman",    bio: "Connects church and campus life for Copperbelt University students, fostering spiritual growth alongside academic excellence." },
 ];
 
 const CBU_TESTIMONIALS = [
@@ -118,11 +117,6 @@ const YouthMinistry = () => {
         <div className="absolute inset-0 bg-vbc-dark/80" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-32 text-center">
-          {/* Logo */}
-          <div className="mb-8">
-            <img src={litNationLogo} alt="Lit Nation" className="h-24 w-auto mx-auto" onError={(e) => { e.target.style.display = "none"; }} />
-          </div>
-
           {/* Eyebrow */}
           <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.3em] mb-4">
             Victory Bible Church · Youth Ministry
@@ -155,7 +149,7 @@ const YouthMinistry = () => {
 
           {/* Quick facts strip */}
           <div className="mt-16 grid grid-cols-3 gap-px bg-white/10 max-w-xl mx-auto">
-            {[["Friday", "Night Live"], ["6:30", "PM"], ["Ages", "13 – 25"]].map(([top, bot]) => (
+            {[["Sunday", "13:00 – 15:00"], ["Tuesday", "CBU Fellowship"], ["Ages", "13 – 25"]].map(([top, bot]) => (
               <div key={top} className="bg-vbc-dark/60 py-5 px-4 text-center">
                 <p className="text-white font-black text-xl">{top}</p>
                 <p className="text-white/40 text-xs uppercase tracking-wider">{bot}</p>
@@ -332,9 +326,9 @@ const YouthMinistry = () => {
             <section id="join-us" className="bg-vbc-dark py-28">
               <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-3 gap-px bg-white/5">
                 {[
-                  { Icon: CalendarDaysIcon, label: "When", value: "Every Friday",  sub: "6:30 PM" },
-                  { Icon: MapPinIcon,        label: "Where", value: "Main Sanctuary", sub: "Victory Bible Church" },
-                  { Icon: UsersIcon,         label: "Who",   value: "Ages 13 – 25", sub: "All are welcome" },
+                  { Icon: CalendarDaysIcon, label: "When",  value: "Every Sunday",    sub: "13:00 – 15:00, after service" },
+                  { Icon: MapPinIcon,        label: "Where", value: "Main Sanctuary",  sub: "Victory Bible Church" },
+                  { Icon: UsersIcon,         label: "Who",   value: "Ages 13 – 25",   sub: "All are welcome" },
                 ].map(({ Icon, label, value, sub }) => (
                   <div key={label} className="bg-vbc-dark px-10 py-12 text-center">
                     <Icon className="h-6 w-6 text-brand-red mx-auto mb-4" />
@@ -369,16 +363,12 @@ const YouthMinistry = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
               <div className="lg:col-span-2 space-y-6 text-gray-600 text-base leading-relaxed">
-                <p>We're proud to host a thriving fellowship specifically for Copperbelt University students. Located just minutes from campus, our church serves as a spiritual home for many CBU students.</p>
-                <p>Our CBU Fellowship connects students with peers who share their faith, provides mentorship with professionals in various fields, and offers a supportive environment to thrive academically and spiritually.</p>
-                <div className="border-l-4 border-brand-red bg-gray-50 p-6">
-                  <p className="font-semibold text-gray-900 mb-1">Free Transportation Available</p>
-                  <p className="text-sm text-gray-500">Shuttle from CBU main entrance every Sunday at 8:30 AM, returning after service.</p>
-                </div>
+                <p>We host a thriving fellowship specifically for Copperbelt University students. Victory Bible Church is just minutes from campus — making it easy to stay connected while you study and grow.</p>
+                <p>CBU Fellowship connects students with peers who share their faith, provides mentorship from professionals in various fields, and offers a supportive environment to thrive academically and spiritually.</p>
                 <div className="pt-4 divide-y divide-gray-100">
                   {[
-                    ["Midweek Bible Study", "Wednesdays · 5 PM · Student Center"],
-                    ["Semester Kickoff",    "First Friday of each semester"],
+                    ["Weekly Fellowship",    "Tuesdays · 18:00 – 20:00 · Victory Bible Church"],
+                    ["Monthly Prayer Marathon", "Last Friday of the month · 21:00 – 04:00"],
                     ["Exam Prayer Support", "During final exam weeks"],
                     ["Career Mentorship",   "Monthly professional networking"],
                   ].map(([name, detail]) => (
