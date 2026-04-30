@@ -1,399 +1,325 @@
 const express = require("express");
 const router = express.Router();
 const { authMiddleware } = require("../auth-middleware");
-const nodemailer = require("nodemailer");
-const MemberRenewal = require("../models/MemberRenewal");
-const FoundationClassRegistration = require("../models/FoundationClassRegistration");
-
-// Use the centralized email service instead of creating a new transporter
 const { sendEmail } = require("../utils/emailService");
 
+const BRAND = {
+  dark: "#0a0a0a",
+  red: "#dc2626",
+  white: "#ffffff",
+  lightBg: "#f9fafb",
+  border: "#e5e7eb",
+  mutedText: "#6b7280",
+  darkMuted: "#9ca3af",
+};
+
+/** Branded email wrapper shared by all notification types */
+function baseTemplate(headerTitle, accentColor, content) {
+  const accent = accentColor || BRAND.red;
+  const logoUrl = process.env.CHURCH_LOGO_URL || "";
+  const year = new Date().getFullYear();
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${headerTitle}</title>
+</head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">
+  <div style="max-width:600px;margin:32px auto;background:${BRAND.white};border:1px solid ${BRAND.border};border-radius:4px;overflow:hidden;">
+
+    <div style="height:4px;background:${accent};"></div>
+
+    <div style="background:${BRAND.dark};padding:32px 24px;text-align:center;">
+      ${logoUrl ? `<img src="${logoUrl}" alt="Victory Bible Church" style="height:50px;width:auto;display:block;margin:0 auto 16px;" />` : ""}
+      <p style="margin:0 0 6px;color:${BRAND.darkMuted};font-size:10px;letter-spacing:0.2em;text-transform:uppercase;">Victory Bible Church</p>
+      <h1 style="margin:0;color:${BRAND.white};font-size:22px;font-weight:700;letter-spacing:-0.02em;">${headerTitle}</h1>
+    </div>
+
+    <div style="padding:36px 32px;background:${BRAND.white};">
+      ${content}
+    </div>
+
+    <div style="background:${BRAND.dark};padding:28px 24px;text-align:center;">
+      <div style="height:1px;background:${accent};opacity:0.35;margin:0 0 20px;"></div>
+      <p style="margin:0 0 4px;color:${BRAND.white};font-size:13px;font-weight:600;">Victory Bible Church</p>
+      <p style="margin:0 0 4px;color:${BRAND.darkMuted};font-size:12px;line-height:1.6;">Off Chiwala Road CBU East Gate, Kitwe, Zambia</p>
+      <p style="margin:0 0 16px;color:${BRAND.darkMuted};font-size:12px;">
+        <a href="mailto:info@victorybiblechurch.org" style="color:${BRAND.darkMuted};text-decoration:none;">info@victorybiblechurch.org</a>
+        &nbsp;·&nbsp;
+        <a href="https://victorybiblechurch.org" style="color:${BRAND.darkMuted};text-decoration:none;">victorybiblechurch.org</a>
+      </p>
+      <p style="margin:0;color:#4b5563;font-size:11px;">&copy; ${year} Victory Bible Church. All rights reserved.</p>
+    </div>
+
+  </div>
+</body>
+</html>`;
+}
+
+/** Left-bordered detail card */
+function detailCard(items, accentColor) {
+  const accent = accentColor || BRAND.red;
+  const rows = items
+    .filter(([, v]) => v != null && v !== "")
+    .map(([label, value]) => `
+      <tr>
+        <td style="padding:6px 0;color:${BRAND.mutedText};font-size:13px;width:150px;vertical-align:top;">${label}</td>
+        <td style="padding:6px 0;color:#111827;font-size:13px;font-weight:500;vertical-align:top;">${value}</td>
+      </tr>`)
+    .join("");
+
+  return `
+    <div style="border-left:3px solid ${accent};background:${BRAND.lightBg};padding:16px 20px;margin:20px 0;border-radius:0 4px 4px 0;">
+      <table style="border-collapse:collapse;width:100%;"><tbody>${rows}</tbody></table>
+    </div>`;
+}
+
+function greeting(name) {
+  return `<p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 16px;">Dear ${name},</p>`;
+}
+
+function signature() {
+  return `<p style="color:#374151;font-size:15px;line-height:1.7;margin:20px 0 0;">God bless,<br><strong>Victory Bible Church</strong></p>`;
+}
+
+function para(text) {
+  return `<p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 16px;">${text}</p>`;
+}
+
 /**
- * @route POST /api/notifications/send
- * @desc Send email notifications to users
- * @access Private (Admin only)
+ * POST /api/notifications/send
+ * Body: { type, recipient: { email, name, phone }, data: {...} }
  */
 router.post("/send", authMiddleware, async (req, res) => {
   try {
     const { type, recipient, data } = req.body;
 
-    console.log("=== Notification Request Details ===");
-    console.log("Type:", type);
-    console.log("Recipient:", { ...recipient, email: recipient?.email });
-    console.log("Data:", data);
-    console.log("===================================");
-
-    if (!type || !recipient || !recipient.email) {
-      console.error("Missing required fields:", { type, recipient });
-      return res.status(400).json({ message: "Missing required fields" });
+    if (!type || !recipient?.email) {
+      return res.status(400).json({ message: "Missing required fields: type and recipient.email" });
     }
 
-    // Get email content based on notification type
-    console.log("Generating email content for type:", type);
-    console.log("Recipient data:", JSON.stringify(recipient));
-    console.log("Event data:", JSON.stringify(data));
+    const emailContent = getEmailContent(type, recipient, data || {});
 
-    const emailContent = getEmailContent(type, recipient, data);
-    console.log("Email content generated successfully");
-    console.log("Email subject:", emailContent.subject);
-
-    // Send the email using centralized service
-    console.log("Preparing to send email to:", recipient.email);
-    console.log("Email subject:", emailContent.subject);
-
-    try {
-      console.log("Attempting to send email...");
-      const info = await sendEmail({
-        to: recipient.email,
-        subject: emailContent.subject,
-        html: emailContent.body,
-        text: `Please view this email in HTML format. Subject: ${emailContent.subject}`
-      });
-      console.log("Email sent successfully:", info.messageId);
-
-      // For SMS, you would integrate with an SMS service here
-      // if (recipient.phone) { ... send SMS ... }
-
-      // Record notification in database if needed
-      // await Notification.create({ type, recipient: recipient.email, sentAt: new Date() });
-
-      return res
-        .status(200)
-        .json({ message: "Notification sent successfully" });
-    } catch (emailError) {
-      console.error("Error sending email:", emailError);
-      console.error("Email error details:", {
-        message: emailError.message,
-        stack: emailError.stack,
-        code: emailError.code,
-      });
-      return res.status(500).json({
-        message: "Failed to send email notification",
-        error: emailError.message,
-        details: undefined,
-      });
-    }
-  } catch (error) {
-    console.error("Error in notification route:", error);
-    console.error("Full error details:", {
-      message: error.message,
-      stack: error.stack,
-      code: error.code,
+    await sendEmail({
+      to: recipient.email,
+      subject: emailContent.subject,
+      html: emailContent.body,
+      text: `Please view this email in an HTML-capable client. Subject: ${emailContent.subject}`,
     });
+
+    return res.status(200).json({ message: "Notification sent successfully" });
+  } catch (error) {
+    console.error("Error in notification route:", error.message);
     return res.status(500).json({
-      message: "Failed to process notification request",
+      message: "Failed to send notification",
       error: error.message,
-      details: undefined,
     });
   }
 });
 
-/**
- * Generate email content based on notification type
- * @param {String} type - Notification type
- * @param {Object} recipient - Recipient information
- * @param {Object} data - Additional data for the notification
- * @returns {Object} Email subject and body
- */
 function getEmailContent(type, recipient, data) {
   const { name } = recipient;
-  const churchLogo =
-    process.env.CHURCH_LOGO_URL || "https://i.imgur.com/MnxeSP1.png";
-  const churchName = "Victory Bible Church Kitwe";
-  const churchAddress = "123 Church Road, Kitwe, Zambia";
-  const churchPhone = "+260 123 456 789";
-  const churchEmail = "info@victorybiblechurch.org";
-  const churchWebsite = "https://victorybiblechurch.org";
 
-  // Common footer for all emails
-  const emailFooter = `
-    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 12px;">
-      <p>${churchName}</p>
-      <p>${churchAddress}</p>
-      <p>Phone: ${churchPhone} | Email: ${churchEmail}</p>
-      <p><a href="${churchWebsite}" style="color: #4a6ee0;">${churchWebsite}</a></p>
-    </div>
-  `;
+  // ── Event signup patterns (baptism_signup_approved, babyDedication_signup_declined, etc.) ──
+  const approvedMatch = type.match(/^(.+)_signup_approved$/);
+  const declinedMatch = type.match(/^(.+)_signup_declined$/);
 
-  // Log the notification type for debugging
-  console.log("Processing notification type:", type);
+  if (approvedMatch) {
+    const eventType = approvedMatch[1];
+    const eventTitle = data.eventTitle || "the event";
 
-  // Check if this is an event signup approval notification
-  const eventSignupApprovedMatch = type.match(/^(.+)_signup_approved$/);
-  const eventSignupDeclinedMatch = type.match(/^(.+)_signup_declined$/);
+    const eventDetails = detailCard([
+      ["Event",    data.eventTitle],
+      ["Date",     data.eventDate],
+      ["Time",     data.eventTime],
+      ["Location", data.eventLocation],
+    ]);
 
-  if (eventSignupApprovedMatch) {
-    const eventType = eventSignupApprovedMatch[1]; // Extract the event type (baptism, babyDedication, etc.)
-    console.log(`Detected event signup approval for event type: ${eventType}`);
-
-    // Handle different event types with specific templates
     if (eventType === "baptism") {
       return {
         subject: "Your Baptism Request Has Been Approved",
-        body: `
-          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-            <div style="text-align: center; margin-bottom: 20px;">
-              <img src="${churchLogo}" alt="${churchName}" style="max-width: 200px;" />
-            </div>
-            <h2>Hello ${name},</h2>
-            <p>We are delighted to inform you that your baptism request at ${churchName} has been approved!</p>
-
-            <div style="background-color: #eff6ff; padding: 15px; border-radius: 5px; margin: 15px 0; border: 1px solid #bfdbfe;">
-              <h3 style="margin-top: 0; color: #1e40af;">Baptism Details:</h3>
-              <ul>
-                <li><strong>Event:</strong> ${data.eventTitle}</li>
-                <li><strong>Date:</strong> ${data.eventDate}</li>
-                <li><strong>Time:</strong> ${data.eventTime}</li>
-                <li><strong>Location:</strong> ${data.eventLocation}</li>
-              </ul>
-            </div>
-
-            <p>This is a significant step in your faith journey, and we are excited to celebrate this moment with you. Please arrive 30 minutes before the scheduled time to prepare for the baptism.</p>
-
-            <div style="background-color: #f8fafc; padding: 15px; border-radius: 5px; margin: 15px 0; border: 1px solid #cbd5e1;">
-              <h3 style="margin-top: 0; color: #334155;">What to Bring:</h3>
-              <ul>
-                <li>Change of clothes</li>
-                <li>Towel</li>
-                <li>Plastic bag for wet clothes</li>
-                <li>Any personal items you may need</li>
-              </ul>
-            </div>
-
-            <p>If you have any questions or need to make any changes, please contact our church office as soon as possible.</p>
-
-            <p>We look forward to celebrating this special moment with you!</p>
-
-            <p>Blessings,<br>The ${churchName} Team</p>
-            ${emailFooter}
+        body: baseTemplate("Baptism Approved", BRAND.red, `
+          ${greeting(name)}
+          ${para("We are delighted to confirm that your baptism request has been <strong>approved</strong>. This is a beautiful step in your walk of faith — we are honoured to share it with you.")}
+          ${eventDetails}
+          <div style="border-left:3px solid #fbbf24;background:#fffbeb;padding:14px 18px;margin:20px 0;border-radius:0 4px 4px 0;">
+            ${para("<strong>Please remember to bring:</strong> a change of clothes, a towel, and a plastic bag for wet items. Arrive 30 minutes before the scheduled time.")}
           </div>
-        `,
-      };
-    } else if (eventType === "babyDedication") {
-      return {
-        subject: "Your Baby Dedication Request Has Been Approved",
-        body: `
-          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-            <div style="text-align: center; margin-bottom: 20px;">
-              <img src="${churchLogo}" alt="${churchName}" style="max-width: 200px;" />
-            </div>
-            <h2>Hello ${name},</h2>
-            <p>We are pleased to inform you that your baby dedication request at ${churchName} has been approved!</p>
-
-            <div style="background-color: #eff6ff; padding: 15px; border-radius: 5px; margin: 15px 0; border: 1px solid #bfdbfe;">
-              <h3 style="margin-top: 0; color: #1e40af;">Baby Dedication Details:</h3>
-              <ul>
-                <li><strong>Event:</strong> ${data.eventTitle}</li>
-                <li><strong>Date:</strong> ${data.eventDate}</li>
-                <li><strong>Time:</strong> ${data.eventTime}</li>
-                <li><strong>Location:</strong> ${data.eventLocation}</li>
-                ${data.childName ? `<li><strong>Child's Name:</strong> ${data.childName}</li>` : ""}
-              </ul>
-            </div>
-
-            <p>This is a special moment for your family, and we are honored to be part of it. Please arrive 15 minutes before the scheduled time.</p>
-
-            <p>If you have any questions or need to make any changes, please contact our church office as soon as possible.</p>
-
-            <p>We look forward to celebrating this special occasion with you and your family!</p>
-
-            <p>Blessings,<br>The ${churchName} Team</p>
-            ${emailFooter}
-          </div>
-        `,
-      };
-    } else {
-      // Generic event signup approval template for other event types
-      return {
-        subject: `Your ${data.eventTitle || "Event"} Registration Has Been Approved`,
-        body: `
-          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-            <div style="text-align: center; margin-bottom: 20px;">
-              <img src="${churchLogo}" alt="${churchName}" style="max-width: 200px;" />
-            </div>
-            <h2>Hello ${name},</h2>
-            <p>We are pleased to inform you that your registration for ${data.eventTitle || "our event"} has been approved!</p>
-
-            <div style="background-color: #eff6ff; padding: 15px; border-radius: 5px; margin: 15px 0; border: 1px solid #bfdbfe;">
-              <h3 style="margin-top: 0; color: #1e40af;">Event Details:</h3>
-              <ul>
-                <li><strong>Event:</strong> ${data.eventTitle || "Event"}</li>
-                <li><strong>Date:</strong> ${data.eventDate || "Please contact for details"}</li>
-                <li><strong>Time:</strong> ${data.eventTime || "Please contact for details"}</li>
-                <li><strong>Location:</strong> ${data.eventLocation || "Please contact for details"}</li>
-              </ul>
-            </div>
-
-            <p>We look forward to seeing you at this event. If you have any questions or need to make any changes, please contact our church office.</p>
-
-            <p>Blessings,<br>The ${churchName} Team</p>
-            ${emailFooter}
-          </div>
-        `,
+          ${para("If you have any questions, please don't hesitate to contact our church office.")}
+          ${signature()}
+        `),
       };
     }
-  } else if (eventSignupDeclinedMatch) {
-    const eventType = eventSignupDeclinedMatch[1]; // Extract the event type
-    console.log(`Detected event signup decline for event type: ${eventType}`);
 
-    // Generic event signup declined template
+    if (eventType === "babyDedication") {
+      return {
+        subject: "Your Baby Dedication Request Has Been Approved",
+        body: baseTemplate("Baby Dedication Approved", BRAND.red, `
+          ${greeting(name)}
+          ${para("What a blessing! Your baby dedication request has been <strong>approved</strong>. We are so honoured to celebrate this moment with your family.")}
+          ${detailCard([
+            ["Event",        data.eventTitle],
+            ["Date",         data.eventDate],
+            ["Time",         data.eventTime],
+            ["Location",     data.eventLocation],
+            ...(data.childName ? [["Child's Name", data.childName]] : []),
+          ])}
+          ${para("Please arrive 15 minutes before the scheduled time. We look forward to praying over your child and family.")}
+          ${para("Feel free to contact our church office if you have any questions.")}
+          ${signature()}
+        `),
+      };
+    }
+
+    // Generic event approval
     return {
-      subject: `Regarding Your ${data.eventTitle || "Event"} Registration`,
-      body: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-          <div style="text-align: center; margin-bottom: 20px;">
-            <img src="${churchLogo}" alt="${churchName}" style="max-width: 200px;" />
-          </div>
-          <h2>Hello ${name},</h2>
-          <p>Thank you for your interest in ${data.eventTitle || "our event"} at ${churchName}.</p>
-          <p>We need to discuss some details about your registration. Please contact our church office at your earliest convenience.</p>
-          ${data.reason ? `<p>Additional information: ${data.reason}</p>` : ""}
-          <p>We look forward to speaking with you soon.</p>
-          <p>Blessings,<br>The ${churchName} Team</p>
-          ${emailFooter}
-        </div>
-      `,
+      subject: `Your Registration for ${eventTitle} Has Been Approved`,
+      body: baseTemplate("Registration Approved", BRAND.red, `
+        ${greeting(name)}
+        ${para(`We are pleased to confirm that your registration for <strong>${eventTitle}</strong> has been approved.`)}
+        ${eventDetails}
+        ${para("We look forward to seeing you. If anything changes or you have questions, please contact our office.")}
+        ${signature()}
+      `),
     };
   }
 
-  // Continue with the regular switch statement for other notification types
+  if (declinedMatch) {
+    const eventTitle = data.eventTitle || "the event";
+    return {
+      subject: `Regarding Your Registration for ${eventTitle}`,
+      body: baseTemplate("Registration Update", "#6b7280", `
+        ${greeting(name)}
+        ${para(`Thank you for your interest in <strong>${eventTitle}</strong> at Victory Bible Church.`)}
+        ${para("We were unable to confirm your registration at this time. Please contact our church office and we would be happy to assist you or find a suitable alternative.")}
+        ${data.reason ? para(`<em>Additional information: ${data.reason}</em>`) : ""}
+        ${signature()}
+      `),
+    };
+  }
+
+  // ── Named notification types ──────────────────────────────────────────────
   switch (type) {
+
     case "membership_renewal_approved":
       return {
         subject: "Your Membership Renewal Has Been Approved",
-        body: `
-          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-            <div style="text-align: center; margin-bottom: 20px;">
-              <img src="${churchLogo}" alt="${churchName}" style="max-width: 200px;" />
-            </div>
-            <h2>Hello ${name},</h2>
-            <p>We're pleased to inform you that your membership renewal at ${churchName} has been approved!</p>
-            <p>Your continued commitment to our church family is greatly appreciated. As a renewed member, you'll continue to enjoy all the benefits of being part of our community.</p>
-            <p>If you have any questions or need assistance, please don't hesitate to contact our church office.</p>
-            <p>God bless you,</p>
-            <p>The ${churchName} Team</p>
-            ${emailFooter}
-          </div>
-        `,
+        body: baseTemplate("Membership Renewed", BRAND.red, `
+          ${greeting(name)}
+          ${para("Great news — your membership renewal with Victory Bible Church has been <strong>approved</strong>. Thank you for your continued commitment to our community.")}
+          ${detailCard([
+            ["Member Since",   data.memberSince],
+            ["Renewal Date",   data.renewalDate ? new Date(data.renewalDate).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : ""],
+            ["Status",         "✓ Approved"],
+          ])}
+          ${para("We encourage you to stay connected and active in our church family. There are many ways to serve — reach out to our office if you'd like to get more involved.")}
+          ${signature()}
+        `),
       };
 
     case "membership_renewal_declined":
       return {
         subject: "Regarding Your Membership Renewal",
-        body: `
-          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-            <div style="text-align: center; margin-bottom: 20px;">
-              <img src="${churchLogo}" alt="${churchName}" style="max-width: 200px;" />
-            </div>
-            <h2>Hello ${name},</h2>
-            <p>Thank you for submitting your membership renewal at ${churchName}.</p>
-            <p>We are getting in touch regarding your recent application. There appears to be some information we need to clarify. Please contact our church office at your earliest convenience to discuss your membership renewal.</p>
-            ${data.reason ? `<p>Additional information: ${data.reason}</p>` : ""}
-            <p>We look forward to speaking with you soon.</p>
-            <p>Blessings,</p>
-            <p>The ${churchName} Team</p>
-            ${emailFooter}
-          </div>
-        `,
+        body: baseTemplate("Membership Renewal Update", "#6b7280", `
+          ${greeting(name)}
+          ${para("Thank you for submitting your membership renewal. We need to clarify a few details before we can process it further.")}
+          ${para("Please contact our church office at your earliest convenience and we'll be happy to assist you.")}
+          ${data.reason ? para(`<em>Additional information: ${data.reason}</em>`) : ""}
+          ${signature()}
+        `),
       };
 
     case "foundation_class_approved":
       return {
-        subject: "Welcome to Foundation Classes - Your Enrollment is Confirmed",
-        body: `
-          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-            <div style="text-align: center; margin-bottom: 20px;">
-              <img src="${churchLogo}" alt="${churchName}" style="max-width: 200px;" />
-            </div>
-            <h2>Hello ${name},</h2>
-            <p>Great news! Your enrollment in our Foundation Classes has been approved and confirmed.</p>
-            <h3>Your Class Schedule:</h3>
-            <div style="background-color: #f7f7f7; padding: 15px; border-radius: 5px; margin: 15px 0;">
-              <p><strong>Location:</strong> ${data.schedule?.location || "Church Main Building, Room 201"}</p>
-              <p><strong>Start Date:</strong> ${data.schedule?.startDate || "Please contact the church office for details"}</p>
-              <p><strong>Time:</strong> ${data.schedule?.time || "9:00 AM - 10:30 AM"}</p>
-            </div>
-            <p>These classes will provide you with a strong biblical foundation and prepare you for church membership.</p>
-            <p>Please arrive 15 minutes early for your first class. Bring your Bible, a notebook, and a pen.</p>
-            <p>If you have any questions or need to reschedule, please contact our church office.</p>
-            <p>We're excited to have you join us!</p>
-            <p>Blessings,</p>
-            <p>The ${churchName} Team</p>
-            ${emailFooter}
-          </div>
-        `,
+        subject: "Welcome to Foundation Classes — Your Enrollment is Confirmed",
+        body: baseTemplate("Enrollment Confirmed", BRAND.red, `
+          ${greeting(name)}
+          ${para("We're excited to confirm your enrollment in <strong>Foundation Classes</strong> at Victory Bible Church. These classes will give you a strong biblical foundation and prepare you for active church membership.")}
+          ${detailCard([
+            ["Location",   data.schedule?.location || "Church Main Building"],
+            ["Start Date", data.schedule?.startDate || "Contact office for details"],
+            ["Time",       data.schedule?.time || "Contact office for details"],
+            ["Day",        data.schedule?.day || ""],
+          ])}
+          ${para("Please arrive 15 minutes early for your first session and bring a Bible, a notebook, and a pen.")}
+          ${para("If you need to reschedule or have any questions, please don't hesitate to contact our church office.")}
+          ${signature()}
+        `),
       };
 
     case "foundation_class_completed":
       return {
-        subject:
-          "Congratulations on Completing Foundation Classes - Welcome to Church Membership!",
-        body: `
-          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-            <div style="text-align: center; margin-bottom: 20px;">
-              <img src="${churchLogo}" alt="${churchName}" style="max-width: 200px;" />
-              <h1 style="color: #1e40af; margin-top: 10px;">Welcome to Church Membership!</h1>
-            </div>
-            <h2>Hello ${name},</h2>
-            <p><strong>Congratulations!</strong> We're thrilled to inform you that you have successfully completed all of your Foundation Classes at ${churchName}.</p>
-
-            <div style="background-color: #eff6ff; padding: 15px; border-radius: 5px; margin: 15px 0; border: 1px solid #bfdbfe;">
-              <p style="font-weight: bold; color: #1e40af; margin-top: 0;">NEW MEMBER CONFIRMATION - FOUNDATION CLASS GRADUATE</p>
-              <p>This marks an important milestone in your journey of faith, and we are pleased to welcome you as an <strong>official member</strong> of our church family!</p>
-            </div>
-            <p>As a church member, you now have the opportunity to:</p>
-            <ul>
-              <li>Participate in church decision meetings</li>
-              <li>Serve in various ministry areas</li>
-              <li>Access member-specific resources and support</li>
-              <li>Become more deeply connected to our church community</li>
-            </ul>
-            <p>We encourage you to prayerfully consider how God might be calling you to serve and grow within our church family.</p>
-            <p>If you have any questions about next steps or how to get involved, please don't hesitate to reach out to our church office.</p>
-            <p>Welcome to the family!</p>
-            <p>In Christ,</p>
-            <p>The ${churchName} Team</p>
-            ${emailFooter}
+        subject: "Congratulations — You've Completed Foundation Classes!",
+        body: baseTemplate("Welcome to the Family", BRAND.red, `
+          ${greeting(name)}
+          ${para("<strong>Congratulations!</strong> You have successfully completed all Foundation Classes. This is a significant milestone and we are so proud of your commitment to grow in faith.")}
+          <div style="border-left:3px solid ${BRAND.red};background:#fef2f2;padding:16px 20px;margin:20px 0;border-radius:0 4px 4px 0;">
+            <p style="margin:0 0 4px;color:#991b1b;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">New Member Confirmed</p>
+            <p style="margin:0;color:#374151;font-size:14px;line-height:1.7;">You are now an official member of Victory Bible Church.</p>
           </div>
-        `,
+          ${para("As a member, you are invited to:")}
+          <ul style="color:#374151;font-size:15px;line-height:1.9;padding-left:20px;margin:0 0 16px;">
+            <li>Participate in church decision meetings</li>
+            <li>Serve in ministry areas that match your gifts</li>
+            <li>Access member-specific resources and support</li>
+            <li>Grow deeper in community with the VBC family</li>
+          </ul>
+          ${para("We look forward to walking this journey alongside you. Welcome to the family!")}
+          ${signature()}
+        `),
       };
 
     case "foundation_class_cancelled":
       return {
         subject: "Regarding Your Foundation Class Enrollment",
-        body: `
-          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-            <div style="text-align: center; margin-bottom: 20px;">
-              <img src="${churchLogo}" alt="${churchName}" style="max-width: 200px;" />
-            </div>
-            <h2>Hello ${name},</h2>
-            <p>We are contacting you regarding your enrollment in our Foundation Classes at ${churchName}.</p>
-            <p>We need to discuss some details about your registration. Please contact our church office at your earliest convenience.</p>
-            ${data.reason ? `<p>Additional information: ${data.reason}</p>` : ""}
-            <p>We look forward to speaking with you soon.</p>
-            <p>Blessings,</p>
-            <p>The ${churchName} Team</p>
-            ${emailFooter}
-          </div>
-        `,
+        body: baseTemplate("Enrollment Update", "#6b7280", `
+          ${greeting(name)}
+          ${para("We are contacting you regarding your Foundation Classes enrollment at Victory Bible Church.")}
+          ${para("We need to discuss some details. Please contact our church office at your earliest convenience and we'll be happy to assist.")}
+          ${data.reason ? para(`<em>Additional information: ${data.reason}</em>`) : ""}
+          ${signature()}
+        `),
+      };
+
+    case "discipleship_registration_approved":
+      return {
+        subject: "Your Discipleship Class Registration Has Been Approved",
+        body: baseTemplate("Registration Approved", BRAND.red, `
+          ${greeting(name)}
+          ${para(`We are pleased to confirm that your registration for <strong>${data.className || "Discipleship Classes"}</strong> has been <strong>approved</strong>.`)}
+          ${detailCard([
+            ["Class",   data.className],
+            ["Level",   data.level],
+            ["Session", data.preferredSession],
+            ["Status",  "✓ Approved"],
+          ])}
+          ${para("Our team will be in touch shortly with session details and next steps. In the meantime, feel free to contact our church office if you have any questions.")}
+          ${para("We look forward to growing in faith together with you.")}
+          ${signature()}
+        `),
+      };
+
+    case "discipleship_registration_rejected":
+      return {
+        subject: "Regarding Your Discipleship Class Registration",
+        body: baseTemplate("Registration Update", "#6b7280", `
+          ${greeting(name)}
+          ${para(`Thank you for your interest in <strong>${data.className || "Discipleship Classes"}</strong> at Victory Bible Church.`)}
+          ${para("We were unable to confirm your registration at this time. Please contact our church office — we'd love to find the right fit for you and help you take the next step in your faith journey.")}
+          ${signature()}
+        `),
       };
 
     default:
       return {
         subject: "Notification from Victory Bible Church",
-        body: `
-          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-            <div style="text-align: center; margin-bottom: 20px;">
-              <img src="${churchLogo}" alt="${churchName}" style="max-width: 200px;" />
-            </div>
-            <h2>Hello ${name},</h2>
-            <p>This is a notification from ${churchName}.</p>
-            <p>Please contact our church office for more information.</p>
-            <p>Blessings,</p>
-            <p>The ${churchName} Team</p>
-            ${emailFooter}
-          </div>
-        `,
+        body: baseTemplate("Notification", BRAND.red, `
+          ${greeting(name)}
+          ${para("This is a notification from Victory Bible Church. Please contact our church office for more information.")}
+          ${signature()}
+        `),
       };
   }
 }

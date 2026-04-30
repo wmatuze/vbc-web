@@ -1,20 +1,16 @@
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 
-// Email styling constants
-const EMAIL_COLORS = {
-  primary: "#4f46e5",
-  secondary: "#3b82f6",
-  success: "#047857",
-  info: "#1e40af",
-  background: "#f3f4f6",
-  lightBackground: "#f8fafc",
-  border: "#e5e7eb",
-  textMuted: "#6b7280",
+const BRAND = {
+  dark: "#0a0a0a",
+  red: "#dc2626",
   white: "#ffffff",
+  lightBg: "#f9fafb",
+  border: "#e5e7eb",
+  mutedText: "#6b7280",
+  darkMuted: "#9ca3af",
 };
 
-// Utility function for consistent date formatting
 const formatDate = (date) => {
   return new Date(date).toLocaleDateString("en-US", {
     year: "numeric",
@@ -23,711 +19,384 @@ const formatDate = (date) => {
   });
 };
 
-// Enhanced email template with your actual logo
-const createEmailTemplate = (headerTitle, headerColor, content) => {
-  const churchInfo = {
-    // Use imgur as a reliable image hosting service for emails
-    // Upload your logo to imgur.com and replace this URL
-    logoUrl:
-      process.env.CHURCH_LOGO_URL || "https://i.imgur.com/placeholder.png",
-    name: "Victory Bible Church",
-    address: "Off Chiwala Road CBU East Gate, Kitwe, Zambia",
-    phone: "+260 123 456 789",
-    email: "info@victorybiblechurch.org",
-    website: "https://victorybiblechurch.org",
-  };
+/**
+ * Builds a branded VBC email wrapper.
+ * accentColor is used for the top stripe and detail-block left border.
+ */
+const createEmailTemplate = (headerTitle, accentColor, content) => {
+  const accent = accentColor || BRAND.red;
+  const logoUrl = process.env.CHURCH_LOGO_URL || "";
+  const year = new Date().getFullYear();
 
-  return `
-<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid ${EMAIL_COLORS.border};">
-  <!-- Header with Your Logo -->
-  <div style="background-color: ${headerColor}; color: ${EMAIL_COLORS.white}; padding: 30px 20px; text-align: center;">
-    <img src="${churchInfo.logoUrl}" alt="Victory Bible Church Logo" 
-         style="height: 60px; width: auto; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;" />
-    <h1 style="margin: 0; font-size: 28px; font-weight: bold;">${headerTitle}</h1>
-  </div>
-  
-  <!-- Content -->
-  <div style="padding: 30px 20px; background-color: ${EMAIL_COLORS.white};">
-    ${content}
-  </div>
-  
-  <!-- Footer with Church Info -->
-  <div style="background-color: ${EMAIL_COLORS.background}; padding: 20px; text-align: center; border-top: 1px solid ${EMAIL_COLORS.border};">
-    <img src="${churchInfo.logoUrl}" alt="Victory Bible Church" 
-         style="height: 40px; width: auto; margin-bottom: 10px;" />
-    <div style="font-size: 14px; color: ${EMAIL_COLORS.textMuted}; line-height: 1.6;">
-      <strong style="color: #333;">Victory Bible Church</strong><br>
-      ${churchInfo.address}<br>
-      Phone: ${churchInfo.phone} | Email: <a href="mailto:${churchInfo.email}" style="color: ${EMAIL_COLORS.primary};">${churchInfo.email}</a><br>
-      <a href="${churchInfo.website}" style="color: ${EMAIL_COLORS.primary}; text-decoration: none;">${churchInfo.website}</a>
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${headerTitle}</title>
+</head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">
+  <div style="max-width:600px;margin:32px auto;background:${BRAND.white};border:1px solid ${BRAND.border};border-radius:4px;overflow:hidden;">
+
+    <!-- Accent stripe -->
+    <div style="height:4px;background:${accent};"></div>
+
+    <!-- Header -->
+    <div style="background:${BRAND.dark};padding:32px 24px;text-align:center;">
+      ${logoUrl ? `<img src="${logoUrl}" alt="Victory Bible Church" style="height:50px;width:auto;display:block;margin:0 auto 16px;" />` : ""}
+      <p style="margin:0 0 6px;color:${BRAND.darkMuted};font-size:10px;letter-spacing:0.2em;text-transform:uppercase;">Victory Bible Church</p>
+      <h1 style="margin:0;color:${BRAND.white};font-size:22px;font-weight:700;letter-spacing:-0.02em;">${headerTitle}</h1>
     </div>
-    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid ${EMAIL_COLORS.border}; font-size: 12px; color: ${EMAIL_COLORS.textMuted};">
-      &copy; ${new Date().getFullYear()} Victory Bible Church. All rights reserved.
+
+    <!-- Body -->
+    <div style="padding:36px 32px;background:${BRAND.white};">
+      ${content}
     </div>
+
+    <!-- Footer -->
+    <div style="background:${BRAND.dark};padding:28px 24px;text-align:center;">
+      <div style="height:1px;background:${accent};opacity:0.35;margin:0 0 20px;"></div>
+      <p style="margin:0 0 4px;color:${BRAND.white};font-size:13px;font-weight:600;">Victory Bible Church</p>
+      <p style="margin:0 0 4px;color:${BRAND.darkMuted};font-size:12px;line-height:1.6;">Off Chiwala Road CBU East Gate, Kitwe, Zambia</p>
+      <p style="margin:0 0 16px;color:${BRAND.darkMuted};font-size:12px;">
+        <a href="mailto:info@victorybiblechurch.org" style="color:${BRAND.darkMuted};text-decoration:none;">info@victorybiblechurch.org</a>
+        &nbsp;·&nbsp;
+        <a href="https://victorybiblechurch.org" style="color:${BRAND.darkMuted};text-decoration:none;">victorybiblechurch.org</a>
+      </p>
+      <p style="margin:0;color:#4b5563;font-size:11px;">&copy; ${year} Victory Bible Church. All rights reserved.</p>
+    </div>
+
   </div>
-</div>
-  `;
+</body>
+</html>`;
 };
 
-// Configure email transporter
-let transporter;
-const isDevelopment = process.env.NODE_ENV !== "production";
+/** Reusable detail block with a coloured left border */
+const detailBlock = (items, accentColor) => {
+  const accent = accentColor || BRAND.red;
+  const rows = items
+    .filter(([, v]) => v != null && v !== "")
+    .map(([label, value]) => `
+      <tr>
+        <td style="padding:6px 0;color:${BRAND.mutedText};font-size:13px;width:140px;vertical-align:top;">${label}</td>
+        <td style="padding:6px 0;color:#111827;font-size:13px;font-weight:500;vertical-align:top;">${value}</td>
+      </tr>`)
+    .join("");
 
-// Validate required environment variables
+  return `
+    <div style="border-left:3px solid ${accent};background:${BRAND.lightBg};padding:16px 20px;margin:20px 0;border-radius:0 4px 4px 0;">
+      <table style="border-collapse:collapse;width:100%;">
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+};
+
+// ─── Transporter ─────────────────────────────────────────────────────────────
+
 if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-  console.error(
-    "ERROR: EMAIL_USER and EMAIL_PASSWORD must be set in .env file",
-  );
+  console.error("ERROR: EMAIL_USER and EMAIL_PASSWORD must be set in .env file");
   process.exit(1);
 }
 
-// Set up the transporter based on environment
+const isDevelopment = process.env.NODE_ENV !== "production";
+let transporter;
+
 if (isDevelopment || !process.env.NODE_ENV) {
-  // Development: Use Gmail
-  console.log("Email service configured for development (Gmail)");
   transporter = nodemailer.createTransport({
     service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD,
-    },
+    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASSWORD },
   });
 } else {
-  // Production email configuration
   transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
     port: process.env.EMAIL_PORT,
     secure: process.env.EMAIL_SECURE === "true",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD,
-    },
+    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASSWORD },
   });
 }
 
-/**
- * Send an email using configured transporter
- * @param {Object} options - Email options
- * @param {string} options.to - Recipient email
- * @param {string} options.subject - Email subject
- * @param {string} options.text - Plain text body
- * @param {string} options.html - HTML body (optional)
- * @returns {Promise} - Resolves with info about sent email
- */
-const sendEmail = async (options) => {
-  try {
-    const mailOptions = {
-      from:
-        process.env.EMAIL_FROM ||
-        "Victory Bible Church <no-reply@victorybiblechurch.org>",
-      to: options.to,
-      subject: options.subject,
-      text: options.text,
-      html: options.html,
-    };
+// ─── Core sender ─────────────────────────────────────────────────────────────
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log("Email sent successfully:", info.messageId);
-    return info;
-  } catch (error) {
-    console.error("Error sending email:", error);
-    throw error;
-  }
+const sendEmail = async (options) => {
+  const mailOptions = {
+    from: process.env.EMAIL_FROM || "Victory Bible Church <no-reply@victorybiblechurch.org>",
+    to: options.to,
+    subject: options.subject,
+    text: options.text,
+    html: options.html,
+  };
+  const info = await transporter.sendMail(mailOptions);
+  return info;
 };
 
-/**
- * Send membership renewal confirmation emails
- * @param {Object} renewal - Membership renewal data
- */
+// ─── Membership renewal confirmation (on form submission) ────────────────────
+
 const sendMembershipRenewalEmails = async (renewal) => {
-  // Input validation
-  if (!renewal || !renewal.email || !renewal.fullName) {
-    throw new Error(
-      "Missing required renewal data: email and fullName are required",
-    );
+  if (!renewal?.email || !renewal?.fullName) {
+    throw new Error("Missing required renewal data: email and fullName are required");
   }
 
   try {
-    // Email to member
     await sendEmail({
       to: renewal.email,
-      subject: "Membership Renewal Confirmation - Victory Bible Church",
-      text: `
-Dear ${renewal.fullName},
-
-Thank you for renewing your membership with Victory Bible Church. Your renewal has been received and is being processed.
-
-Renewal Details:
-- Name: ${renewal.fullName}
-- Member Since: ${renewal.memberSince}
-- Renewal Date: ${formatDate(renewal.renewalDate)}
-
-If you have any questions, please contact our church office at (123) 456-7890 or email renewal@vbc.info.
-
-Blessings,
-Victory Bible Church Team
-      `,
+      subject: "Membership Renewal Received — Victory Bible Church",
+      text: `Dear ${renewal.fullName}, your membership renewal has been received and is being reviewed.`,
       html: createEmailTemplate(
-        "Membership Renewal Confirmation",
-        EMAIL_COLORS.primary,
-        `
-    <p>Dear ${renewal.fullName},</p>
-
-    <p>Thank you for renewing your membership with Victory Bible Church. Your renewal has been received and is being processed.</p>
-
-    <div style="background-color: ${EMAIL_COLORS.background}; padding: 15px; border-radius: 5px; margin: 20px 0;">
-      <h3 style="margin-top: 0;">Renewal Details:</h3>
-      <ul>
-        <li><strong>Name:</strong> ${renewal.fullName}</li>
-        <li><strong>Member Since:</strong> ${renewal.memberSince}</li>
-        <li><strong>Renewal Date:</strong> ${formatDate(renewal.renewalDate)}</li>
-      </ul>
-    </div>
-
-    <p>If you have any questions, please contact our church office at (123) 456-7890 or email <a href="mailto:renewal@vbc.info" style="color: ${EMAIL_COLORS.primary};">renewal@vbc.info</a>.</p>
-
-    <p>Blessings,<br>Victory Bible Church Team</p>
-        `,
+        "Renewal Received",
+        BRAND.red,
+        `<p style="color:#374151;font-size:15px;line-height:1.7;">Dear ${renewal.fullName},</p>
+         <p style="color:#374151;font-size:15px;line-height:1.7;">Thank you for renewing your membership with us. We've received your submission and our team will review it shortly.</p>
+         ${detailBlock([
+           ["Name", renewal.fullName],
+           ["Member Since", renewal.memberSince],
+           ["Renewal Date", formatDate(renewal.renewalDate)],
+         ])}
+         <p style="color:#374151;font-size:15px;line-height:1.7;">If you have any questions, please contact our church office.</p>
+         <p style="color:#374151;font-size:15px;line-height:1.7;">God bless,<br><strong>Victory Bible Church</strong></p>`
       ),
     });
 
-    // Email to admin with improved subject
     await sendEmail({
       to: process.env.ADMIN_EMAIL || "admin@victorybiblechurch.org",
-      subject: `New Renewal: ${renewal.fullName} - Victory Bible Church`,
-      text: `
-A new membership renewal has been submitted.
-
-Member Details:
-- Name: ${renewal.fullName}
-- Email: ${renewal.email}
-- Phone: ${renewal.phone}
-- Member Since: ${renewal.memberSince}
-- Renewal Date: ${formatDate(renewal.renewalDate)}
-- Address Change: ${renewal.addressChange ? "Yes" : "No"}
-${renewal.addressChange ? `- New Address: ${renewal.newAddress}` : ""}
-
-Please review this renewal in the admin dashboard.
-      `,
+      subject: `New Renewal: ${renewal.fullName}`,
+      text: `New membership renewal from ${renewal.fullName} (${renewal.email}).`,
       html: createEmailTemplate(
         "New Membership Renewal",
-        EMAIL_COLORS.primary,
-        `
-    <p>Dear Admin,</p>
-    
-    <p>A new membership renewal has been submitted.</p>
-
-    <div style="background-color: ${EMAIL_COLORS.background}; padding: 15px; border-radius: 5px; margin: 20px 0;">
-      <h3 style="margin-top: 0;">Member Details:</h3>
-      <ul>
-        <li><strong>Name:</strong> ${renewal.fullName}</li>
-        <li><strong>Email:</strong> ${renewal.email}</li>
-        <li><strong>Phone:</strong> ${renewal.phone}</li>
-        <li><strong>Member Since:</strong> ${renewal.memberSince}</li>
-        <li><strong>Renewal Date:</strong> ${formatDate(renewal.renewalDate)}</li>
-        <li><strong>Address Change:</strong> ${renewal.addressChange ? "Yes" : "No"}</li>
-        ${renewal.addressChange ? `<li><strong>New Address:</strong> ${renewal.newAddress}</li>` : ""}
-      </ul>
-    </div>
-
-    <p style="text-align: center; margin: 30px 0;">
-      <a href="${process.env.ADMIN_URL || "https://admin.victorybiblechurch.org"}/membership/renewals" 
-         style="background-color: ${EMAIL_COLORS.primary}; color: ${EMAIL_COLORS.white}; padding: 12px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
-        Review in Admin Dashboard
-      </a>
-    </p>
-        `,
+        BRAND.red,
+        `<p style="color:#374151;font-size:15px;line-height:1.7;">A new membership renewal has been submitted.</p>
+         ${detailBlock([
+           ["Name", renewal.fullName],
+           ["Email", renewal.email],
+           ["Phone", renewal.phone],
+           ["Member Since", renewal.memberSince],
+           ["Renewal Date", formatDate(renewal.renewalDate)],
+           ["Address Change", renewal.addressChange ? "Yes" : "No"],
+           ...(renewal.addressChange ? [["New Address", renewal.newAddress]] : []),
+         ])}
+         <p style="text-align:center;margin:28px 0;">
+           <a href="${process.env.ADMIN_URL || "https://victorybiblechurch.org/admin"}/members"
+              style="background:${BRAND.red};color:${BRAND.white};padding:12px 24px;text-decoration:none;border-radius:2px;font-size:14px;font-weight:600;display:inline-block;">
+             Review in Admin Dashboard
+           </a>
+         </p>`
       ),
     });
-
-    console.log("Membership renewal emails sent successfully");
   } catch (error) {
     console.error("Error sending membership renewal emails:", error);
-    // Don't throw the error - we don't want to break the API if email fails
   }
 };
 
-/**
- * Send foundation classes registration confirmation emails
- * @param {Object} registration - Foundation classes registration data
- */
+// ─── Foundation class registration confirmation (on form submission) ──────────
+
 const sendFoundationClassRegistrationEmails = async (registration) => {
-  // Input validation
-  if (!registration || !registration.email || !registration.fullName) {
-    throw new Error(
-      "Missing required registration data: email and fullName are required",
-    );
+  if (!registration?.email || !registration?.fullName) {
+    throw new Error("Missing required registration data: email and fullName are required");
   }
 
   try {
-    // Email to registrant
     await sendEmail({
       to: registration.email,
-      subject:
-        "Foundation Classes Registration Confirmed - Victory Bible Church",
-      text: `
-Dear ${registration.fullName},
-
-Thank you for registering for Foundation Classes at Victory Bible Church. Your registration has been received and is confirmed.
-
-Registration Details:
-- Name: ${registration.fullName}
-- Preferred Session: ${registration.preferredSession}
-- Registration Date: ${formatDate(registration.registrationDate)}
-
-What to Bring:
-- Bible
-- Notebook
-- Pen
-
-We look forward to seeing you at the first class! If you have any questions, please contact our church office at (123) 456-7890.
-
-Blessings,
-Victory Bible Church Team
-      `,
+      subject: "Foundation Classes Registration Received — Victory Bible Church",
+      text: `Dear ${registration.fullName}, your Foundation Classes registration has been received.`,
       html: createEmailTemplate(
-        "Foundation Classes Registration Confirmed",
-        EMAIL_COLORS.secondary,
-        `
-    <p>Dear ${registration.fullName},</p>
-
-    <p>Thank you for registering for Foundation Classes at Victory Bible Church. Your registration has been received and is <strong>confirmed</strong>.</p>
-
-    <div style="background-color: ${EMAIL_COLORS.background}; padding: 15px; border-radius: 5px; margin: 20px 0;">
-      <h3 style="margin-top: 0;">Registration Details:</h3>
-      <ul>
-        <li><strong>Name:</strong> ${registration.fullName}</li>
-        <li><strong>Preferred Session:</strong> ${registration.preferredSession}</li>
-        <li><strong>Registration Date:</strong> ${formatDate(registration.registrationDate)}</li>
-      </ul>
-    </div>
-
-    <div style="background-color: #dbeafe; padding: 15px; border-radius: 5px; margin: 20px 0;">
-      <h3 style="margin-top: 0; color: ${EMAIL_COLORS.secondary};">What to Bring:</h3>
-      <ul>
-        <li>Bible</li>
-        <li>Notebook</li>
-        <li>Pen</li>
-      </ul>
-    </div>
-
-    <p>We look forward to seeing you at the first class! If you have any questions, please contact our church office at (123) 456-7890.</p>
-
-    <p>Blessings,<br>Victory Bible Church Team</p>
-        `,
+        "Registration Received",
+        BRAND.red,
+        `<p style="color:#374151;font-size:15px;line-height:1.7;">Dear ${registration.fullName},</p>
+         <p style="color:#374151;font-size:15px;line-height:1.7;">Thank you for registering for Foundation Classes. We're excited to have you join us on this journey of faith. Your registration is being reviewed and we'll be in touch soon with confirmation.</p>
+         ${detailBlock([
+           ["Name", registration.fullName],
+           ["Preferred Session", registration.preferredSession],
+           ["Registration Date", formatDate(registration.registrationDate)],
+         ])}
+         <p style="color:#374151;font-size:15px;line-height:1.7;">In the meantime, feel free to bring a Bible, a notebook, and a pen to your first session.</p>
+         <p style="color:#374151;font-size:15px;line-height:1.7;">God bless,<br><strong>Victory Bible Church</strong></p>`
       ),
     });
 
-    // Email to admin
     await sendEmail({
       to: process.env.ADMIN_EMAIL || "admin@victorybiblechurch.org",
       subject: `New Foundation Registration: ${registration.fullName}`,
-      text: `
-A new Foundation Classes registration has been submitted.
-
-Registrant Details:
-- Name: ${registration.fullName}
-- Email: ${registration.email}
-- Phone: ${registration.phone}
-- Preferred Session: ${registration.preferredSession}
-- Registration Date: ${formatDate(registration.registrationDate)}
-${registration.questions ? `- Questions/Requests: ${registration.questions}` : ""}
-
-Please review this registration in the admin dashboard.
-      `,
+      text: `New Foundation Classes registration from ${registration.fullName}.`,
       html: createEmailTemplate(
-        "New Foundation Classes Registration",
-        EMAIL_COLORS.secondary,
-        `
-    <p>Dear Admin,</p>
-    
-    <p>A new Foundation Classes registration has been submitted.</p>
-
-    <div style="background-color: ${EMAIL_COLORS.background}; padding: 15px; border-radius: 5px; margin: 20px 0;">
-      <h3 style="margin-top: 0;">Registrant Details:</h3>
-      <ul>
-        <li><strong>Name:</strong> ${registration.fullName}</li>
-        <li><strong>Email:</strong> ${registration.email}</li>
-        <li><strong>Phone:</strong> ${registration.phone}</li>
-        <li><strong>Preferred Session:</strong> ${registration.preferredSession}</li>
-        <li><strong>Registration Date:</strong> ${formatDate(registration.registrationDate)}</li>
-        ${registration.questions ? `<li><strong>Questions/Requests:</strong> ${registration.questions}</li>` : ""}
-      </ul>
-    </div>
-
-    <p style="text-align: center; margin: 30px 0;">
-      <a href="${process.env.ADMIN_URL || "https://admin.victorybiblechurch.org"}/foundation-classes/registrations" 
-         style="background-color: ${EMAIL_COLORS.secondary}; color: ${EMAIL_COLORS.white}; padding: 12px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
-        Review in Admin Dashboard
-      </a>
-    </p>
-        `,
+        "New Foundation Registration",
+        BRAND.red,
+        `<p style="color:#374151;font-size:15px;line-height:1.7;">A new Foundation Classes registration has been submitted.</p>
+         ${detailBlock([
+           ["Name", registration.fullName],
+           ["Email", registration.email],
+           ["Phone", registration.phone],
+           ["Preferred Session", registration.preferredSession],
+           ["Registration Date", formatDate(registration.registrationDate)],
+           ...(registration.questions ? [["Questions", registration.questions]] : []),
+         ])}
+         <p style="text-align:center;margin:28px 0;">
+           <a href="${process.env.ADMIN_URL || "https://victorybiblechurch.org/admin"}/members?tab=foundation"
+              style="background:${BRAND.red};color:${BRAND.white};padding:12px 24px;text-decoration:none;border-radius:2px;font-size:14px;font-weight:600;display:inline-block;">
+             Review in Admin Dashboard
+           </a>
+         </p>`
       ),
     });
-
-    console.log("Foundation classes registration emails sent successfully");
   } catch (error) {
-    console.error(
-      "Error sending foundation classes registration emails:",
-      error,
-    );
+    console.error("Error sending foundation class registration emails:", error);
   }
 };
 
-/**
- * Send membership approval notification email
- * @param {Object} renewal - Approved membership renewal data
- */
+// ─── Membership approval (admin-triggered) ───────────────────────────────────
+
 const sendMembershipApprovalEmail = async (renewal) => {
-  // Input validation
-  if (!renewal || !renewal.email || !renewal.fullName) {
-    throw new Error(
-      "Missing required renewal data: email and fullName are required",
-    );
+  if (!renewal?.email || !renewal?.fullName) {
+    throw new Error("Missing required renewal data");
   }
 
   try {
-    // Email to member
     await sendEmail({
       to: renewal.email,
-      subject:
-        "Your Membership Renewal Has Been Approved - Victory Bible Church",
-      text: `
-Dear ${renewal.fullName},
-
-We are pleased to inform you that your membership renewal with Victory Bible Church has been reviewed and approved.
-
-** THIS IS A MEMBERSHIP RENEWAL CONFIRMATION FOR EXISTING MEMBERS **
-
-Your membership is now active and renewed for another year. Thank you for your continued commitment to our church community.
-
-Membership Details:
-- Name: ${renewal.fullName}
-- Member Since: ${renewal.memberSince}
-- Renewal Date: ${new Date(renewal.renewalDate).toLocaleDateString()}
-- Status: Approved
-
-As a member, you have access to various ministry opportunities, events, and resources. We encourage you to stay connected and be an active part of our church family.
-
-If you have any questions about your membership or would like to get more involved, please contact our church office at (123) 456-7890 or email membership@vbc.info.
-
-Blessings,
-Victory Bible Church Team
-      `,
+      subject: "Your Membership Renewal Has Been Approved — Victory Bible Church",
+      text: `Dear ${renewal.fullName}, your membership renewal has been approved. Welcome back to the VBC family!`,
       html: createEmailTemplate(
-        "Membership Renewal Approved",
-        EMAIL_COLORS.success,
-        `
-    <p>Dear ${renewal.fullName},</p>
-
-    <p>We are pleased to inform you that your membership renewal with Victory Bible Church has been reviewed and <strong>approved</strong>.</p>
-
-    <div style="background-color: ${EMAIL_COLORS.lightBackground}; padding: 15px; border-radius: 5px; margin: 15px 0; border: 1px solid ${EMAIL_COLORS.border};">
-      <p style="font-weight: bold; color: ${EMAIL_COLORS.success}; margin: 0; text-align: center;">✓ MEMBERSHIP RENEWAL CONFIRMATION FOR EXISTING MEMBERS</p>
-    </div>
-
-    <p>Your membership is now active and renewed for another year. Thank you for your continued commitment to our church community.</p>
-
-    <div style="background-color: #ecfdf5; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid ${EMAIL_COLORS.success};">
-      <h3 style="margin-top: 0; color: ${EMAIL_COLORS.success};">Membership Details:</h3>
-      <ul>
-        <li><strong>Name:</strong> ${renewal.fullName}</li>
-        <li><strong>Member Since:</strong> ${renewal.memberSince}</li>
-        <li><strong>Renewal Date:</strong> ${formatDate(renewal.renewalDate)}</li>
-        <li><strong>Status:</strong> <span style="color: ${EMAIL_COLORS.success}; font-weight: bold;">Approved</span></li>
-      </ul>
-    </div>
-
-    <p>As a member, you have access to various ministry opportunities, events, and resources. We encourage you to stay connected and be an active part of our church family.</p>
-
-    <p>If you have any questions about your membership or would like to get more involved, please contact our church office at (123) 456-7890 or email <a href="mailto:membership@vbc.info" style="color: ${EMAIL_COLORS.primary};">membership@vbc.info</a>.</p>
-
-    <p>Blessings,<br>Victory Bible Church Team</p>
-        `,
+        "Membership Renewed",
+        BRAND.red,
+        `<p style="color:#374151;font-size:15px;line-height:1.7;">Dear ${renewal.fullName},</p>
+         <p style="color:#374151;font-size:15px;line-height:1.7;">Great news — your membership renewal with Victory Bible Church has been <strong>approved</strong>. Thank you for your continued commitment to our community.</p>
+         ${detailBlock([
+           ["Name", renewal.fullName],
+           ["Member Since", renewal.memberSince],
+           ["Renewal Date", formatDate(renewal.renewalDate)],
+           ["Status", "✓ Approved"],
+         ])}
+         <p style="color:#374151;font-size:15px;line-height:1.7;">We encourage you to stay connected and be an active part of our church family. There are many ways to serve and grow — reach out to our office if you'd like to get more involved.</p>
+         <p style="color:#374151;font-size:15px;line-height:1.7;">God bless you,<br><strong>Victory Bible Church</strong></p>`
       ),
     });
-
-    console.log("Membership approval email sent successfully");
   } catch (error) {
     console.error("Error sending membership approval email:", error);
-    // Don't throw the error - we don't want to break the API if email fails
   }
 };
 
-/**
- * Send foundation class completion notification email
- * @param {Object} registration - Completed foundation class registration data
- */
+// ─── Foundation class completion (admin-triggered) ───────────────────────────
+
 const sendFoundationClassCompletionEmail = async (registration) => {
-  // Input validation
-  if (!registration || !registration.email || !registration.fullName) {
-    throw new Error(
-      "Missing required registration data: email and fullName are required",
-    );
+  if (!registration?.email || !registration?.fullName) {
+    throw new Error("Missing required registration data");
   }
 
   try {
-    // Email to member
     await sendEmail({
       to: registration.email,
-      subject:
-        "Congratulations on Completing Foundation Classes - Welcome to Church Membership!",
-      text: `
-Dear ${registration.fullName},
-
-Congratulations! We're thrilled to inform you that you have successfully completed all of your Foundation Classes at Victory Bible Church.
-
-*** NEW MEMBER CONFIRMATION - FOUNDATION CLASS GRADUATE ***
-
-This marks an important milestone in your journey of faith, and we are pleased to welcome you as an official member of our church family!
-
-As a church member, you now have the opportunity to:
-- Participate in church decision meetings
-- Serve in various ministry areas
-- Access member-specific resources and support
-- Become more deeply connected to our church community
-
-We encourage you to prayerfully consider how God might be calling you to serve and grow within our church family.
-
-If you have any questions about next steps or how to get involved, please don't hesitate to reach out to our church office.
-
-Welcome to the family!
-
-In Christ,
-Victory Bible Church Team
-      `,
+      subject: "Congratulations — You've Completed Foundation Classes!",
+      text: `Dear ${registration.fullName}, congratulations on completing Foundation Classes. Welcome to the VBC family!`,
       html: createEmailTemplate(
-        "Welcome to Church Membership!",
-        EMAIL_COLORS.info,
-        `
-    <p>Dear ${registration.fullName},</p>
-
-    <p><strong>Congratulations!</strong> We're thrilled to inform you that you have successfully completed all of your Foundation Classes at Victory Bible Church.</p>
-
-    <div style="background-color: #eff6ff; padding: 15px; border-radius: 5px; margin: 15px 0; border: 1px solid #bfdbfe;">
-      <p style="font-weight: bold; color: ${EMAIL_COLORS.info}; margin-top: 0; text-align: center;">🎓 NEW MEMBER CONFIRMATION - FOUNDATION CLASS GRADUATE</p>
-      <p style="margin-bottom: 0;">This marks an important milestone in your journey of faith, and we are pleased to welcome you as an <strong>official member</strong> of our church family!</p>
-    </div>
-
-    <p>As a church member, you now have the opportunity to:</p>
-    <ul>
-      <li>Participate in church decision meetings</li>
-      <li>Serve in various ministry areas</li>
-      <li>Access member-specific resources and support</li>
-      <li>Become more deeply connected to our church community</li>
-    </ul>
-
-    <p>We encourage you to prayerfully consider how God might be calling you to serve and grow within our church family.</p>
-
-    <p>If you have any questions about next steps or how to get involved, please don't hesitate to reach out to our church office.</p>
-
-    <p><strong>Welcome to the family!</strong></p>
-
-    <p>In Christ,<br>Victory Bible Church Team</p>
-        `,
+        "Welcome to the Family",
+        BRAND.red,
+        `<p style="color:#374151;font-size:15px;line-height:1.7;">Dear ${registration.fullName},</p>
+         <p style="color:#374151;font-size:15px;line-height:1.7;"><strong>Congratulations!</strong> You have successfully completed all Foundation Classes at Victory Bible Church. This is a significant milestone in your faith journey and we are truly proud of your commitment.</p>
+         <div style="border-left:3px solid ${BRAND.red};background:#fef2f2;padding:16px 20px;margin:20px 0;border-radius:0 4px 4px 0;">
+           <p style="margin:0;color:#991b1b;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">New Member Confirmed</p>
+           <p style="margin:8px 0 0;color:#374151;font-size:14px;">You are now an official member of Victory Bible Church.</p>
+         </div>
+         <p style="color:#374151;font-size:15px;line-height:1.7;">As a member, you are invited to:</p>
+         <ul style="color:#374151;font-size:15px;line-height:1.9;padding-left:20px;">
+           <li>Participate in church decision meetings</li>
+           <li>Serve in ministry areas that match your gifts</li>
+           <li>Access member-specific resources and support</li>
+           <li>Grow deeper in community with the VBC family</li>
+         </ul>
+         <p style="color:#374151;font-size:15px;line-height:1.7;">Reach out to our office anytime — we're here to walk this journey with you.</p>
+         <p style="color:#374151;font-size:15px;line-height:1.7;">In Christ,<br><strong>Victory Bible Church</strong></p>`
       ),
     });
-
-    console.log("Foundation class completion email sent successfully");
   } catch (error) {
     console.error("Error sending foundation class completion email:", error);
-    // Don't throw the error - we don't want to break the API if email fails
   }
 };
 
-/**
- * Send cell group join request emails
- * @param {Object} request - Cell group join request data
- * @param {Object} cellGroup - Cell group data
- */
+// ─── Cell group join request ─────────────────────────────────────────────────
+
 const sendCellGroupJoinRequestEmails = async (request, cellGroup) => {
-  // Input validation
-  if (!request || !request.email || !request.name) {
-    throw new Error(
-      "Missing required request data: email and name are required",
-    );
+  if (!request?.email || !request?.name) {
+    throw new Error("Missing required request data: email and name are required");
   }
-  if (!cellGroup || !cellGroup.name || !cellGroup.leader) {
-    throw new Error(
-      "Missing required cell group data: name and leader are required",
-    );
+  if (!cellGroup?.name || !cellGroup?.leader) {
+    throw new Error("Missing required cell group data: name and leader are required");
   }
 
   try {
-    // Email to the person who wants to join
     await sendEmail({
       to: request.email,
-      subject: "Cell Group Join Request Confirmation - Victory Bible Church",
-      text: `
-Dear ${request.name},
-
-Thank you for your interest in joining the "${cellGroup.name}" cell group. Your request has been received and is being processed.
-
-Request Details:
-- Cell Group: ${cellGroup.name}
-- Leader: ${cellGroup.leader}
-- Meeting Day: ${cellGroup.meetingDay || "Not specified"}
-- Meeting Time: ${cellGroup.meetingTime || "Not specified"}
-- Location: ${cellGroup.location}
-
-The cell group leader will contact you soon with more information. If you have any questions in the meantime, please contact our church office.
-
-Blessings,
-Victory Bible Church Team
-      `,
+      subject: `Cell Group Join Request Received — ${cellGroup.name}`,
+      text: `Dear ${request.name}, your request to join ${cellGroup.name} has been received.`,
       html: createEmailTemplate(
-        "Cell Group Join Request Confirmation",
-        EMAIL_COLORS.primary,
-        `
-    <p>Dear ${request.name},</p>
-
-    <p>Thank you for your interest in joining the "${cellGroup.name}" cell group. Your request has been received and is being processed.</p>
-
-    <div style="background-color: ${EMAIL_COLORS.background}; padding: 15px; border-radius: 5px; margin: 20px 0;">
-      <h3 style="margin-top: 0;">Request Details:</h3>
-      <ul>
-        <li><strong>Cell Group:</strong> ${cellGroup.name}</li>
-        <li><strong>Leader:</strong> ${cellGroup.leader}</li>
-        <li><strong>Meeting Day:</strong> ${cellGroup.meetingDay || "Not specified"}</li>
-        <li><strong>Meeting Time:</strong> ${cellGroup.meetingTime || "Not specified"}</li>
-        <li><strong>Location:</strong> ${cellGroup.location}</li>
-      </ul>
-    </div>
-
-    <p>The cell group leader will contact you soon with more information. If you have any questions in the meantime, please contact our church office.</p>
-
-    <p>Blessings,<br>Victory Bible Church Team</p>
-        `,
+        "Join Request Received",
+        BRAND.red,
+        `<p style="color:#374151;font-size:15px;line-height:1.7;">Dear ${request.name},</p>
+         <p style="color:#374151;font-size:15px;line-height:1.7;">Thank you for your interest in joining the <strong>${cellGroup.name}</strong> cell group. Your request has been received and the group leader will be in touch with you shortly.</p>
+         ${detailBlock([
+           ["Cell Group", cellGroup.name],
+           ["Leader", cellGroup.leader],
+           ["Meeting Day", cellGroup.meetingDay || "Contact leader for details"],
+           ["Meeting Time", cellGroup.meetingTime || "Contact leader for details"],
+           ["Location", cellGroup.location],
+         ])}
+         <p style="color:#374151;font-size:15px;line-height:1.7;">God bless,<br><strong>Victory Bible Church</strong></p>`
       ),
     });
 
-    // Email to the cell group leader
     await sendEmail({
-      to:
-        cellGroup.leaderContact ||
-        process.env.ADMIN_EMAIL ||
-        "admin@victorybiblechurch.org",
-      subject: "New Cell Group Join Request - Victory Bible Church",
-      text: `
-Dear ${cellGroup.leader},
-
-A new request to join your cell group has been submitted.
-
-Join Request Details:
-- Name: ${request.name}
-- Email: ${request.email}
-- Phone: ${request.phone}
-${request.whatsapp ? `- WhatsApp: ${request.whatsapp}` : ""}
-${request.message ? `- Message: ${request.message}` : ""}
-
-Cell Group:
-- Name: ${cellGroup.name}
-- Location: ${cellGroup.location}
-
-Please contact this person soon to welcome them and provide more information about your cell group.
-
-Blessings,
-Victory Bible Church Team
-      `,
+      to: cellGroup.leaderContact || process.env.ADMIN_EMAIL || "admin@victorybiblechurch.org",
+      subject: `New Join Request for ${cellGroup.name}`,
+      text: `${request.name} has requested to join your cell group.`,
       html: createEmailTemplate(
         "New Cell Group Join Request",
-        EMAIL_COLORS.primary,
-        `
-    <p>Dear ${cellGroup.leader},</p>
-
-    <p>A new request to join your cell group has been submitted.</p>
-
-    <div style="background-color: ${EMAIL_COLORS.background}; padding: 15px; border-radius: 5px; margin: 20px 0;">
-      <h3 style="margin-top: 0;">Join Request Details:</h3>
-      <ul>
-        <li><strong>Name:</strong> ${request.name}</li>
-        <li><strong>Email:</strong> ${request.email}</li>
-        <li><strong>Phone:</strong> ${request.phone}</li>
-        ${request.whatsapp ? `<li><strong>WhatsApp:</strong> ${request.whatsapp}</li>` : ""}
-        ${request.message ? `<li><strong>Message:</strong> ${request.message}</li>` : ""}
-      </ul>
-    </div>
-
-    <div style="background-color: #e0e7ff; padding: 15px; border-radius: 5px; margin: 20px 0;">
-      <h3 style="margin-top: 0; color: ${EMAIL_COLORS.primary};">Cell Group:</h3>
-      <ul>
-        <li><strong>Name:</strong> ${cellGroup.name}</li>
-        <li><strong>Location:</strong> ${cellGroup.location}</li>
-      </ul>
-    </div>
-
-    <p>Please contact this person soon to welcome them and provide more information about your cell group.</p>
-
-    <p>Blessings,<br>Victory Bible Church Team</p>
-        `,
+        BRAND.red,
+        `<p style="color:#374151;font-size:15px;line-height:1.7;">Dear ${cellGroup.leader},</p>
+         <p style="color:#374151;font-size:15px;line-height:1.7;">Someone has requested to join your cell group <strong>${cellGroup.name}</strong>. Please reach out to them soon.</p>
+         ${detailBlock([
+           ["Name", request.name],
+           ["Email", request.email],
+           ["Phone", request.phone],
+           ...(request.whatsapp ? [["WhatsApp", request.whatsapp]] : []),
+           ...(request.message ? [["Message", request.message]] : []),
+         ])}
+         <p style="color:#374151;font-size:15px;line-height:1.7;">God bless,<br><strong>Victory Bible Church</strong></p>`
       ),
     });
-
-    console.log("Cell group join request emails sent successfully");
   } catch (error) {
     console.error("Error sending cell group join request emails:", error);
-    // Don't throw the error - we don't want to break the API if email fails
   }
 };
 
-/**
- * Send support request email to admin
- * @param {Object} supportData - Support request data
- */
+// ─── Support request ─────────────────────────────────────────────────────────
+
 const sendSupportRequestEmail = async (supportData) => {
-  if (
-    !supportData ||
-    !supportData.name ||
-    !supportData.email ||
-    !supportData.subject ||
-    !supportData.message
-  ) {
+  if (!supportData?.name || !supportData?.email || !supportData?.subject || !supportData?.message) {
     throw new Error("Missing required support request data");
   }
 
   const { name, email, subject, message, priority = "medium" } = supportData;
 
-  try {
-    await sendEmail({
-      to: process.env.ADMIN_EMAIL || "watu.matuze@gmail.com",
-      subject: `Support Request: ${subject} (${priority} priority)`,
-      text: `
-Support Request from Admin Portal
+  const priorityColor = {
+    urgent: "#dc2626",
+    high: "#ea580c",
+    medium: "#0284c7",
+    low: "#059669",
+  }[priority] || "#0284c7";
 
-From: ${name} (${email})
-Priority: ${priority}
-
-Message:
-${message}
-
----
-This message was sent from the Victory Bible Church CMS Support Form.
-      `,
-      html: createEmailTemplate(
-        "Support Request from Admin Portal",
-        EMAIL_COLORS.info,
-        `
-    <p><strong>From:</strong> ${name} (${email})</p>
-    <p><strong>Priority:</strong> <span style="color: ${priority === "urgent" ? "#dc2626" : priority === "high" ? "#ea580c" : priority === "medium" ? "#0284c7" : "#059669"};">${priority}</span></p>
-    <p><strong>Subject:</strong> ${subject}</p>
-
-    <div style="background-color: ${EMAIL_COLORS.background}; padding: 15px; border-radius: 5px; margin: 20px 0;">
-      <p><strong>Message:</strong></p>
-      <p>${message.replace(/\n/g, "<br>")}</p>
-    </div>
-
-    <p style="font-size: 12px; color: ${EMAIL_COLORS.textMuted}; margin-top: 30px; padding-top: 10px; border-top: 1px solid ${EMAIL_COLORS.border};">
-      This message was sent from the Victory Bible Church CMS Support Form.
-    </p>
-        `,
-      ),
-    });
-
-    console.log("Support request email sent successfully");
-  } catch (error) {
-    console.error("Error sending support request email:", error);
-    throw error; // Re-throw for API to handle
-  }
+  await sendEmail({
+    to: process.env.ADMIN_EMAIL || "admin@victorybiblechurch.org",
+    subject: `[${priority.toUpperCase()}] Support: ${subject}`,
+    text: `From: ${name} (${email})\n\n${message}`,
+    html: createEmailTemplate(
+      "Support Request",
+      priorityColor,
+      `<p style="color:#374151;font-size:15px;line-height:1.7;"><strong>From:</strong> ${name} (<a href="mailto:${email}" style="color:${BRAND.red};">${email}</a>)</p>
+       <p style="color:#374151;font-size:15px;line-height:1.7;"><strong>Priority:</strong> <span style="color:${priorityColor};font-weight:600;text-transform:uppercase;">${priority}</span></p>
+       <p style="color:#374151;font-size:15px;line-height:1.7;"><strong>Subject:</strong> ${subject}</p>
+       <div style="background:${BRAND.lightBg};border:1px solid ${BRAND.border};padding:16px 20px;margin:20px 0;border-radius:4px;">
+         <p style="margin:0;color:#374151;font-size:14px;line-height:1.7;">${message.replace(/\n/g, "<br>")}</p>
+       </div>`
+    ),
+  });
 };
 
 module.exports = {

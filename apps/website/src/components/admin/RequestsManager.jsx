@@ -264,14 +264,27 @@ const RequestsManager = () => {
 
       await RequestsService.updateDiscipleshipStatus(id, newStatus);
 
-      // Update the local state
       setDiscipleshipRegistrations(prev =>
         prev.map(registration =>
-          registration._id === id 
+          registration._id === id
             ? { ...registration, status: newStatus }
             : registration
         )
       );
+
+      // Send notification emails on approve/reject
+      const registration = discipleshipRegistrations.find(r => r._id === id);
+      if (registration) {
+        try {
+          if (newStatus === "approved") {
+            await NotificationService.sendDiscipleshipApprovalNotification(registration);
+          } else if (newStatus === "rejected") {
+            await NotificationService.sendDiscipleshipRejectedNotification(registration);
+          }
+        } catch {
+          // Notification failure should not block the status update
+        }
+      }
 
       toast.success(`Discipleship registration ${newStatus} successfully`);
     } catch (err) {
@@ -283,6 +296,34 @@ const RequestsManager = () => {
     } finally {
       setActionLoading(false);
     }
+  };
+
+  // Delete a discipleship registration
+  const deleteDiscipleshipRegistration = async (registration) => {
+    setConfirmModalProps({
+      title: "Confirm Deletion",
+      message: `Are you sure you want to delete ${registration.fullName}'s discipleship registration? This action cannot be undone.`,
+      onConfirm: async () => {
+        try {
+          setActionLoading(true);
+          await RequestsService.deleteDiscipleshipRegistration(registration._id);
+          setDiscipleshipRegistrations(prev => prev.filter(r => r._id !== registration._id));
+          toast.success(`${registration.fullName}'s discipleship registration has been deleted.`);
+          if (selectedDiscipleshipRegistration && selectedDiscipleshipRegistration._id === registration._id) {
+            setShowDiscipleshipDetails(false);
+            setSelectedDiscipleshipRegistration(null);
+          }
+        } catch (err) {
+          console.error("Error deleting discipleship registration:", err);
+          const errorMessage = err.response?.data?.error || "Failed to delete registration. Please try again.";
+          toast.error(`Delete failed: ${errorMessage}`);
+        } finally {
+          setActionLoading(false);
+          setShowConfirmModal(false);
+        }
+      },
+    });
+    setShowConfirmModal(true);
   };
 
   // Handle event signup request status change
@@ -905,6 +946,7 @@ const RequestsManager = () => {
             onViewDetails={viewDiscipleshipDetails}
             onApprove={(id, status = "approved") => handleDiscipleshipStatusChange(id, status)}
             onReject={(id) => handleDiscipleshipStatusChange(id, "rejected")}
+            onDelete={deleteDiscipleshipRegistration}
             actionLoading={actionLoading}
           />
         )}

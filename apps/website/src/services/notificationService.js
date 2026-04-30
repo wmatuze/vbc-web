@@ -235,6 +235,78 @@ class NotificationService {
   }
 
   /**
+   * Send a discipleship registration approved notification
+   * @param {Object} registration - The registration object
+   * @returns {Promise}
+   */
+  static async sendDiscipleshipApprovalNotification(registration) {
+    try {
+      const token = getAuthToken();
+      const response = await axios.post(
+        `${getApiUrl()}/api/notifications/send`,
+        {
+          type: "discipleship_registration_approved",
+          recipient: {
+            email: registration.email,
+            phone: registration.phone,
+            name: registration.fullName,
+          },
+          data: {
+            className: registration.classId?.title || "Discipleship Class",
+            level: registration.classId?.level || "",
+            preferredSession: registration.preferredSession || "",
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Failed to send discipleship approval notification:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send a discipleship registration rejected notification
+   * @param {Object} registration - The registration object
+   * @returns {Promise}
+   */
+  static async sendDiscipleshipRejectedNotification(registration) {
+    try {
+      const token = getAuthToken();
+      const response = await axios.post(
+        `${getApiUrl()}/api/notifications/send`,
+        {
+          type: "discipleship_registration_rejected",
+          recipient: {
+            email: registration.email,
+            phone: registration.phone,
+            name: registration.fullName,
+          },
+          data: {
+            className: registration.classId?.title || "Discipleship Class",
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Failed to send discipleship rejected notification:", error);
+      throw error;
+    }
+  }
+
+  /**
    * Send an event signup request approval notification
    * @param {Object} request - The signup request object with contact details
    * @returns {Promise} - Promise that resolves when notification is sent

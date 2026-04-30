@@ -6,6 +6,7 @@ import {
   ClockIcon,
   UserGroupIcon,
   CalendarIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline";
 
 const statusConfig = {
@@ -24,7 +25,7 @@ const formatDate = (dateString) =>
     day: "numeric",
   });
 
-const DiscipleshipTab = ({ registrations, onViewDetails, onApprove, onReject, actionLoading }) => {
+const DiscipleshipTab = ({ registrations, onViewDetails, onApprove, onReject, onDelete, actionLoading }) => {
   if (!registrations?.length) {
     return (
       <div className="text-center py-16">
@@ -145,6 +146,15 @@ const DiscipleshipTab = ({ registrations, onViewDetails, onApprove, onReject, ac
                     Mark Completed
                   </button>
                 )}
+
+                <button
+                  onClick={() => onDelete(reg)}
+                  disabled={actionLoading}
+                  className="inline-flex items-center p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md disabled:opacity-50 transition-colors"
+                  title="Delete registration"
+                >
+                  <TrashIcon className="h-3.5 w-3.5" />
+                </button>
               </div>
             </div>
           </div>

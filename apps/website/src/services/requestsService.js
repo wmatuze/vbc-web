@@ -438,6 +438,25 @@ class RequestsService {
   }
 
   /**
+   * Delete a discipleship registration
+   * @param {String} id - The registration ID
+   * @returns {Promise} Promise that resolves when deleted
+   */
+  static async deleteDiscipleshipRegistration(id) {
+    try {
+      const axios = this.getAxiosInstance();
+      const response = await axios.delete(
+        `/api/discipleship/registrations/${id}`,
+        { headers: getAuthHeaders() }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Failed to delete discipleship registration:", error);
+      throw error;
+    }
+  }
+
+  /**
    * Get a single discipleship registration by ID
    * @param {String} id - The registration ID
    * @returns {Promise} Promise that resolves to registration data
