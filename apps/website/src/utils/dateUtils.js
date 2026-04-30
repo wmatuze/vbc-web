@@ -77,11 +77,10 @@ export const prepareEventForAPI = (event) => {
     time: cleanEvent.time || '',
     location: cleanEvent.location || '',
     ministry: cleanEvent.ministry || '',
-    // Add server model fields with proper Date objects
+    // Server model fields with proper Date objects
     startDate: dateData.startDate,
     endDate: dateData.endDate,
-    // Optional fields with defaults
-    capacity: cleanEvent.capacity || '',
+    // Optional string/boolean fields
     registrationUrl: cleanEvent.registrationUrl || '',
     recurring: cleanEvent.recurring || false,
     recurringPattern: cleanEvent.recurringPattern || '',
@@ -91,8 +90,23 @@ export const prepareEventForAPI = (event) => {
     tags: cleanEvent.tags || [],
     type: cleanEvent.type || 'event',
     signupRequired: cleanEvent.signupRequired || false,
+    signupMode: cleanEvent.signupMode || 'none',
   };
-  
+
+  // Only include capacity if it's a valid positive number — empty string causes a Mongoose CastError
+  const parsedCapacity = parseInt(cleanEvent.capacity, 10);
+  if (!isNaN(parsedCapacity) && parsedCapacity > 0) {
+    serverEvent.capacity = parsedCapacity;
+  }
+
+  // Only include signupDeadline if it's a non-empty value that parses to a valid date
+  if (cleanEvent.signupDeadline) {
+    const dl = new Date(cleanEvent.signupDeadline);
+    if (!isNaN(dl.getTime())) {
+      serverEvent.signupDeadline = dl;
+    }
+  }
+
   // Handle image paths properly
   if (cleanEvent.image && typeof cleanEvent.image === 'object') {
     // If we have an image object from the media selector
