@@ -1,585 +1,315 @@
-import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import React from "react";
 import { Link } from "react-router-dom";
-import { Helmet } from "react-helmet-async"; // For SEO meta tags
-// Removed unused image imports - now using consistent hero background
+import { Helmet } from "react-helmet-async";
 import {
-  Handshake,
-  Globe,
-  Users,
-  Building2,
-  Sparkles,
-  Heart,
-  ArrowRight,
+  HandshakeIcon,
+  GlobeIcon,
+  UsersIcon,
+  BuildingIcon,
+  ArrowRightIcon,
+  HeartIcon,
 } from "lucide-react";
 import HeroSection from "../components/common/HeroSection";
 
-// --- Data ---
-const missionProjects = [
+// ─── Data ────────────────────────────────────────────────────────────────────
+
+const AREAS = [
   {
+    num: "01",
+    Icon: HandshakeIcon,
     title: "Local Community Outreach",
-    description:
-      "Providing food, shelter, and support to those in need within our community. Our local outreach programs focus on meeting immediate needs while sharing the love of Christ.",
-    detailedDescription:
-      "Our local outreach initiatives include food distribution programs, homeless shelter support, after-school tutoring, and emergency assistance for families in crisis. We partner with local organizations to maximize our impact and reach those most in need.",
-    image: "/images/mission-local.jpg",
-    altText: "Volunteers serving food in our local community.",
-    link: "/missions/local-outreach",
-    icon: <Handshake />,
-    howToHelp: [
-      "Volunteer at our monthly food drives",
+    body: "Food distribution, shelter support, after-school tutoring, and emergency assistance for families in crisis — meeting immediate needs while sharing the love of Christ.",
+    help: [
+      "Volunteer at monthly food drives",
       "Donate non-perishable food items",
-      "Contribute to our emergency assistance fund",
-      "Mentor youth in our after-school programs",
+      "Contribute to the emergency assistance fund",
+      "Mentor youth in after-school programmes",
     ],
   },
   {
+    num: "02",
+    Icon: GlobeIcon,
     title: "Global Missions",
-    description:
-      "Spreading the message of Christ through international mission trips and supporting missionaries around the world who are sharing the Gospel.",
-    detailedDescription:
-      "Our global missions focus on evangelism, discipleship, and humanitarian aid in regions where the Gospel is needed most. We send short-term mission teams annually and support long-term missionaries who are establishing sustainable ministry in various nations.",
-    image: "/images/mission-global.jpg",
-    altText: "Missionaries sharing the Gospel around the world.",
-    link: "/missions/global",
-    icon: <Globe />,
-    howToHelp: [
+    body: "Short-term mission teams, long-term missionary support, and humanitarian aid in regions where the Gospel is needed most. We send. We sustain.",
+    help: [
       "Join a short-term mission trip",
       "Sponsor a missionary",
       "Participate in our prayer team",
-      "Donate to specific global projects",
+      "Give to specific global projects",
     ],
   },
   {
+    num: "03",
+    Icon: UsersIcon,
     title: "Youth Empowerment",
-    description:
-      "Training and equipping young people with leadership skills, biblical knowledge, and spiritual growth opportunities to impact their generation.",
-    detailedDescription:
-      "Our youth empowerment programs focus on developing the next generation of leaders through mentorship, biblical training, and practical leadership experiences. We believe in investing in young people and giving them opportunities to serve and lead.",
-    image: "/images/mission-youth.jpg",
-    altText: "Youth engaged in leadership and spiritual development.",
-    link: "/missions/youth",
-    icon: <Users />,
-    howToHelp: [
+    body: "Mentorship, biblical training, and practical leadership experiences for the next generation. We invest in young people and give them room to lead.",
+    help: [
       "Mentor a young person",
-      "Volunteer with youth programs",
+      "Volunteer with youth programmes",
       "Sponsor a youth for leadership training",
       "Provide internship opportunities",
     ],
   },
   {
+    num: "04",
+    Icon: BuildingIcon,
     title: "Church Planting",
-    description:
-      "Establishing new church communities to spread the Gospel in new areas and reach people with the life-changing message of Jesus Christ.",
-    detailedDescription:
-      "Our church planting initiatives focus on identifying, training, and supporting church planters who are called to establish new congregations. We provide resources, mentorship, and financial support to help these new churches become self-sustaining communities of faith.",
-    image: "/images/mission-church.jpg",
-    altText: "A newly planted church reaching a new community.",
-    link: "/missions/church-planting",
-    icon: <Building2 />,
-    howToHelp: [
+    body: "Identifying, training, and supporting church planters to establish new congregations. Resources, mentorship, and funding to help new churches become self-sustaining.",
+    help: [
       "Join a church planting team",
       "Provide financial support for new churches",
-      "Offer professional skills (accounting, legal, etc.)",
-      "Pray for church planters and new congregations",
+      "Offer professional skills (legal, accounting)",
+      "Pray for planters and new congregations",
     ],
   },
 ];
 
-const testimonials = [
+const TESTIMONIALS = [
   {
-    quote:
-      "Participating in the local outreach program opened my eyes to the needs in our own community. Serving alongside fellow believers to meet these needs has strengthened my faith and given me a deeper understanding of Christ's love in action.",
+    quote: "Serving alongside fellow believers to meet needs in our own community has strengthened my faith and given me a deeper understanding of Christ's love in action.",
     author: "Watu M.",
-    authorTitle: "Local Outreach Volunteer",
-    image: "/images/testimonial-watu.jpg",
-    project: "Local Community Outreach",
+    role: "Local Outreach Volunteer",
   },
   {
-    quote:
-      "Our mission trip to East Africa was transformative. We helped build a school and witnessed several people come to Christ. The relationships we formed continue to this day, and I'm grateful for how God used our team to make an eternal impact.",
+    quote: "Our mission trip to East Africa was transformative. We helped build a school and witnessed several people come to Christ. The relationships we formed continue to this day.",
     author: "Sarah J.",
-    authorTitle: "Global Missions Team Member",
-    image: "/images/testimonial-john.jpg",
-    project: "Global Missions",
+    role: "Global Missions Team",
   },
   {
-    quote:
-      "Being mentored through the youth empowerment program gave me confidence in my faith and leadership abilities. Now I'm serving as a youth leader myself, passing on what I've learned to the next generation.",
+    quote: "Being mentored through the youth empowerment programme gave me confidence in my faith. Now I'm a youth leader myself, passing on what I've learned.",
     author: "Michael T.",
-    authorTitle: "Youth Leader",
-    image: "/images/testimonial-jane.jpg",
-    project: "Youth Empowerment",
+    role: "Youth Leader",
   },
   {
-    quote:
-      "Supporting the church planting initiative has been one of the most rewarding experiences of my life. Seeing a new congregation form and grow, reaching people who might never have entered a traditional church, reminds me of the early church in Acts.",
+    quote: "Seeing a new congregation form and grow, reaching people who might never have entered a traditional church — it reminds me of the early church in Acts.",
     author: "Rebecca L.",
-    authorTitle: "Church Planting Supporter",
-    image: "/images/testimonial-john.jpg",
-    project: "Church Planting",
+    role: "Church Planting Supporter",
   },
 ];
 
-// --- Components ---
+// ─────────────────────────────────────────────────────────────────────────────
 
-const MissionCard = ({ mission, index }) => {
-  const [isImageLoaded, setIsImageLoaded] = useState(false); // Loading state for Mission Card Image
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-      className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow duration-300"
-    >
-      <div
-        className={`relative ${
-          !isImageLoaded ? "animate-pulse bg-gray-200 dark:bg-gray-700" : ""
-        }`}
-      >
-        <img
-          src={mission.image}
-          alt={mission.altText}
-          className="w-full h-64 object-cover object-center filter grayscale"
-          loading="lazy"
-          onLoad={() => setIsImageLoaded(true)}
-          onError={(e) => {
-            e.target.src = FallbackImage; // Fallback on image load error
-            setIsImageLoaded(true); // Ensure loading state is updated even on error
-          }}
-        />
-        <div className="absolute top-4 left-4 bg-black/70 p-3 rounded-full text-white">
-          {mission.icon}
-        </div>
-      </div>
-      <div className="p-6">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
-          {mission.title}
-        </h2>
-        <p className="text-gray-700 dark:text-gray-300 mb-4">
-          {mission.description}
-        </p>
-        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <Link
-            to={mission.link}
-            className="inline-flex items-center text-gray-900 dark:text-white font-medium hover:underline"
-          >
-            Learn More <FaArrowRight className="ml-2 text-sm" />
-          </Link>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
-// --- Call to Action ---
-const CallToAction = () => (
-  <section className="py-32 bg-black text-white">
-    <div className="container mx-auto px-4">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center max-w-6xl mx-auto">
-        <div>
-          <h2 className="text-5xl font-bold mb-8 leading-tight">
-            Join Our Mission
-          </h2>
-          <p className="text-xl mb-10 font-light leading-relaxed">
-            Support our missions and make a difference in the lives of people
-            around the world. Whether through prayer, financial support, or
-            hands-on service, your involvement matters.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-6">
-            <Link
-              to="/donate"
-              className="bg-white text-black px-8 py-4 font-semibold hover:bg-gray-100 transition-colors duration-300 inline-block text-center"
-            >
-              Donate Now
-            </Link>
-            <Link
-              to="/volunteer"
-              className="border-2 border-white text-white px-8 py-4 font-semibold hover:bg-white/10 transition-colors duration-300 inline-block text-center"
-            >
-              Volunteer
-            </Link>
-          </div>
-        </div>
-        <div className="border-l border-gray-800 pl-16 hidden lg:block">
-          <blockquote className="text-2xl italic font-light leading-relaxed">
-            "And how are they to preach unless they are sent? As it is written,
-            'How beautiful are the feet of those who preach the good news!'"
-          </blockquote>
-          <p className="text-gray-400 mt-6 text-lg">Romans 10:15</p>
-          <div className="mt-12 space-y-6">
-            <p className="flex items-center text-lg">
-              <Hands className="mr-4 text-gray-400" /> Pray for our missions
-            </p>
-            <p className="flex items-center text-lg">
-              <Heart className="mr-4 text-gray-400" /> Support a missionary
-            </p>
-            <p className="flex items-center text-lg">
-              <Users className="mr-4 text-gray-400" /> Join a mission team
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-);
-
-// --- Main Missions Component ---
-const Missions = () => {
-  const [isImageLoaded, setIsImageLoaded] = useState(false); // Loading state for Hero Image
-
-  return (
-    <div className="bg-gray-50 min-h-screen">
-      {/* SEO Meta Tags */}
-      <Helmet>
-        <title>Our Missions - Victory Bible Church</title>
-        <meta
-          name="description"
-          content="Discover the missions of Victory Bible Church. Learn about our local outreach, global missions, youth empowerment, and church planting initiatives."
-        />
-      </Helmet>
-
-      {/* Hero Section */}
-      <HeroSection
-        title="Our Missions"
-        subtitle="Our Missions"
-        description="Spreading the love of Christ through outreach, church planting, and humanitarian efforts around the world."
-        primaryAccentText="Missions"
-        scrollText="EXPLORE OUR MISSION"
-        backgroundImage="/assets/hero-bg.jpg"
+const Missions = () => (
+  <div className="bg-white">
+    <Helmet>
+      <title>Missions — Victory Bible Church</title>
+      <meta
+        name="description"
+        content="Victory Bible Church missions: local outreach, global evangelism, youth empowerment, and church planting. Discover how to get involved."
       />
+    </Helmet>
 
-      {/* Biblical Foundation Section */}
-      <section className="py-24 bg-white dark:bg-gray-900">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center mb-20">
-            <h2 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
-              Biblical Foundation
-            </h2>
-            <div className="w-16 h-0.5 bg-gray-900 dark:bg-white mx-auto mb-8"></div>
-            <p className="text-xl text-gray-700 dark:text-gray-300">
-              Our mission work is rooted in Scripture and motivated by Christ's
-              command to share the Gospel with all nations.
+    {/* ── Hero ──────────────────────────────────────────────────── */}
+    <HeroSection
+      subtitle="Missions"
+      title="Sent to the World"
+      description="Spreading the love of Christ through outreach, church planting, and humanitarian efforts — locally and around the world."
+      backgroundImage="/assets/hero-bg.jpg"
+      breadcrumbs={[{ label: "Home", path: "/" }, { label: "Missions" }]}
+    />
+
+    {/* ── The Call ──────────────────────────────────────────────── */}
+    <section className="bg-vbc-section py-28">
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+
+        {/* Left — typographic statement */}
+        <div>
+          <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-4">Our mandate</p>
+          <h2
+            className="font-black text-white leading-[0.88] mb-8"
+            style={{ fontSize: "clamp(3rem, 7vw, 5.5rem)" }}
+          >
+            GO.<br />
+            <span className="text-white/20">MAKE.</span><br />
+            DISCIPLES.
+          </h2>
+          <p className="text-white/50 text-sm leading-relaxed max-w-sm">
+            The Great Commission is not a suggestion — it is the organizing principle of everything we do as a church. It shapes our priorities and drives our decisions, from Kitwe to the ends of the earth.
+          </p>
+        </div>
+
+        {/* Right — scripture as typographic beats */}
+        <div className="border-l-2 border-brand-red pl-10">
+          <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-6">Matthew 28:19–20</p>
+          <div className="space-y-5">
+            <p className="text-white text-xl font-light leading-relaxed italic">
+              "Go therefore and make disciples of all nations,
             </p>
-          </div>
-
-          {/* Featured Scripture - Full Width */}
-          <div className="relative h-[400px] mb-24 overflow-hidden">
-            <div className="absolute inset-0 bg-black opacity-70"></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="max-w-3xl text-center px-6">
-                <p className="text-3xl md:text-4xl italic text-white font-light leading-relaxed mb-8">
-                  "Go therefore and make disciples of all nations, baptizing
-                  them in the name of the Father and of the Son and of the Holy
-                  Spirit, teaching them to observe all that I have commanded
-                  you. And behold, I am with you always, to the end of the age."
-                </p>
-                <p className="text-xl text-gray-300 font-medium">
-                  Matthew 28:19-20
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Two Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 max-w-6xl mx-auto">
-            <div>
-              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-                The Great Commission
-              </h3>
-              <div className="w-12 h-0.5 bg-gray-900 dark:bg-white mb-8"></div>
-              <p className="text-xl text-gray-700 dark:text-gray-300 leading-relaxed">
-                Jesus commanded His followers to go into all the world and make
-                disciples. This commission drives our mission efforts locally
-                and globally, as we seek to share the Gospel and make disciples
-                in every nation.
-              </p>
-              <p className="text-xl text-gray-700 dark:text-gray-300 leading-relaxed mt-6">
-                We believe that the Great Commission is not just a suggestion
-                but a mandate for all believers. It shapes our priorities,
-                guides our decisions, and motivates our actions as a church
-                community.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-                Acts 1:8 Strategy
-              </h3>
-              <div className="w-12 h-0.5 bg-gray-900 dark:bg-white mb-8"></div>
-              <p className="text-xl text-gray-700 dark:text-gray-300 leading-relaxed">
-                "But you will receive power when the Holy Spirit has come upon
-                you, and you will be my witnesses in Jerusalem and in all Judea
-                and Samaria, and to the end of the earth."
-              </p>
-              <p className="text-xl text-gray-700 dark:text-gray-300 leading-relaxed mt-6">
-                We follow this biblical model by reaching our local community
-                (our Jerusalem), our region (our Judea and Samaria), and the
-                nations (the ends of the earth). This strategic approach ensures
-                that we are fulfilling our mission at every level, from our
-                immediate neighborhood to the farthest corners of the globe.
-              </p>
-            </div>
+            <p className="text-white/60 text-lg font-light leading-relaxed italic">
+              baptizing them in the name of the Father and of the Son and of the Holy Spirit,
+            </p>
+            <p className="text-white text-xl font-light leading-relaxed italic">
+              teaching them to observe all that I have commanded you.
+            </p>
+            <p className="text-brand-red text-lg font-semibold leading-relaxed">
+              And behold, I am with you always, to the end of the age."
+            </p>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      {/* Missions Projects Section - CRSA Style */}
-      <section className="py-24">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center mb-20">
-            <h2 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
-              Our Mission Projects
-            </h2>
-            <div className="w-16 h-0.5 bg-gray-900 dark:bg-white mx-auto mb-8"></div>
-            <p className="text-xl text-gray-700 dark:text-gray-300">
-              Explore our key mission initiatives and discover how you can get
-              involved.
-            </p>
-          </div>
+    {/* ── Our Reach — Acts 1:8 Strategy ────────────────────────── */}
+    <section className="bg-white py-24">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="mb-14">
+          <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-3">Acts 1:8 Strategy</p>
+          <h2 className="text-4xl font-black text-gray-900 leading-tight">How we reach the world.</h2>
+        </div>
 
-          {/* Large Featured Project - First Row */}
-          <div className="mb-24">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div className="order-2 lg:order-1">
-                <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-                  {missionProjects[0].title}
-                </h3>
-                <p className="text-xl text-gray-700 dark:text-gray-300 mb-6">
-                  {missionProjects[0].detailedDescription}
-                </p>
-                <div className="mb-8">
-                  <h4 className="font-bold text-gray-900 dark:text-white mb-3">
-                    How you can help:
-                  </h4>
-                  <ul className="space-y-2">
-                    {missionProjects[0].howToHelp.map((item, i) => (
-                      <li key={i} className="flex items-start">
-                        <span className="text-gray-900 dark:text-white mr-2">
-                          •
-                        </span>
-                        <span className="text-gray-700 dark:text-gray-300">
-                          {item}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <Link
-                  to={missionProjects[0].link}
-                  className="inline-flex items-center text-gray-900 dark:text-white font-medium border-b border-gray-400 hover:border-gray-900 dark:hover:border-white transition-colors"
-                >
-                  Learn More <FaArrowRight className="ml-2 text-sm" />
-                </Link>
-              </div>
-              <div className="order-1 lg:order-2">
-                <div className="relative overflow-hidden h-[500px]">
-                  <img
-                    src={missionProjects[0].image}
-                    alt={missionProjects[0].altText}
-                    className="w-full h-full object-cover filter grayscale"
-                    onError={(e) => {
-                      e.target.src = FallbackImage;
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-black/10"></div>
-                  <div className="absolute top-6 left-6 bg-black/70 p-4 rounded-full text-white">
-                    {missionProjects[0].icon}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Second Row - Two Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 mb-24">
-            {/* Second Project */}
-            <div>
-              <div className="relative overflow-hidden h-[400px] mb-8">
-                <img
-                  src={missionProjects[1].image}
-                  alt={missionProjects[1].altText}
-                  className="w-full h-full object-cover filter grayscale"
-                  onError={(e) => {
-                    e.target.src = FallbackImage;
-                  }}
-                />
-                <div className="absolute inset-0 bg-black/10"></div>
-                <div className="absolute top-6 left-6 bg-black/70 p-4 rounded-full text-white">
-                  {missionProjects[1].icon}
-                </div>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                {missionProjects[1].title}
-              </h3>
-              <p className="text-gray-700 dark:text-gray-300 mb-6">
-                {missionProjects[1].detailedDescription}
-              </p>
-              <Link
-                to={missionProjects[1].link}
-                className="inline-flex items-center text-gray-900 dark:text-white font-medium border-b border-gray-400 hover:border-gray-900 dark:hover:border-white transition-colors"
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-gray-100">
+          {[
+            { num: "01", label: "Jerusalem", scope: "Our City", body: "We begin where we are. Kitwe is our Jerusalem — meeting needs, sharing the Gospel, and building community right here at home." },
+            { num: "02", label: "Judea & Samaria", scope: "Our Region", body: "Extending into Zambia and neighbouring nations, partnering with regional churches and organisations to multiply our impact." },
+            { num: "03", label: "Ends of the Earth", scope: "The World", body: "Short-term teams, long-term missionaries, and financial support reaching nations where the Gospel is most needed." },
+          ].map(({ num, label, scope, body }) => (
+            <div key={num} className="bg-white px-8 py-10 group relative overflow-hidden">
+              <p
+                className="absolute -bottom-4 -right-2 font-black text-gray-900 select-none leading-none pointer-events-none"
+                style={{ fontSize: "clamp(6rem, 10vw, 9rem)", opacity: 0.04 }}
               >
-                Learn More <FaArrowRight className="ml-2 text-sm" />
-              </Link>
-            </div>
-
-            {/* Third Project */}
-            <div>
-              <div className="relative overflow-hidden h-[400px] mb-8">
-                <img
-                  src={missionProjects[2].image}
-                  alt={missionProjects[2].altText}
-                  className="w-full h-full object-cover filter grayscale"
-                  onError={(e) => {
-                    e.target.src = FallbackImage;
-                  }}
-                />
-                <div className="absolute inset-0 bg-black/10"></div>
-                <div className="absolute top-6 left-6 bg-black/70 p-4 rounded-full text-white">
-                  {missionProjects[2].icon}
-                </div>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                {missionProjects[2].title}
-              </h3>
-              <p className="text-gray-700 dark:text-gray-300 mb-6">
-                {missionProjects[2].detailedDescription}
+                {num}
               </p>
-              <Link
-                to={missionProjects[2].link}
-                className="inline-flex items-center text-gray-900 dark:text-white font-medium border-b border-gray-400 hover:border-gray-900 dark:hover:border-white transition-colors"
-              >
-                Learn More <FaArrowRight className="ml-2 text-sm" />
-              </Link>
+              <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-1">{scope}</p>
+              <h3 className="text-2xl font-black text-gray-900 mb-4">{label}</h3>
+              <div className="w-8 h-0.5 bg-brand-red mb-5 group-hover:w-14 transition-all duration-300" />
+              <p className="text-gray-500 text-sm leading-relaxed">{body}</p>
             </div>
-          </div>
+          ))}
+        </div>
+      </div>
+    </section>
 
-          {/* Fourth Project - Full Width */}
-          <div>
-            <div className="relative overflow-hidden h-[500px] mb-8">
-              <img
-                src={missionProjects[3].image}
-                alt={missionProjects[3].altText}
-                className="w-full h-full object-cover filter grayscale"
-                onError={(e) => {
-                  e.target.src = FallbackImage;
-                }}
+    {/* ── Mission Areas ─────────────────────────────────────────── */}
+    <section className="bg-vbc-dark py-24">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="mb-14">
+          <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-3">What we do</p>
+          <h2 className="text-4xl font-black text-white leading-tight">Mission areas.</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/5">
+          {AREAS.map(({ num, Icon, title, body, help }) => (
+            <div key={num} className="bg-vbc-dark p-10 relative overflow-hidden group">
+              {/* Ghost icon */}
+              <Icon
+                className="absolute -bottom-4 -right-4 text-white pointer-events-none"
+                style={{ width: "8rem", height: "8rem", opacity: 0.04 }}
+                strokeWidth={1}
               />
-              <div className="absolute inset-0 bg-black/10"></div>
-              <div className="absolute top-6 left-6 bg-black/70 p-4 rounded-full text-white">
-                {missionProjects[3].icon}
+              <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-2">{num}</p>
+              <div className="w-8 h-0.5 bg-brand-red mb-5 group-hover:w-14 transition-all duration-300" />
+              <h3 className="text-xl font-black text-white mb-4">{title}</h3>
+              <p className="text-white/50 text-sm leading-relaxed mb-6">{body}</p>
+
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-white/30 mb-3">How to help</p>
+                <ul className="space-y-1.5">
+                  {help.map((item) => (
+                    <li key={item} className="flex items-start gap-2 text-xs text-white/50">
+                      <span className="text-brand-red mt-0.5 flex-shrink-0">—</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
-            <div className="max-w-3xl mx-auto">
-              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-                {missionProjects[3].title}
-              </h3>
-              <p className="text-xl text-gray-700 dark:text-gray-300 mb-6">
-                {missionProjects[3].detailedDescription}
-              </p>
-              <Link
-                to={missionProjects[3].link}
-                className="inline-flex items-center text-gray-900 dark:text-white font-medium border-b border-gray-400 hover:border-gray-900 dark:hover:border-white transition-colors"
-              >
-                Learn More <FaArrowRight className="ml-2 text-sm" />
-              </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    {/* ── Stories from the Field ────────────────────────────────── */}
+    <section className="bg-vbc-section py-24">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="mb-14">
+          <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-3">Testimonies</p>
+          <h2 className="text-4xl font-black text-white leading-tight">Stories from the field.</h2>
+        </div>
+
+        {/* Featured quote */}
+        <div className="border-l-4 border-brand-red pl-8 mb-14">
+          <p className="text-white text-2xl md:text-3xl font-light italic leading-relaxed mb-6">
+            "{TESTIMONIALS[0].quote}"
+          </p>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-0.5 bg-brand-red" />
+            <div>
+              <p className="text-white text-sm font-semibold">{TESTIMONIALS[0].author}</p>
+              <p className="text-white/40 text-xs">{TESTIMONIALS[0].role}</p>
             </div>
           </div>
         </div>
-      </section>
 
-      {/* Testimonials Section - CRSA Style */}
-      <section className="py-24 bg-gray-100 dark:bg-gray-800">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center mb-20">
-            <h2 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
-              Stories from the Field
-            </h2>
-            <div className="w-16 h-0.5 bg-gray-900 dark:bg-white mx-auto mb-8"></div>
-            <p className="text-xl text-gray-700 dark:text-gray-300">
-              Hear from those who have experienced the impact of our mission
-              work firsthand.
-            </p>
-          </div>
-
-          {/* Featured Testimonial */}
-          <div className="max-w-4xl mx-auto mb-20 bg-white dark:bg-gray-900 p-12 shadow-sm">
-            <div className="flex flex-col md:flex-row gap-12 items-center">
-              <div className="md:w-1/3">
-                <div className="w-32 h-32 mx-auto bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                  <img
-                    src={testimonials[0].image}
-                    alt={testimonials[0].author}
-                    className="w-full h-full object-cover filter grayscale"
-                    onError={(e) => {
-                      e.target.src = FallbackImage;
-                    }}
-                  />
+        {/* Other testimonials */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/5">
+          {TESTIMONIALS.slice(1).map((t, i) => (
+            <div key={i} className="bg-vbc-section p-8">
+              <p className="text-brand-red text-4xl font-black leading-none mb-4 opacity-60">"</p>
+              <p className="text-white/70 text-sm leading-relaxed italic mb-6">{t.quote}</p>
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-0.5 bg-brand-red" />
+                <div>
+                  <p className="text-white text-xs font-semibold">{t.author}</p>
+                  <p className="text-white/40 text-xs">{t.role}</p>
                 </div>
-                <div className="text-center mt-4">
-                  <p className="font-bold text-gray-900 dark:text-white text-lg">
-                    {testimonials[0].author}
-                  </p>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    {testimonials[0].authorTitle}
-                  </p>
-                  <p className="text-gray-500 dark:text-gray-500 text-sm mt-1">
-                    {testimonials[0].project}
-                  </p>
-                </div>
-              </div>
-              <div className="md:w-2/3">
-                <p className="text-2xl italic text-gray-700 dark:text-gray-300 leading-relaxed">
-                  "{testimonials[0].quote}"
-                </p>
               </div>
             </div>
-          </div>
+          ))}
+        </div>
+      </div>
+    </section>
 
-          {/* Other Testimonials */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.slice(1).map((testimonial, index) => (
-              <div
-                key={index}
-                className="bg-white dark:bg-gray-900 p-8 shadow-sm"
-              >
-                <p className="text-lg italic text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
-                  "
-                  {testimonial.quote.length > 150
-                    ? testimonial.quote.substring(0, 150) + "..."
-                    : testimonial.quote}
-                  "
-                </p>
-                <div className="flex items-center">
-                  <div className="mr-4 w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                    <img
-                      src={testimonial.image}
-                      alt={testimonial.author}
-                      className="w-full h-full object-cover filter grayscale"
-                      onError={(e) => {
-                        e.target.src = FallbackImage;
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <p className="font-bold text-gray-900 dark:text-white">
-                      {testimonial.author}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {testimonial.authorTitle}
-                    </p>
-                  </div>
+    {/* ── Join the Mission ──────────────────────────────────────── */}
+    <section className="bg-vbc-dark py-28">
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+
+        {/* Scripture */}
+        <div className="border-l-2 border-brand-red pl-10">
+          <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-6">Romans 10:15</p>
+          <p className="text-white text-2xl md:text-3xl font-light italic leading-relaxed">
+            "And how are they to preach unless they are sent? As it is written,{" "}
+            <span className="text-brand-red font-semibold not-italic">
+              'How beautiful are the feet of those who preach the good news!'"
+            </span>
+          </p>
+        </div>
+
+        {/* Engagement */}
+        <div>
+          <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-4">Get involved</p>
+          <h2 className="text-4xl font-black text-white mb-10 leading-tight">Join the mission.</h2>
+
+          <div className="divide-y divide-white/10">
+            {[
+              { num: "01", icon: <HeartIcon className="h-5 w-5" />, label: "Pray", body: "Intercede for our missionaries, church planters, and the nations we're reaching." },
+              { num: "02", icon: <ArrowRightIcon className="h-5 w-5" />, label: "Give",  body: "Support missionaries, fund trips, and resource new churches with your generosity." },
+              { num: "03", icon: <UsersIcon className="h-5 w-5" />,    label: "Go",   body: "Join a short-term mission team or explore a long-term calling." },
+            ].map(({ num, icon, label, body }) => (
+              <div key={num} className="flex items-start gap-5 py-6 group">
+                <div className="flex-shrink-0 text-brand-red mt-0.5">{icon}</div>
+                <div>
+                  <p className="text-white font-bold mb-1">{label}</p>
+                  <p className="text-white/40 text-sm leading-relaxed">{body}</p>
                 </div>
               </div>
             ))}
           </div>
-        </div>
-      </section>
 
-      <CallToAction />
-    </div>
-  );
-};
+          <div className="flex flex-wrap gap-4 mt-10">
+            <Link to="/contact"
+              className="inline-block bg-brand-red text-white text-sm font-semibold px-8 py-4 hover:bg-red-700 transition-colors">
+              Get in Touch
+            </Link>
+            <Link to="/foundation-classes"
+              className="inline-block border border-white/20 text-white text-sm font-semibold px-8 py-4 hover:bg-white/5 hover:border-white/40 transition-colors">
+              Start Foundation Classes
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+);
 
 export default Missions;
