@@ -1,601 +1,332 @@
 import React, { useState } from "react";
-import { Helmet } from "react-helmet-async";
-import { motion } from "framer-motion";
-import HeroSection from "../components/common/HeroSection";
-import {
-  RefreshCw,
-  CheckCircle,
-  AlertTriangle,
-  CalendarCheck,
-  User,
-  Mail,
-  Phone,
-  Calendar,
-  Building2,
-  ClipboardCheck,
-  Cake,
-} from "lucide-react";
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+import { CheckCircle, AlertTriangle, RefreshCw } from "lucide-react";
+import HeroSection from "../components/common/HeroSection";
+import { getApiUrl } from "../services/api/core";
+
+const inputCls = (error) =>
+  `w-full bg-white border-b-2 px-0 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-colors ${
+    error ? "border-red-500 focus:border-red-600" : "border-gray-200 focus:border-brand-red"
+  }`;
+
+const LabelRow = ({ label, required }) => (
+  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gray-400 mb-2">
+    {label}{required && <span className="text-brand-red ml-0.5">*</span>}
+  </p>
+);
+
+const FieldError = ({ msg }) =>
+  msg ? <p className="mt-1.5 text-xs text-red-500">{msg}</p> : null;
+
+const Spinner = () => (
+  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+  </svg>
+);
+
+const INITIAL = {
+  fullName: "",
+  email: "",
+  phone: "",
+  birthday: "",
+  memberSince: "",
+  ministryInvolvement: "",
+  addressChange: false,
+  newAddress: "",
+  agreeToTerms: false,
+};
 
 const Renew = () => {
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    birthday: "",
-    memberSince: "",
-    ministryInvolvement: "",
-    addressChange: false,
-    newAddress: "",
-    agreeToTerms: false,
-  });
-  const [formErrors, setFormErrors] = useState({});
-  const [formSubmitted, setFormSubmitted] = useState(false);
+  const [formData, setFormData] = useState(INITIAL);
+  const [errors, setErrors] = useState({});
+  const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
-
-    // Clear error when field is being edited
-    if (formErrors[name]) {
-      setFormErrors({
-        ...formErrors,
-        [name]: null,
-      });
-    }
+    setFormData((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: null }));
   };
 
-  const validateForm = () => {
-    const errors = {};
-
-    if (!formData.fullName.trim()) {
-      errors.fullName = "Full name is required";
-    }
-
-    if (!formData.email.trim()) {
-      errors.email = "Email is required";
-    } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
-      errors.email = "Please enter a valid email address";
-    }
-
-    if (!formData.phone.trim()) {
-      errors.phone = "Phone number is required";
-    }
-
-    if (!formData.birthday) {
-      errors.birthday = "Birthday is required";
-    }
-
-    if (!formData.memberSince.trim()) {
-      errors.memberSince = "Please select when you became a member";
-    }
-
-    if (formData.addressChange && !formData.newAddress.trim()) {
-      errors.newAddress = "Please provide your new address";
-    }
-
-    if (!formData.agreeToTerms) {
-      errors.agreeToTerms = "You must agree to the renewal terms";
-    }
-
-    return errors;
+  const validate = () => {
+    const e = {};
+    if (!formData.fullName.trim())    e.fullName    = "Full name is required";
+    if (!formData.email.trim())       e.email       = "Email is required";
+    else if (!/^\S+@\S+\.\S+$/.test(formData.email)) e.email = "Enter a valid email address";
+    if (!formData.phone.trim())       e.phone       = "Phone number is required";
+    if (!formData.birthday)           e.birthday    = "Birthday is required";
+    if (!formData.memberSince.trim()) e.memberSince = "Please select the year you joined";
+    if (formData.addressChange && !formData.newAddress.trim()) e.newAddress = "Please provide your new address";
+    if (!formData.agreeToTerms)       e.agreeToTerms = "You must confirm to continue";
+    return e;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const errors = validateForm();
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
-      return;
-    }
+    const errs = validate();
+    if (Object.keys(errs).length) { setErrors(errs); return; }
 
     setSubmitting(true);
     setSubmitError("");
 
-    // Log form data for debugging
-    console.log("Submitting form data:", formData);
-
-    // Use the absolute URL to ensure correct server is targeted
-    fetch("http://localhost:3000/api/membership/renew", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      mode: "cors", // Use CORS mode for cross-origin requests
-      credentials: "omit", // Don't send cookies for cross-origin requests
-      body: JSON.stringify(formData),
-    })
-      .then((response) => {
-        console.log("Response received:", {
-          status: response.status,
-          statusText: response.statusText,
-          headers: [...response.headers.entries()].reduce((obj, [key, val]) => {
-            obj[key] = val;
-            return obj;
-          }, {}),
-        });
-
-        // Check if response is ok and has content
-        const contentType = response.headers.get("content-type");
-        console.log("Content type:", contentType);
-
-        if (!response.ok) {
-          // If it's JSON, parse the error message
-          if (contentType && contentType.includes("application/json")) {
-            return response.json().then((errorData) => {
-              console.log("Error data:", errorData);
-              throw new Error(errorData.error || "Server error");
-            });
-          }
-          // If it's not JSON or empty response
-          throw new Error(
-            `Server error: ${response.status} ${response.statusText}`,
-          );
-        }
-
-        // For successful responses, ensure we have JSON
-        if (!contentType || !contentType.includes("application/json")) {
-          throw new Error("Received non-JSON response from server");
-        }
-
-        return response.json();
-      })
-      .then((data) => {
-        console.log("Renewal submitted successfully:", data);
-        setFormSubmitted(true);
-        setSubmitting(false);
-      })
-      .catch((error) => {
-        console.error("Error submitting renewal form:", error);
-        setSubmitting(false);
-        setSubmitError(
-          error.message ||
-            "There was a problem submitting your form. Please try again.",
-        );
+    try {
+      const res = await fetch(`${getApiUrl()}/api/membership/renew`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       });
+
+      if (!res.ok) {
+        const ct = res.headers.get("content-type");
+        const msg = ct?.includes("application/json")
+          ? (await res.json()).error || "Server error"
+          : `Server error ${res.status}`;
+        throw new Error(msg);
+      }
+
+      await res.json();
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100">
-      {/* SEO Meta Tags */}
-      <Helmet>
-        <title>Membership Renewal - Victory Bible Church Kitwe</title>
-        <meta
-          name="description"
-          content="Renew your membership at Victory Bible Church Kitwe. Complete the renewal form to maintain your membership benefits and privileges."
+  if (submitted) {
+    return (
+      <div className="bg-white">
+        <Helmet>
+          <title>Renewal Submitted — Victory Bible Church</title>
+        </Helmet>
+        <HeroSection
+          subtitle="Thank You"
+          title="Renewal Received"
+          backgroundImage="/assets/hero-bg.jpg"
+          showScrollIndicator={false}
+          breadcrumbs={[{ label: "Home", path: "/" }, { label: "Membership", path: "/membership" }, { label: "Renew" }]}
         />
-      </Helmet>
-
-      {/* Hero Section */}
-      <HeroSection
-        title="Membership Renewal"
-        subtitle="Member Services"
-        description="Renew your membership commitment and stay connected with Victory Bible Church."
-        primaryAccentText="Renewal"
-        scrollText="RENEWAL FORM BELOW"
-        backgroundImage="/assets/hero-bg.jpg"
-      />
-
-      {/* Renewal Form Section */}
-      <div className="container mx-auto px-4 py-12 max-w-4xl">
-        {formSubmitted ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 md:p-12 text-center"
-          >
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full mb-6">
-              <CheckCircle className="text-green-600 dark:text-green-400 text-3xl" />
+        <section className="bg-vbc-section py-24">
+          <div className="max-w-2xl mx-auto px-6 text-center">
+            <div className="w-16 h-16 bg-brand-red/10 flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="h-8 w-8 text-brand-red" />
             </div>
-            <h2 className="text-3xl font-bold mb-4">Renewal Submitted!</h2>
-            <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">
-              Thank you for renewing your membership with Victory Bible Church.
-              We've received your renewal form and will process it shortly.
+            <h2 className="text-3xl font-black text-white mb-4">You're all set.</h2>
+            <p className="text-white/60 text-lg mb-3 leading-relaxed">
+              Your membership renewal has been submitted successfully. We'll review it and send a confirmation to <strong className="text-white">{formData.email}</strong>.
             </p>
-            <p className="text-md text-gray-600 dark:text-gray-400 mb-4">
-              A confirmation email has been sent to{" "}
-              <strong>{formData.email}</strong>. Your information has been
-              securely submitted to our church administration team.
+            <p className="text-white/40 text-sm mb-12">
+              If you have questions, reach out to our office at info@victorybiblechurch.org
             </p>
-            <p className="text-md text-gray-600 dark:text-gray-400 mb-8">
-              If you have any questions, please contact the church office at
-              (123) 456-7890.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Link
-                to="/membership"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300"
-              >
-                Return to Membership Page
+            <div className="flex flex-wrap gap-4 justify-center">
+              <Link to="/membership" className="bg-brand-red text-white text-sm font-semibold px-8 py-3 hover:bg-red-700 transition-colors">
+                Back to Membership
               </Link>
-              <Link
-                to="/"
-                className="border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 font-semibold px-6 py-3 rounded-lg transition-all duration-300"
-              >
+              <Link to="/" className="border border-white/20 text-white text-sm font-semibold px-8 py-3 hover:border-white/50 hover:bg-white/5 transition-colors">
                 Go to Homepage
               </Link>
             </div>
-          </motion.div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Form */}
-            <div className="md:col-span-2">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden"
-              >
-                <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-6 text-white">
-                  <h2 className="text-2xl font-bold">Renewal Form</h2>
-                  <p className="mt-1 opacity-80">
-                    Please provide accurate information to process your renewal
-                  </p>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white">
+      <Helmet>
+        <title>Renew Membership — Victory Bible Church Kitwe</title>
+        <meta name="description" content="Renew your Victory Bible Church membership. Takes about 5 minutes." />
+      </Helmet>
+
+      <HeroSection
+        subtitle="Member Services"
+        title="Renew Your Membership"
+        description="Annual renewal keeps your membership active and all your benefits uninterrupted. It takes about 5 minutes."
+        backgroundImage="/assets/hero-bg.jpg"
+        breadcrumbs={[{ label: "Home", path: "/" }, { label: "Membership", path: "/membership" }, { label: "Renew" }]}
+      />
+
+      {/* Form section */}
+      <section className="bg-white py-20">
+        <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-3 gap-16 items-start">
+
+          {/* ── Form ── */}
+          <div className="lg:col-span-2">
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-3">Renewal form</p>
+            <h2 className="text-3xl font-black text-gray-900 mb-10">Your details</h2>
+
+            <form onSubmit={handleSubmit} className="space-y-8" noValidate>
+
+              {/* Personal info */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-8">
+                <div>
+                  <LabelRow label="Full Name" required />
+                  <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} placeholder="John Banda" className={inputCls(errors.fullName)} />
+                  <FieldError msg={errors.fullName} />
                 </div>
+                <div>
+                  <LabelRow label="Email Address" required />
+                  <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="john@example.com" className={inputCls(errors.email)} />
+                  <FieldError msg={errors.email} />
+                </div>
+                <div>
+                  <LabelRow label="Phone Number" required />
+                  <input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+260 97 000 0000" className={inputCls(errors.phone)} />
+                  <FieldError msg={errors.phone} />
+                </div>
+                <div>
+                  <LabelRow label="Birthday" required />
+                  <input type="date" name="birthday" value={formData.birthday} onChange={handleChange} className={inputCls(errors.birthday)} />
+                  <FieldError msg={errors.birthday} />
+                </div>
+                <div>
+                  <LabelRow label="Member Since (Year)" required />
+                  <select name="memberSince" value={formData.memberSince} onChange={handleChange} className={inputCls(errors.memberSince)}>
+                    <option value="">Select year</option>
+                    {Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i).map((yr) => (
+                      <option key={yr} value={yr}>{yr}</option>
+                    ))}
+                  </select>
+                  <FieldError msg={errors.memberSince} />
+                </div>
+              </div>
 
-                <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-6">
-                  <div>
-                    <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
-                      <span className="flex items-center gap-2">
-                        <User className="text-purple-600 dark:text-purple-400" />
-                        Full Name
-                      </span>
-                    </label>
-                    <input
-                      type="text"
-                      name="fullName"
-                      value={formData.fullName}
-                      onChange={handleChange}
-                      placeholder="Enter your full name"
-                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 ${
-                        formErrors.fullName
-                          ? "border-red-500 dark:border-red-500"
-                          : "border-gray-300"
-                      }`}
-                    />
-                    {formErrors.fullName && (
-                      <p className="mt-2 text-red-500 text-sm">
-                        {formErrors.fullName}
-                      </p>
-                    )}
-                  </div>
+              {/* Ministry involvement */}
+              <div>
+                <LabelRow label="Ministry Involvement" />
+                <textarea
+                  name="ministryInvolvement"
+                  value={formData.ministryInvolvement}
+                  onChange={handleChange}
+                  rows={3}
+                  placeholder="List any ministries you're currently part of (optional)"
+                  className="w-full bg-white border-b-2 border-gray-200 focus:border-brand-red px-0 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-colors resize-none"
+                />
+              </div>
 
-                  <div>
-                    <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
-                      <span className="flex items-center gap-2">
-                        <Mail className="text-purple-600 dark:text-purple-400" />
-                        Email Address
-                      </span>
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="Enter your email address"
-                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 ${
-                        formErrors.email
-                          ? "border-red-500 dark:border-red-500"
-                          : "border-gray-300"
-                      }`}
-                    />
-                    {formErrors.email && (
-                      <p className="mt-2 text-red-500 text-sm">
-                        {formErrors.email}
-                      </p>
-                    )}
-                  </div>
+              {/* Address change */}
+              <div>
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    name="addressChange"
+                    checked={formData.addressChange}
+                    onChange={handleChange}
+                    className="mt-0.5 w-4 h-4 accent-red-600 flex-shrink-0"
+                  />
+                  <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
+                    My address has changed since my last renewal
+                  </span>
+                </label>
 
-                  <div>
-                    <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
-                      <span className="flex items-center gap-2">
-                        <Phone className="text-purple-600 dark:text-purple-400" />
-                        Phone Number
-                      </span>
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="Enter your phone number"
-                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 ${
-                        formErrors.phone
-                          ? "border-red-500 dark:border-red-500"
-                          : "border-gray-300"
-                      }`}
-                    />
-                    {formErrors.phone && (
-                      <p className="mt-2 text-red-500 text-sm">
-                        {formErrors.phone}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
-                      <span className="flex items-center gap-2">
-                        <FaBirthdayCake className="text-purple-600 dark:text-purple-400" />
-                        Birthday
-                      </span>
-                    </label>
-                    <input
-                      type="date"
-                      name="birthday"
-                      value={formData.birthday}
-                      onChange={handleChange}
-                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 ${
-                        formErrors.birthday
-                          ? "border-red-500 dark:border-red-500"
-                          : "border-gray-300"
-                      }`}
-                    />
-                    {formErrors.birthday && (
-                      <p className="mt-2 text-red-500 text-sm">
-                        {formErrors.birthday}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
-                      <span className="flex items-center gap-2">
-                        <FaCalendarAlt className="text-purple-600 dark:text-purple-400" />
-                        Member Since
-                      </span>
-                    </label>
-                    <select
-                      name="memberSince"
-                      value={formData.memberSince}
-                      onChange={handleChange}
-                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 ${
-                        formErrors.memberSince
-                          ? "border-red-500 dark:border-red-500"
-                          : "border-gray-300"
-                      }`}
-                    >
-                      <option value="">Select Year</option>
-                      {Array.from(
-                        { length: 25 },
-                        (_, i) => new Date().getFullYear() - i,
-                      ).map((year) => (
-                        <option key={year} value={year}>
-                          {year}
-                        </option>
-                      ))}
-                    </select>
-                    {formErrors.memberSince && (
-                      <p className="mt-2 text-red-500 text-sm">
-                        {formErrors.memberSince}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
-                      <span className="flex items-center gap-2">
-                        <FaChurch className="text-purple-600 dark:text-purple-400" />
-                        Ministry Involvement
-                      </span>
-                    </label>
+                {formData.addressChange && (
+                  <div className="mt-5 ml-7">
+                    <LabelRow label="New Address" required />
                     <textarea
-                      name="ministryInvolvement"
-                      value={formData.ministryInvolvement}
+                      name="newAddress"
+                      value={formData.newAddress}
                       onChange={handleChange}
-                      placeholder="List any ministries you're currently involved with (optional)"
-                      rows={3}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600"
-                    ></textarea>
+                      rows={2}
+                      placeholder="Enter your new address"
+                      className={`w-full bg-white border-b-2 px-0 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-colors resize-none ${errors.newAddress ? "border-red-500 focus:border-red-600" : "border-gray-200 focus:border-brand-red"}`}
+                    />
+                    <FieldError msg={errors.newAddress} />
                   </div>
+                )}
+              </div>
 
-                  <div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <input
-                        type="checkbox"
-                        id="addressChange"
-                        name="addressChange"
-                        checked={formData.addressChange}
-                        onChange={handleChange}
-                        className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
-                      />
-                      <label
-                        htmlFor="addressChange"
-                        className="text-gray-700 dark:text-gray-300"
-                      >
-                        My address has changed since last renewal
-                      </label>
-                    </div>
+              {/* Agreement */}
+              <div className="border-t border-gray-100 pt-8">
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    name="agreeToTerms"
+                    checked={formData.agreeToTerms}
+                    onChange={handleChange}
+                    className="mt-0.5 w-4 h-4 accent-red-600 flex-shrink-0"
+                  />
+                  <span className={`text-sm leading-relaxed transition-colors ${errors.agreeToTerms ? "text-red-600" : "text-gray-700 group-hover:text-gray-900"}`}>
+                    I confirm that I continue to uphold the values and statement of faith of Victory Bible Church, and wish to renew my membership for the coming year.
+                  </span>
+                </label>
+                <FieldError msg={errors.agreeToTerms} />
+              </div>
 
-                    {formData.addressChange && (
-                      <div className="mt-3 ml-6">
-                        <textarea
-                          name="newAddress"
-                          value={formData.newAddress}
-                          onChange={handleChange}
-                          placeholder="Enter your new address"
-                          rows={2}
-                          className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 ${
-                            formErrors.newAddress
-                              ? "border-red-500 dark:border-red-500"
-                              : "border-gray-300"
-                          }`}
-                        ></textarea>
-                        {formErrors.newAddress && (
-                          <p className="mt-2 text-red-500 text-sm">
-                            {formErrors.newAddress}
-                          </p>
-                        )}
-                      </div>
-                    )}
+              {/* Error banner */}
+              {submitError && (
+                <div className="flex items-start gap-3 bg-red-50 border-l-4 border-red-500 px-5 py-4">
+                  <AlertTriangle className="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-700">{submitError}</p>
+                </div>
+              )}
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={submitting}
+                className="inline-flex items-center gap-2 bg-brand-red text-white text-sm font-semibold px-10 py-4 hover:bg-red-700 disabled:opacity-50 transition-colors"
+              >
+                {submitting ? <><Spinner /> Processing…</> : <><RefreshCw className="h-4 w-4" /> Submit Renewal</>}
+              </button>
+
+            </form>
+          </div>
+
+          {/* ── Sidebar ── */}
+          <div className="lg:sticky lg:top-24 space-y-0">
+            <div className="bg-vbc-dark p-8">
+              <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-4">Key dates</p>
+              <div className="divide-y divide-white/10">
+                {[
+                  ["Renewal Deadline", "March 31st"],
+                  ["Late Renewal",     "Additional processing"],
+                  ["Process Time",     "~5 minutes"],
+                  ["Documents",        "None required"],
+                  ["Cost",             "Free"],
+                ].map(([label, val]) => (
+                  <div key={label} className="flex justify-between py-4">
+                    <span className="text-xs text-white/40 uppercase tracking-wider">{label}</span>
+                    <span className="text-sm font-semibold text-white">{val}</span>
                   </div>
-
-                  <div>
-                    <div className="flex items-start gap-2">
-                      <input
-                        type="checkbox"
-                        id="agreeToTerms"
-                        name="agreeToTerms"
-                        checked={formData.agreeToTerms}
-                        onChange={handleChange}
-                        className={`w-4 h-4 mt-1 text-purple-600 rounded focus:ring-purple-500 ${
-                          formErrors.agreeToTerms ? "border-red-500" : ""
-                        }`}
-                      />
-                      <label
-                        htmlFor="agreeToTerms"
-                        className="text-gray-700 dark:text-gray-300"
-                      >
-                        I confirm that I continue to adhere to the values and
-                        statement of faith of Victory Bible Church, and wish to
-                        renew my membership for the coming year.
-                      </label>
-                    </div>
-                    {formErrors.agreeToTerms && (
-                      <p className="mt-2 text-red-500 text-sm ml-6">
-                        {formErrors.agreeToTerms}
-                      </p>
-                    )}
-                  </div>
-
-                  {submitError && (
-                    <div
-                      className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
-                      role="alert"
-                    >
-                      <div className="flex items-center">
-                        <FaExclamationTriangle className="text-red-500 mr-2" />
-                        <span className="font-medium">Submission Error:</span>
-                        <span className="ml-2">{submitError}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="pt-4">
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center"
-                    >
-                      {submitting ? (
-                        <>
-                          <svg
-                            className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                          >
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                            ></circle>
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                          </svg>
-                          Processing...
-                        </>
-                      ) : (
-                        <>Submit Renewal</>
-                      )}
-                    </button>
-                  </div>
-                </form>
-              </motion.div>
+                ))}
+              </div>
             </div>
 
-            {/* Important Information */}
-            <div className="md:col-span-1">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="sticky top-8 bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden h-fit"
-              >
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
-                  <h2 className="text-xl font-bold flex items-center gap-2">
-                    <FaCalendarCheck className="text-yellow-300" />
-                    Important Information
-                  </h2>
-                </div>
-
-                <div className="p-6">
-                  <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="font-medium">Renewal Deadline</span>
-                      <span className="font-bold text-red-600 dark:text-red-400">
-                        January 1st
-                      </span>
+            <div className="bg-vbc-section p-8 border-t border-white/5">
+              <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-4">Why renew?</p>
+              <div className="space-y-5">
+                {[
+                  ["Voting Rights", "Stay eligible to vote in church decisions."],
+                  ["Leadership",    "Maintain your eligibility for ministry roles."],
+                  ["Member Access", "Keep access to member-only resources and events."],
+                ].map(([title, body]) => (
+                  <div key={title} className="flex gap-3">
+                    <div className="w-1 bg-brand-red flex-shrink-0 mt-1 self-stretch" style={{ minHeight: 14 }} />
+                    <div>
+                      <p className="text-sm font-semibold text-white mb-0.5">{title}</p>
+                      <p className="text-xs text-white/40 leading-relaxed">{body}</p>
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      All renewals must be completed by this date to maintain
-                      active membership status.
-                    </p>
                   </div>
+                ))}
+              </div>
 
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center flex-shrink-0">
-                        <FaClipboardCheck className="text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <div>
-                        <h4 className="font-medium">Renewal Benefits</h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Maintain your voting rights and leadership eligibility
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900 flex items-center justify-center flex-shrink-0">
-                        <FaExclamationTriangle className="text-yellow-600 dark:text-yellow-400" />
-                      </div>
-                      <div>
-                        <h4 className="font-medium">Late Renewals</h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Renewals after the deadline require additional
-                          processing time
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center flex-shrink-0">
-                        <FaBirthdayCake className="text-purple-600 dark:text-purple-400" />
-                      </div>
-                      <div>
-                        <h4 className="font-medium">Birthday Celebrations</h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          We celebrate member birthdays and need your date for our registry
-                        </p>
-                      </div>
-                    </div> */}
-                  </div>
-
-                  <div className="mt-8 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                      Need help with your renewal? Contact the church office at{" "}
-                      <strong>(123) 456-7890</strong> or email{" "}
-                      <strong>renewal@vbc.info</strong>
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
+              <div className="mt-8 pt-6 border-t border-white/10">
+                <p className="text-xs text-white/40 leading-relaxed">
+                  Need help? Contact us at{" "}
+                  <a href="mailto:info@victorybiblechurch.org" className="text-white/60 hover:text-white underline underline-offset-2 transition-colors">
+                    info@victorybiblechurch.org
+                  </a>
+                </p>
+              </div>
             </div>
           </div>
-        )}
-      </div>
+
+        </div>
+      </section>
     </div>
   );
 };

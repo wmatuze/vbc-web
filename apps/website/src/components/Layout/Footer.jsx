@@ -65,7 +65,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-vbc-dark text-white">
+    <footer className="bg-vbc-dark text-white border-t-2 border-brand-red/40">
       {/* Main Footer Content */}
       <div className="container mx-auto px-4 pt-16 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-8">
