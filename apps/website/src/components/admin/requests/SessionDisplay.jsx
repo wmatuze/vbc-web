@@ -4,10 +4,6 @@ import {
   getFoundationClassSessions,
 } from "../../../services/api/foundation-classes";
 
-/**
- * Component to display foundation class session information
- * Fetches and displays actual session details with fallback strategies
- */
 const SessionDisplay = ({ sessionId }) => {
   const [sessionInfo, setSessionInfo] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -15,12 +11,7 @@ const SessionDisplay = ({ sessionId }) => {
 
   useEffect(() => {
     const fetchSessionInfo = async () => {
-      // If it's not a valid MongoDB ID, display as is
-      if (
-        !sessionId ||
-        typeof sessionId !== "string" ||
-        sessionId.length !== 24
-      ) {
+      if (!sessionId || typeof sessionId !== "string" || sessionId.length !== 24) {
         setSessionInfo(sessionId || "Not specified");
         return;
       }
@@ -28,65 +19,32 @@ const SessionDisplay = ({ sessionId }) => {
       setLoading(true);
       setError(false);
 
-      try {
-        console.log(`Fetching session details for ID: ${sessionId}`);
+      const fmt = (date) =>
+        new Date(date).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        });
 
-        // First try to get the specific session
+      try {
         try {
           const session = await getFoundationClassSessionById(sessionId);
-          console.log("Session data received:", session);
-
-          // Format the session info
-          const formatDate = (date) => {
-            const options = { year: "numeric", month: "short", day: "numeric" };
-            return new Date(date).toLocaleDateString("en-US", options);
-          };
-
-          const dateRange = `${formatDate(session.startDate)} - ${formatDate(session.endDate)}`;
-          const formattedInfo = `${session.day} ${session.time} (${dateRange})`;
-
-          setSessionInfo(formattedInfo);
+          setSessionInfo(`${session.day} ${session.time} (${fmt(session.startDate)} – ${fmt(session.endDate)})`);
           return;
-        } catch (specificError) {
-          console.log(
-            "Specific session fetch failed, trying to find in all sessions..."
-          );
-
-          // If specific fetch fails, try to find it in all sessions
+        } catch {
           const allSessions = await getFoundationClassSessions();
-          console.log("All sessions received:", allSessions);
-
-          const matchingSession = allSessions.find(
-            (session) => session.id === sessionId || session._id === sessionId
+          const match = allSessions.find(
+            (s) => s.id === sessionId || s._id === sessionId,
           );
-
-          if (matchingSession) {
-            console.log("Found matching session:", matchingSession);
-
-            const formatDate = (date) => {
-              const options = {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              };
-              return new Date(date).toLocaleDateString("en-US", options);
-            };
-
-            const dateRange = `${formatDate(matchingSession.startDate)} - ${formatDate(matchingSession.endDate)}`;
-            const formattedInfo = `${matchingSession.day} ${matchingSession.time} (${dateRange})`;
-
-            setSessionInfo(formattedInfo);
+          if (match) {
+            setSessionInfo(`${match.day} ${match.time} (${fmt(match.startDate)} – ${fmt(match.endDate)})`);
             return;
           }
-
-          // If still not found, throw error to be caught below
-          throw new Error("Session not found in any available sessions");
+          throw new Error("Session not found");
         }
-      } catch (err) {
-        console.error("Error fetching session details:", err);
+      } catch {
         setError(true);
-        // Show a more user-friendly message for invalid/deleted sessions
-        setSessionInfo("Foundation Class Session (Details Unavailable)");
+        setSessionInfo("Session details unavailable");
       } finally {
         setLoading(false);
       }
@@ -96,13 +54,13 @@ const SessionDisplay = ({ sessionId }) => {
   }, [sessionId]);
 
   if (loading) {
-    return <span className="text-gray-500">Loading session...</span>;
+    return <span className="text-gray-400 dark:text-gray-500 text-xs">Loading…</span>;
   }
 
   if (error) {
     return (
       <span
-        className="text-orange-600"
+        className="text-orange-500 dark:text-orange-400 text-xs"
         title={`Could not load session details for ID: ${sessionId}`}
       >
         {sessionInfo}
@@ -110,7 +68,7 @@ const SessionDisplay = ({ sessionId }) => {
     );
   }
 
-  return <span>{sessionInfo}</span>;
+  return <span className="text-sm text-gray-700 dark:text-gray-300">{sessionInfo}</span>;
 };
 
 export default SessionDisplay;
