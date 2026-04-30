@@ -306,7 +306,11 @@ router.post("/events", authMiddleware, async (req, res) => {
     res.status(201).json(formattedEvent);
   } catch (error) {
     console.error("Error creating event:", error);
-    res.status(500).json({ error: "Failed to create event" });
+    const isDev = process.env.NODE_ENV !== "production";
+    res.status(500).json({
+      error: "Failed to create event",
+      ...(isDev && { detail: error.message }),
+    });
   }
 });
 

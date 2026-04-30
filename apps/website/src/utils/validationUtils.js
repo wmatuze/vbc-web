@@ -540,6 +540,8 @@ export const validateEvent = (event) => {
 
   // Validate description
   const descriptionError = validateString(event.description, {
+    required: true,
+    minLength: 3,
     maxLength: 1000,
     fieldName: "Description",
   });
