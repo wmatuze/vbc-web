@@ -1,339 +1,193 @@
 import React from "react";
-import { motion } from "framer-motion";
 import {
   XMarkIcon,
   UserIcon,
-  EnvelopeIcon,
-  PhoneIcon,
-  CalendarIcon,
   BookOpenIcon,
+  CalendarIcon,
+  PhoneIcon,
   ChatBubbleLeftRightIcon,
   AcademicCapIcon,
 } from "@heroicons/react/24/outline";
+import { formatDate } from "../../../utils/requests/requestsUtils.jsx";
+import StatusBadge from "./StatusBadge";
 
-/**
- * Modal component for displaying detailed discipleship registration information
- * @param {Object} props - Component props
- * @param {Object} props.registration - The discipleship registration object
- * @param {Function} props.onClose - Function to close the modal
- * @param {Boolean} props.isOpen - Whether the modal is open
- * @returns {JSX.Element} - DiscipleshipDetailsModal component
- */
+const Field = ({ label, value }) => (
+  <div>
+    <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-0.5">
+      {label}
+    </p>
+    <p className="text-sm text-gray-900 dark:text-white">{value || "—"}</p>
+  </div>
+);
+
+const Section = ({ icon: Icon, title, children }) => (
+  <div>
+    <div className="flex items-center gap-2 mb-3 pb-1 border-b border-gray-100 dark:border-gray-700">
+      <Icon className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+      <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+        {title}
+      </p>
+    </div>
+    {children}
+  </div>
+);
+
 const DiscipleshipDetailsModal = ({ registration, onClose, isOpen }) => {
   if (!isOpen || !registration) return null;
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "pending":
-        return "text-yellow-600 bg-yellow-100";
-      case "approved":
-        return "text-blue-600 bg-blue-100";
-      case "attending":
-        return "text-green-600 bg-green-100";
-      case "completed":
-        return "text-purple-600 bg-purple-100";
-      case "cancelled":
-      case "rejected":
-        return "text-red-600 bg-red-100";
-      default:
-        return "text-gray-600 bg-gray-100";
-    }
-  };
-
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-25"
-          onClick={onClose}
-        />
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <div className="flex items-center space-x-3">
-              <div className="flex-shrink-0">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <AcademicCapIcon className="w-6 h-6 text-blue-600" />
-                </div>
-              </div>
-              <div>
-                <h3 className="text-lg font-medium text-gray-900">
-                  Discipleship Registration Details
-                </h3>
-                <p className="text-sm text-gray-500">
-                  Registration ID: {registration._id}
-                </p>
-              </div>
-            </div>
+    <div className="fixed inset-0 bg-black/60 dark:bg-black/75 flex items-center justify-center p-4 z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center sticky top-0 bg-white dark:bg-gray-800 z-10">
+          <div>
+            <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+              Discipleship Registration
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              {registration.fullName}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <StatusBadge status={registration.status} />
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-md transition-colors"
             >
-              <XMarkIcon className="w-6 h-6" />
+              <XMarkIcon className="h-5 w-5" />
             </button>
           </div>
+        </div>
 
-          {/* Content */}
-          <div className="p-6 space-y-6">
-            {/* Status */}
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-500">Status:</span>
-              <span
-                className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                  registration.status
-                )}`}
-              >
-                {registration.status.charAt(0).toUpperCase() + registration.status.slice(1)}
-              </span>
-            </div>
-
-            {/* Personal Information */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                <UserIcon className="w-4 h-4 mr-2" />
-                Personal Information
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium text-gray-700">Full Name:</span>
-                  <p className="text-gray-900">{registration.fullName}</p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-700">Email:</span>
-                  <p className="text-gray-900 flex items-center">
-                    <EnvelopeIcon className="w-4 h-4 mr-1 text-gray-400" />
-                    {registration.email}
-                  </p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-700">Phone:</span>
-                  <p className="text-gray-900 flex items-center">
-                    <PhoneIcon className="w-4 h-4 mr-1 text-gray-400" />
-                    {registration.phone}
-                  </p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-700">Registration Date:</span>
-                  <p className="text-gray-900 flex items-center">
-                    <CalendarIcon className="w-4 h-4 mr-1 text-gray-400" />
-                    {formatDate(registration.registrationDate)}
-                  </p>
-                </div>
+        {/* Body */}
+        <div className="px-6 py-5 space-y-6">
+          {/* Personal + Class side by side */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <Section icon={UserIcon} title="Personal Information">
+              <div className="space-y-3">
+                <Field label="Full Name" value={registration.fullName} />
+                <Field label="Email"     value={registration.email} />
+                <Field label="Phone"     value={registration.phone} />
+                <Field label="Registered" value={formatDate(registration.registrationDate)} />
               </div>
-            </div>
+            </Section>
 
-            {/* Class Information */}
-            <div className="bg-blue-50 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                <BookOpenIcon className="w-4 h-4 mr-2" />
-                Class Information
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium text-gray-700">Class:</span>
-                  <p className="text-gray-900">
-                    {registration.classId?.title || "N/A"}
-                  </p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-700">Level:</span>
-                  <p className="text-gray-900">
-                    {registration.classId?.level || "N/A"}
-                  </p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-700">Preferred Session:</span>
-                  <p className="text-gray-900">{registration.preferredSession}</p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-700">Duration:</span>
-                  <p className="text-gray-900">
-                    {registration.classId?.duration ? 
-                      `${registration.classId.duration.value} ${registration.classId.duration.unit}` : 
-                      "N/A"
-                    }
-                  </p>
-                </div>
+            <Section icon={BookOpenIcon} title="Class Details">
+              <div className="space-y-3">
+                <Field label="Class"    value={registration.classId?.title} />
+                <Field label="Level"    value={registration.classId?.level} />
+                <Field label="Session"  value={registration.preferredSession} />
+                <Field
+                  label="Duration"
+                  value={
+                    registration.classId?.duration
+                      ? `${registration.classId.duration.value} ${registration.classId.duration.unit}`
+                      : undefined
+                  }
+                />
               </div>
-            </div>
-
-            {/* Session Information */}
-            {registration.sessionId && (
-              <div className="bg-green-50 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                  <CalendarIcon className="w-4 h-4 mr-2" />
-                  Session Details
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium text-gray-700">Cohort:</span>
-                    <p className="text-gray-900">{registration.sessionId.cohortName || "N/A"}</p>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-700">Schedule:</span>
-                    <p className="text-gray-900">
-                      {registration.sessionId.schedule ? 
-                        `${registration.sessionId.schedule.day}s at ${registration.sessionId.schedule.time}` : 
-                        "N/A"
-                      }
-                    </p>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-700">Location:</span>
-                    <p className="text-gray-900">{registration.sessionId.location || "N/A"}</p>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-700">Facilitator:</span>
-                    <p className="text-gray-900">
-                      {registration.sessionId.facilitator?.name || "N/A"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Emergency Contact */}
-            {registration.emergencyContact && (
-              <div className="bg-red-50 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                  <PhoneIcon className="w-4 h-4 mr-2" />
-                  Emergency Contact
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium text-gray-700">Name:</span>
-                    <p className="text-gray-900">{registration.emergencyContact.name}</p>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-700">Phone:</span>
-                    <p className="text-gray-900">{registration.emergencyContact.phone}</p>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-700">Relationship:</span>
-                    <p className="text-gray-900">{registration.emergencyContact.relationship}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Motivation */}
-            {registration.motivationReason && (
-              <div className="bg-green-50 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                  <ChatBubbleLeftRightIcon className="w-4 h-4 mr-2" />
-                  Motivation for Taking This Class
-                </h4>
-                <p className="text-sm text-gray-900 whitespace-pre-wrap">
-                  {registration.motivationReason}
-                </p>
-              </div>
-            )}
-
-            {/* Previous Classes */}
-            {registration.previousClasses && (
-              <div className="bg-purple-50 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                  <AcademicCapIcon className="w-4 h-4 mr-2" />
-                  Previous Classes
-                </h4>
-                <p className="text-sm text-gray-900">{registration.previousClasses}</p>
-              </div>
-            )}
-
-            {/* Questions/Comments */}
-            {registration.questions && (
-              <div className="bg-yellow-50 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                  <ChatBubbleLeftRightIcon className="w-4 h-4 mr-2" />
-                  Questions/Comments
-                </h4>
-                <p className="text-sm text-gray-900 whitespace-pre-wrap">
-                  {registration.questions}
-                </p>
-              </div>
-            )}
-
-            {/* Instructor Information */}
-            {registration.classId?.instructor && (
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                  <UserIcon className="w-4 h-4 mr-2" />
-                  Instructor Information
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium text-gray-700">Name:</span>
-                    <p className="text-gray-900">{registration.classId.instructor.name}</p>
-                  </div>
-                  {registration.classId.instructor.email && (
-                    <div>
-                      <span className="font-medium text-gray-700">Email:</span>
-                      <p className="text-gray-900">{registration.classId.instructor.email}</p>
-                    </div>
-                  )}
-                </div>
-                {registration.classId.instructor.bio && (
-                  <div className="mt-3">
-                    <span className="font-medium text-gray-700">Bio:</span>
-                    <p className="text-gray-900 text-sm mt-1">{registration.classId.instructor.bio}</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Curriculum Preview */}
-            {registration.classId?.curriculum && registration.classId.curriculum.length > 0 && (
-              <div className="bg-blue-50 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                  <BookOpenIcon className="w-4 h-4 mr-2" />
-                  Class Curriculum ({registration.classId.curriculum.length} weeks)
-                </h4>
-                <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {registration.classId.curriculum.slice(0, 5).map((week, index) => (
-                    <div key={index} className="text-sm">
-                      <span className="font-medium text-gray-700">Week {week.week}:</span>
-                      <span className="text-gray-900 ml-2">{week.title}</span>
-                    </div>
-                  ))}
-                  {registration.classId.curriculum.length > 5 && (
-                    <p className="text-xs text-gray-500 italic">
-                      +{registration.classId.curriculum.length - 5} more weeks...
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
+            </Section>
           </div>
 
-          {/* Footer */}
-          <div className="flex justify-end p-6 border-t border-gray-200">
+          {/* Session details */}
+          {registration.sessionId && (
+            <Section icon={CalendarIcon} title="Session Details">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Field label="Cohort"      value={registration.sessionId.cohortName} />
+                <Field label="Location"    value={registration.sessionId.location} />
+                <Field label="Facilitator" value={registration.sessionId.facilitator?.name} />
+                <Field
+                  label="Schedule"
+                  value={
+                    registration.sessionId.schedule
+                      ? `${registration.sessionId.schedule.day}s at ${registration.sessionId.schedule.time}`
+                      : undefined
+                  }
+                />
+              </div>
+            </Section>
+          )}
+
+          {/* Emergency contact */}
+          {registration.emergencyContact && (
+            <Section icon={PhoneIcon} title="Emergency Contact">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <Field label="Name"         value={registration.emergencyContact.name} />
+                <Field label="Phone"        value={registration.emergencyContact.phone} />
+                <Field label="Relationship" value={registration.emergencyContact.relationship} />
+              </div>
+            </Section>
+          )}
+
+          {/* Instructor */}
+          {registration.classId?.instructor && (
+            <Section icon={UserIcon} title="Instructor">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Field label="Name"  value={registration.classId.instructor.name} />
+                <Field label="Email" value={registration.classId.instructor.email} />
+              </div>
+              {registration.classId.instructor.bio && (
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 leading-relaxed">
+                  {registration.classId.instructor.bio}
+                </p>
+              )}
+            </Section>
+          )}
+
+          {/* Previous classes */}
+          {registration.previousClasses && (
+            <Section icon={AcademicCapIcon} title="Previous Classes">
+              <p className="text-sm text-gray-700 dark:text-gray-300">{registration.previousClasses}</p>
+            </Section>
+          )}
+
+          {/* Motivation */}
+          {registration.motivationReason && (
+            <Section icon={ChatBubbleLeftRightIcon} title="Motivation">
+              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                {registration.motivationReason}
+              </p>
+            </Section>
+          )}
+
+          {/* Curriculum preview */}
+          {registration.classId?.curriculum?.length > 0 && (
+            <Section icon={BookOpenIcon} title={`Curriculum (${registration.classId.curriculum.length} weeks)`}>
+              <div className="space-y-1 max-h-36 overflow-y-auto">
+                {registration.classId.curriculum.slice(0, 5).map((week, i) => (
+                  <p key={i} className="text-xs text-gray-600 dark:text-gray-400">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Week {week.week}:</span>{" "}
+                    {week.title}
+                  </p>
+                ))}
+                {registration.classId.curriculum.length > 5 && (
+                  <p className="text-xs text-gray-400 dark:text-gray-500 italic">
+                    +{registration.classId.curriculum.length - 5} more weeks…
+                  </p>
+                )}
+              </div>
+            </Section>
+          )}
+
+          {/* Questions */}
+          {registration.questions && (
+            <Section icon={ChatBubbleLeftRightIcon} title="Questions / Comments">
+              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                {registration.questions}
+              </p>
+            </Section>
+          )}
+
+          {/* Close */}
+          <div className="flex justify-end pt-2 border-t border-gray-100 dark:border-gray-700">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-md transition-colors"
             >
               Close
             </button>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

@@ -4,24 +4,15 @@ import {
   PhoneIcon,
   EnvelopeIcon,
   CheckCircleIcon,
+  XCircleIcon,
+  AcademicCapIcon,
   TrashIcon,
+  EyeIcon,
 } from "@heroicons/react/24/outline";
 import { formatDate } from "../../../utils/requests/requestsUtils.jsx";
 import StatusBadge from "./StatusBadge";
 import SessionDisplay from "./SessionDisplay";
 
-/**
- * Foundation Class Enrollments Tab component
- * @param {Object} props - Component props
- * @param {Array} props.sortedEnrollments - Sorted list of foundation class enrollments
- * @param {Function} props.viewEnrollmentDetails - Function to view enrollment details
- * @param {Function} props.approveAndSendSchedule - Function to approve and send schedule
- * @param {Function} props.cancelAndNotifyEnrollee - Function to cancel and notify enrollee
- * @param {Function} props.completeAndNotifyMember - Function to mark as completed and notify member
- * @param {Function} props.deleteFoundationClassRegistration - Function to delete foundation class registration
- * @param {Boolean} props.actionLoading - Whether an action is currently loading
- * @returns {JSX.Element} - Foundation class tab component
- */
 const FoundationTab = ({
   sortedEnrollments,
   viewEnrollmentDetails,
@@ -31,153 +22,134 @@ const FoundationTab = ({
   deleteFoundationClassRegistration,
   actionLoading,
 }) => {
-  if (sortedEnrollments.length === 0) {
+  if (!sortedEnrollments?.length) {
     return (
-      <div className="p-6 text-center text-gray-500">
-        No foundation class enrollments found.
+      <div className="text-center py-16">
+        <AcademicCapIcon className="mx-auto h-10 w-10 text-gray-300 dark:text-gray-600 mb-3" />
+        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+          No foundation class enrollments found
+        </p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+          Enrollment requests will appear here once submitted.
+        </p>
       </div>
     );
   }
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
+      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead className="bg-gray-50 dark:bg-gray-700/50">
           <tr>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Enrollee
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Contact
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Preferred Session
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Status
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Actions
-            </th>
+            {["Enrollee", "Contact", "Preferred Session", "Status", "Actions"].map((h, i) => (
+              <th
+                key={h}
+                scope="col"
+                className={`px-5 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 ${
+                  i === 4 ? "text-right" : "text-left"
+                }`}
+              >
+                {h}
+              </th>
+            ))}
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+
+        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
           {sortedEnrollments.map((enrollment) => (
-            <tr key={enrollment.id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center">
-                    <UserIcon className="h-6 w-6 text-gray-500" />
+            <tr
+              key={enrollment.id}
+              className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
+            >
+              {/* Enrollee */}
+              <td className="px-5 py-3.5 whitespace-nowrap">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0">
+                    <UserIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                   </div>
-                  <div className="ml-4">
-                    <div className="text-sm font-medium text-gray-900">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
                       {enrollment.fullName}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      Registered: {formatDate(enrollment.registrationDate)}
-                    </div>
+                    </p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">
+                      Registered {formatDate(enrollment.registrationDate)}
+                    </p>
                   </div>
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900 flex items-center">
-                  <EnvelopeIcon className="h-4 w-4 mr-1 text-gray-500" />
+
+              {/* Contact */}
+              <td className="px-5 py-3.5 whitespace-nowrap">
+                <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 mb-0.5">
+                  <EnvelopeIcon className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
                   {enrollment.email}
                 </div>
-                <div className="text-sm text-gray-500 flex items-center">
-                  <PhoneIcon className="h-4 w-4 mr-1 text-gray-500" />
+                <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                  <PhoneIcon className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
                   {enrollment.phone}
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">
-                  <SessionDisplay sessionId={enrollment.preferredSession} />
-                </div>
+
+              {/* Preferred Session */}
+              <td className="px-5 py-3.5 whitespace-nowrap max-w-[200px]">
+                <SessionDisplay sessionId={enrollment.preferredSession} />
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
+
+              {/* Status */}
+              <td className="px-5 py-3.5 whitespace-nowrap">
                 <StatusBadge status={enrollment.status} />
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <div className="flex justify-end gap-2">
+
+              {/* Actions */}
+              <td className="px-5 py-3.5 whitespace-nowrap">
+                <div className="flex items-center justify-end gap-1.5">
                   <button
                     onClick={() => viewEnrollmentDetails(enrollment)}
-                    className="text-blue-600 hover:text-blue-900 px-2 py-1 rounded hover:bg-blue-50"
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-md transition-colors"
                   >
+                    <EyeIcon className="h-3.5 w-3.5" />
                     View
                   </button>
-                  {(enrollment.status === "registered" ||
-                    enrollment.status === "pending") && (
+
+                  {(enrollment.status === "registered" || enrollment.status === "pending") && (
                     <>
                       <button
-                        onClick={() => {
-                          approveAndSendSchedule(enrollment);
-                        }}
+                        onClick={() => approveAndSendSchedule(enrollment)}
                         disabled={actionLoading}
-                        className={`text-green-600 hover:text-green-900 px-2 py-1 rounded hover:bg-green-50 ${
-                          actionLoading ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-md disabled:opacity-50 transition-colors"
                       >
-                        {actionLoading ? "Processing..." : "Approve"}
+                        <CheckCircleIcon className="h-3.5 w-3.5" />
+                        Approve
                       </button>
                       <button
-                        onClick={() => {
-                          cancelAndNotifyEnrollee(enrollment);
-                        }}
+                        onClick={() => cancelAndNotifyEnrollee(enrollment)}
                         disabled={actionLoading}
-                        className={`text-red-600 hover:text-red-900 px-2 py-1 rounded hover:bg-red-50 ${
-                          actionLoading ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded-md disabled:opacity-50 transition-colors"
                       >
-                        {actionLoading ? "Processing..." : "Cancel"}
+                        <XCircleIcon className="h-3.5 w-3.5" />
+                        Cancel
                       </button>
                     </>
                   )}
+
                   {enrollment.status === "attending" && (
                     <button
-                      onClick={() => {
-                        completeAndNotifyMember(enrollment);
-                      }}
+                      onClick={() => completeAndNotifyMember(enrollment)}
                       disabled={actionLoading}
-                      className={`text-green-600 hover:text-green-900 px-2 py-1 rounded hover:bg-green-50 flex items-center ${
-                        actionLoading ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50 transition-colors"
                     >
-                      {actionLoading ? (
-                        "Processing..."
-                      ) : (
-                        <>
-                          <CheckCircleIcon className="h-4 w-4 mr-1" />
-                          Mark Completed
-                        </>
-                      )}
+                      <AcademicCapIcon className="h-3.5 w-3.5" />
+                      Complete
                     </button>
                   )}
+
                   <button
-                    onClick={() => {
-                      deleteFoundationClassRegistration(enrollment);
-                    }}
+                    onClick={() => deleteFoundationClassRegistration(enrollment)}
                     disabled={actionLoading}
-                    className={`text-gray-600 hover:text-gray-900 px-2 py-1 rounded hover:bg-gray-50 ${
-                      actionLoading ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                    title="Delete this enrollment"
+                    className="inline-flex items-center p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md disabled:opacity-50 transition-colors"
+                    title="Delete enrollment"
                   >
-                    <TrashIcon className="h-4 w-4" />
+                    <TrashIcon className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </td>
