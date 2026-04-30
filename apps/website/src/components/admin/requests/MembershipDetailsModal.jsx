@@ -3,21 +3,27 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   TrashIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { formatDate } from "../../../utils/requests/requestsUtils.jsx";
 import StatusBadge from "./StatusBadge";
 
-/**
- * Membership Renewal Details Modal component
- * @param {Object} props - Component props
- * @param {Object} props.selectedRenewal - The selected renewal to display
- * @param {Function} props.setShowRenewalDetails - Function to hide the modal
- * @param {Function} props.approveAndNotifyMember - Function to approve and notify member
- * @param {Function} props.declineAndNotifyMember - Function to decline and notify member
- * @param {Function} props.deleteMembershipRenewal - Function to delete membership renewal
- * @param {Boolean} props.actionLoading - Whether an action is currently loading
- * @returns {JSX.Element} - Membership details modal component
- */
+const Spinner = () => (
+  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+  </svg>
+);
+
+const Field = ({ label, value }) => (
+  <div>
+    <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-0.5">
+      {label}
+    </p>
+    <p className="text-sm text-gray-900 dark:text-white">{value || "—"}</p>
+  </div>
+);
+
 const MembershipDetailsModal = ({
   selectedRenewal,
   setShowRenewalDetails,
@@ -26,242 +32,119 @@ const MembershipDetailsModal = ({
   deleteMembershipRenewal,
   actionLoading,
 }) => {
-  // Fix and debug date objects
+  // Fix any corrupted date fields silently
   useEffect(() => {
-    // This function will be used to fix corrupted date objects
-    const fixCorruptedDateObject = (obj, fieldName) => {
-      if (!obj || !obj[fieldName]) return;
-
-      // Check if the field is a corrupted date object (has imageUrl property)
+    if (!selectedRenewal) return;
+    ["birthday", "renewalDate"].forEach((field) => {
       if (
-        typeof obj[fieldName] === "object" &&
-        !(obj[fieldName] instanceof Date) &&
-        obj[fieldName].imageUrl
+        typeof selectedRenewal[field] === "object" &&
+        !(selectedRenewal[field] instanceof Date) &&
+        selectedRenewal[field]?.imageUrl
       ) {
-        console.log(`Fixing corrupted ${fieldName} object:`, obj[fieldName]);
-
-        // Replace the corrupted object with a proper date string
-        // We'll use the current date as a fallback
-        obj[fieldName] = new Date().toISOString();
-        console.log(`Fixed ${fieldName} object:`, obj[fieldName]);
+        selectedRenewal[field] = new Date().toISOString();
       }
-    };
-
-    // Fix corrupted date objects if they exist
-    if (selectedRenewal) {
-      fixCorruptedDateObject(selectedRenewal, "birthday");
-      fixCorruptedDateObject(selectedRenewal, "renewalDate");
-
-      // Debug logs
-      console.log("Birthday after fix:", selectedRenewal.birthday);
-      console.log("RenewalDate after fix:", selectedRenewal.renewalDate);
-    }
+    });
   }, [selectedRenewal]);
 
-  // Safety check to prevent errors if selectedRenewal is undefined
-  if (!selectedRenewal) {
-    console.error('MembershipDetailsModal: selectedRenewal is undefined');
-    return null;
-  }
+  if (!selectedRenewal) return null;
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-          <h3 className="text-lg font-medium text-gray-900">
-            Membership Renewal Details
-          </h3>
+    <div className="fixed inset-0 bg-black/60 dark:bg-black/75 flex items-center justify-center p-4 z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center sticky top-0 bg-white dark:bg-gray-800 z-10">
+          <div>
+            <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+              Membership Renewal
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              {selectedRenewal.fullName}
+            </p>
+          </div>
           <button
             onClick={() => setShowRenewalDetails(false)}
-            className="text-gray-400 hover:text-gray-500"
+            className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-md transition-colors"
           >
-            <span className="sr-only">Close</span>
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="px-6 py-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div>
-              <h4 className="text-sm font-medium text-gray-500">
+        {/* Body */}
+        <div className="px-6 py-5 space-y-6">
+          {/* Member + Renewal info side by side */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 pb-1 border-b border-gray-100 dark:border-gray-700">
                 Member Information
-              </h4>
-              <div className="mt-2 space-y-2">
-                <p className="flex items-start">
-                  <span className="font-medium w-32">Name:</span>{" "}
-                  {selectedRenewal.fullName}
-                </p>
-                <p className="flex items-start">
-                  <span className="font-medium w-32">Email:</span>{" "}
-                  {selectedRenewal.email}
-                </p>
-                <p className="flex items-start">
-                  <span className="font-medium w-32">Phone:</span>{" "}
-                  {selectedRenewal.phone}
-                </p>
-                <p className="flex items-start">
-                  <span className="font-medium w-32">Member Since:</span>{" "}
-                  {selectedRenewal.memberSince}
-                </p>
-                <p className="flex items-start">
-                  <span className="font-medium w-32">Birthday:</span>{" "}
-                  {formatDate(selectedRenewal.birthday)}
-                </p>
-              </div>
+              </p>
+              <Field label="Name"         value={selectedRenewal.fullName} />
+              <Field label="Email"        value={selectedRenewal.email} />
+              <Field label="Phone"        value={selectedRenewal.phone} />
+              <Field label="Member Since" value={selectedRenewal.memberSince} />
+              <Field label="Birthday"     value={formatDate(selectedRenewal.birthday)} />
             </div>
 
-            <div>
-              <h4 className="text-sm font-medium text-gray-500">
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 pb-1 border-b border-gray-100 dark:border-gray-700">
                 Renewal Information
-              </h4>
-              <div className="mt-2 space-y-2">
-                <p className="flex items-start">
-                  <span className="font-medium w-32">Renewal Date:</span>{" "}
-                  {formatDate(selectedRenewal.renewalDate)}
+              </p>
+              <Field label="Renewal Date" value={formatDate(selectedRenewal.renewalDate)} />
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-0.5">
+                  Status
                 </p>
-                <p className="flex items-start">
-                  <span className="font-medium w-32">Status:</span>
-                  <StatusBadge status={selectedRenewal.status} />
-                </p>
-                <p className="flex items-start">
-                  <span className="font-medium w-32">Address Change:</span>{" "}
-                  {selectedRenewal.addressChange ? "Yes" : "No"}
-                </p>
-                {selectedRenewal.addressChange &&
-                  selectedRenewal.newAddress && (
-                    <p className="flex items-start">
-                      <span className="font-medium w-32">New Address:</span>{" "}
-                      {selectedRenewal.newAddress}
-                    </p>
-                  )}
+                <StatusBadge status={selectedRenewal.status} />
               </div>
+              <Field
+                label="Address Change"
+                value={selectedRenewal.addressChange ? "Yes" : "No"}
+              />
+              {selectedRenewal.addressChange && selectedRenewal.newAddress && (
+                <Field label="New Address" value={selectedRenewal.newAddress} />
+              )}
             </div>
           </div>
 
+          {/* Ministry involvement */}
           {selectedRenewal.ministryInvolvement && (
-            <div className="mb-6">
-              <h4 className="text-sm font-medium text-gray-500">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2">
                 Ministry Involvement
-              </h4>
-              <p className="mt-2 text-sm text-gray-600">
+              </p>
+              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                 {selectedRenewal.ministryInvolvement}
               </p>
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row gap-2 justify-end mt-6">
+          {/* Actions */}
+          <div className="flex flex-wrap gap-3 pt-2 border-t border-gray-100 dark:border-gray-700">
             {selectedRenewal.status === "pending" && (
               <>
                 <button
-                  onClick={() => {
-                    approveAndNotifyMember(selectedRenewal);
-                  }}
+                  onClick={() => approveAndNotifyMember(selectedRenewal)}
                   disabled={actionLoading}
-                  className={`inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${
-                    actionLoading
-                      ? "bg-green-400 cursor-not-allowed"
-                      : "bg-green-600 hover:bg-green-700"
-                  } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500`}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md disabled:opacity-50 transition-colors"
                 >
-                  {actionLoading ? (
-                    <>
-                      <svg
-                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircleIcon className="h-5 w-5 mr-2" />
-                      Approve & Notify
-                    </>
-                  )}
+                  {actionLoading ? <Spinner /> : <CheckCircleIcon className="h-4 w-4" />}
+                  {actionLoading ? "Processing…" : "Approve & Notify"}
                 </button>
                 <button
-                  onClick={() => {
-                    declineAndNotifyMember(selectedRenewal);
-                  }}
+                  onClick={() => declineAndNotifyMember(selectedRenewal)}
                   disabled={actionLoading}
-                  className={`inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${
-                    actionLoading
-                      ? "bg-red-400 cursor-not-allowed"
-                      : "bg-red-600 hover:bg-red-700"
-                  } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md disabled:opacity-50 transition-colors"
                 >
-                  {actionLoading ? (
-                    <>
-                      <svg
-                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <XCircleIcon className="h-5 w-5 mr-2" />
-                      Decline
-                    </>
-                  )}
+                  {actionLoading ? <Spinner /> : <XCircleIcon className="h-4 w-4" />}
+                  {actionLoading ? "Processing…" : "Decline"}
                 </button>
               </>
             )}
             <button
-              onClick={() => {
-                deleteMembershipRenewal(selectedRenewal);
-              }}
+              onClick={() => deleteMembershipRenewal(selectedRenewal)}
               disabled={actionLoading}
-              className={`inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 ${
-                actionLoading
-                  ? "bg-gray-100 cursor-not-allowed"
-                  : "bg-white hover:bg-gray-50"
-              } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500`}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 hover:border-red-300 dark:hover:border-red-700 rounded-md disabled:opacity-50 transition-colors ml-auto"
             >
-              <TrashIcon className="h-5 w-5 mr-2 text-gray-500" />
+              <TrashIcon className="h-4 w-4" />
               Delete Request
             </button>
           </div>

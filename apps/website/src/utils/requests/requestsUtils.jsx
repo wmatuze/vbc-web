@@ -27,8 +27,7 @@ export const formatDate = (dateInput) => {
     dateInput !== null &&
     dateInput.imageUrl
   ) {
-    console.log("Detected corrupted date object with imageUrl:", dateInput);
-    return "Date unavailable (corrupted)";
+    return "Date unavailable";
   }
 
   try {
@@ -104,17 +103,18 @@ export const getStatusBadgeClasses = (status) => {
   switch (status) {
     case "approved":
     case "completed":
-      return "bg-green-100 text-green-800";
+      return "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300";
     case "declined":
     case "cancelled":
-      return "bg-red-100 text-red-800";
+    case "rejected":
+      return "bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300";
     case "registered":
-      return "bg-blue-100 text-blue-800";
+      return "bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300";
     case "attending":
-      return "bg-orange-100 text-orange-800"; // Assuming tailwind orange, otherwise adjust
+      return "bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300";
     case "pending":
     default:
-      return "bg-yellow-100 text-yellow-800";
+      return "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300";
   }
 };
 

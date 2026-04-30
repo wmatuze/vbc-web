@@ -4,24 +4,14 @@ import {
   CalendarIcon,
   PhoneIcon,
   EnvelopeIcon,
+  TrashIcon,
   CheckCircleIcon,
   XCircleIcon,
-  TrashIcon,
+  EyeIcon,
 } from "@heroicons/react/24/outline";
 import { formatDate } from "../../../utils/requests/requestsUtils.jsx";
 import StatusBadge from "./StatusBadge";
 
-/**
- * Membership Renewals Tab component
- * @param {Object} props - Component props
- * @param {Array} props.sortedRenewals - Sorted list of membership renewals
- * @param {Function} props.viewRenewalDetails - Function to view renewal details
- * @param {Function} props.approveAndNotifyMember - Function to approve and notify member
- * @param {Function} props.declineAndNotifyMember - Function to decline and notify member
- * @param {Function} props.deleteMembershipRenewal - Function to delete membership renewal
- * @param {Boolean} props.actionLoading - Whether an action is currently loading
- * @returns {JSX.Element} - Membership tab component
- */
 const MembershipTab = ({
   sortedRenewals,
   viewRenewalDetails,
@@ -30,133 +20,126 @@ const MembershipTab = ({
   deleteMembershipRenewal,
   actionLoading,
 }) => {
-  if (sortedRenewals.length === 0) {
+  if (!sortedRenewals?.length) {
     return (
-      <div className="p-6 text-center text-gray-500">
-        No membership renewals found.
+      <div className="text-center py-16">
+        <UserIcon className="mx-auto h-10 w-10 text-gray-300 dark:text-gray-600 mb-3" />
+        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+          No membership renewals found
+        </p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+          Renewal requests submitted by members will appear here.
+        </p>
       </div>
     );
   }
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
+      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead className="bg-gray-50 dark:bg-gray-700/50">
           <tr>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Member
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Contact
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Renewal Date
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Status
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Actions
-            </th>
+            {["Member", "Contact", "Renewal Date", "Status", "Actions"].map((h, i) => (
+              <th
+                key={h}
+                scope="col"
+                className={`px-5 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 ${
+                  i === 4 ? "text-right" : "text-left"
+                }`}
+              >
+                {h}
+              </th>
+            ))}
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+
+        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
           {sortedRenewals.map((renewal) => (
-            <tr key={renewal.id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center">
-                    <UserIcon className="h-6 w-6 text-gray-500" />
+            <tr
+              key={renewal.id}
+              className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
+            >
+              {/* Member */}
+              <td className="px-5 py-3.5 whitespace-nowrap">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0">
+                    <UserIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                   </div>
-                  <div className="ml-4">
-                    <div className="text-sm font-medium text-gray-900">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
                       {renewal.fullName}
-                    </div>
-                    <div className="text-sm text-gray-500">
+                    </p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">
                       Member since {renewal.memberSince}
-                    </div>
+                    </p>
                   </div>
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900 flex items-center">
-                  <EnvelopeIcon className="h-4 w-4 mr-1 text-gray-500" />
+
+              {/* Contact */}
+              <td className="px-5 py-3.5 whitespace-nowrap">
+                <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 mb-0.5">
+                  <EnvelopeIcon className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
                   {renewal.email}
                 </div>
-                <div className="text-sm text-gray-500 flex items-center">
-                  <PhoneIcon className="h-4 w-4 mr-1 text-gray-500" />
+                <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                  <PhoneIcon className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
                   {renewal.phone}
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900 flex items-center">
-                  <CalendarIcon className="h-4 w-4 mr-1 text-gray-500" />
+
+              {/* Renewal Date */}
+              <td className="px-5 py-3.5 whitespace-nowrap">
+                <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
+                  <CalendarIcon className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                   {formatDate(renewal.renewalDate)}
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
+
+              {/* Status */}
+              <td className="px-5 py-3.5 whitespace-nowrap">
                 <StatusBadge status={renewal.status} />
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <div className="flex justify-end gap-2">
+
+              {/* Actions */}
+              <td className="px-5 py-3.5 whitespace-nowrap">
+                <div className="flex items-center justify-end gap-1.5">
                   <button
                     onClick={() => viewRenewalDetails(renewal)}
-                    className="text-blue-600 hover:text-blue-900 px-2 py-1 rounded hover:bg-blue-50"
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-md transition-colors"
                   >
+                    <EyeIcon className="h-3.5 w-3.5" />
                     View
                   </button>
+
                   {renewal.status === "pending" && (
                     <>
                       <button
-                        onClick={() => {
-                          approveAndNotifyMember(renewal);
-                        }}
+                        onClick={() => approveAndNotifyMember(renewal)}
                         disabled={actionLoading}
-                        className={`text-green-600 hover:text-green-900 px-2 py-1 rounded hover:bg-green-50 ${
-                          actionLoading ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-md disabled:opacity-50 transition-colors"
                       >
-                        {actionLoading ? "Processing..." : "Approve"}
+                        <CheckCircleIcon className="h-3.5 w-3.5" />
+                        Approve
                       </button>
                       <button
-                        onClick={() => {
-                          declineAndNotifyMember(renewal);
-                        }}
+                        onClick={() => declineAndNotifyMember(renewal)}
                         disabled={actionLoading}
-                        className={`text-red-600 hover:text-red-900 px-2 py-1 rounded hover:bg-red-50 ${
-                          actionLoading ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded-md disabled:opacity-50 transition-colors"
                       >
-                        {actionLoading ? "Processing..." : "Decline"}
+                        <XCircleIcon className="h-3.5 w-3.5" />
+                        Decline
                       </button>
                     </>
                   )}
+
                   <button
-                    onClick={() => {
-                      deleteMembershipRenewal(renewal);
-                    }}
+                    onClick={() => deleteMembershipRenewal(renewal)}
                     disabled={actionLoading}
-                    className={`text-gray-600 hover:text-gray-900 px-2 py-1 rounded hover:bg-gray-50 ${
-                      actionLoading ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                    title="Delete this renewal request"
+                    className="inline-flex items-center p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md disabled:opacity-50 transition-colors"
+                    title="Delete renewal request"
                   >
-                    <TrashIcon className="h-4 w-4" />
+                    <TrashIcon className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </td>
