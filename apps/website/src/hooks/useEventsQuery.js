@@ -7,10 +7,11 @@ import { getEvents, getEventById } from "../services/api/events";
  * @returns {Object} Query result object with data, loading state, error, and refetch function
  */
 export const useEventsQuery = (options = {}) => {
+  const { year, ...queryOptions } = options;
   return useQuery({
-    queryKey: ["events"],
+    queryKey: ["events", year ?? "all"],
     queryFn: async () => {
-      const data = await getEvents();
+      const data = await getEvents(year);
       if (!Array.isArray(data)) {
         console.error("useEventsQuery: unexpected response shape", data);
         return [];
@@ -19,9 +20,9 @@ export const useEventsQuery = (options = {}) => {
     },
     // Re-fetch on mount so navigating back to the Calendar page always picks up new events.
     refetchOnMount: true,
-    staleTime: 60 * 1000, // 60 seconds
+    staleTime: 60 * 1000,
     retry: 2,
-    ...options,
+    ...queryOptions,
   });
 };
 

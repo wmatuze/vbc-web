@@ -144,17 +144,26 @@ router.post("/support", async (req, res) => {
 
 // Use the formatResponse utility function
 
-// Get all events
+// Get all events — supports optional ?year=YYYY to filter by startDate year
 router.get("/events", async (req, res) => {
   try {
-    const events = await models.Event.find()
+    const query = {};
+
+    if (req.query.year) {
+      const year = parseInt(req.query.year, 10);
+      if (!isNaN(year)) {
+        query.startDate = {
+          $gte: new Date(`${year}-01-01T00:00:00.000Z`),
+          $lt:  new Date(`${year + 1}-01-01T00:00:00.000Z`),
+        };
+      }
+    }
+
+    const events = await models.Event.find(query)
       .populate("image")
       .sort({ startDate: 1 });
 
-    // Format events for frontend compatibility
     const formattedEvents = formatResponse(events);
-    console.log(`API returning ${formattedEvents.length} events`);
-
     res.json(formattedEvents);
   } catch (error) {
     console.error("Error fetching events:", error);

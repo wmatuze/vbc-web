@@ -5,17 +5,9 @@ import { fetchData, postData, updateData, deleteData } from './core';
  * Get all events
  * @returns {Promise<Array>} Promise resolving to array of events
  */
-export const getEvents = () => {
-  console.log("Calling getEvents API");
-  return fetchData("api/events")
-    .then((data) => {
-      console.log("Events API response:", data);
-      return data;
-    })
-    .catch((error) => {
-      console.error("Error fetching events:", error);
-      throw error;
-    });
+export const getEvents = (year) => {
+  const endpoint = year ? `api/events?year=${year}` : "api/events";
+  return fetchData(endpoint);
 };
 
 /**

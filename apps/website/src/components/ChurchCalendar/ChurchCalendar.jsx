@@ -28,7 +28,8 @@ Modal.setAppElement("#root");
 const MONTH = (d) => d.toLocaleString("default", { month: "short" }).toUpperCase();
 
 const ChurchCalendar = () => {
-  const { data: events = [], isLoading: loading, error, refetch } = useEventsQuery();
+  const currentYear = new Date().getFullYear();
+  const { data: events = [], isLoading: loading, error, refetch } = useEventsQuery({ year: currentYear });
 
   const [viewMode,         setViewMode]         = useState("grid");
   const [selectedEvent,    setSelectedEvent]    = useState(null);
