@@ -113,8 +113,7 @@ router.post("/send", authMiddleware, async (req, res) => {
   } catch (error) {
     console.error("Error in notification route:", error.message);
     return res.status(500).json({
-      message: "Failed to send notification",
-      error: error.message,
+      message: "Notification email could not be sent. The status change was already saved.",
     });
   }
 });

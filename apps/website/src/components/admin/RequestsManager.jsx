@@ -363,33 +363,35 @@ const RequestsManager = () => {
     }
   };
 
+  // Helper: try to send a notification, warn but don't fail if email errors
+  const tryNotify = async (notifyFn, successMsg, warnMsg) => {
+    try {
+      await notifyFn();
+      toast.success(successMsg);
+    } catch {
+      toast.warn(warnMsg);
+    }
+  };
+
   // Approve and notify member
   const approveAndNotifyMember = async (renewal) => {
     try {
       setActionLoading(true);
-
-      // Validate the renewal data before proceeding
       const { isValid, errors } = validateMembershipRenewal(renewal);
       if (!isValid) {
-        const errorMessages = Object.values(errors).join(", ");
-        toast.error(`Validation failed: ${errorMessages}`);
+        toast.error(`Validation failed: ${Object.values(errors).join(", ")}`);
         return;
       }
-
-      // First update status
       await handleMembershipStatusChange(renewal.id, "approved");
-
-      // Then send notification
-      await NotificationService.sendMembershipApprovalNotification(renewal);
-
-      toast.success(`Approval notification sent to ${renewal.fullName}`);
       setShowRenewalDetails(false);
+      await tryNotify(
+        () => NotificationService.sendMembershipApprovalNotification(renewal),
+        `Approved — notification sent to ${renewal.fullName}`,
+        `Approved — notification email could not be sent`
+      );
     } catch (err) {
-      console.error("Error approving and notifying member:", err);
-      const errorMessage =
-        err.response?.data?.error ||
-        "Status updated but failed to send notification";
-      toast.error(errorMessage);
+      console.error("Error approving member:", err);
+      toast.error("Failed to approve renewal. Please try again.");
     } finally {
       setActionLoading(false);
     }
@@ -399,29 +401,21 @@ const RequestsManager = () => {
   const declineAndNotifyMember = async (renewal) => {
     try {
       setActionLoading(true);
-
-      // Validate the renewal data before proceeding
       const { isValid, errors } = validateMembershipRenewal(renewal);
       if (!isValid) {
-        const errorMessages = Object.values(errors).join(", ");
-        toast.error(`Validation failed: ${errorMessages}`);
+        toast.error(`Validation failed: ${Object.values(errors).join(", ")}`);
         return;
       }
-
-      // First update status
       await handleMembershipStatusChange(renewal.id, "declined");
-
-      // Then send notification
-      await NotificationService.sendMembershipDeclinedNotification(renewal);
-
-      toast.info(`Decline notification sent to ${renewal.fullName}`);
       setShowRenewalDetails(false);
+      await tryNotify(
+        () => NotificationService.sendMembershipDeclinedNotification(renewal),
+        `Declined — notification sent to ${renewal.fullName}`,
+        `Declined — notification email could not be sent`
+      );
     } catch (err) {
-      console.error("Error declining and notifying member:", err);
-      const errorMessage =
-        err.response?.data?.error ||
-        "Status updated but failed to send notification";
-      toast.error(errorMessage);
+      console.error("Error declining member:", err);
+      toast.error("Failed to decline renewal. Please try again.");
     } finally {
       setActionLoading(false);
     }
@@ -431,30 +425,21 @@ const RequestsManager = () => {
   const approveAndSendSchedule = async (enrollment) => {
     try {
       setActionLoading(true);
-
-      // Validate the enrollment data before proceeding
-      const { isValid, errors } =
-        validateFoundationClassRegistration(enrollment);
+      const { isValid, errors } = validateFoundationClassRegistration(enrollment);
       if (!isValid) {
-        const errorMessages = Object.values(errors).join(", ");
-        toast.error(`Validation failed: ${errorMessages}`);
+        toast.error(`Validation failed: ${Object.values(errors).join(", ")}`);
         return;
       }
-
-      // First update status
       await handleEnrollmentStatusChange(enrollment.id, "attending");
-
-      // Then send notification
-      await NotificationService.sendClassScheduleNotification(enrollment);
-
-      toast.success(`Schedule sent to ${enrollment.fullName}`);
       setShowEnrollmentDetails(false);
+      await tryNotify(
+        () => NotificationService.sendClassScheduleNotification(enrollment),
+        `Approved — schedule sent to ${enrollment.fullName}`,
+        `Approved — schedule email could not be sent`
+      );
     } catch (err) {
-      console.error("Error approving and sending schedule:", err);
-      const errorMessage =
-        err.response?.data?.error ||
-        "Status updated but failed to send schedule";
-      toast.error(errorMessage);
+      console.error("Error approving enrollment:", err);
+      toast.error("Failed to approve enrollment. Please try again.");
     } finally {
       setActionLoading(false);
     }
@@ -464,30 +449,21 @@ const RequestsManager = () => {
   const cancelAndNotifyEnrollee = async (enrollment) => {
     try {
       setActionLoading(true);
-
-      // Validate the enrollment data before proceeding
-      const { isValid, errors } =
-        validateFoundationClassRegistration(enrollment);
+      const { isValid, errors } = validateFoundationClassRegistration(enrollment);
       if (!isValid) {
-        const errorMessages = Object.values(errors).join(", ");
-        toast.error(`Validation failed: ${errorMessages}`);
+        toast.error(`Validation failed: ${Object.values(errors).join(", ")}`);
         return;
       }
-
-      // First update status
       await handleEnrollmentStatusChange(enrollment.id, "cancelled");
-
-      // Then send notification
-      await NotificationService.sendClassCancellationNotification(enrollment);
-
-      toast.info(`Cancellation notification sent to ${enrollment.fullName}`);
       setShowEnrollmentDetails(false);
+      await tryNotify(
+        () => NotificationService.sendClassCancellationNotification(enrollment),
+        `Cancelled — notification sent to ${enrollment.fullName}`,
+        `Cancelled — notification email could not be sent`
+      );
     } catch (err) {
-      console.error("Error cancelling and notifying enrollee:", err);
-      const errorMessage =
-        err.response?.data?.error ||
-        "Status updated but failed to send notification";
-      toast.error(errorMessage);
+      console.error("Error cancelling enrollment:", err);
+      toast.error("Failed to cancel enrollment. Please try again.");
     } finally {
       setActionLoading(false);
     }
@@ -497,30 +473,21 @@ const RequestsManager = () => {
   const completeAndNotifyMember = async (enrollment) => {
     try {
       setActionLoading(true);
-
-      // Validate the enrollment data before proceeding
-      const { isValid, errors } =
-        validateFoundationClassRegistration(enrollment);
+      const { isValid, errors } = validateFoundationClassRegistration(enrollment);
       if (!isValid) {
-        const errorMessages = Object.values(errors).join(", ");
-        toast.error(`Validation failed: ${errorMessages}`);
+        toast.error(`Validation failed: ${Object.values(errors).join(", ")}`);
         return;
       }
-
-      // First update status
       await handleEnrollmentStatusChange(enrollment.id, "completed");
-
-      // Then send notification
-      await NotificationService.sendClassCompletionNotification(enrollment);
-
-      toast.success(`Completion notification sent to ${enrollment.fullName}`);
       setShowEnrollmentDetails(false);
+      await tryNotify(
+        () => NotificationService.sendClassCompletionNotification(enrollment),
+        `Completed — notification sent to ${enrollment.fullName}`,
+        `Completed — notification email could not be sent`
+      );
     } catch (err) {
-      console.error("Error completing and notifying member:", err);
-      const errorMessage =
-        err.response?.data?.error ||
-        "Status updated but failed to send notification";
-      toast.error(errorMessage);
+      console.error("Error completing enrollment:", err);
+      toast.error("Failed to mark as completed. Please try again.");
     } finally {
       setActionLoading(false);
     }
@@ -530,29 +497,21 @@ const RequestsManager = () => {
   const approveAndNotifyEventSignup = async (request) => {
     try {
       setActionLoading(true);
-
-      // Validate the request data before proceeding
       const { isValid, errors } = validateEventSignupRequest(request);
       if (!isValid) {
-        const errorMessages = Object.values(errors).join(", ");
-        toast.error(`Validation failed: ${errorMessages}`);
+        toast.error(`Validation failed: ${Object.values(errors).join(", ")}`);
         return;
       }
-
-      // First update status
       await handleEventSignupStatusChange(request.id, "approved");
-
-      // Then send notification
-      await NotificationService.sendEventSignupApprovalNotification(request);
-
-      toast.success(`Approval notification sent to ${request.fullName}`);
       setShowEventSignupDetails(false);
+      await tryNotify(
+        () => NotificationService.sendEventSignupApprovalNotification(request),
+        `Approved — notification sent to ${request.fullName}`,
+        `Approved — notification email could not be sent`
+      );
     } catch (err) {
-      console.error("Error approving and notifying signup:", err);
-      const errorMessage =
-        err.response?.data?.error ||
-        "Status updated but failed to send notification";
-      toast.error(errorMessage);
+      console.error("Error approving event signup:", err);
+      toast.error("Failed to approve signup. Please try again.");
     } finally {
       setActionLoading(false);
     }
@@ -562,29 +521,21 @@ const RequestsManager = () => {
   const declineAndNotifyEventSignup = async (request) => {
     try {
       setActionLoading(true);
-
-      // Validate the request data before proceeding
       const { isValid, errors } = validateEventSignupRequest(request);
       if (!isValid) {
-        const errorMessages = Object.values(errors).join(", ");
-        toast.error(`Validation failed: ${errorMessages}`);
+        toast.error(`Validation failed: ${Object.values(errors).join(", ")}`);
         return;
       }
-
-      // First update status
       await handleEventSignupStatusChange(request.id, "declined");
-
-      // Then send notification
-      await NotificationService.sendEventSignupDeclinedNotification(request);
-
-      toast.info(`Decline notification sent to ${request.fullName}`);
       setShowEventSignupDetails(false);
+      await tryNotify(
+        () => NotificationService.sendEventSignupDeclinedNotification(request),
+        `Declined — notification sent to ${request.fullName}`,
+        `Declined — notification email could not be sent`
+      );
     } catch (err) {
-      console.error("Error declining and notifying signup:", err);
-      const errorMessage =
-        err.response?.data?.error ||
-        "Status updated but failed to send notification";
-      toast.error(errorMessage);
+      console.error("Error declining event signup:", err);
+      toast.error("Failed to decline signup. Please try again.");
     } finally {
       setActionLoading(false);
     }
