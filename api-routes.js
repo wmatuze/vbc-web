@@ -64,29 +64,40 @@ router.post("/foundation-classes/register", async (req, res) => {
       });
     }
 
+    // Resolve session ID → human-readable name for the confirmation email
+    let sessionName = preferredSession;
+    try {
+      const session = await models.FoundationClassSession.findById(preferredSession);
+      if (session?.name) sessionName = session.name;
+    } catch (_) { /* keep raw value if lookup fails */ }
+
+    const registrationDate = new Date();
+
     // Create a new registration
     const registration = new models.FoundationClassRegistration({
       fullName,
       email,
       phone,
-      preferredSession, // Use the original field name
-      sessionId: preferredSession, // Also store in the new field for compatibility
+      preferredSession,
+      sessionId: preferredSession,
       questions: questions || "",
       status: "pending",
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      registrationDate,
+      createdAt: registrationDate,
+      updatedAt: registrationDate,
     });
 
     const savedRegistration = await registration.save();
     console.log("Foundation class registration saved:", savedRegistration);
 
-    // Send confirmation email
+    // Send confirmation email with resolved session name and registration date
     try {
       await emailService.sendFoundationClassRegistrationEmails({
         fullName,
         email,
         phone,
-        preferredSession
+        preferredSession: sessionName,
+        registrationDate,
       });
       console.log("Confirmation email sent to:", email);
     } catch (emailError) {

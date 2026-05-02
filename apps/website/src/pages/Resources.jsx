@@ -1,107 +1,114 @@
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import HeroSection from "../components/common/HeroSection";
 import {
-  Book,
-  Users,
-  Presentation,
-  Book as BookAlt,
-  Download,
-  Eye,
-  Search,
-  Filter,
-  FileText,
-  Video,
-  Music,
-  Link as LinkIcon,
-  Image,
-  FileText as FilePPT,
-  Star,
-  X,
-  ChevronDown,
-} from "lucide-react";
+  MagnifyingGlassIcon,
+  XMarkIcon,
+  ArrowDownTrayIcon,
+  EyeIcon,
+  ChevronDownIcon,
+  ArrowRightIcon,
+  BookOpenIcon,
+  UserGroupIcon,
+  AcademicCapIcon,
+  DocumentTextIcon,
+  VideoCameraIcon,
+  MusicalNoteIcon,
+  LinkIcon,
+  PhotoIcon,
+  StarIcon,
+  RectangleStackIcon,
+  FunnelIcon,
+  ArrowPathIcon,
+} from "@heroicons/react/24/outline";
+import { StarIcon as StarSolid } from "@heroicons/react/24/solid";
 
-// Static navigation cards for main resource categories
-const resourceCategories = [
+// ─── Static config ────────────────────────────────────────────────────────────
+
+const PROGRAMS = [
   {
+    num: "01",
     path: "/foundation-classes",
     title: "Foundation Classes",
-    description: "Learn the core beliefs of our church",
-    icon: <Book className="text-blue-600 dark:text-blue-300 text-4xl" />,
-    color: "blue",
+    desc: "Core beliefs, doctrines, and the foundations of the Christian faith.",
+    Icon: BookOpenIcon,
   },
   {
+    num: "02",
     path: "/discipleship-classes",
     title: "Discipleship Classes",
-    description: "Deepen your faith and walk with Christ",
-    icon: (
-      <Presentation className="text-purple-600 dark:text-purple-300 text-4xl" />
-    ),
-    color: "purple",
+    desc: "Structured growth in your personal walk with Christ.",
+    Icon: AcademicCapIcon,
   },
   {
+    num: "03",
     path: "/resources/leadership-training",
     title: "Leadership Training",
-    description: "Grow as a leader in ministry",
-    icon: <Users className="text-green-600 dark:text-green-300 text-4xl" />,
-    color: "green",
+    desc: "Equipping men and women to lead with integrity and purpose.",
+    Icon: UserGroupIcon,
   },
   {
+    num: "04",
     path: "/resources/bible-study",
     title: "Bible Study Guides",
-    description: "Explore scripture with structured lessons",
-    icon: <Book className="text-yellow-600 dark:text-yellow-300 text-4xl" />,
-    color: "yellow",
+    desc: "Structured scripture exploration for individuals and groups.",
+    Icon: BookOpenIcon,
   },
 ];
 
-const typeIcons = {
-  document: <FileText />,
-  video: <Video />,
-  audio: <Music />,
-  link: <LinkIcon />,
-  image: <Image />,
-  presentation: <FileText />,
+const CATEGORIES = [
+  { value: "",               label: "All"           },
+  { value: "foundation",     label: "Foundation"    },
+  { value: "discipleship",   label: "Discipleship"  },
+  { value: "leadership",     label: "Leadership"    },
+  { value: "bible_study",    label: "Bible Study"   },
+  { value: "ministry",       label: "Ministry"      },
+  { value: "audio_sermons",  label: "Audio Sermons" },
+  { value: "worship",        label: "Worship"       },
+  { value: "general",        label: "General"       },
+];
+
+const TYPES = [
+  { value: "",               label: "All Types"      },
+  { value: "document",       label: "Documents"      },
+  { value: "audio",          label: "Audio"          },
+  { value: "video",          label: "Video"          },
+  { value: "presentation",   label: "Presentations"  },
+  { value: "image",          label: "Images"         },
+  { value: "link",           label: "Links"          },
+];
+
+const TYPE_META = {
+  document:     { Icon: DocumentTextIcon,  label: "PDF / Doc"    },
+  audio:        { Icon: MusicalNoteIcon,   label: "Audio"        },
+  video:        { Icon: VideoCameraIcon,   label: "Video"        },
+  presentation: { Icon: RectangleStackIcon,label: "Slides"       },
+  image:        { Icon: PhotoIcon,         label: "Image"        },
+  link:         { Icon: LinkIcon,          label: "Link"         },
 };
 
-const categoryColors = {
-  audio_sermons: "green",
-  foundation: "blue",
-  discipleship: "purple",
-  leadership: "green",
-  ministry: "indigo",
-  bible_study: "yellow",
-  worship: "pink",
-  general: "gray",
-};
+// ─── Skeleton card ────────────────────────────────────────────────────────────
 
-const CategoryCard = ({ resource, index }) => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.9 }}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ delay: index * 0.1 }}
-    whileHover={{ scale: 1.05 }}
-    className="h-full"
-  >
-    <Link
-      to={resource.path}
-      className="group block h-full rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 bg-white dark:bg-gray-800 p-6 flex flex-col items-center text-center"
-    >
-      <div className="mb-4">{resource.icon}</div>
-      <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 transition-colors group-hover:text-blue-600">
-        {resource.title}
-      </h2>
-      <p className="text-gray-600 dark:text-gray-300 text-sm mt-2">
-        {resource.description}
-      </p>
-    </Link>
-  </motion.div>
+const SkeletonCard = () => (
+  <div className="bg-white animate-pulse border border-gray-100">
+    <div className="p-6 space-y-3">
+      <div className="h-3 bg-gray-100 w-16" />
+      <div className="h-5 bg-gray-100 w-3/4" />
+      <div className="h-3 bg-gray-100 w-full" />
+      <div className="h-3 bg-gray-100 w-2/3" />
+      <div className="h-10 bg-gray-100 mt-4" />
+    </div>
+  </div>
 );
 
-const ResourceItem = ({ resource, index }) => {
-  const handleDownload = async (e) => {
+// ─── Resource card ────────────────────────────────────────────────────────────
+
+const ResourceCard = ({ resource }) => {
+  const meta = TYPE_META[resource.type] || { Icon: DocumentTextIcon, label: resource.type };
+  const { Icon: TypeIcon } = meta;
+  const isLink = resource.type === "link";
+
+  const handleAction = (e) => {
     e.preventDefault();
     if (resource.isDownloadable) {
       window.open(`/api/resources/${resource._id}/download`, "_blank");
@@ -110,141 +117,188 @@ const ResourceItem = ({ resource, index }) => {
     }
   };
 
-  const categoryColor = categoryColors[resource.category] || "gray";
+  const categoryLabel = resource.category?.replace("_", " ") || "";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden"
-    >
-      <div className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <div
-              className={`text-${categoryColor}-600 dark:text-${categoryColor}-400 text-xl`}
-            >
-              {typeIcons[resource.type] || <FileText />}
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {resource.title}
-              </h3>
-              <div className="flex items-center space-x-2 mt-1">
-                <span
-                  className={`px-2 py-1 text-xs font-medium rounded-full bg-${categoryColor}-100 text-${categoryColor}-800 dark:bg-${categoryColor}-900 dark:text-${categoryColor}-200`}
-                >
-                  {resource.category.replace("_", " ")}
-                </span>
-                {resource.featured && (
-                  <Star className="text-yellow-500 text-sm" />
-                )}
-              </div>
-            </div>
-          </div>
+    <div className="bg-white flex flex-col group border border-gray-100 hover:border-gray-200 transition-colors">
+      <div className="p-6 flex flex-col flex-1">
 
-          <button
-            onClick={handleDownload}
-            className="flex items-center space-x-1 px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
-          >
-            {resource.type === "link" ? <Eye /> : <Download />}
-            <span>{resource.type === "link" ? "View" : "Download"}</span>
-          </button>
+        {/* Top row: type badge + featured */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-1.5 text-xs text-gray-400 uppercase tracking-wider">
+            <TypeIcon className="h-3.5 w-3.5 text-brand-red flex-shrink-0" />
+            {meta.label}
+          </div>
+          {resource.featured && (
+            <StarSolid className="h-3.5 w-3.5 text-brand-red flex-shrink-0" title="Featured" />
+          )}
         </div>
 
-        <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
-          {resource.description}
-        </p>
+        {/* Category eyebrow */}
+        {categoryLabel && (
+          <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.15em] mb-2">
+            {categoryLabel}
+          </p>
+        )}
 
-        {resource.tags && resource.tags.length > 0 && (
+        {/* Title */}
+        <h3 className="text-gray-900 font-black text-base leading-snug mb-3 group-hover:text-brand-red transition-colors">
+          {resource.title}
+        </h3>
+
+        {/* Description */}
+        {resource.description && (
+          <p className="text-gray-400 text-xs leading-relaxed line-clamp-2 flex-1 mb-4">
+            {resource.description}
+          </p>
+        )}
+
+        {/* Tags */}
+        {resource.tags?.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-4">
-            {resource.tags.map((tag, i) => (
-              <span
-                key={i}
-                className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded"
-              >
+            {resource.tags.slice(0, 4).map((tag, i) => (
+              <span key={i} className="px-2 py-0.5 text-xs bg-gray-50 text-gray-400 border border-gray-100">
                 {tag}
               </span>
             ))}
           </div>
         )}
 
-        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-          <div className="flex items-center space-x-4">
-            <span className="flex items-center">
-              <Eye className="mr-1" />
-              {resource.views || 0}
+        {/* Stats */}
+        <div className="flex items-center gap-4 text-xs text-gray-300 mb-5">
+          {resource.views > 0 && (
+            <span className="flex items-center gap-1">
+              <EyeIcon className="h-3 w-3" />
+              {resource.views.toLocaleString()}
             </span>
-            <span className="flex items-center">
-              <Download className="mr-1" />
-              {resource.downloads || 0}
+          )}
+          {resource.downloads > 0 && (
+            <span className="flex items-center gap-1">
+              <ArrowDownTrayIcon className="h-3 w-3" />
+              {resource.downloads.toLocaleString()}
             </span>
-            {resource.fileSizeFormatted && (
-              <span>{resource.fileSizeFormatted}</span>
-            )}
-          </div>
-
-          {resource.author && <span>by {resource.author.name}</span>}
+          )}
+          {resource.fileSizeFormatted && (
+            <span>{resource.fileSizeFormatted}</span>
+          )}
+          {resource.author?.name && (
+            <span className="ml-auto truncate max-w-[120px]">{resource.author.name}</span>
+          )}
         </div>
+
+        {/* Action button */}
+        <button
+          onClick={handleAction}
+          className="w-full py-3 flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider text-white bg-brand-red hover:bg-red-700 transition-colors mt-auto"
+        >
+          {isLink ? (
+            <><EyeIcon className="h-3.5 w-3.5" /> View Resource</>
+          ) : (
+            <><ArrowDownTrayIcon className="h-3.5 w-3.5" /> Download</>
+          )}
+        </button>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
-const Resources = () => {
-  const [resources, setResources] = useState([]);
-  const [featuredResources, setFeaturedResources] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedType, setSelectedType] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
+// ─── Featured card (larger, for hero-style feature) ──────────────────────────
 
+const FeaturedCard = ({ resource, index }) => {
+  const meta = TYPE_META[resource.type] || { Icon: DocumentTextIcon, label: resource.type };
+  const { Icon: TypeIcon } = meta;
+  const num = String(index + 1).padStart(2, "0");
+
+  const handleAction = (e) => {
+    e.preventDefault();
+    if (resource.isDownloadable) {
+      window.open(`/api/resources/${resource._id}/download`, "_blank");
+    } else if (resource.url) {
+      window.open(resource.url, "_blank");
+    }
+  };
+
+  return (
+    <div className="bg-vbc-dark p-8 relative overflow-hidden group flex flex-col">
+      {/* Ghost number */}
+      <p
+        className="absolute -bottom-4 -right-2 font-black text-white select-none leading-none pointer-events-none"
+        style={{ fontSize: "clamp(5rem, 8vw, 7rem)", opacity: 0.04 }}
+      >
+        {num}
+      </p>
+
+      <div className="flex items-center gap-2 mb-4">
+        <TypeIcon className="h-4 w-4 text-brand-red flex-shrink-0" />
+        <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em]">
+          {resource.category?.replace("_", " ") || meta.label}
+        </p>
+        <StarSolid className="h-3 w-3 text-brand-red ml-auto flex-shrink-0" />
+      </div>
+
+      <div className="w-8 h-0.5 bg-brand-red mb-5 group-hover:w-14 transition-all duration-300" />
+
+      <h3 className="text-white font-black text-lg leading-snug mb-3 flex-1">
+        {resource.title}
+      </h3>
+
+      {resource.description && (
+        <p className="text-white/40 text-xs leading-relaxed line-clamp-2 mb-6">
+          {resource.description}
+        </p>
+      )}
+
+      <button
+        onClick={handleAction}
+        className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand-red hover:text-white transition-colors group/btn"
+      >
+        {resource.type === "link" ? "View Resource" : "Download"}
+        <ArrowRightIcon className="h-3.5 w-3.5 group-hover/btn:translate-x-1 transition-transform" />
+      </button>
+    </div>
+  );
+};
+
+// ─── Main page ────────────────────────────────────────────────────────────────
+
+const Resources = () => {
+  const [resources,         setResources]         = useState([]);
+  const [featuredResources, setFeaturedResources] = useState([]);
+  const [loading,           setLoading]           = useState(true);
+  const [error,             setError]             = useState(false);
+  const [searchTerm,        setSearchTerm]        = useState("");
+  const [selectedCategory,  setSelectedCategory]  = useState("");
+  const [selectedType,      setSelectedType]      = useState("");
+  const [showTypeFilter,    setShowTypeFilter]    = useState(false);
+
+  const hasFilters = searchTerm || selectedCategory || selectedType;
+
+  // Fetch featured on mount
   useEffect(() => {
-    fetchResources();
-    fetchFeaturedResources();
+    fetch("/api/resources/featured/list")
+      .then((r) => r.json())
+      .then((d) => { if (d.success) setFeaturedResources(d.data); })
+      .catch(() => {});
   }, []);
 
-  const fetchResources = async () => {
-    try {
-      const params = new URLSearchParams();
-      if (searchTerm) params.append("search", searchTerm);
-      if (selectedCategory) params.append("category", selectedCategory);
-      if (selectedType) params.append("type", selectedType);
-
-      const response = await fetch(`/api/resources?${params}`);
-      const data = await response.json();
-
-      if (data.success) {
-        setResources(data.data);
-      }
-    } catch (error) {
-      console.error("Error fetching resources:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchFeaturedResources = async () => {
-    try {
-      const response = await fetch("/api/resources/featured/list");
-      const data = await response.json();
-
-      if (data.success) {
-        setFeaturedResources(data.data);
-      }
-    } catch (error) {
-      console.error("Error fetching featured resources:", error);
-    }
-  };
-
+  // Debounced fetch for search/filter changes
   useEffect(() => {
-    const delayedSearch = setTimeout(() => {
-      fetchResources();
+    setLoading(true);
+    setError(false);
+    const params = new URLSearchParams();
+    if (searchTerm)       params.append("search",   searchTerm);
+    if (selectedCategory) params.append("category", selectedCategory);
+    if (selectedType)     params.append("type",     selectedType);
+
+    const timer = setTimeout(() => {
+      fetch(`/api/resources?${params}`)
+        .then((r) => r.json())
+        .then((d) => { if (d.success) setResources(d.data); })
+        .catch(() => setError(true))
+        .finally(() => setLoading(false));
     }, 300);
 
-    return () => clearTimeout(delayedSearch);
+    return () => clearTimeout(timer);
   }, [searchTerm, selectedCategory, selectedType]);
 
   const clearFilters = () => {
@@ -254,200 +308,261 @@ const Resources = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="bg-white">
       <Helmet>
-        <title>Church Resources - Victory Bible Church</title>
-        <meta
-          name="description"
-          content="Access church resources, foundation class materials, discipleship guides, and more at Victory Bible Church."
-        />
+        <title>Resources — Victory Bible Church</title>
+        <meta name="description" content="Access foundation class materials, discipleship guides, leadership resources, Bible study tools, and more at Victory Bible Church." />
       </Helmet>
 
-      {/* Hero Section */}
-      <HeroSection
-        title="Church Resources"
-        subtitle="Resources"
-        description="Explore foundational materials, discipleship guides, and leadership resources to deepen your faith and grow in Christ."
-        primaryAccentText="Resources"
-        scrollText="EXPLORE RESOURCES"
-        backgroundImage="/assets/hero-bg.jpg"
-      />
+      {/* ── Hero ──────────────────────────────────────────────────── */}
+      <section className="relative bg-vbc-dark overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-20"
+          style={{ backgroundImage: "url(/assets/hero-bg.jpg)" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-vbc-dark/60 to-vbc-dark" />
 
-      <div className="py-20 px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-7xl mx-auto"
-        >
-          {/* Main Category Navigation */}
-          <section className="mb-16">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8 text-center">
-              Explore Our Programs
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {resourceCategories.map((resource, index) => (
-                <CategoryCard
-                  key={resource.path}
-                  resource={resource}
-                  index={index}
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-32 md:py-40">
+          <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-6">Church Library</p>
+          <h1
+            className="font-black text-white leading-[0.88] mb-8"
+            style={{ fontSize: "clamp(3.5rem, 9vw, 7rem)" }}
+          >
+            GROW.<br />
+            <span className="text-white/20">STUDY.</span><br />
+            LEAD.
+          </h1>
+          <p className="text-white/40 text-sm leading-relaxed max-w-md mb-12">
+            Every resource you need to go deeper — foundation materials, discipleship guides, leadership tools, Bible studies, and more. All in one place.
+          </p>
+
+          {/* Search */}
+          <div className="relative max-w-xl">
+            <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 pointer-events-none" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search resources, guides, studies…"
+              className="w-full pl-12 pr-10 py-4 bg-white/5 border border-white/10 text-white text-sm placeholder-white/30 focus:outline-none focus:border-brand-red transition-colors"
+            />
+            {searchTerm && (
+              <button onClick={() => setSearchTerm("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60">
+                <XMarkIcon className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Programs nav ──────────────────────────────────────────── */}
+      <section className="bg-white py-20">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="mb-12">
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-3">Start here</p>
+            <h2 className="text-4xl font-black text-gray-900 leading-tight">Our programmes.</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-px bg-gray-100">
+            {PROGRAMS.map(({ num, path, title, desc, Icon }) => (
+              <Link
+                key={num}
+                to={path}
+                className="bg-white px-8 py-10 group relative overflow-hidden flex flex-col hover:bg-gray-50 transition-colors"
+              >
+                <Icon
+                  className="absolute -bottom-3 -right-3 text-gray-900 pointer-events-none"
+                  style={{ width: "6rem", height: "6rem", opacity: 0.04 }}
+                  strokeWidth={1}
                 />
+                <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-2">{num}</p>
+                <div className="w-8 h-0.5 bg-brand-red mb-5 group-hover:w-14 transition-all duration-300" />
+                <h3 className="text-lg font-black text-gray-900 mb-3 group-hover:text-brand-red transition-colors">{title}</h3>
+                <p className="text-gray-400 text-xs leading-relaxed flex-1 mb-5">{desc}</p>
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand-red opacity-0 group-hover:opacity-100 transition-opacity">
+                  Explore <ArrowRightIcon className="h-3.5 w-3.5" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Featured resources ────────────────────────────────────── */}
+      {featuredResources.length > 0 && (
+        <section className="bg-vbc-section py-20">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="mb-12">
+              <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-3">Handpicked</p>
+              <h2 className="text-4xl font-black text-white leading-tight">Featured resources.</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/5">
+              {featuredResources.slice(0, 6).map((resource, i) => (
+                <FeaturedCard key={resource._id} resource={resource} index={i} />
               ))}
             </div>
-          </section>
+          </div>
+        </section>
+      )}
 
-          {/* Featured Resources */}
-          {featuredResources.length > 0 && (
-            <section className="mb-16">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">
-                Featured Resources
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {featuredResources.slice(0, 6).map((resource, index) => (
-                  <ResourceItem
-                    key={resource._id}
-                    resource={resource}
-                    index={index}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
+      {/* ── Filter bar ────────────────────────────────────────────── */}
+      <div className="bg-white border-b border-gray-100 sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center gap-0 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
 
-          {/* Search and Filter Section */}
-          <section className="mb-8">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-              <div className="flex flex-col md:flex-row gap-4 items-center">
-                {/* Search Bar */}
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search resources..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  />
+            {/* Category tabs */}
+            {CATEGORIES.map(({ value, label }) => (
+              <button
+                key={value}
+                onClick={() => setSelectedCategory(value)}
+                className={`flex-shrink-0 px-4 py-4 text-xs font-semibold uppercase tracking-wider border-b-2 transition-colors ${
+                  selectedCategory === value
+                    ? "border-brand-red text-brand-red"
+                    : "border-transparent text-gray-400 hover:text-gray-700"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+
+            {/* Type dropdown */}
+            <div className="flex-shrink-0 relative ml-auto pl-4">
+              <button
+                onClick={() => setShowTypeFilter((p) => !p)}
+                className={`flex items-center gap-1.5 px-4 py-2 text-xs font-semibold uppercase tracking-wider border transition-colors my-2 ${
+                  selectedType
+                    ? "border-brand-red text-brand-red"
+                    : "border-gray-200 text-gray-400 hover:border-gray-300 hover:text-gray-600"
+                }`}
+              >
+                <FunnelIcon className="h-3.5 w-3.5" />
+                {TYPES.find((t) => t.value === selectedType)?.label || "Type"}
+                <ChevronDownIcon className="h-3 w-3" />
+              </button>
+              {showTypeFilter && (
+                <div className="absolute right-0 top-full bg-white shadow-xl border border-gray-100 z-50 w-44 py-1">
+                  {TYPES.map(({ value, label }) => (
+                    <button
+                      key={value}
+                      onClick={() => { setSelectedType(value); setShowTypeFilter(false); }}
+                      className={`w-full text-left px-4 py-2.5 text-xs transition-colors ${
+                        selectedType === value
+                          ? "bg-brand-red/5 text-brand-red font-semibold"
+                          : "text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
                 </div>
-
-                {/* Filter Toggle */}
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center space-x-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                >
-                  <Filter />
-                  <span>Filters</span>
-                  <ChevronDown
-                    className={`transform transition-transform ${showFilters ? "rotate-180" : ""}`}
-                  />
-                </button>
-
-                {/* Clear Filters */}
-                {(searchTerm || selectedCategory || selectedType) && (
-                  <button
-                    onClick={clearFilters}
-                    className="flex items-center space-x-2 px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
-                  >
-                    <X />
-                    <span>Clear</span>
-                  </button>
-                )}
-              </div>
-
-              {/* Filter Options */}
-              <AnimatePresence>
-                {showFilters && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="overflow-hidden mt-4 pt-4 border-t border-gray-200 dark:border-gray-600"
-                  >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Category
-                        </label>
-                        <select
-                          value={selectedCategory}
-                          onChange={(e) => setSelectedCategory(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                        >
-                          <option value="">All Categories</option>
-                          <option value="audio_sermons">Audio Sermons</option>
-                          <option value="foundation">Foundation</option>
-                          <option value="discipleship">Discipleship</option>
-                          <option value="leadership">Leadership</option>
-                          <option value="ministry">Ministry</option>
-                          <option value="bible_study">Bible Study</option>
-                          <option value="worship">Worship</option>
-                          <option value="general">General</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Type
-                        </label>
-                        <select
-                          value={selectedType}
-                          onChange={(e) => setSelectedType(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                        >
-                          <option value="">All Types</option>
-                          <option value="document">Documents</option>
-                          <option value="video">Videos</option>
-                          <option value="audio">Audio</option>
-                          <option value="presentation">Presentations</option>
-                          <option value="image">Images</option>
-                          <option value="link">Links</option>
-                        </select>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              )}
             </div>
-          </section>
-
-          {/* Resources Grid */}
-          <section>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                All Resources
-              </h2>
-              <span className="text-sm text-gray-500 dark:text-gray-400">
-                {resources.length} resources found
-              </span>
-            </div>
-
-            {loading ? (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-4 text-gray-600 dark:text-gray-400">
-                  Loading resources...
-                </p>
-              </div>
-            ) : resources.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600 dark:text-gray-400">
-                  No resources found matching your criteria.
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {resources.map((resource, index) => (
-                  <ResourceItem
-                    key={resource._id}
-                    resource={resource}
-                    index={index}
-                  />
-                ))}
-              </div>
-            )}
-          </section>
-        </motion.div>
+          </div>
+        </div>
       </div>
+
+      {/* ── Resources grid ────────────────────────────────────────── */}
+      <section className="max-w-7xl mx-auto px-6 py-14">
+
+        {/* Results bar */}
+        <div className="flex items-center justify-between mb-8">
+          <p className="text-xs text-gray-400 uppercase tracking-wider">
+            {loading ? "Loading…" : (
+              <><span className="text-gray-900 font-bold">{resources.length}</span> resource{resources.length !== 1 ? "s" : ""}</>
+            )}
+          </p>
+          {hasFilters && (
+            <button onClick={clearFilters} className="flex items-center gap-1 text-xs text-brand-red hover:text-red-700 font-semibold uppercase tracking-wider">
+              <XMarkIcon className="h-3.5 w-3.5" />
+              Clear filters
+            </button>
+          )}
+        </div>
+
+        {/* Skeletons */}
+        {loading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-gray-100">
+            {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+          </div>
+        )}
+
+        {/* Error */}
+        {!loading && error && (
+          <div className="py-28 text-center">
+            <div className="w-16 h-px bg-brand-red mx-auto mb-8" />
+            <h3 className="text-xl font-black text-gray-900 mb-3">Could not load resources</h3>
+            <p className="text-gray-400 text-sm mb-8">Please check your connection and try again.</p>
+            <button
+              onClick={() => { setError(false); setLoading(true); }}
+              className="inline-flex items-center gap-2 bg-brand-red text-white text-xs font-semibold uppercase tracking-wider px-6 py-3 hover:bg-red-700 transition-colors"
+            >
+              <ArrowPathIcon className="h-3.5 w-3.5" />
+              Retry
+            </button>
+          </div>
+        )}
+
+        {/* Empty */}
+        {!loading && !error && resources.length === 0 && (
+          <div className="py-28 text-center">
+            <div className="w-16 h-px bg-brand-red mx-auto mb-8" />
+            <h3 className="text-xl font-black text-gray-900 mb-3">No resources found</h3>
+            <p className="text-gray-400 text-sm mb-8 max-w-sm mx-auto">
+              {hasFilters ? "Try adjusting your filters or search term." : "No resources have been uploaded yet. Check back soon."}
+            </p>
+            {hasFilters && (
+              <button onClick={clearFilters}
+                className="inline-block bg-brand-red text-white text-xs font-semibold uppercase tracking-wider px-6 py-3 hover:bg-red-700 transition-colors">
+                Clear filters
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Grid */}
+        {!loading && !error && resources.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-gray-100">
+            {resources.map((resource) => (
+              <ResourceCard key={resource._id} resource={resource} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* ── What's here ───────────────────────────────────────────── */}
+      <section className="bg-vbc-section py-24 border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div>
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-4">What you'll find</p>
+            <h2
+              className="font-black text-white leading-[0.9] mb-8"
+              style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)" }}
+            >
+              EVERYTHING<br />YOU NEED<br />TO GO DEEPER.
+            </h2>
+            <p className="text-white/50 text-sm leading-relaxed max-w-sm">
+              From your first steps in the faith to advanced leadership development — our library is built to serve every believer at every stage of the journey.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-px bg-white/5">
+            {[
+              { num: "01", title: "Teaching Materials",  body: "Notes, slides, and structured guides from our Foundation and Discipleship programmes." },
+              { num: "02", title: "Audio & Video",       body: "Recorded sessions, sermon series, and worship resources available to download or stream." },
+              { num: "03", title: "Bible Study Tools",   body: "Verse-by-verse guides, topical studies, and small group workbooks for personal or group use." },
+              { num: "04", title: "Leadership Resources",body: "Practical tools, books, and training materials for those serving in ministry roles." },
+            ].map(({ num, title, body }) => (
+              <div key={num} className="bg-vbc-section flex items-start gap-6 px-8 py-6">
+                <p className="text-brand-red text-xs font-black font-mono flex-shrink-0 mt-0.5">{num}</p>
+                <div>
+                  <p className="text-white font-bold text-sm mb-1">{title}</p>
+                  <p className="text-white/40 text-xs leading-relaxed">{body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     </div>
   );
 };

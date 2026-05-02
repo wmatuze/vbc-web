@@ -14,6 +14,7 @@ require("dotenv").config();
 // Initialize express app
 const app = express();
 const PORT = process.env.PORT || 3000;
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
 // Keep local asset dirs for static files that ship with the repo (placeholders, hero, etc.)
 const dirs = {
@@ -49,7 +50,7 @@ const upload = multer({
 // CORS middleware - updated configuration
 app.use(
   cors({
-    origin: "http://localhost:5173", // Specify the exact frontend origin
+    origin: FRONTEND_URL, // Specify the exact frontend origin
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: [
       "Origin",
@@ -71,14 +72,14 @@ app.use(
 app.options(
   "*",
   cors({
-    origin: "http://localhost:5173",
+    origin: FRONTEND_URL,
     credentials: true,
   })
 );
 
 // Handle preflight requests explicitly for login
 app.options("/login", (req, res) => {
-  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
+  res.header("Access-Control-Allow-Origin", FRONTEND_URL);
   res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.header(
     "Access-Control-Allow-Headers",
@@ -125,7 +126,7 @@ app.use(
     setHeaders: (res) => {
       res.setHeader("Cache-Control", "max-age=86400"); // 24 hours
       res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-      res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+      res.setHeader("Access-Control-Allow-Origin", FRONTEND_URL);
       res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
       res.setHeader("Access-Control-Allow-Credentials", "true");
     },
@@ -157,7 +158,7 @@ app.use(
     setHeaders: (res) => {
       res.setHeader("Cache-Control", "max-age=86400"); // 24 hours
       res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-      res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+      res.setHeader("Access-Control-Allow-Origin", FRONTEND_URL);
       res.setHeader("Access-Control-Allow-Credentials", "true");
     },
   })
@@ -173,7 +174,7 @@ app.use(
     setHeaders: (res) => {
       res.setHeader("Cache-Control", "max-age=86400"); // 24 hours
       res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-      res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+      res.setHeader("Access-Control-Allow-Origin", FRONTEND_URL);
       res.setHeader("Access-Control-Allow-Credentials", "true");
     },
   })
@@ -312,7 +313,7 @@ app.post("/login", async (req, res) => {
   });
 
   // Set CORS headers explicitly for this endpoint
-  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
+  res.header("Access-Control-Allow-Origin", FRONTEND_URL);
   res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.header(
     "Access-Control-Allow-Headers",
@@ -461,7 +462,7 @@ app.post("/api/auth/login", async (req, res) => {
   });
 
   // Set CORS headers explicitly for this endpoint
-  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
+  res.header("Access-Control-Allow-Origin", FRONTEND_URL);
   res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.header(
     "Access-Control-Allow-Headers",
@@ -605,7 +606,7 @@ app.post("/api/auth/login", async (req, res) => {
 
 // Handle preflight requests explicitly for /api/auth/login
 app.options("/api/auth/login", (req, res) => {
-  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
+  res.header("Access-Control-Allow-Origin", FRONTEND_URL);
   res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.header(
     "Access-Control-Allow-Headers",
@@ -683,7 +684,7 @@ app.get("/api/media", async (req, res) => {
 // Also add routes without the /api prefix for compatibility
 app.get("/media", async (req, res) => {
   // Set CORS headers explicitly for this endpoint
-  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
+  res.header("Access-Control-Allow-Origin", FRONTEND_URL);
   res.header("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.header(
     "Access-Control-Allow-Headers",
@@ -703,7 +704,7 @@ app.get("/media", async (req, res) => {
 // Get media by ID
 app.get("/media/:id", async (req, res) => {
   // Set CORS headers explicitly for this endpoint
-  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
+  res.header("Access-Control-Allow-Origin", FRONTEND_URL);
   res.header("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.header(
     "Access-Control-Allow-Headers",
@@ -1993,7 +1994,7 @@ const startServer = async () => {
 
 // Simple test endpoint to verify connection
 app.get("/test-connection", (req, res) => {
-  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
+  res.header("Access-Control-Allow-Origin", FRONTEND_URL);
   res.header("Access-Control-Allow-Credentials", "true");
   res.json({
     status: "success",
