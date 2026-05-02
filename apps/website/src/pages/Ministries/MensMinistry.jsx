@@ -1,528 +1,462 @@
-import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+import {
+  BookOpenIcon,
+  UsersIcon,
+  HeartIcon,
+  ShieldIcon,
+  ArrowRightIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  HandshakeIcon,
+  MicIcon,
+  LayersIcon,
+} from "lucide-react";
+import HeroSection from "../../components/common/HeroSection";
 import { useEventsQuery } from "../../hooks/useEventsQuery";
 import EventCard from "../../components/ChurchCalendar/EventsCard";
-import HeroSection from "../../components/common/HeroSection";
-import { Helmet } from "react-helmet-async"; // Import Helmet
+
+// ─── Data ────────────────────────────────────────────────────────────────────
+
+const PILLARS = [
+  {
+    num: "01",
+    Icon: BookOpenIcon,
+    title: "Discipleship",
+    body: "Small groups built around Scripture — where men grow in faith, hold each other accountable, and pursue Christlikeness together.",
+  },
+  {
+    num: "02",
+    Icon: UsersIcon,
+    title: "Fellowship",
+    body: "Monthly gatherings that build brotherhood. Men who sharpen one another, share life, and refuse to walk the journey alone.",
+  },
+  {
+    num: "03",
+    Icon: HandshakeIcon,
+    title: "Service",
+    body: "Faith that works. From outreach to hospitality to community support — we find the place where our hands match God's call.",
+  },
+  {
+    num: "04",
+    Icon: ShieldIcon,
+    title: "Leadership",
+    body: "Raising godly men who lead their families, their workplaces, and their communities with integrity, conviction, and grace.",
+  },
+];
+
+const SERVICE_AREAS = [
+  "Outreach",
+  "Prayer & Intercession",
+  "Worship Team (Choir)",
+  "Media, Communication & Marketing",
+  "Finances & Fund-raising",
+  "Events Planning & Decorations",
+  "Hospitality",
+  "Care & Compassion",
+  "Visitation & Follow-up",
+  "Capacity Building & Empowerment",
+  "Protocol",
+];
+
+const EVENTS_GRID = [
+  { num: "01", label: "Monthly Meetings",   scope: "Every Month",        body: "Our core gathering — for fellowship, accountability, and growing together in the Word." },
+  { num: "02", label: "Men's Ministry Day", scope: "Father's Day · June", body: "Our annual celebration observed on Father's Day — honouring men, affirming calling, and strengthening resolve." },
+  { num: "03", label: "Seminars & Retreats",scope: "As Scheduled",       body: "Invested development of godly men through focused teaching, rest, and intentional brotherhood." },
+];
+
+const TESTIMONIALS = [
+  {
+    quote: "The Men's Ministry gave me brothers who could speak truth to my face and pray for me in the same breath. That kind of accountability changed how I lead my family.",
+    author: "Chanda M.",
+    role: "Member since 2020",
+  },
+  {
+    quote: "I joined not knowing what to expect. I left my first meeting knowing these were men who took their faith seriously. I haven't missed a gathering since.",
+    author: "Emmanuel S.",
+    role: "Member since 2022",
+  },
+  {
+    quote: "Serving through the Men's Ministry in outreach reminded me that faith is never passive. We are called to go — and this ministry gave me somewhere to go.",
+    author: "Isaac B.",
+    role: "Member since 2019",
+  },
+  {
+    quote: "The small group has been the most spiritually formative experience of my adult life. Iron sharpening iron — exactly what the Scripture promises.",
+    author: "Mwansa K.",
+    role: "Member since 2021",
+  },
+];
+
+const FAQS = [
+  {
+    q: "Who can join the Men's Ministry?",
+    a: "Membership is open to all men — those who are members of Victory Bible Church and those from the wider community who share the church's vision. Whether your faith is deep-rooted or still taking shape, you are welcome.",
+  },
+  {
+    q: "When do you meet?",
+    a: "Meetings are held monthly. Our annual Men's Ministry Day is observed on Father's Day in June. Seminars and retreats are organised throughout the year as they are scheduled — check the events calendar for upcoming dates.",
+  },
+  {
+    q: "What are small groups and how do I join one?",
+    a: "Small groups are the heartbeat of the Men's Ministry — smaller, more intimate gatherings built around discipleship, relationship, and accountability. Speak to one of our leaders after a meeting to be placed in a group.",
+  },
+  {
+    q: "What if I cannot attend in person?",
+    a: "We make provision for associate members — those who support the ministry but cannot attend due to work, physical constraints, or other justifiable reasons. We will find a way to keep you connected.",
+  },
+  {
+    q: "How do I find a place to serve?",
+    a: "We have eleven defined service areas — from prayer and outreach to media, hospitality, and protocol. During your first few meetings you will have the opportunity to indicate where your gifts and interests align.",
+  },
+];
+
+// ─── FAQ Accordion ────────────────────────────────────────────────────────────
+
+const FaqItem = ({ q, a }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-b border-white/10">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between gap-6 py-6 text-left group"
+      >
+        <span className="text-white font-semibold text-sm leading-snug group-hover:text-brand-red transition-colors">
+          {q}
+        </span>
+        {open
+          ? <ChevronUpIcon className="h-4 w-4 text-brand-red flex-shrink-0" />
+          : <ChevronDownIcon className="h-4 w-4 text-white/30 flex-shrink-0 group-hover:text-brand-red transition-colors" />}
+      </button>
+      {open && (
+        <p className="text-white/50 text-sm leading-relaxed pb-6 pr-10">{a}</p>
+      )}
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 const MensMinistry = () => {
-  // Use React Query for fetching events
-  const {
-    data: events = [],
-    isLoading: loading,
-    error,
-    refetch: refetchEvents,
-  } = useEventsQuery();
-
-  const [mensMinistryEvents, setMensMinistryEvents] = useState([]);
-  const [isImageLoaded, setIsImageLoaded] = useState(false); // Loading state for Hero Image
-
-  // Filter events for Men's Ministry when events data changes
-  useEffect(() => {
-    if (events && events.length > 0) {
-      // Filter events for Men's Ministry
-      const filteredEvents = events.filter(
-        (event) => event?.ministry === "Men's Ministry",
-      );
-      setMensMinistryEvents(filteredEvents);
-    }
-  }, [events]);
-
-  useEffect(() => {
-    // Simulate loading all images
-    const timer = setTimeout(() => setIsImageLoaded(true), 800);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Sample testimonials data
-  const testimonials = [
-    {
-      id: 1,
-      name: "John Smith",
-      quote:
-        "Being part of the Men's Ministry has strengthened my faith and given me a brotherhood I can rely on.",
-      role: "Member since 2018",
-    },
-    {
-      id: 2,
-      name: "Robert Johnson",
-      quote:
-        "The weekly Bible studies have helped me grow spiritually and apply God's word in my daily life.",
-      role: "Member since 2020",
-    },
-    {
-      id: 3,
-      name: "David Williams",
-      quote:
-        "The service projects we organize have given me purpose and a way to give back to our community.",
-      role: "Member since 2019",
-    },
-  ];
-
-  // FAQ data
-  const faqs = [
-    {
-      id: 1,
-      question: "When and where does the Men's Ministry meet?",
-      answer:
-        "We hold our weekly Bible studies every Tuesday at 7:00 PM in Room 201. We also have a monthly Men's Breakfast on the first Saturday of each month.",
-    },
-    {
-      id: 2,
-      question: "Do I need to register before attending?",
-      answer:
-        "No registration is required. You're welcome to join us at any time. Just show up and you'll be greeted by our team.",
-    },
-    {
-      id: 3,
-      question: "Is there a membership fee?",
-      answer:
-        "There is no fee to join our ministry. Some special events like retreats may have associated costs, but our regular meetings are free to attend.",
-    },
-    {
-      id: 4,
-      question: "How can I volunteer with the Men's Ministry?",
-      answer:
-        "We're always looking for volunteers! Please speak with one of our ministry leaders after a meeting, or email us at [email protected]",
-    },
-  ];
+  const currentYear = new Date().getFullYear();
+  const { data: allEvents = [] } = useEventsQuery({ year: currentYear });
+  const mensEvents = allEvents.filter((e) => e?.ministry === "Men's Ministry");
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* SEO Meta Tags */}
+    <div className="bg-white">
       <Helmet>
-        <title>Men's Ministry - Victory Bible Church</title>
+        <title>Men's Ministry — Victory Bible Church</title>
         <meta
           name="description"
-          content="Discover Victory Bible Church's Men's Ministry: dedicated to helping men grow in faith, strengthen relationships, and serve God and community."
+          content="VBC Men's Ministry: discipleship, brotherhood, and service. Monthly gatherings, small groups, and annual events for men of all ages."
         />
       </Helmet>
 
-      {/* Consistent Hero Section */}
+      {/* ── Hero ──────────────────────────────────────────────────── */}
       <HeroSection
-        title="Men's Ministry"
         subtitle="Men's Ministry"
-        description="Connect, grow, and serve with Victory Bible Church Men's Ministry. Join us as we journey together in faith."
-        primaryAccentText="Men's"
-        scrollText="EXPLORE MEN'S MINISTRY"
+        title="Iron Sharpens Iron."
+        description="A brotherhood built on Scripture, accountability, and service. Men discovering their ministry and rising into it — together."
         backgroundImage="/assets/hero-bg.jpg"
+        breadcrumbs={[
+          { label: "Home", path: "/" },
+          { label: "Ministries", path: "/ministries" },
+          { label: "Men's Ministry" },
+        ]}
       />
 
-      {/* About Us Section */}
-      <section className="py-16">
-        <div className="container mx-auto px-4 max-w-5xl">
-          <motion.div
-            className="bg-white rounded-xl shadow-lg p-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <div className="flex items-center mb-8">
-              <div className="w-2 h-12 bg-red-600 rounded-full mr-4"></div>
-              <h2 className="text-3xl font-bold text-gray-800">
-                About Men's Ministry
-              </h2>
-            </div>
+      {/* ── Vision ────────────────────────────────────────────────── */}
+      <section className="bg-vbc-section py-28">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
-            <p className="text-gray-700 text-lg mb-8 leading-relaxed">
-              Our Men's Ministry is dedicated to helping men of all ages grow in
-              their faith, strengthen their relationships, and serve God and our
-              community. We provide opportunities for fellowship, Bible study,
-              and service projects. Whether you are new to the church or have
-              been a long-time member, we invite you to join us as we journey
-              together in faith. We meet weekly for Bible study and organize
-              monthly service events to give back to those in need. Contact our
-              ministry leader, [Men's Ministry Leader Name], at [email
-              protected] to learn more.
+          <div>
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-4">Our purpose</p>
+            <h2
+              className="font-black text-white leading-[0.88] mb-8"
+              style={{ fontSize: "clamp(3rem, 7vw, 5.5rem)" }}
+            >
+              DISCOVER.<br />
+              <span className="text-white/20">PREPARE.</span><br />
+              SERVE.
+            </h2>
+            <p className="text-white/50 text-sm leading-relaxed max-w-sm">
+              We exist to motivate men to discover their God-given ministry, prepare them for it, and provide every opportunity to live it out — for the church, the family, and the world around us.
             </p>
-
-            {/* Activities with icons */}
-            <h3 className="text-2xl font-semibold mb-6 text-gray-800 border-b pb-2 border-gray-200">
-              Activities
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-              <div className="flex items-start">
-                <div className="bg-red-100 p-3 rounded-lg mr-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-red-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-medium text-gray-800">
-                    Weekly Bible Studies
-                  </h4>
-                  <p className="text-gray-600">Tuesdays, 7:00 PM</p>
-                </div>
-              </div>
-
-              <div className="flex items-start">
-                <div className="bg-red-100 p-3 rounded-lg mr-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-red-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-medium text-gray-800">
-                    Monthly Men's Breakfast
-                  </h4>
-                  <p className="text-gray-600">First Saturday of each month</p>
-                </div>
-              </div>
-
-              <div className="flex items-start">
-                <div className="bg-red-100 p-3 rounded-lg mr-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-red-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-medium text-gray-800">
-                    Annual Men's Retreat
-                  </h4>
-                  <p className="text-gray-600">
-                    Spiritual growth and fellowship
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start">
-                <div className="bg-red-100 p-3 rounded-lg mr-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-red-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-medium text-gray-800">
-                    Community Service Projects
-                  </h4>
-                  <p className="text-gray-600">
-                    Quarterly outreach initiatives
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Ministry Leaders Section with profile cards */}
-            <h3 className="text-2xl font-semibold mb-6 text-gray-800 border-b pb-2 border-gray-200">
-              Ministry Leaders
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <motion.div
-                className="bg-gray-50 rounded-lg p-6 border border-gray-100 shadow-sm"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <div className="flex items-center">
-                  <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center text-red-600 font-bold text-xl mr-4">
-                    MA
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-gray-800">Mr ABCD</h4>
-                    <p className="text-gray-600">Men's Ministry Leader</p>
-                    <p className="text-red-600 text-sm mt-1">
-                      [email protected]
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-
-              <motion.div
-                className="bg-gray-50 rounded-lg p-6 border border-gray-100 shadow-sm"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 }}
-              >
-                <div className="flex items-center">
-                  <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center text-red-600 font-bold text-xl mr-4">
-                    MA
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-gray-800">Mr ABCD</h4>
-                    <p className="text-gray-600">Assistant Leader</p>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Testimonials Section - New addition */}
-      <section className="py-16 bg-gray-50 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-5">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: "radial-gradient(#ef4444 1px, transparent 1px)",
-              backgroundSize: "20px 20px",
-            }}
-          ></div>
-        </div>
-
-        <div className="container mx-auto px-4 relative z-10 max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-800 relative inline-block">
-              <span className="relative z-10">Member Testimonials</span>
-              <span className="absolute bottom-0 left-0 w-full h-3 bg-red-200 -z-10 rounded"></span>
-            </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial) => (
-              <motion.div
-                key={testimonial.id}
-                className="bg-white p-6 rounded-lg shadow-md border border-gray-100"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: testimonial.id * 0.1 }}
-              >
-                <div className="mb-4">
-                  <svg
-                    className="h-8 w-8 text-red-400 mb-4"
-                    fill="currentColor"
-                    viewBox="0 0 32 32"
-                  >
-                    <path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.8 3.456-8.256 9.12-8.256 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z" />
-                  </svg>
-                  <p className="text-gray-600 italic mb-4">
-                    {testimonial.quote}
-                  </p>
-                  <div className="flex items-center">
-                    <div className="bg-red-100 w-10 h-10 rounded-full flex items-center justify-center text-red-600 font-bold text-sm mr-3">
-                      {testimonial.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-800">
-                        {testimonial.name}
-                      </h4>
-                      <p className="text-gray-500 text-sm">
-                        {testimonial.role}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section - New addition */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4 max-w-5xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-800 relative inline-block">
-              <span className="relative z-10">Frequently Asked Questions</span>
-              <span className="absolute bottom-0 left-0 w-full h-3 bg-red-200 -z-10 rounded"></span>
-            </h2>
-          </div>
-
-          <div className="space-y-6">
-            {faqs.map((faq) => (
-              <motion.div
-                key={faq.id}
-                className="bg-gray-50 rounded-lg p-6 border border-gray-100 shadow-sm"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: faq.id * 0.1 }}
-              >
-                <h3 className="font-semibold text-lg text-gray-800 mb-2 flex items-center">
-                  <div className="bg-red-100 w-8 h-8 rounded-full flex items-center justify-center text-red-600 font-bold text-sm mr-3">
-                    Q
-                  </div>
-                  {faq.question}
-                </h3>
-                <div className="pl-11">
-                  <p className="text-gray-600">{faq.answer}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Get Involved Section - Redesigned with action-oriented layout */}
-      <section className="py-16 bg-gradient-to-b from-white to-gray-100 rounded-t-3xl">
-        <div className="container mx-auto px-4 max-w-5xl">
-          <motion.div
-            className="bg-white rounded-xl shadow-lg overflow-hidden"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <div className="bg-red-600 py-4 px-8">
-              <h2 className="text-3xl font-bold text-white text-center">
-                Get Involved with Men's Ministry!
-              </h2>
-            </div>
-
-            <div className="p-8">
-              <p className="text-gray-700 text-lg mb-8 text-center">
-                Ready to connect with other men and grow in your faith? Here's
-                how to get involved:
+          <div className="border-l-2 border-brand-red pl-10">
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-6">Hebrews 10:24–25</p>
+            <div className="space-y-5">
+              <p className="text-white text-xl font-light leading-relaxed italic">
+                "And let us consider how to stir up one another to love and good works,
               </p>
+              <p className="text-white/60 text-lg font-light leading-relaxed italic">
+                not neglecting to meet together, as is the habit of some, but encouraging one another,
+              </p>
+              <p className="text-brand-red text-lg font-semibold leading-relaxed">
+                and all the more as you see the Day drawing near."
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <motion.div
-                  className="border border-gray-200 rounded-lg p-6 text-center hover:shadow-md transition-shadow"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  <div className="bg-red-100 w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-8 w-8 text-red-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="font-semibold text-gray-800 mb-2">
-                    Weekly Bible Study
-                  </h3>
-                  <p className="text-gray-600">
-                    Tuesdays at 7:00 PM in Room 201
-                  </p>
-                </motion.div>
+      {/* ── Four Pillars ──────────────────────────────────────────── */}
+      <section className="bg-white py-24">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="mb-14">
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-3">How we grow</p>
+            <h2 className="text-4xl font-black text-gray-900 leading-tight">Built on four pillars.</h2>
+          </div>
 
-                <motion.div
-                  className="border border-gray-200 rounded-lg p-6 text-center hover:shadow-md transition-shadow"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                >
-                  <div className="bg-red-100 w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-8 w-8 text-red-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="font-semibold text-gray-800 mb-2">
-                    Monthly Men's Breakfast
-                  </h3>
-                  <p className="text-gray-600">First Saturday of each month</p>
-                </motion.div>
-
-                <motion.div
-                  className="border border-gray-200 rounded-lg p-6 text-center hover:shadow-md transition-shadow"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                >
-                  <div className="bg-red-100 w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-8 w-8 text-red-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="font-semibold text-gray-800 mb-2">
-                    Contact Us
-                  </h3>
-                  <p className="text-gray-600">Email: [email protected]</p>
-                </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-px bg-gray-100">
+            {PILLARS.map(({ num, Icon, title, body }) => (
+              <div key={num} className="bg-white px-8 py-10 group relative overflow-hidden">
+                <Icon
+                  className="absolute -bottom-3 -right-3 text-gray-900 pointer-events-none"
+                  style={{ width: "6rem", height: "6rem", opacity: 0.04 }}
+                  strokeWidth={1}
+                />
+                <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-2">{num}</p>
+                <div className="w-8 h-0.5 bg-brand-red mb-5 group-hover:w-14 transition-all duration-300" />
+                <h3 className="text-lg font-black text-gray-900 mb-3">{title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{body}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-              <div className="text-center">
-                <motion.button
-                  className="px-8 py-3 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors shadow-md hover:shadow-lg inline-flex items-center"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+      {/* ── Events & Gatherings ───────────────────────────────────── */}
+      <section className="bg-vbc-dark py-24">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="mb-14">
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-3">When we meet</p>
+            <h2 className="text-4xl font-black text-white leading-tight">Gatherings & events.</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/5">
+            {EVENTS_GRID.map(({ num, label, scope, body }) => (
+              <div key={num} className="bg-vbc-dark px-8 py-10 group relative overflow-hidden">
+                <p
+                  className="absolute -bottom-4 -right-2 font-black text-white select-none leading-none pointer-events-none"
+                  style={{ fontSize: "clamp(6rem, 10vw, 9rem)", opacity: 0.04 }}
                 >
-                  <span>Join our community</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 ml-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 8l4 4m0 0l-4 4m4-4H3"
-                    />
-                  </svg>
-                </motion.button>
+                  {num}
+                </p>
+                <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-1">{scope}</p>
+                <h3 className="text-2xl font-black text-white mb-4">{label}</h3>
+                <div className="w-8 h-0.5 bg-brand-red mb-5 group-hover:w-14 transition-all duration-300" />
+                <p className="text-white/50 text-sm leading-relaxed">{body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Where to Serve ────────────────────────────────────────── */}
+      <section className="bg-vbc-section py-24">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+
+          <div className="lg:sticky lg:top-24 self-start">
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-4">Put faith to work</p>
+            <h2
+              className="font-black text-white leading-[0.9] mb-6"
+              style={{ fontSize: "clamp(3rem, 6vw, 5rem)" }}
+            >
+              FIND<br />YOUR<br />PLACE.
+            </h2>
+            <p className="text-white/40 text-sm leading-relaxed max-w-xs">
+              We have identified eleven areas where men can serve — matching gifts, skills, and calling with real ministry need. Every man has a place here.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-white/5">
+            {SERVICE_AREAS.map((area, i) => (
+              <div key={area} className="bg-vbc-section flex items-center gap-4 px-6 py-5 group hover:bg-white/5 transition-colors">
+                <span
+                  className="text-brand-red text-xs font-black font-mono flex-shrink-0"
+                  style={{ minWidth: "1.8rem" }}
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <p className="text-white/70 text-sm font-medium group-hover:text-white transition-colors">{area}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Testimonials ──────────────────────────────────────────── */}
+      <section className="bg-white py-24">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="mb-14">
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-3">In their words</p>
+            <h2 className="text-4xl font-black text-gray-900 leading-tight">Men transformed.</h2>
+          </div>
+
+          {/* Featured */}
+          <div className="border-l-4 border-brand-red pl-8 mb-14">
+            <p className="text-gray-900 text-2xl md:text-3xl font-light italic leading-relaxed mb-6">
+              "{TESTIMONIALS[0].quote}"
+            </p>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-0.5 bg-brand-red" />
+              <div>
+                <p className="text-gray-900 text-sm font-semibold">{TESTIMONIALS[0].author}</p>
+                <p className="text-gray-400 text-xs">{TESTIMONIALS[0].role}</p>
               </div>
             </div>
-          </motion.div>
+          </div>
+
+          {/* Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-gray-100">
+            {TESTIMONIALS.slice(1).map((t, i) => (
+              <div key={i} className="bg-white p-8">
+                <p className="text-brand-red text-4xl font-black leading-none mb-4 opacity-40">"</p>
+                <p className="text-gray-600 text-sm leading-relaxed italic mb-6">{t.quote}</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-0.5 bg-brand-red" />
+                  <div>
+                    <p className="text-gray-900 text-xs font-semibold">{t.author}</p>
+                    <p className="text-gray-400 text-xs">{t.role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ ───────────────────────────────────────────────────── */}
+      <section className="bg-vbc-dark py-24">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16">
+          <div className="lg:sticky lg:top-24 self-start">
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-4">Questions</p>
+            <h2
+              className="font-black text-white leading-[0.9] mb-6"
+              style={{ fontSize: "clamp(3rem, 6vw, 5rem)" }}
+            >
+              GOOD TO<br />KNOW.
+            </h2>
+            <p className="text-white/40 text-sm leading-relaxed max-w-xs">
+              What you need before your first meeting. Still unsure? Just show up — our team will take care of the rest.
+            </p>
+          </div>
+          <div className="divide-y divide-white/10">
+            {FAQS.map((faq, i) => <FaqItem key={i} {...faq} />)}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Upcoming Events ───────────────────────────────────────── */}
+      {mensEvents.length > 0 && (
+        <section className="bg-white py-24">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="mb-14">
+              <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-3">What's coming</p>
+              <h2 className="text-4xl font-black text-gray-900 leading-tight">Upcoming events.</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {mensEvents.slice(0, 6).map((event) => (
+                <EventCard key={event._id} event={event} />
+              ))}
+            </div>
+            <div className="mt-10">
+              <Link
+                to="/events"
+                className="inline-flex items-center gap-2 border border-gray-200 text-gray-900 text-xs font-semibold uppercase tracking-wider px-6 py-3 hover:bg-gray-50 transition-colors"
+              >
+                View all events <ArrowRightIcon className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Leadership ────────────────────────────────────────────── */}
+      <section className="bg-vbc-section py-24">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="mb-14">
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-3">Executive Council</p>
+            <h2 className="text-4xl font-black text-white leading-tight">Ministry leadership.</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/5">
+            {[
+              { num: "01", role: "Chairman / Director",  name: "Elder Knight Kabaso",   note: "Oversees the ministry vision and appoints Small Group Leaders — appointed by the Senior Pastor." },
+              { num: "02", role: "Treasurer",             name: "Deacon Aongola Sooli",  note: "Responsible for the ministry's finances and stewardship of resources." },
+              { num: "03", role: "Secretary",             name: "To be announced",       note: "Supporting the Executive Council with administration and ministry coordination." },
+            ].map(({ num, role, name, note }) => (
+              <div key={num} className="bg-vbc-section p-10 relative overflow-hidden group">
+                <p
+                  className="absolute -bottom-4 -right-2 font-black text-white select-none leading-none pointer-events-none"
+                  style={{ fontSize: "clamp(5rem, 8vw, 7rem)", opacity: 0.04 }}
+                >
+                  {num}
+                </p>
+                <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-2">{role}</p>
+                <div className="w-8 h-0.5 bg-brand-red mb-5 group-hover:w-14 transition-all duration-300" />
+                <h3 className="text-lg font-black text-white mb-3">{name}</h3>
+                <p className="text-white/40 text-xs leading-relaxed">{note}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ───────────────────────────────────────────────────── */}
+      <section className="bg-vbc-dark py-28">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+
+          {/* Scripture */}
+          <div className="border-l-2 border-brand-red pl-10">
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-6">Proverbs 27:17</p>
+            <p className="text-white text-2xl md:text-3xl font-light italic leading-relaxed">
+              "As iron sharpens iron,{" "}
+              <span className="text-brand-red font-semibold not-italic">
+                so one person sharpens another."
+              </span>
+            </p>
+          </div>
+
+          {/* Engagement */}
+          <div>
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-4">Get involved</p>
+            <h2 className="text-4xl font-black text-white mb-10 leading-tight">Join the brotherhood.</h2>
+
+            <div className="divide-y divide-white/10">
+              {[
+                { num: "01", icon: <UsersIcon className="h-5 w-5" />,  label: "Show Up",  body: "Come to the next monthly meeting. No registration required — just walk in and be welcomed." },
+                { num: "02", icon: <LayersIcon className="h-5 w-5" />, label: "Go Deep",  body: "Get placed in a small group where real discipleship and accountability happen." },
+                { num: "03", icon: <MicIcon className="h-5 w-5" />,   label: "Step Up",  body: "Find your service area and put your faith into visible, tangible action." },
+              ].map(({ num, icon, label, body }) => (
+                <div key={num} className="flex items-start gap-5 py-6">
+                  <div className="flex-shrink-0 text-brand-red mt-0.5">{icon}</div>
+                  <div>
+                    <p className="text-white font-bold mb-1">{label}</p>
+                    <p className="text-white/40 text-sm leading-relaxed">{body}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-4 mt-10">
+              <Link
+                to="/contact"
+                className="inline-block bg-brand-red text-white text-sm font-semibold px-8 py-4 hover:bg-red-700 transition-colors"
+              >
+                Get in Touch
+              </Link>
+              <Link
+                to="/events"
+                className="inline-block border border-white/20 text-white text-sm font-semibold px-8 py-4 hover:bg-white/5 hover:border-white/40 transition-colors"
+              >
+                View Events
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
     </div>

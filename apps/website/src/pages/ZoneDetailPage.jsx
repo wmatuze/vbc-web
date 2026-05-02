@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import {
   MagnifyingGlassIcon,
@@ -9,18 +8,14 @@ import {
   UsersIcon,
   ClockIcon,
   ArrowLeftIcon,
-  ArrowRightIcon,
   XMarkIcon,
   EnvelopeIcon,
   PhoneIcon,
-  HeartIcon,
   ChevronDownIcon,
 } from "@heroicons/react/24/outline";
-import { HeartIcon as HeartSolid } from "@heroicons/react/24/solid";
 import { useZoneByIdQuery, useZoneCellGroupsQuery } from "../hooks/useZonesQuery";
 import JoinGroupModal from "../components/JoinGroupModal";
 import config from "../config";
-import cellGroupPlaceholder from "../assets/placeholders/default-cell-group.svg";
 
 const API_URL = config.API_URL;
 const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
@@ -31,153 +26,101 @@ const resolveImage = (group) => {
   return src.startsWith("http") ? src : `${API_URL}${src}`;
 };
 
-// ── Elder card ────────────────────────────────────────────────────────────────
-const ElderCard = ({ elder }) => (
-  <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-6 text-white relative overflow-hidden">
-    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10" />
-    <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-8 -mb-8" />
-    <div className="relative">
-      <span className="inline-block bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full mb-4 tracking-wider uppercase">
-        Zone Elder
-      </span>
-      <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4 ring-4 ring-white/30">
-        <UserIcon className="h-10 w-10 text-white/80" />
-      </div>
-      <h3 className="text-xl font-bold text-center mb-1">{elder?.name || "Zone Elder"}</h3>
-      <p className="text-blue-200 text-sm text-center mb-5">{elder?.title || "Zone Elder"}</p>
-      <div className="space-y-2">
-        {elder?.contact && (
-          <a href={`mailto:${elder.contact}`}
-            className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors">
-            <EnvelopeIcon className="h-4 w-4" />
-            Send Message
-          </a>
-        )}
-        {elder?.phone && (
-          <a href={`tel:${elder.phone}`}
-            className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors">
-            <PhoneIcon className="h-4 w-4" />
-            {elder.phone}
-          </a>
-        )}
-      </div>
-    </div>
-  </div>
-);
-
 // ── Skeleton card ─────────────────────────────────────────────────────────────
 const SkeletonCard = () => (
-  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-pulse">
-    <div className="h-48 bg-gray-200" />
-    <div className="p-5 space-y-3">
-      <div className="h-4 bg-gray-200 rounded w-3/4" />
-      <div className="h-3 bg-gray-100 rounded w-1/2" />
-      <div className="h-9 bg-gray-200 rounded-xl mt-4" />
+  <div className="bg-white animate-pulse border border-gray-100">
+    <div className="h-52 bg-gray-100" />
+    <div className="p-6 space-y-3 border-t border-gray-100">
+      <div className="h-4 bg-gray-100 w-3/4" />
+      <div className="h-3 bg-gray-50 w-1/2" />
+      <div className="h-10 bg-gray-100 mt-4" />
     </div>
   </div>
 );
 
 // ── Group card ────────────────────────────────────────────────────────────────
-const GroupCard = ({ group, isFavorite, onToggleFavorite, onJoin }) => {
+const GroupCard = ({ group, onJoin }) => {
   const thumb = resolveImage(group);
   const contact = group.contact || group.leaderContact;
-  const id = group._id || group.id;
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.96 }}
-      className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300 flex flex-col"
-    >
-      <div className="relative h-48 flex-shrink-0 bg-gradient-to-br from-blue-50 to-indigo-50">
+    <div className="bg-white flex flex-col group">
+      {/* Image */}
+      <div className="relative h-52 overflow-hidden bg-gray-100 flex-shrink-0">
         {thumb ? (
-          <img src={thumb} alt={group.name} className="w-full h-full object-cover"
-            onError={(e) => { e.target.src = cellGroupPlaceholder; e.target.onerror = null; }} />
+          <img
+            src={thumb} alt={group.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            onError={(e) => { e.target.style.display = "none"; }}
+          />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <UsersIcon className="h-14 w-14 text-blue-200" />
+          <div className="w-full h-full bg-vbc-dark flex items-center justify-center">
+            <UsersIcon className="h-12 w-12 text-white/10" />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-
-        <button onClick={() => onToggleFavorite(id)}
-          className="absolute top-3 right-3 p-2 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/40 transition-colors">
-          {isFavorite
-            ? <HeartSolid className="h-4 w-4 text-red-400" />
-            : <HeartIcon className="h-4 w-4 text-white" />}
-        </button>
-
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-4">
-          <h3 className="text-lg font-bold text-white leading-tight">{group.name}</h3>
+          <h3 className="text-base font-black text-white leading-tight">{group.name}</h3>
           {group.location && (
-            <p className="flex items-center gap-1 text-xs text-white/80 mt-0.5">
-              <MapPinIcon className="h-3.5 w-3.5 flex-shrink-0" />{group.location}
+            <p className="flex items-center gap-1 text-xs text-white/60 mt-1">
+              <MapPinIcon className="h-3 w-3 flex-shrink-0" />{group.location}
             </p>
           )}
         </div>
       </div>
 
-      <div className="p-5 flex flex-col flex-1">
+      {/* Body */}
+      <div className="flex flex-col flex-1 p-6 border border-t-0 border-gray-100">
+        {(group.meetingDay || group.meetingTime) && (
+          <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
+            <ClockIcon className="h-3.5 w-3.5 text-brand-red flex-shrink-0" />
+            <span className="font-medium text-gray-700">
+              {group.meetingDay}{group.meetingTime ? ` · ${group.meetingTime}` : ""}
+            </span>
+          </div>
+        )}
+        {group.leader && (
+          <div className="flex items-center gap-2 mb-4">
+            <UserIcon className="h-3.5 w-3.5 text-gray-300 flex-shrink-0" />
+            <p className="text-xs text-gray-500">
+              Led by <span className="font-semibold text-gray-700">{group.leader}</span>
+            </p>
+          </div>
+        )}
+        <p className="text-xs text-gray-400 leading-relaxed line-clamp-2 flex-1 mb-5">
+          {group.description || "A welcoming cell group for fellowship and spiritual growth."}
+        </p>
         {group.tags?.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            {group.tags.slice(0, 4).map((tag) => (
-              <span key={tag} className="px-2.5 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">{tag}</span>
+          <div className="flex flex-wrap gap-1 mb-4">
+            {group.tags.slice(0, 3).map((tag) => (
+              <span key={tag} className="px-2 py-0.5 text-xs bg-gray-50 text-gray-400 border border-gray-100">{tag}</span>
             ))}
           </div>
         )}
-
-        <p className="text-sm text-gray-500 leading-relaxed line-clamp-2 mb-4 flex-1">
-          {group.description || "A welcoming cell group for fellowship and spiritual growth."}
-        </p>
-
-        {(group.meetingDay || group.meetingTime) && (
-          <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-            <ClockIcon className="h-4 w-4 text-blue-500 flex-shrink-0" />
-            {group.meetingDay}{group.meetingTime ? ` · ${group.meetingTime}` : ""}
-            {group.capacity && <span className="ml-auto text-xs text-gray-400">{group.capacity}</span>}
-          </div>
-        )}
-
-        {group.leader && (
-          <div className="flex items-center gap-2.5 py-3 border-t border-gray-100 mb-4">
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-              <UserIcon className="h-4 w-4 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-900">Led by {group.leader}</p>
-              {contact && <p className="text-xs text-gray-400 truncate max-w-[180px]">{contact}</p>}
-            </div>
-          </div>
-        )}
-
-        <button onClick={() => onJoin(group)}
-          className="w-full py-2.5 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors">
-          Join this Group
+        <button
+          onClick={() => onJoin(group)}
+          className="w-full py-3 text-xs font-semibold uppercase tracking-wider text-white bg-brand-red hover:bg-red-700 transition-colors"
+        >
+          Join This Group
         </button>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
-// ── Main page ─────────────────────────────────────────────────────────────────
+// ── Main ──────────────────────────────────────────────────────────────────────
 const ZoneDetailPage = () => {
   const { zoneId } = useParams();
 
-  const { data: zone, isLoading: zoneLoading, error: zoneError } = useZoneByIdQuery(zoneId);
+  const { data: zone,       isLoading: zoneLoading,   error: zoneError  } = useZoneByIdQuery(zoneId);
   const { data: cellGroups = [], isLoading: groupsLoading } = useZoneCellGroupsQuery(zoneId);
 
   const isLoading = zoneLoading || groupsLoading;
 
-  const [search, setSearch]             = useState("");
+  const [search,          setSearch]          = useState("");
   const [activeDayFilter, setActiveDayFilter] = useState("");
   const [showDayDropdown, setShowDayDropdown] = useState(false);
-  const [favorites, setFavorites]       = useState([]);
-  const [selectedGroup, setSelectedGroup] = useState(null);
-
-  const toggleFavorite = (id) =>
-    setFavorites((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  const [selectedGroup,   setSelectedGroup]   = useState(null);
 
   const filtered = useMemo(() => {
     const s = search.toLowerCase();
@@ -195,20 +138,20 @@ const ZoneDetailPage = () => {
   const hasFilters = search || activeDayFilter;
   const clearFilters = () => { setSearch(""); setActiveDayFilter(""); };
 
-  // ── Error / not found state ──
+  // ── Error state ───────────────────────────────────────────────────────────
   if (!isLoading && (zoneError || !zone)) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="text-center max-w-md">
-          <UsersIcon className="mx-auto h-16 w-16 text-gray-200 mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Zone Not Found</h2>
-          <p className="text-gray-500 mb-6">
+      <div className="min-h-screen bg-white flex items-center justify-center px-6">
+        <div className="text-center">
+          <div className="w-16 h-px bg-brand-red mx-auto mb-8" />
+          <h2 className="text-2xl font-black text-gray-900 mb-3">Zone Not Found</h2>
+          <p className="text-gray-400 text-sm mb-8">
             {zoneError ? "There was an error loading this zone." : "This zone doesn't exist or has been removed."}
           </p>
           <Link to="/cell-groups"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors">
-            <ArrowLeftIcon className="h-4 w-4" />
-            Browse All Groups
+            className="inline-flex items-center gap-2 bg-brand-red text-white text-xs font-semibold uppercase tracking-wider px-6 py-3 hover:bg-red-700 transition-colors">
+            <ArrowLeftIcon className="h-3.5 w-3.5" />
+            Browse All Zones
           </Link>
         </div>
       </div>
@@ -216,170 +159,210 @@ const ZoneDetailPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-white">
       <Helmet>
-        <title>{zone ? `${zone.name} Cell Groups` : "Loading…"} – Victory Bible Church</title>
+        <title>{zone ? `${zone.name} — Cell Groups` : "Loading…"} · Victory Bible Church</title>
         <meta name="description"
-          content={zone ? `Explore cell groups in the ${zone.name} zone. Find a group near you for fellowship, growth, and community.` : "Loading zone information."} />
+          content={zone ? `Cell groups in the ${zone.name} zone. Find one near you and join a small group for fellowship and growth.` : ""} />
       </Helmet>
 
-      {/* ── Hero ── */}
-      <section className="relative overflow-hidden rounded-b-3xl h-[48vh] min-h-[340px]">
-        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url(/assets/hero-bg.jpg)" }} />
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/90 via-blue-800/80 to-indigo-900/85" />
+      {/* ── Hero ──────────────────────────────────────────────────── */}
+      <section className="relative bg-vbc-dark overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-20"
+          style={{ backgroundImage: "url(/assets/hero-bg.jpg)" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-vbc-dark/60 to-vbc-dark" />
 
-        <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-28 md:py-36">
+          <Link
+            to="/cell-groups"
+            className="inline-flex items-center gap-2 text-white/30 hover:text-white text-xs font-semibold uppercase tracking-wider transition-colors mb-8"
+          >
+            <ArrowLeftIcon className="h-3.5 w-3.5" />
+            All Zones
+          </Link>
+
+          <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-4">Zone</p>
+
           {isLoading ? (
-            <div className="w-48 h-8 bg-white/20 rounded-xl animate-pulse" />
+            <div className="h-16 w-64 bg-white/10 animate-pulse" />
           ) : (
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-              <Link to="/cell-groups"
-                className="inline-flex items-center gap-1.5 text-blue-300 text-sm hover:text-white transition-colors mb-4">
-                <ArrowLeftIcon className="h-4 w-4" />
-                All Zones
-              </Link>
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
-                {zone?.name}
-              </h1>
-              {zone?.location && (
-                <p className="flex items-center justify-center gap-1.5 text-white/70 text-sm">
-                  <MapPinIcon className="h-4 w-4" />{zone.location}
-                </p>
-              )}
-              <motion.div className="h-0.5 bg-yellow-400 mx-auto mt-6 rounded-full"
-                initial={{ width: 0 }} animate={{ width: 60 }} transition={{ delay: 0.4, duration: 0.6 }} />
-            </motion.div>
+            <h1
+              className="font-black text-white leading-[0.88] mb-6"
+              style={{ fontSize: "clamp(3rem, 8vw, 6rem)" }}
+            >
+              {zone?.name}
+            </h1>
           )}
-        </div>
 
-        <motion.div className="absolute bottom-6 left-1/2 -translate-x-1/2"
-          animate={{ y: [0, 6, 0] }} transition={{ duration: 1.8, repeat: Infinity }}>
-          <ChevronDownIcon className="h-6 w-6 text-white/40" />
-        </motion.div>
+          {zone?.location && (
+            <p className="flex items-center gap-2 text-white/40 text-sm">
+              <MapPinIcon className="h-4 w-4" />
+              {zone.location}
+            </p>
+          )}
+
+          <div className="flex items-center gap-8 mt-12 pt-12 border-t border-white/10">
+            <div>
+              <p className="text-2xl font-black text-white">{cellGroups.length}</p>
+              <p className="text-white/30 text-xs uppercase tracking-wider mt-0.5">Cell Groups</p>
+            </div>
+            {zone?.elder?.name && (
+              <>
+                <div className="w-px h-10 bg-white/10" />
+                <div>
+                  <p className="text-sm font-black text-white">{zone.elder.name}</p>
+                  <p className="text-white/30 text-xs uppercase tracking-wider mt-0.5">{zone.elder.title || "Zone Elder"}</p>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </section>
 
-      {/* ── Zone info + Elder ── */}
-      {!isLoading && zone && (
-        <section className="bg-white border-b border-gray-100">
-          <div className="max-w-7xl mx-auto px-4 py-10">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-
-              {/* Zone description + stats */}
+      {/* ── Zone info + Elder ─────────────────────────────────────── */}
+      {!isLoading && zone && (zone.description || zone.elder?.name) && (
+        <section className="bg-vbc-section">
+          <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {zone.description && (
               <div className="lg:col-span-2">
-                {zone.description && (
-                  <p className="text-gray-600 leading-relaxed mb-6">{zone.description}</p>
-                )}
-                <div className="grid grid-cols-2 gap-4 max-w-xs">
-                  <div className="bg-blue-50 rounded-xl p-4 text-center">
-                    <p className="text-3xl font-bold text-blue-600">{cellGroups.length}</p>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mt-1">Cell Groups</p>
+                <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-3">About this zone</p>
+                <p className="text-white/60 text-sm leading-relaxed">{zone.description}</p>
+              </div>
+            )}
+            {zone.elder?.name && (
+              <div className="border border-white/10 p-6">
+                <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-4">Zone Elder</p>
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="w-10 h-10 bg-white/5 flex items-center justify-center flex-shrink-0">
+                    <UserIcon className="h-5 w-5 text-white/30" />
                   </div>
-                  <div className="bg-indigo-50 rounded-xl p-4 text-center">
-                    <p className="text-3xl font-bold text-indigo-600">{zone.elder?.name ? "1" : "—"}</p>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mt-1">Zone Elder</p>
+                  <div>
+                    <p className="text-white font-black text-sm">{zone.elder.name}</p>
+                    <p className="text-white/30 text-xs">{zone.elder.title || "Zone Elder"}</p>
                   </div>
+                </div>
+                <div className="space-y-2">
+                  {zone.elder?.contact && (
+                    <a href={`mailto:${zone.elder.contact}`}
+                      className="flex items-center gap-2 text-xs text-white/40 hover:text-brand-red transition-colors">
+                      <EnvelopeIcon className="h-3.5 w-3.5" />
+                      {zone.elder.contact}
+                    </a>
+                  )}
+                  {zone.elder?.phone && (
+                    <a href={`tel:${zone.elder.phone}`}
+                      className="flex items-center gap-2 text-xs text-white/40 hover:text-brand-red transition-colors">
+                      <PhoneIcon className="h-3.5 w-3.5" />
+                      {zone.elder.phone}
+                    </a>
+                  )}
                 </div>
               </div>
-
-              {/* Elder card */}
-              {zone.elder?.name && (
-                <div className="lg:col-span-1">
-                  <ElderCard elder={zone.elder} />
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </section>
       )}
 
-      {/* ── Cell groups section ── */}
-      <section className="max-w-7xl mx-auto px-4 py-10">
-
-        {/* Search + Day filter */}
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">
-              {isLoading ? "Loading groups…" : `${filtered.length} group${filtered.length !== 1 ? "s" : ""}`}
-              {activeDayFilter && <span className="font-normal text-gray-500"> · {activeDayFilter}</span>}
-            </h2>
-          </div>
-
-          <div className="flex gap-2 w-full sm:w-auto">
+      {/* ── Filter bar ────────────────────────────────────────────── */}
+      <div className="bg-white border-b border-gray-100 sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center gap-4 py-3">
             {/* Search */}
-            <div className="relative flex-1 sm:w-64">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-              <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+            <div className="relative flex-1 max-w-xs">
+              <MagnifyingGlassIcon className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300 pointer-events-none" />
+              <input
+                type="text" value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search groups…"
-                className="w-full pl-9 pr-8 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+                className="w-full pl-6 pr-8 py-2 text-sm text-gray-900 border-b-2 border-gray-100 focus:border-brand-red focus:outline-none bg-transparent placeholder-gray-300 transition-colors"
+              />
               {search && (
-                <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                  <XMarkIcon className="h-4 w-4" />
+                <button onClick={() => setSearch("")} className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500">
+                  <XMarkIcon className="h-3.5 w-3.5" />
                 </button>
               )}
             </div>
 
             {/* Day filter */}
             <div className="relative flex-shrink-0">
-              <button onClick={() => setShowDayDropdown((p) => !p)}
-                className={`flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
-                  activeDayFilter ? "border-blue-600 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-600 hover:border-gray-300 bg-white"
-                }`}>
-                <ClockIcon className="h-4 w-4" />
+              <button
+                onClick={() => setShowDayDropdown((p) => !p)}
+                className={`flex items-center gap-1.5 px-4 py-2 text-xs font-semibold uppercase tracking-wider border transition-colors ${
+                  activeDayFilter ? "border-brand-red text-brand-red" : "border-gray-200 text-gray-400 hover:border-gray-300"
+                }`}
+              >
+                <ClockIcon className="h-3.5 w-3.5" />
                 {activeDayFilter || "Day"}
+                <ChevronDownIcon className="h-3 w-3" />
               </button>
               {showDayDropdown && (
-                <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 p-2 z-50 w-44">
-                  <button onClick={() => { setActiveDayFilter(""); setShowDayDropdown(false); }}
-                    className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50">Any day</button>
+                <div className="absolute right-0 top-full bg-white shadow-xl border border-gray-100 z-50 w-44 py-1">
+                  <button
+                    onClick={() => { setActiveDayFilter(""); setShowDayDropdown(false); }}
+                    className="w-full text-left px-4 py-2.5 text-xs text-gray-400 hover:bg-gray-50">
+                    Any day
+                  </button>
                   {DAYS.map((d) => (
-                    <button key={d} onClick={() => { setActiveDayFilter(d); setShowDayDropdown(false); }}
-                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                        activeDayFilter === d ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-700 hover:bg-gray-50"
-                      }`}>{d}</button>
+                    <button key={d}
+                      onClick={() => { setActiveDayFilter(d); setShowDayDropdown(false); }}
+                      className={`w-full text-left px-4 py-2.5 text-xs transition-colors ${
+                        activeDayFilter === d ? "bg-brand-red/5 text-brand-red font-semibold" : "text-gray-600 hover:bg-gray-50"
+                      }`}>
+                      {d}
+                    </button>
                   ))}
                 </div>
               )}
             </div>
 
             {hasFilters && (
-              <button onClick={clearFilters} className="flex items-center gap-1 px-3 py-2.5 rounded-xl text-sm text-gray-500 hover:text-gray-700 border border-gray-200 bg-white">
-                <XMarkIcon className="h-4 w-4" />
+              <button onClick={clearFilters}
+                className="flex items-center gap-1 text-xs text-brand-red hover:text-red-700 font-semibold uppercase tracking-wider">
+                <XMarkIcon className="h-3.5 w-3.5" />
                 Clear
               </button>
             )}
+
+            <p className="ml-auto text-xs text-gray-400 flex-shrink-0">
+              {isLoading ? "Loading…" : <><span className="font-bold text-gray-900">{filtered.length}</span> group{filtered.length !== 1 ? "s" : ""}</>}
+            </p>
           </div>
         </div>
+      </div>
 
-        {/* Skeletons */}
+      {/* ── Groups grid ───────────────────────────────────────────── */}
+      <section className="max-w-7xl mx-auto px-6 py-14">
+        {/* Skeleton */}
         {isLoading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-gray-100">
             {Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
         )}
 
-        {/* Empty state */}
+        {/* Empty */}
         {!isLoading && filtered.length === 0 && (
-          <div className="text-center py-16">
-            <UsersIcon className="mx-auto h-14 w-14 text-gray-200 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">
-              {cellGroups.length === 0 ? "No cell groups in this zone yet" : "No groups match your search"}
+          <div className="py-28 text-center">
+            <div className="w-16 h-px bg-brand-red mx-auto mb-8" />
+            <h3 className="text-xl font-black text-gray-900 mb-3">
+              {cellGroups.length === 0 ? "No cell groups in this zone yet" : "No groups match your filters"}
             </h3>
-            <p className="text-gray-400 max-w-sm mx-auto mb-6">
+            <p className="text-gray-400 text-sm max-w-sm mx-auto mb-8">
               {cellGroups.length === 0
-                ? "Check back soon — groups will appear here as they're added."
-                : "Try adjusting your search or remove the day filter."}
+                ? "Groups will appear here as they are added."
+                : "Try adjusting your search or removing the day filter."}
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <div className="flex items-center justify-center gap-3 flex-wrap">
               {hasFilters && (
                 <button onClick={clearFilters}
-                  className="px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors">
+                  className="inline-block bg-brand-red text-white text-xs font-semibold uppercase tracking-wider px-6 py-3 hover:bg-red-700 transition-colors">
                   Clear filters
                 </button>
               )}
               <Link to="/cell-groups"
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:border-gray-300 hover:bg-gray-50 transition-colors">
-                <ArrowLeftIcon className="h-4 w-4" />
-                Browse all zones
+                className="inline-flex items-center gap-2 border border-gray-200 text-gray-600 text-xs font-semibold uppercase tracking-wider px-6 py-3 hover:bg-gray-50 transition-colors">
+                <ArrowLeftIcon className="h-3.5 w-3.5" />
+                All zones
               </Link>
             </div>
           </div>
@@ -387,39 +370,33 @@ const ZoneDetailPage = () => {
 
         {/* Grid */}
         {!isLoading && filtered.length > 0 && (
-          <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <AnimatePresence mode="popLayout">
-              {filtered.map((group) => (
-                <GroupCard
-                  key={group._id || group.id}
-                  group={group}
-                  isFavorite={favorites.includes(group._id || group.id)}
-                  onToggleFavorite={toggleFavorite}
-                  onJoin={setSelectedGroup}
-                />
-              ))}
-            </AnimatePresence>
-          </motion.div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-gray-100">
+            {filtered.map((group) => (
+              <GroupCard
+                key={group._id || group.id}
+                group={group}
+                onJoin={setSelectedGroup}
+              />
+            ))}
+          </div>
         )}
 
         {/* Back link */}
         {!isLoading && (
-          <div className="mt-12 text-center">
+          <div className="mt-14 pt-14 border-t border-gray-100 flex items-center gap-2">
             <Link to="/cell-groups"
-              className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 transition-colors">
-              <ArrowLeftIcon className="h-4 w-4" />
+              className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-gray-400 hover:text-brand-red transition-colors">
+              <ArrowLeftIcon className="h-3.5 w-3.5" />
               Back to all zones
             </Link>
           </div>
         )}
       </section>
 
-      {/* Join modal */}
-      <AnimatePresence>
-        {selectedGroup && (
-          <JoinGroupModal group={selectedGroup} onClose={() => setSelectedGroup(null)} />
-        )}
-      </AnimatePresence>
+      {/* ── Join modal ────────────────────────────────────────────── */}
+      {selectedGroup && (
+        <JoinGroupModal group={selectedGroup} onClose={() => setSelectedGroup(null)} />
+      )}
     </div>
   );
 };

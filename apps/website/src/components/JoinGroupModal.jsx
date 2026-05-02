@@ -1,303 +1,235 @@
-// src/components/JoinGroupModal.jsx
 import { useState } from "react";
-import { motion } from "framer-motion";
 import {
-  User,
-  Mail,
-  Phone,
-  MessageCircle,
-  Calendar,
-  MapPin,
-  MessageCircle as WhatsAppIcon,
-} from "lucide-react";
+  UserIcon,
+  EnvelopeIcon,
+  PhoneIcon,
+  ChatBubbleLeftIcon,
+  MapPinIcon,
+  CalendarDaysIcon,
+  XMarkIcon,
+  ArrowPathIcon,
+  CheckCircleIcon,
+} from "@heroicons/react/24/outline";
 import { submitCellGroupJoinRequest } from "../services/api/cell-groups";
 
-const JoinGroupModal = ({ group, onClose, onSubmit, isLoading }) => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    whatsapp: "",
-    message: "",
-  });
+// ── Flat input helper ─────────────────────────────────────────────────────────
+const inputCls = (err) =>
+  `w-full bg-transparent border-b-2 px-0 py-3 text-sm text-white placeholder-white/30 focus:outline-none transition-colors ${
+    err ? "border-red-500 focus:border-red-400" : "border-white/10 focus:border-brand-red"
+  }`;
 
-  const [step, setStep] = useState(1); // 1: Form, 2: Success
-  const [consent, setConsent] = useState(false);
+const LabelRow = ({ label, required }) => (
+  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/40 mb-2">
+    {label}{required && <span className="text-brand-red ml-0.5">*</span>}
+  </p>
+);
 
-  const [error, setError] = useState("");
+// ─────────────────────────────────────────────────────────────────────────────
+
+const JoinGroupModal = ({ group, onClose }) => {
+  const [form, setForm] = useState({ name: "", email: "", phone: "", whatsapp: "", message: "" });
+  const [consent,  setConsent]  = useState(false);
+  const [sending,  setSending]  = useState(false);
+  const [sent,     setSent]     = useState(false);
+  const [error,    setError]    = useState("");
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!consent) return;
-
+    setSending(true);
+    setError("");
     try {
-      setError("");
-
-      // Prepare the request data
-      const requestData = {
-        cellGroupId: group.id,
-        ...formData,
-      };
-
-      // If WhatsApp is empty, use the phone number
-      if (!requestData.whatsapp && requestData.phone) {
-        requestData.whatsapp = requestData.phone;
-      }
-
-      // Submit the request to the API
-      await submitCellGroupJoinRequest(requestData);
-
-      // Call the onSubmit callback if provided
-      if (onSubmit) {
-        onSubmit(formData);
-      }
-
-      // Move to success step
-      setStep(2);
-    } catch (error) {
-      console.error("Error submitting join request:", error);
-      setError("There was an error submitting your request. Please try again.");
+      await submitCellGroupJoinRequest({
+        cellGroupId: group._id || group.id,
+        ...form,
+        whatsapp: form.whatsapp || form.phone,
+      });
+      setSent(true);
+    } catch {
+      setError("Could not send your request. Please try again or contact us directly.");
+    } finally {
+      setSending(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="bg-white/95 backdrop-blur-md rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-xl border border-white/20"
-      >
-        {step === 1 ? (
+    <div
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="bg-vbc-dark border border-white/10 w-full max-w-md max-h-[90vh] overflow-y-auto">
+
+        {/* Header */}
+        <div className="flex items-start justify-between p-6 border-b border-white/10">
+          <div>
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-1">Cell Group</p>
+            <h3 className="text-lg font-black text-white leading-tight">{group.name}</h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-white/30 hover:text-white transition-colors ml-4 mt-0.5 flex-shrink-0"
+            aria-label="Close"
+          >
+            <XMarkIcon className="h-5 w-5" />
+          </button>
+        </div>
+
+        {sent ? (
+          /* ── Success state ─────────────────────────────────────── */
+          <div className="p-8 text-center">
+            <CheckCircleIcon className="h-10 w-10 text-brand-red mx-auto mb-4" />
+            <h4 className="text-xl font-black text-white mb-3">Request sent.</h4>
+            <p className="text-white/40 text-sm leading-relaxed mb-6">
+              Your request to join <span className="text-white font-semibold">{group.name}</span> has been sent to {group.leader || "the cell leader"}. You should hear back within 48 hours.
+            </p>
+            <div className="border border-white/10 p-5 text-left mb-8">
+              <p className="text-white/30 text-xs font-semibold uppercase tracking-wider mb-3">What's next</p>
+              <div className="space-y-2">
+                {["Check your email for a confirmation.", `The cell leader will contact you soon.`, `Prepare to attend on ${group.meetingDay || "the meeting day"}.`].map((step, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <span className="text-brand-red text-xs font-black font-mono flex-shrink-0 mt-0.5">{String(i+1).padStart(2,"0")}</span>
+                    <p className="text-white/50 text-xs leading-relaxed">{step}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-full py-3 bg-brand-red text-white text-xs font-semibold uppercase tracking-wider hover:bg-red-700 transition-colors"
+            >
+              Done
+            </button>
+          </div>
+        ) : (
           <>
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <h3 className="text-2xl font-bold">Join {group.name}</h3>
-                <p className="text-gray-600 text-sm mt-1">
-                  Led by {group.leader}
-                </p>
-              </div>
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-600"
-                aria-label="Close"
-              >
-                ×
-              </button>
-            </div>
-
-            {/* Group Info */}
-            <div className="bg-white/80 backdrop-blur-sm p-4 rounded-lg mb-6 shadow-sm">
-              <div className="flex items-center mb-2">
-                <Calendar className="text-gray-500 mr-2" />
-                <span className="text-gray-700">
-                  {group.meetingDay} at {group.meetingTime}
-                </span>
-              </div>
-              <div className="flex items-center">
-                <MapPin className="text-gray-500 mr-2" />
-                <span className="text-gray-700">{group.location}</span>
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <p className="text-gray-700 mb-4">
-                Your request will be sent to the cell leader who will contact
-                you with next steps. Please provide your contact information
-                below.
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-gray-700 mb-2 font-medium">
-                  Your Name
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    required
-                    className="w-full pl-10 p-3 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 shadow-sm"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    placeholder="Full Name"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-gray-700 mb-2 font-medium">
-                  Your Email
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="text-gray-400" />
-                  </div>
-                  <input
-                    type="email"
-                    required
-                    className="w-full pl-10 p-3 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 shadow-sm"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    placeholder="email@example.com"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-gray-700 mb-2 font-medium">
-                  Phone Number
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Phone className="text-gray-400" />
-                  </div>
-                  <input
-                    type="tel"
-                    required
-                    className="w-full pl-10 p-3 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 shadow-sm"
-                    value={formData.phone}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phone: e.target.value })
-                    }
-                    placeholder="(123) 456-7890"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-gray-700 mb-2 font-medium">
-                  WhatsApp Number (Optional)
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <WhatsAppIcon className="text-gray-400" />
-                  </div>
-                  <input
-                    type="tel"
-                    className="w-full pl-10 p-3 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 shadow-sm"
-                    value={formData.whatsapp}
-                    onChange={(e) =>
-                      setFormData({ ...formData, whatsapp: e.target.value })
-                    }
-                    placeholder="Same as phone number"
-                  />
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Leave blank to use your phone number
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-gray-700 mb-2 font-medium">
-                  Message (Optional)
-                </label>
-                <div className="relative">
-                  <div className="absolute top-3 left-3 pointer-events-none">
-                    <MessageCircle className="text-gray-400" />
-                  </div>
-                  <textarea
-                    className="w-full pl-10 p-3 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 shadow-sm"
-                    rows="4"
-                    value={formData.message}
-                    onChange={(e) =>
-                      setFormData({ ...formData, message: e.target.value })
-                    }
-                    placeholder="Let the cell leader know why you're interested in joining this group..."
-                  />
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <label className="flex items-start">
-                  <input
-                    type="checkbox"
-                    className="mt-1 mr-2"
-                    checked={consent}
-                    onChange={(e) => setConsent(e.target.checked)}
-                    required
-                  />
-                  <span className="text-sm text-gray-600">
-                    I consent to Victory Bible Church storing my contact
-                    information and contacting me about this cell group. My
-                    information will be processed in accordance with the
-                    church's privacy policy.
-                  </span>
-                </label>
-              </div>
-
-              {error && (
-                <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">
-                  {error?.message || error?.toString() || "An error occurred"}
+            {/* ── Group info strip ───────────────────────────────── */}
+            <div className="px-6 py-4 border-b border-white/10 flex flex-wrap gap-5">
+              {(group.meetingDay || group.meetingTime) && (
+                <div className="flex items-center gap-2 text-xs text-white/40">
+                  <CalendarDaysIcon className="h-3.5 w-3.5 text-brand-red" />
+                  {group.meetingDay}{group.meetingTime ? ` · ${group.meetingTime}` : ""}
                 </div>
               )}
+              {group.location && (
+                <div className="flex items-center gap-2 text-xs text-white/40">
+                  <MapPinIcon className="h-3.5 w-3.5 text-brand-red" />
+                  {group.location}
+                </div>
+              )}
+            </div>
 
-              <div className="flex justify-end space-x-4 mt-6">
+            {/* ── Form ───────────────────────────────────────────── */}
+            <form onSubmit={handleSubmit} className="p-6 space-y-7">
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-7">
+                <div>
+                  <LabelRow label="Full Name" required />
+                  <div className="relative">
+                    <UserIcon className="absolute left-0 top-3.5 h-3.5 w-3.5 text-white/20 pointer-events-none" />
+                    <input
+                      type="text" name="name" required
+                      value={form.name} onChange={handleChange}
+                      placeholder="John Banda"
+                      className={`${inputCls()} pl-6`}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <LabelRow label="Email Address" required />
+                  <div className="relative">
+                    <EnvelopeIcon className="absolute left-0 top-3.5 h-3.5 w-3.5 text-white/20 pointer-events-none" />
+                    <input
+                      type="email" name="email" required
+                      value={form.email} onChange={handleChange}
+                      placeholder="john@example.com"
+                      className={`${inputCls()} pl-6`}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-7">
+                <div>
+                  <LabelRow label="Phone Number" required />
+                  <div className="relative">
+                    <PhoneIcon className="absolute left-0 top-3.5 h-3.5 w-3.5 text-white/20 pointer-events-none" />
+                    <input
+                      type="tel" name="phone" required
+                      value={form.phone} onChange={handleChange}
+                      placeholder="+260 97 000 0000"
+                      className={`${inputCls()} pl-6`}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <LabelRow label="WhatsApp (optional)" />
+                  <div className="relative">
+                    <PhoneIcon className="absolute left-0 top-3.5 h-3.5 w-3.5 text-white/20 pointer-events-none" />
+                    <input
+                      type="tel" name="whatsapp"
+                      value={form.whatsapp} onChange={handleChange}
+                      placeholder="Leave blank to use phone"
+                      className={`${inputCls()} pl-6`}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <LabelRow label="Message (optional)" />
+                <div className="relative">
+                  <ChatBubbleLeftIcon className="absolute left-0 top-3.5 h-3.5 w-3.5 text-white/20 pointer-events-none" />
+                  <textarea
+                    name="message" rows={3}
+                    value={form.message} onChange={handleChange}
+                    placeholder="Anything you'd like the cell leader to know…"
+                    className={`${inputCls()} pl-6 resize-none`}
+                  />
+                </div>
+              </div>
+
+              {/* Consent */}
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={consent}
+                  onChange={(e) => setConsent(e.target.checked)}
+                  className="mt-0.5 flex-shrink-0 accent-brand-red"
+                  required
+                />
+                <span className="text-xs text-white/30 leading-relaxed group-hover:text-white/50 transition-colors">
+                  I consent to Victory Bible Church storing my contact information and using it to connect me with this cell group.
+                </span>
+              </label>
+
+              {error && (
+                <p className="text-xs text-red-400 border-l-2 border-red-500 pl-3 leading-relaxed">{error}</p>
+              )}
+
+              <div className="flex gap-3 pt-2">
                 <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2.5 border border-gray-200 rounded-lg text-gray-600 hover:bg-white/90 backdrop-blur-sm shadow-sm transition-all duration-300"
+                  type="button" onClick={onClose}
+                  className="flex-1 py-3 border border-white/10 text-white/50 text-xs font-semibold uppercase tracking-wider hover:bg-white/5 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={isLoading || !consent}
-                  className="px-6 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-all duration-300"
+                  disabled={sending || !consent}
+                  className="flex-1 py-3 bg-brand-red text-white text-xs font-semibold uppercase tracking-wider hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center justify-center gap-2"
                 >
-                  {isLoading ? "Submitting..." : "Send Request"}
+                  {sending ? <><ArrowPathIcon className="h-3.5 w-3.5 animate-spin" /> Sending…</> : "Send Request"}
                 </button>
               </div>
             </form>
           </>
-        ) : (
-          <div className="text-center py-8">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg
-                className="w-8 h-8 text-green-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-            <h3 className="text-2xl font-bold mb-2">Request Sent!</h3>
-            <p className="text-gray-600 mb-6">
-              Your request to join {group.name} has been sent to {group.leader}.
-              You should receive a response within 48 hours.
-            </p>
-            <div className="bg-white/80 backdrop-blur-sm p-4 rounded-lg mb-6 text-left shadow-sm">
-              <h4 className="font-medium text-gray-800 mb-2">Next Steps:</h4>
-              <ol className="list-decimal list-inside space-y-2 text-gray-700">
-                <li>Check your email for a confirmation</li>
-                <li>The cell leader will contact you soon</li>
-                <li>
-                  Prepare to attend your first meeting on {group.meetingDay}
-                </li>
-              </ol>
-            </div>
-            <button
-              onClick={onClose}
-              className="px-6 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 shadow-md transition-all duration-300"
-            >
-              Close
-            </button>
-          </div>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 };
