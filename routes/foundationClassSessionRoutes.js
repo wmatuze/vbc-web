@@ -10,15 +10,6 @@ router.get("/", async (req, res) => {
     // By default, only return active sessions
     const filter = req.query.showAll === "true" ? {} : { active: true };
 
-    // Set CORS headers explicitly for this endpoint
-    res.header("Access-Control-Allow-Origin", "http://localhost:5173");
-    res.header("Access-Control-Allow-Methods", "GET, OPTIONS");
-    res.header(
-      "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-    );
-    res.header("Access-Control-Allow-Credentials", "true");
-
     console.log("Fetching foundation class sessions with filter:", filter);
 
     const sessions = await models.FoundationClassSession.find(filter).sort({
@@ -116,7 +107,7 @@ router.put("/:id", authMiddleware, async (req, res) => {
     const session = await models.FoundationClassSession.findByIdAndUpdate(
       req.params.id,
       updateData,
-      { new: true }
+      { new: true },
     );
 
     if (!session) {
@@ -141,7 +132,7 @@ router.put("/:id", authMiddleware, async (req, res) => {
 router.delete("/:id", authMiddleware, async (req, res) => {
   try {
     const session = await models.FoundationClassSession.findByIdAndDelete(
-      req.params.id
+      req.params.id,
     );
 
     if (!session) {
