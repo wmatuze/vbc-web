@@ -704,6 +704,125 @@ app.get("/auth/status", authMiddleware, (req, res) => {
   res.json({ authenticated: true, user: req.user });
 });
 
+// Admin-only middleware
+const adminOnly = (req, res, next) => {
+  if (!req.user || req.user.role !== "admin") {
+    return res.status(403).json({ error: "Admin access required" });
+  }
+  next();
+};
+
+// ── User Management Routes (admin only) ──────────────────────────────────────
+
+// GET /api/users — list all admin users (no passwords returned)
+app.get("/api/users", authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const users = await models.User.find(
+      {},
+      { hashedPassword: 0, password: 0, __v: 0 },
+    ).sort({ createdAt: 1 });
+    res.json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Failed to fetch users" });
+  }
+});
+
+// POST /api/users — create a new admin user
+app.post("/api/users", authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const { username, name, password, role } = req.body;
+
+    if (!username || !name || !password) {
+      return res
+        .status(400)
+        .json({ error: "Username, name and password are required" });
+    }
+
+    if (!["admin", "editor"].includes(role)) {
+      return res.status(400).json({ error: "Role must be admin or editor" });
+    }
+
+    const existing = await models.User.findOne({ username });
+    if (existing) {
+      return res.status(409).json({ error: "Username already exists" });
+    }
+
+    const user = new models.User({
+      username,
+      name,
+      hashedPassword: hashPassword(password),
+      role: role || "editor",
+    });
+
+    await user.save();
+    res.status(201).json({
+      _id: user._id,
+      username: user.username,
+      name: user.name,
+      role: user.role,
+      createdAt: user.createdAt,
+    });
+  } catch (error) {
+    console.error("Error creating user:", error);
+    res.status(500).json({ error: "Failed to create user" });
+  }
+});
+
+// DELETE /api/users/:id — delete a user (cannot delete yourself)
+app.delete("/api/users/:id", authMiddleware, adminOnly, async (req, res) => {
+  try {
+    if (req.params.id === String(req.user.id)) {
+      return res
+        .status(400)
+        .json({ error: "You cannot delete your own account" });
+    }
+
+    const user = await models.User.findByIdAndDelete(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ error: "Failed to delete user" });
+  }
+});
+
+// PATCH /api/users/:id/password — change a user's password
+app.patch(
+  "/api/users/:id/password",
+  authMiddleware,
+  adminOnly,
+  async (req, res) => {
+    try {
+      const { password } = req.body;
+
+      if (!password || password.length < 8) {
+        return res
+          .status(400)
+          .json({ error: "Password must be at least 8 characters" });
+      }
+
+      const user = await models.User.findByIdAndUpdate(
+        req.params.id,
+        { hashedPassword: hashPassword(password) },
+        { new: true },
+      );
+
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      res.json({ message: "Password updated successfully" });
+    } catch (error) {
+      console.error("Error updating password:", error);
+      res.status(500).json({ error: "Failed to update password" });
+    }
+  },
+);
+
 // Media routes
 app.get("/api/media", async (req, res) => {
   try {
