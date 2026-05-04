@@ -4,6 +4,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import QueryProvider from "./providers/QueryProvider";
+import { DarkModeProvider } from "./contexts/DarkModeContext";
 
 // ── Always-loaded layout / shell components ────────────────────────────────
 import Navbar from "./components/Layout/Navbar";
@@ -51,19 +52,35 @@ const CouplesMinistry = lazy(
 // ── Admin ─────────────────────────────────────────────────────────────────
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
 const AdminLogin = lazy(() => import("./components/admin/AdminLogin"));
-const DashboardContent = lazy(() => import("./components/admin/DashboardContent"));
-const SermonManagerWrapper = lazy(() => import("./components/admin/SermonManagerWrapper"));
+const DashboardContent = lazy(
+  () => import("./components/admin/DashboardContent"),
+);
+const SermonManagerWrapper = lazy(
+  () => import("./components/admin/SermonManagerWrapper"),
+);
 const EventManager = lazy(() => import("./components/admin/EventManager"));
-const RecurringEventManager = lazy(() => import("./components/admin/RecurringEventManager"));
+const RecurringEventManager = lazy(
+  () => import("./components/admin/RecurringEventManager"),
+);
 const LeaderManager = lazy(() => import("./components/admin/LeaderManager"));
-const CellGroupManager = lazy(() => import("./components/admin/CellGroupManager"));
-const RequestsManager = lazy(() => import("./components/admin/RequestsManager"));
-const FoundationClassSessionManager = lazy(() => import("./components/admin/FoundationClassSessionManager"));
-const DiscipleshipAdmin = lazy(() => import("./components/admin/DiscipleshipAdmin"));
+const CellGroupManager = lazy(
+  () => import("./components/admin/CellGroupManager"),
+);
+const RequestsManager = lazy(
+  () => import("./components/admin/RequestsManager"),
+);
+const FoundationClassSessionManager = lazy(
+  () => import("./components/admin/FoundationClassSessionManager"),
+);
+const DiscipleshipAdmin = lazy(
+  () => import("./components/admin/DiscipleshipAdmin"),
+);
 const ResourceAdmin = lazy(() => import("./components/admin/ResourceAdmin"));
 const ReportsAdmin = lazy(() => import("./components/admin/ReportsAdmin"));
 const MediaManager = lazy(() => import("./components/admin/MediaManager"));
-const SettingsContent = lazy(() => import("./components/admin/SettingsContent"));
+const SettingsContent = lazy(
+  () => import("./components/admin/SettingsContent"),
+);
 const AdminGuide = lazy(() => import("./pages/admin/AdminGuide"));
 const Support = lazy(() => import("./pages/admin/Support"));
 const ErrorTester = lazy(() => import("./components/ErrorTester"));
@@ -363,18 +380,31 @@ const AppContent = () => {
               />
 
               {/* Admin login (standalone, outside layout) */}
-              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route
+                path="/admin/login"
+                element={
+                  <DarkModeProvider>
+                    <AdminLogin />
+                  </DarkModeProvider>
+                }
+              />
 
               {/* Admin — nested routes under shared layout */}
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<DashboardContent />} />
                 <Route path="sermons" element={<SermonManagerWrapper />} />
                 <Route path="events" element={<EventManager />} />
-                <Route path="recurring-events" element={<RecurringEventManager />} />
+                <Route
+                  path="recurring-events"
+                  element={<RecurringEventManager />}
+                />
                 <Route path="leaders" element={<LeaderManager />} />
                 <Route path="cell-groups" element={<CellGroupManager />} />
                 <Route path="members" element={<RequestsManager />} />
-                <Route path="foundation-classes" element={<FoundationClassSessionManager />} />
+                <Route
+                  path="foundation-classes"
+                  element={<FoundationClassSessionManager />}
+                />
                 <Route path="discipleship" element={<DiscipleshipAdmin />} />
                 <Route path="resources" element={<ResourceAdmin />} />
                 <Route path="reports" element={<ReportsAdmin />} />
