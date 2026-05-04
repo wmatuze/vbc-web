@@ -10,10 +10,20 @@ import { PlayIcon } from "@heroicons/react/24/solid";
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const getSermonImage = (sermon) => {
   if (!sermon) return placeholderImage;
-  if (sermon.videoId) return `https://img.youtube.com/vi/${sermon.videoId}/hqdefault.jpg`;
-  if (sermon.image?.path) return sermon.image.path.startsWith("/") ? `${config.API_URL}${sermon.image.path}` : sermon.image.path;
-  if (typeof sermon.imageUrl === "string" && sermon.imageUrl && !sermon.imageUrl.includes("default-image"))
-    return sermon.imageUrl.startsWith("/") ? `${config.API_URL}${sermon.imageUrl}` : sermon.imageUrl;
+  if (sermon.videoId)
+    return `https://img.youtube.com/vi/${sermon.videoId}/hqdefault.jpg`;
+  if (sermon.image?.path)
+    return sermon.image.path.startsWith("/")
+      ? `${config.API_URL}${sermon.image.path}`
+      : sermon.image.path;
+  if (
+    typeof sermon.imageUrl === "string" &&
+    sermon.imageUrl &&
+    !sermon.imageUrl.includes("default-image")
+  )
+    return sermon.imageUrl.startsWith("/")
+      ? `${config.API_URL}${sermon.imageUrl}`
+      : sermon.imageUrl;
   return placeholderImage;
 };
 
@@ -22,8 +32,14 @@ const formatDate = (d) => {
   try {
     const date = d instanceof Date ? d : new Date(d);
     if (isNaN(date.getTime())) return String(d);
-    return date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-  } catch { return ""; }
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  } catch {
+    return "";
+  }
 };
 
 // ── Video Modal ───────────────────────────────────────────────────────────────
@@ -33,14 +49,22 @@ function VideoModal({ sermon, onClose }) {
     document.addEventListener("keydown", onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
-      onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div
+      className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
       <div className="relative w-full max-w-4xl">
-        <button onClick={onClose} className="absolute -top-10 right-0 text-white/60 hover:text-white text-sm uppercase tracking-widest">
+        <button
+          onClick={onClose}
+          className="absolute -top-10 right-0 text-white/60 hover:text-white text-sm uppercase tracking-widest"
+        >
           Close ✕
         </button>
         <div className="relative pt-[56.25%]">
@@ -80,13 +104,12 @@ const Sermons = () => {
   if (!sermonsToDisplay.length) return null;
 
   const latest = sermonsToDisplay[0];
-  const rest   = sermonsToDisplay.slice(1, 4);
+  const rest = sermonsToDisplay.slice(1, 4);
 
   return (
     <section className="bg-gray-50">
-
       {/* ── Section header ── */}
-      <div className="max-w-7xl mx-auto px-8 pt-20 pb-12 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 pt-14 sm:pt-20 pb-8 sm:pb-12 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -115,7 +138,7 @@ const Sermons = () => {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
         viewport={{ once: true }}
-        className="max-w-7xl mx-auto px-8 mb-12"
+        className="max-w-7xl mx-auto px-4 sm:px-8 mb-8 sm:mb-12"
       >
         <div className="flex flex-col md:flex-row overflow-hidden shadow-lg">
           {/* Thumbnail */}
@@ -129,7 +152,10 @@ const Sermons = () => {
               src={getSermonImage(latest)}
               alt={latest.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-              onError={(e) => { e.target.src = placeholderImage; e.target.onerror = null; }}
+              onError={(e) => {
+                e.target.src = placeholderImage;
+                e.target.onerror = null;
+              }}
             />
             <div className="absolute inset-0 bg-black/30 group-hover:bg-black/15 transition-colors" />
             {/* Play button */}
@@ -185,7 +211,7 @@ const Sermons = () => {
 
       {/* ── Recent sermons — flat cards ── */}
       {rest.length > 0 && (
-        <div className="max-w-7xl mx-auto px-8 pb-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 pb-14 sm:pb-20">
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-0 border-t border-l border-gray-200">
             {rest.map((sermon, i) => (
               <motion.div
@@ -206,7 +232,10 @@ const Sermons = () => {
                     src={getSermonImage(sermon)}
                     alt={sermon.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    onError={(e) => { e.target.src = placeholderImage; e.target.onerror = null; }}
+                    onError={(e) => {
+                      e.target.src = placeholderImage;
+                      e.target.onerror = null;
+                    }}
                   />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                     <div className="w-12 h-12 rounded-full bg-primary-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity scale-90 group-hover:scale-100 transition-transform">
@@ -223,12 +252,15 @@ const Sermons = () => {
                   <h3 className="text-lg font-bold text-gray-900 leading-snug mb-1 line-clamp-2">
                     {sermon.title}
                   </h3>
-                  <p className="text-primary-600 text-xs font-medium mb-3">{sermon.speaker || "Guest Speaker"}</p>
-                  {sermon.description && typeof sermon.description === "string" && (
-                    <p className="text-gray-500 text-sm leading-relaxed mb-4 line-clamp-2">
-                      {sermon.description}
-                    </p>
-                  )}
+                  <p className="text-primary-600 text-xs font-medium mb-3">
+                    {sermon.speaker || "Guest Speaker"}
+                  </p>
+                  {sermon.description &&
+                    typeof sermon.description === "string" && (
+                      <p className="text-gray-500 text-sm leading-relaxed mb-4 line-clamp-2">
+                        {sermon.description}
+                      </p>
+                    )}
                   <button
                     onClick={() => setSelectedSermon(sermon)}
                     className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors group/link"
@@ -243,7 +275,12 @@ const Sermons = () => {
         </div>
       )}
 
-      {selectedSermon && <VideoModal sermon={selectedSermon} onClose={() => setSelectedSermon(null)} />}
+      {selectedSermon && (
+        <VideoModal
+          sermon={selectedSermon}
+          onClose={() => setSelectedSermon(null)}
+        />
+      )}
     </section>
   );
 };

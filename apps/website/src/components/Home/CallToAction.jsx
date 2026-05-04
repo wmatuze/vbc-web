@@ -3,9 +3,9 @@ import { motion } from "framer-motion";
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
 
 const ACTION_LINKS = [
-  { label: "Plan Your Visit",   path: "/about/visitors"        },
-  { label: "Meet Our Pastors",  path: "/about/leadership-team" },
-  { label: "Join a Cell Group", path: "/cell-groups"           },
+  { label: "Plan Your Visit", path: "/about/visitors" },
+  { label: "Meet Our Pastors", path: "/about/leadership-team" },
+  { label: "Join a Cell Group", path: "/cell-groups" },
 ];
 
 const CallToAction = () => {
@@ -24,11 +24,13 @@ const CallToAction = () => {
         className="absolute inset-0 pointer-events-none"
         animate={{ opacity: [0.3, 0.5, 0.3] }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-        style={{ background: "radial-gradient(ellipse 60% 50% at 50% 50%, rgba(29,78,216,0.15) 0%, transparent 70%)" }}
+        style={{
+          background:
+            "radial-gradient(ellipse 60% 50% at 50% 50%, rgba(29,78,216,0.15) 0%, transparent 70%)",
+        }}
       />
 
-      <div className="relative z-10 w-full max-w-4xl mx-auto px-8 py-24 text-center">
-
+      <div className="relative z-10 w-full max-w-4xl mx-auto px-5 sm:px-8 py-16 sm:py-24 text-center">
         {/* Eyebrow */}
         <motion.p
           initial={{ opacity: 0, y: 16 }}
@@ -46,11 +48,9 @@ const CallToAction = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.1 }}
           viewport={{ once: true }}
-          className="text-4xl md:text-6xl font-bold text-white leading-tight mb-6"
+          className="text-3xl sm:text-4xl md:text-6xl font-bold text-white leading-tight mb-5 sm:mb-6"
         >
-          New to{" "}
-          <span className="text-primary-400">Victory</span>{" "}
-          Bible Church?
+          New to <span className="text-primary-400">Victory</span> Bible Church?
         </motion.h2>
 
         {/* Subtitle */}
@@ -59,10 +59,10 @@ const CallToAction = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
           viewport={{ once: true }}
-          className="text-gray-400 text-lg leading-relaxed max-w-xl mx-auto mb-12"
+          className="text-gray-400 text-base sm:text-lg leading-relaxed max-w-xl mx-auto mb-8 sm:mb-12"
         >
-          We'd love to welcome you to our church family. Discover what to expect,
-          meet our team, and find your place in our community.
+          We'd love to welcome you to our church family. Discover what to
+          expect, meet our team, and find your place in our community.
         </motion.p>
 
         {/* Three text action links */}
@@ -98,13 +98,12 @@ const CallToAction = () => {
         >
           <Link
             to="/about/visitors"
-            className="inline-flex items-center gap-3 border-2 border-white text-white text-sm font-bold uppercase tracking-widest px-12 py-5 hover:bg-white hover:text-black transition-all duration-300 group"
+            className="inline-flex items-center gap-3 border-2 border-white text-white text-sm font-bold uppercase tracking-widest px-8 sm:px-12 py-4 sm:py-5 hover:bg-white hover:text-black transition-all duration-300 group"
           >
             I'm New Here
             <ArrowRightIcon className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </motion.div>
-
       </div>
     </section>
   );

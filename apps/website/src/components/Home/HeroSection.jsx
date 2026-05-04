@@ -22,9 +22,35 @@ const parseEventDate = (event) => {
   }
 };
 
-const DAY_NAMES  = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-const MONTH_FULL  = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTH_NAMES = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+const MONTH_FULL = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 // ── Compact event row (secondary events) ──────────────────────────────────────
 const EventRow = ({ event }) => {
@@ -33,8 +59,12 @@ const EventRow = ({ event }) => {
     <div className="flex items-center gap-4 py-4 border-b border-white/10 group">
       {/* Red date badge */}
       <div className="flex-shrink-0 w-10 text-center">
-        <p className="text-brand-red text-xs font-bold uppercase">{MONTH_NAMES[date.getMonth()]}</p>
-        <p className="text-white text-xl font-black leading-none">{date.getDate()}</p>
+        <p className="text-brand-red text-xs font-bold uppercase">
+          {MONTH_NAMES[date.getMonth()]}
+        </p>
+        <p className="text-white text-xl font-black leading-none">
+          {date.getDate()}
+        </p>
       </div>
       {/* Info */}
       <div className="flex-1 min-w-0">
@@ -70,7 +100,6 @@ const HeroSection = forwardRef((props, ref) => {
 
   return (
     <section ref={ref} className="relative min-h-screen overflow-hidden">
-
       {/* ── Background ── */}
       <div className="absolute inset-0">
         <div
@@ -82,12 +111,10 @@ const HeroSection = forwardRef((props, ref) => {
 
       {/* ── Content grid ── */}
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 min-h-screen max-w-screen-2xl mx-auto">
-
         {/* ════════════════════════════════════════════════════════════
             LEFT COLUMN — welcome + headline + CTAs
         ═══════════════════════════════════════════════════════════════ */}
-        <div className="lg:col-span-7 flex flex-col justify-start px-8 lg:px-16 pt-32 pb-20 lg:pt-36 lg:pb-24">
-
+        <div className="lg:col-span-7 flex flex-col justify-start px-5 sm:px-8 lg:px-16 pt-24 sm:pt-28 lg:pt-36 pb-10 sm:pb-16 lg:pb-24">
           {/* Eyebrow */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -102,23 +129,29 @@ const HeroSection = forwardRef((props, ref) => {
           </motion.div>
 
           {/* Headline */}
-          <div className="mb-8 space-y-1 overflow-hidden">
+          <div className="mb-6 sm:mb-8 space-y-0.5 sm:space-y-1 overflow-hidden">
             {[
-              { text: "Sinning when alone",  delay: 0.2 },
-              { text: "is easy, but",        delay: 0.35, accent: false },
-              { text: "worshipping",         delay: 0.5,  accent: true  },
-              { text: "alone is",            delay: 0.65 },
-              { text: "difficult.",          delay: 0.8,  accent: true  },
+              { text: "Sinning when alone", delay: 0.2 },
+              { text: "is easy, but", delay: 0.35, accent: false },
+              { text: "worshipping", delay: 0.5, accent: true },
+              { text: "alone is", delay: 0.65 },
+              { text: "difficult.", delay: 0.8, accent: true },
             ].map((line, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: line.delay, ease: "easeOut" }}
+                transition={{
+                  duration: 0.6,
+                  delay: line.delay,
+                  ease: "easeOut",
+                }}
               >
-                <span className={`block text-4xl lg:text-6xl font-black leading-tight tracking-tight ${
-                  line.accent ? "text-primary-400" : "text-white"
-                }`}>
+                <span
+                  className={`block text-3xl sm:text-4xl lg:text-6xl font-black leading-tight tracking-tight ${
+                    line.accent ? "text-primary-400" : "text-white"
+                  }`}
+                >
                   {line.text}
                 </span>
               </motion.div>
@@ -130,7 +163,7 @@ const HeroSection = forwardRef((props, ref) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 1.0 }}
-            className="text-white/60 text-lg leading-relaxed max-w-md mb-12"
+            className="text-white/60 text-base sm:text-lg leading-relaxed max-w-md mb-8 sm:mb-12"
           >
             Join our vibrant community where faith grows stronger through
             fellowship, worship, and service to others.
@@ -168,7 +201,7 @@ const HeroSection = forwardRef((props, ref) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="lg:col-span-5 relative flex flex-col justify-start px-8 lg:px-10 pt-8 pb-20 lg:pt-36 lg:pb-24"
+          className="lg:col-span-5 relative flex flex-col justify-start px-5 sm:px-8 lg:px-10 pt-6 sm:pt-8 pb-10 sm:pb-14 lg:pt-36 lg:pb-24"
         >
           {/* Dark panel background */}
           <div className="absolute inset-0 bg-black/50 lg:bg-black/60 backdrop-blur-sm" />
@@ -176,7 +209,6 @@ const HeroSection = forwardRef((props, ref) => {
           <div className="absolute top-0 left-0 right-0 h-px bg-brand-red/60" />
 
           <div className="relative z-10">
-
             {/* Section header — mirrors the left eyebrow */}
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-4">
@@ -211,75 +243,78 @@ const HeroSection = forwardRef((props, ref) => {
             {!isLoading && !featured && (
               <div className="text-center py-12">
                 <CalendarDaysIcon className="h-10 w-10 text-white/15 mx-auto mb-4" />
-                <p className="text-white/30 text-sm">No upcoming events scheduled.</p>
+                <p className="text-white/30 text-sm">
+                  No upcoming events scheduled.
+                </p>
                 <p className="text-white/20 text-xs mt-1">Check back soon!</p>
               </div>
             )}
 
             {/* Featured event — spotlight */}
-            {featured && (() => {
-              const date = featured._parsed;
-              return (
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.9 }}
-                  className="mb-8"
-                >
-                  {/* Date block */}
-                  <div className="flex items-end gap-4 mb-5">
-                    <div>
-                      <p className="text-white text-8xl font-black leading-none tracking-tighter">
-                        {date.getDate()}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <p className="text-brand-red text-xs font-bold uppercase tracking-widest">
-                          {MONTH_FULL[date.getMonth()]}
+            {featured &&
+              (() => {
+                const date = featured._parsed;
+                return (
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.9 }}
+                    className="mb-8"
+                  >
+                    {/* Date block */}
+                    <div className="flex items-end gap-4 mb-5">
+                      <div>
+                        <p className="text-white text-6xl sm:text-8xl font-black leading-none tracking-tighter">
+                          {date.getDate()}
                         </p>
-                        <span className="text-white/20 text-xs">·</span>
-                        <p className="text-white/40 text-xs uppercase tracking-wider">
-                          {DAY_NAMES[date.getDay()]}
-                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-brand-red text-xs font-bold uppercase tracking-widest">
+                            {MONTH_FULL[date.getMonth()]}
+                          </p>
+                          <span className="text-white/20 text-xs">·</span>
+                          <p className="text-white/40 text-xs uppercase tracking-wider">
+                            {DAY_NAMES[date.getDay()]}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Event title */}
-                  <h3 className="text-2xl font-bold text-white leading-snug mb-3">
-                    {featured.title}
-                  </h3>
+                    {/* Event title */}
+                    <h3 className="text-2xl font-bold text-white leading-snug mb-3">
+                      {featured.title}
+                    </h3>
 
-                  {/* Meta */}
-                  <div className="flex flex-wrap gap-4 mb-5">
-                    {featured.time && (
-                      <div className="flex items-center gap-1.5 text-white/50 text-xs">
-                        <ClockIcon className="h-3.5 w-3.5" />
-                        {featured.time}
-                      </div>
+                    {/* Meta */}
+                    <div className="flex flex-wrap gap-4 mb-5">
+                      {featured.time && (
+                        <div className="flex items-center gap-1.5 text-white/50 text-xs">
+                          <ClockIcon className="h-3.5 w-3.5" />
+                          {featured.time}
+                        </div>
+                      )}
+                      {featured.location && (
+                        <div className="flex items-center gap-1.5 text-white/50 text-xs">
+                          <MapPinIcon className="h-3.5 w-3.5" />
+                          {featured.location}
+                        </div>
+                      )}
+                    </div>
+
+                    <Link
+                      to="/events"
+                      className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary-400 hover:text-primary-300 transition-colors group"
+                    >
+                      Learn More
+                      <ArrowRightIcon className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+                    </Link>
+
+                    {/* Divider */}
+                    {secondary.length > 0 && (
+                      <div className="h-px bg-white/10 mt-8" />
                     )}
-                    {featured.location && (
-                      <div className="flex items-center gap-1.5 text-white/50 text-xs">
-                        <MapPinIcon className="h-3.5 w-3.5" />
-                        {featured.location}
-                      </div>
-                    )}
-                  </div>
-
-                  <Link
-                    to="/events"
-                    className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary-400 hover:text-primary-300 transition-colors group"
-                  >
-                    Learn More
-                    <ArrowRightIcon className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-
-                  {/* Divider */}
-                  {secondary.length > 0 && (
-                    <div className="h-px bg-white/10 mt-8" />
-                  )}
-                </motion.div>
-              );
-            })()}
+                  </motion.div>
+                );
+              })()}
 
             {/* Secondary events — compact list */}
             {secondary.length > 0 && (
@@ -293,7 +328,6 @@ const HeroSection = forwardRef((props, ref) => {
                 ))}
               </motion.div>
             )}
-
           </div>
         </motion.div>
       </div>
@@ -303,9 +337,13 @@ const HeroSection = forwardRef((props, ref) => {
         className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 hidden lg:flex flex-col items-center cursor-pointer"
         animate={{ y: [0, 6, 0] }}
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        onClick={() => window.scrollTo({ top: window.innerHeight, behavior: "smooth" })}
+        onClick={() =>
+          window.scrollTo({ top: window.innerHeight, behavior: "smooth" })
+        }
       >
-        <span className="text-white/30 text-xs font-medium uppercase tracking-widest mb-2">Scroll</span>
+        <span className="text-white/30 text-xs font-medium uppercase tracking-widest mb-2">
+          Scroll
+        </span>
         <div className="w-px h-8 bg-gradient-to-b from-white/30 to-transparent" />
       </motion.div>
     </section>

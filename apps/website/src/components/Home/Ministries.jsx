@@ -47,20 +47,32 @@ const MinistryCard = ({ ministry, className = "", textSize = "text-3xl" }) => (
   <Link
     to={ministry.path}
     className={`group relative overflow-hidden block ${className}`}
-    style={{ backgroundImage: "url(/assets/hero-bg.jpg)", backgroundSize: "cover", backgroundPosition: "center" }}
+    style={{
+      backgroundImage: "url(/assets/hero-bg.jpg)",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+    }}
   >
     {/* Gradient overlay */}
-    <div className={`absolute inset-0 bg-gradient-to-t ${ministry.overlay} group-hover:opacity-90 transition-opacity duration-500`} />
+    <div
+      className={`absolute inset-0 bg-gradient-to-t ${ministry.overlay} group-hover:opacity-90 transition-opacity duration-500`}
+    />
 
     {/* Bottom content */}
     <div className="absolute bottom-0 left-0 right-0 p-8">
-      <p className={`${ministry.accent} text-xs font-semibold uppercase tracking-widest mb-1.5`}>
+      <p
+        className={`${ministry.accent} text-xs font-semibold uppercase tracking-widest mb-1.5`}
+      >
         {ministry.number} · {ministry.label}
       </p>
-      <h3 className={`${textSize} font-bold text-white leading-tight mb-3 group-hover:translate-x-1 transition-transform duration-300`}>
+      <h3
+        className={`${textSize} font-bold text-white leading-tight mb-3 group-hover:translate-x-1 transition-transform duration-300`}
+      >
         {ministry.name}
       </h3>
-      <p className="text-white/55 text-sm leading-relaxed mb-5 max-w-xs">{ministry.description}</p>
+      <p className="text-white/55 text-sm leading-relaxed mb-5 max-w-xs">
+        {ministry.description}
+      </p>
       <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-white/50 group-hover:text-white transition-colors duration-300">
         Explore
         <ArrowRightIcon className="h-3.5 w-3.5 group-hover:translate-x-1.5 transition-transform duration-300" />
@@ -77,14 +89,13 @@ const MinistryCard = ({ ministry, className = "", textSize = "text-3xl" }) => (
 const Ministries = () => {
   return (
     <section className="bg-[#0f172a]">
-
       {/* Section label */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
-        className="px-10 pt-14 pb-8 flex items-end justify-between"
+        className="px-5 sm:px-10 pt-10 sm:pt-14 pb-6 sm:pb-8 flex items-end justify-between"
       >
         <div>
           <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-2">
@@ -114,20 +125,20 @@ const Ministries = () => {
         {/* Large left card — Youth */}
         <MinistryCard
           ministry={MINISTRIES[0]}
-          className="lg:w-3/5 min-h-[500px]"
-          textSize="text-4xl"
+          className="lg:w-3/5 min-h-[340px] sm:min-h-[420px] lg:min-h-[500px]"
+          textSize="text-3xl sm:text-4xl"
         />
 
         {/* Right column — Men + Women stacked */}
         <div className="flex flex-col lg:w-2/5">
           <MinistryCard
             ministry={MINISTRIES[1]}
-            className="flex-1 min-h-[250px] border-b border-white/5"
+            className="flex-1 min-h-[200px] sm:min-h-[220px] lg:min-h-[250px] border-b border-white/5"
             textSize="text-2xl"
           />
           <MinistryCard
             ministry={MINISTRIES[2]}
-            className="flex-1 min-h-[250px]"
+            className="flex-1 min-h-[200px] sm:min-h-[220px] lg:min-h-[250px]"
             textSize="text-2xl"
           />
         </div>
@@ -140,12 +151,18 @@ const Ministries = () => {
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
         className="relative overflow-hidden border-t border-white/5"
-        style={{ backgroundImage: "url(/assets/hero-bg.jpg)", backgroundSize: "cover", backgroundPosition: "center 70%" }}
+        style={{
+          backgroundImage: "url(/assets/hero-bg.jpg)",
+          backgroundSize: "cover",
+          backgroundPosition: "center 70%",
+        }}
       >
         <div className="absolute inset-0 bg-gradient-to-r from-purple-900/90 via-indigo-950/85 to-purple-900/90" />
-        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 px-10 py-12 max-w-7xl mx-auto">
+        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 sm:gap-6 px-5 sm:px-10 py-8 sm:py-12 max-w-7xl mx-auto">
           <div>
-            <p className={`${PRAISE.accent} text-xs font-semibold uppercase tracking-widest mb-1.5`}>
+            <p
+              className={`${PRAISE.accent} text-xs font-semibold uppercase tracking-widest mb-1.5`}
+            >
               {PRAISE.number} · {PRAISE.label}
             </p>
             <h3 className="text-3xl font-bold text-white">{PRAISE.name}</h3>
