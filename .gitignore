@@ -1,4 +1,7 @@
 # Node.js dependencies
+# Tool settings (not project files)
+.claude/
+
 node_modules/
 npm-debug.log
 yarn-debug.log
