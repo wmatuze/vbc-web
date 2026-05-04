@@ -6,6 +6,7 @@ const fs = require("fs");
 const fsExtra = require("fs-extra");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const rateLimit = require("express-rate-limit");
 const connectDB = require("./config/database");
 const { uploadBuffer, folderFor } = require("./config/cloudinary");
 const models = require("./models");
@@ -26,11 +27,21 @@ Object.values(dirs).forEach((dir) => fsExtra.ensureDirSync(dir));
 // Multer — memory storage (files go to Cloudinary, not local disk)
 const ALLOWED_MIME = new Set([
   // Images
-  "image/jpeg", "image/png", "image/gif", "image/webp",
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
   // Audio
-  "audio/mpeg", "audio/mp3", "audio/wav", "audio/aac", "audio/m4a", "audio/ogg",
+  "audio/mpeg",
+  "audio/mp3",
+  "audio/wav",
+  "audio/aac",
+  "audio/m4a",
+  "audio/ogg",
   // Video
-  "video/mp4", "video/quicktime", "video/webm",
+  "video/mp4",
+  "video/quicktime",
+  "video/webm",
   // Documents
   "application/pdf",
 ]);
@@ -65,7 +76,7 @@ app.use(
     credentials: true,
     preflightContinue: false,
     optionsSuccessStatus: 204,
-  })
+  }),
 );
 
 // Handle preflight requests explicitly
@@ -74,7 +85,7 @@ app.options(
   cors({
     origin: FRONTEND_URL,
     credentials: true,
-  })
+  }),
 );
 
 // Handle preflight requests explicitly for login
@@ -83,7 +94,7 @@ app.options("/login", (req, res) => {
   res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.header(
     "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization",
   );
   res.header("Access-Control-Allow-Credentials", "true");
   res.sendStatus(204);
@@ -93,6 +104,19 @@ app.options("/login", (req, res) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Rate limiting — max 10 login attempts per 15 minutes per IP
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: {
+    error: "Too many login attempts. Please try again in 15 minutes.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use("/login", loginLimiter);
+app.use("/api/auth/login", loginLimiter);
+
 // Simple logging middleware
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
@@ -101,7 +125,7 @@ app.use((req, res, next) => {
   if (req.path.startsWith("/api/membership/renew") && req.method === "POST") {
     console.log(
       "Membership renewal request body:",
-      JSON.stringify(req.body, null, 2)
+      JSON.stringify(req.body, null, 2),
     );
 
     // Add response logging for this endpoint
@@ -110,7 +134,7 @@ app.use((req, res, next) => {
       console.log(
         "Membership renewal response:",
         typeof data,
-        data ? data.substring(0, 200) : "empty"
+        data ? data.substring(0, 200) : "empty",
       );
       originalSend.call(this, data);
     };
@@ -130,7 +154,7 @@ app.use(
       res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
       res.setHeader("Access-Control-Allow-Credentials", "true");
     },
-  })
+  }),
 );
 
 app.use(
@@ -149,7 +173,7 @@ app.use(
         res.setHeader("Content-Type", "image/svg+xml");
       }
     },
-  })
+  }),
 );
 
 // Serve files from root directory
@@ -161,7 +185,7 @@ app.use(
       res.setHeader("Access-Control-Allow-Origin", FRONTEND_URL);
       res.setHeader("Access-Control-Allow-Credentials", "true");
     },
-  })
+  }),
 );
 
 // Specific route for test-form.html
@@ -177,7 +201,7 @@ app.use(
       res.setHeader("Access-Control-Allow-Origin", FRONTEND_URL);
       res.setHeader("Access-Control-Allow-Credentials", "true");
     },
-  })
+  }),
 );
 
 // Mount API routes
@@ -238,7 +262,7 @@ const authMiddleware = (req, res, next) => {
       const decoded = jwt.verify(token, jwtSecret);
       req.user = decoded;
       console.log(
-        `Token verified successfully for user: ${decoded.username || "unknown"}`
+        `Token verified successfully for user: ${decoded.username || "unknown"}`,
       );
       next();
     } catch (jwtError) {
@@ -265,7 +289,7 @@ const authMiddleware = (req, res, next) => {
       req.hostname === "localhost"
     ) {
       console.warn(
-        "AUTH BYPASS: Allowing request in development mode despite auth failure"
+        "AUTH BYPASS: Allowing request in development mode despite auth failure",
       );
       req.user = { id: "dev-admin", username: "admin", role: "admin" };
       return next();
@@ -282,7 +306,7 @@ const generateToken = (user) => {
     process.env.JWT_SECRET || "vbc-secure-jwt-key-8943wt98h3th983h4g98h348g";
 
   console.log(
-    `Generating token for user: ${user.username}, using JWT_SECRET: ${jwtSecret ? "available" : "missing"}`
+    `Generating token for user: ${user.username}, using JWT_SECRET: ${jwtSecret ? "available" : "missing"}`,
   );
 
   return jwt.sign(
@@ -293,7 +317,7 @@ const generateToken = (user) => {
       name: user.name,
     },
     jwtSecret,
-    { expiresIn: "24h" }
+    { expiresIn: "24h" },
   );
 };
 
@@ -317,7 +341,7 @@ app.post("/login", async (req, res) => {
   res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.header(
     "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization",
   );
   res.header("Access-Control-Allow-Credentials", "true");
 
@@ -381,7 +405,7 @@ app.post("/login", async (req, res) => {
     // Verify password
     const hashedPassword = hashPassword(password);
     console.log(
-      `Password verification: ${hashedPassword === user.hashedPassword ? "success" : "failed"}`
+      `Password verification: ${hashedPassword === user.hashedPassword ? "success" : "failed"}`,
     );
 
     if (hashedPassword !== user.hashedPassword) {
@@ -393,7 +417,7 @@ app.post("/login", async (req, res) => {
         (password === "admin" || password === "church_admin_2025")
       ) {
         console.log(
-          "Development mode: Allowing admin login with default password"
+          "Development mode: Allowing admin login with default password",
         );
       } else {
         return res.status(401).json({ error: "Invalid username or password" });
@@ -433,7 +457,7 @@ app.post("/login", async (req, res) => {
         },
         process.env.JWT_SECRET ||
           "vbc-secure-jwt-key-8943wt98h3th983h4g98h348g",
-        { expiresIn: "24h" }
+        { expiresIn: "24h" },
       );
 
       return res.json({
@@ -466,7 +490,7 @@ app.post("/api/auth/login", async (req, res) => {
   res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.header(
     "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization",
   );
   res.header("Access-Control-Allow-Credentials", "true");
 
@@ -485,7 +509,7 @@ app.post("/api/auth/login", async (req, res) => {
     // Check if user exists
     if (!user) {
       console.log(
-        `Login failed at /api/auth/login: User '${username}' not found`
+        `Login failed at /api/auth/login: User '${username}' not found`,
       );
 
       // For development, create a default admin user if it doesn't exist
@@ -532,7 +556,7 @@ app.post("/api/auth/login", async (req, res) => {
     // Verify password
     const hashedPassword = hashPassword(password);
     console.log(
-      `Password verification at /api/auth/login: ${hashedPassword === user.hashedPassword ? "success" : "failed"}`
+      `Password verification at /api/auth/login: ${hashedPassword === user.hashedPassword ? "success" : "failed"}`,
     );
 
     if (hashedPassword !== user.hashedPassword) {
@@ -544,7 +568,7 @@ app.post("/api/auth/login", async (req, res) => {
         (password === "admin" || password === "church_admin_2025")
       ) {
         console.log(
-          "Development mode: Allowing admin login with default password"
+          "Development mode: Allowing admin login with default password",
         );
       } else {
         return res.status(401).json({ error: "Invalid username or password" });
@@ -554,7 +578,7 @@ app.post("/api/auth/login", async (req, res) => {
     // Generate token
     const token = generateToken(user);
     console.log(
-      `Login successful at /api/auth/login for user: ${username}, token generated`
+      `Login successful at /api/auth/login for user: ${username}, token generated`,
     );
 
     // Return user info and token
@@ -586,7 +610,7 @@ app.post("/api/auth/login", async (req, res) => {
         },
         process.env.JWT_SECRET ||
           "vbc-secure-jwt-key-8943wt98h3th983h4g98h348g",
-        { expiresIn: "24h" }
+        { expiresIn: "24h" },
       );
 
       return res.json({
@@ -610,60 +634,70 @@ app.options("/api/auth/login", (req, res) => {
   res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.header(
     "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization",
   );
   res.header("Access-Control-Allow-Credentials", "true");
   res.sendStatus(204);
 });
 
 // File upload endpoint — streams file to Cloudinary, stores URL in MongoDB
-app.post("/api/upload", authMiddleware, upload.single("file"), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
+app.post(
+  "/api/upload",
+  authMiddleware,
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const category = req.body.category || "general";
+      const title =
+        req.body.title ||
+        path.basename(
+          req.file.originalname,
+          path.extname(req.file.originalname),
+        );
+
+      // Upload buffer to Cloudinary
+      const result = await uploadBuffer(req.file.buffer, {
+        folder: folderFor(category),
+        public_id: `${Date.now()}-${title.replace(/\s+/g, "_").slice(0, 50)}`,
+        overwrite: false,
+        // For images: auto-format (serve WebP/AVIF to modern browsers), auto-quality
+        ...(req.file.mimetype.startsWith("image/") && {
+          transformation: [{ fetch_format: "auto", quality: "auto" }],
+        }),
+      });
+
+      // Persist to MongoDB
+      const newMedia = new models.Media({
+        filename: result.public_id,
+        originalName: req.file.originalname,
+        path: result.secure_url, // full Cloudinary HTTPS URL
+        cloudinaryId: result.public_id,
+        type: req.file.mimetype,
+        size: result.bytes,
+        title,
+        category,
+      });
+      await newMedia.save();
+
+      res.status(200).json({
+        ...newMedia._doc,
+        id: newMedia._id,
+        path: result.secure_url,
+        url: result.secure_url,
+        thumbnailUrl: result.secure_url,
+      });
+    } catch (error) {
+      console.error("Upload error:", error);
+      res
+        .status(500)
+        .json({ error: "Failed to upload file: " + error.message });
     }
-
-    const category = req.body.category || "general";
-    const title =
-      req.body.title ||
-      path.basename(req.file.originalname, path.extname(req.file.originalname));
-
-    // Upload buffer to Cloudinary
-    const result = await uploadBuffer(req.file.buffer, {
-      folder: folderFor(category),
-      public_id: `${Date.now()}-${title.replace(/\s+/g, "_").slice(0, 50)}`,
-      overwrite: false,
-      // For images: auto-format (serve WebP/AVIF to modern browsers), auto-quality
-      ...(req.file.mimetype.startsWith("image/") && {
-        transformation: [{ fetch_format: "auto", quality: "auto" }],
-      }),
-    });
-
-    // Persist to MongoDB
-    const newMedia = new models.Media({
-      filename: result.public_id,
-      originalName: req.file.originalname,
-      path: result.secure_url,       // full Cloudinary HTTPS URL
-      cloudinaryId: result.public_id,
-      type: req.file.mimetype,
-      size: result.bytes,
-      title,
-      category,
-    });
-    await newMedia.save();
-
-    res.status(200).json({
-      ...newMedia._doc,
-      id: newMedia._id,
-      path: result.secure_url,
-      url: result.secure_url,
-      thumbnailUrl: result.secure_url,
-    });
-  } catch (error) {
-    console.error("Upload error:", error);
-    res.status(500).json({ error: "Failed to upload file: " + error.message });
-  }
-});
+  },
+);
 
 // Auth status route
 app.get("/auth/status", authMiddleware, (req, res) => {
@@ -688,7 +722,7 @@ app.get("/media", async (req, res) => {
   res.header("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.header(
     "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma, Expires"
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma, Expires",
   );
   res.header("Access-Control-Allow-Credentials", "true");
 
@@ -708,7 +742,7 @@ app.get("/media/:id", async (req, res) => {
   res.header("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.header(
     "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma, Expires"
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma, Expires",
   );
   res.header("Access-Control-Allow-Credentials", "true");
 
@@ -751,7 +785,7 @@ app.post("/api/leaders", authMiddleware, async (req, res) => {
 app.get("/api/leaders/:id", async (req, res) => {
   try {
     const leader = await models.Leader.findById(req.params.id).populate(
-      "image"
+      "image",
     );
     if (!leader) {
       return res.status(404).json({ error: "Leader not found" });
@@ -768,7 +802,7 @@ app.put("/api/leaders/:id", authMiddleware, async (req, res) => {
     const leader = await models.Leader.findByIdAndUpdate(
       req.params.id,
       { ...req.body, updatedAt: Date.now() },
-      { new: true }
+      { new: true },
     );
     if (!leader) {
       return res.status(404).json({ error: "Leader not found" });
@@ -841,7 +875,7 @@ app.put("/api/zones/:id", authMiddleware, async (req, res) => {
     const zone = await models.Zone.findByIdAndUpdate(
       req.params.id,
       { ...req.body, updatedAt: Date.now() },
-      { new: true }
+      { new: true },
     );
     if (!zone) return res.status(404).json({ error: "Zone not found" });
     res.json(zone);
@@ -890,7 +924,7 @@ app.post("/api/cell-groups", authMiddleware, async (req, res) => {
 app.get("/api/cell-groups/:id", async (req, res) => {
   try {
     const cellGroup = await models.CellGroup.findById(req.params.id).populate(
-      "image"
+      "image",
     );
     if (!cellGroup) {
       return res.status(404).json({ error: "Cell group not found" });
@@ -907,7 +941,7 @@ app.put("/api/cell-groups/:id", authMiddleware, async (req, res) => {
     const cellGroup = await models.CellGroup.findByIdAndUpdate(
       req.params.id,
       { ...req.body, updatedAt: Date.now() },
-      { new: true }
+      { new: true },
     );
     if (!cellGroup) {
       return res.status(404).json({ error: "Cell group not found" });
@@ -989,7 +1023,7 @@ app.post("/api/sermons", authMiddleware, async (req, res) => {
 app.get("/api/sermons/:id", async (req, res) => {
   try {
     const sermon = await models.Sermon.findById(req.params.id).populate(
-      "image"
+      "image",
     );
     if (!sermon) {
       return res.status(404).json({ error: "Sermon not found" });
@@ -1016,7 +1050,7 @@ app.put("/api/sermons/:id", authMiddleware, async (req, res) => {
     const sermon = await models.Sermon.findByIdAndUpdate(
       req.params.id,
       updateData,
-      { new: true }
+      { new: true },
     ).populate("image");
 
     if (!sermon) {
@@ -1421,7 +1455,7 @@ app.put("/api/events/:id", authMiddleware, async (req, res) => {
     const event = await models.Event.findByIdAndUpdate(
       req.params.id,
       updateData,
-      { new: true }
+      { new: true },
     ).populate("image");
 
     if (!event) {
@@ -1443,7 +1477,7 @@ app.put("/api/events/:id", authMiddleware, async (req, res) => {
 app.put("/events/:id", authMiddleware, async (req, res) => {
   try {
     console.log(
-      `Updating event with ID (compatibility route): ${req.params.id}`
+      `Updating event with ID (compatibility route): ${req.params.id}`,
     );
     console.log("Update data:", req.body);
 
@@ -1477,14 +1511,14 @@ app.put("/events/:id", authMiddleware, async (req, res) => {
 
     console.log(
       "Final update data (compatibility):",
-      JSON.stringify(updateData, null, 2)
+      JSON.stringify(updateData, null, 2),
     );
     console.log("Time field value (compatibility):", updateData.time);
 
     const event = await models.Event.findByIdAndUpdate(
       req.params.id,
       updateData,
-      { new: true }
+      { new: true },
     ).populate("image");
 
     if (!event) {
@@ -1495,7 +1529,7 @@ app.put("/events/:id", authMiddleware, async (req, res) => {
     const formattedEvent = formatObject(event);
     console.log(
       "Successfully updated event (compatibility):",
-      formattedEvent.title
+      formattedEvent.title,
     );
 
     res.json(formattedEvent);
@@ -1521,7 +1555,8 @@ app.get("/events/:id", async (req, res) => {
       const events = await models.Event.find().populate("image");
       event = events.find(
         (e) =>
-          e._id.toString() === req.params.id || e.id === parseInt(req.params.id)
+          e._id.toString() === req.params.id ||
+          e.id === parseInt(req.params.id),
       );
     }
 
@@ -1619,7 +1654,7 @@ app.put("/leaders/:id", authMiddleware, async (req, res) => {
     const leader = await models.Leader.findByIdAndUpdate(
       req.params.id,
       { ...req.body, updatedAt: new Date() },
-      { new: true }
+      { new: true },
     ).populate("image");
 
     if (!leader) {
@@ -1755,7 +1790,7 @@ app.get("/assets/placeholders/default-event.svg", (req, res) => {
     __dirname,
     "assets",
     "placeholders",
-    "default-event.svg"
+    "default-event.svg",
   );
 
   // Check if the file exists
@@ -1802,7 +1837,6 @@ const seedUsers = async () => {
 
       const adminUser = new models.User({
         username: "admin",
-        password: "church_admin_2025",
         hashedPassword: hashPassword("church_admin_2025"),
         role: "admin",
         name: "Church Administrator",
@@ -1810,7 +1844,6 @@ const seedUsers = async () => {
 
       const pastorUser = new models.User({
         username: "pastor",
-        password: "pastor_2025",
         hashedPassword: hashPassword("pastor_2025"),
         role: "editor",
         name: "Church Pastor",
@@ -1968,7 +2001,6 @@ app.post("/api/test-event-create", authMiddleware, (req, res) => {
     });
   }
 });
-
 
 // Import seed functions
 const { seedAllData } = require("./seedData");
