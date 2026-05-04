@@ -14,6 +14,7 @@ import {
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { useDarkMode } from "../../contexts/DarkModeContext";
+import { getCurrentUser } from "../../services/api/auth";
 import {
   getUsers,
   createUser,
@@ -25,6 +26,8 @@ const ROLE_LABELS = { admin: "Admin", editor: "Editor" };
 
 const SettingsContent = () => {
   const { darkMode } = useDarkMode();
+  const currentUser = getCurrentUser();
+  const isAdmin = currentUser?.role === "admin";
   const [activeSection, setActiveSection] = useState("church");
 
   // ── User management state ──────────────────────────────────────────────────
@@ -297,21 +300,38 @@ const SettingsContent = () => {
                 <p
                   className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
                 >
-                  Manage who has access to the admin panel.
+                  {isAdmin
+                    ? "Manage who has access to the admin panel."
+                    : "View who has access to the admin panel."}
                 </p>
               </div>
-              <button
-                onClick={() => {
-                  setShowAddForm(true);
-                  setAddError("");
-                }}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-              >
-                <PlusIcon className="h-4 w-4" /> Add User
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    setShowAddForm(true);
+                    setAddError("");
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  <PlusIcon className="h-4 w-4" /> Add User
+                </button>
+              )}
             </div>
 
-            {showAddForm && (
+            {/* Read-only notice for editors */}
+            {!isAdmin && (
+              <div
+                className={`flex items-center gap-2 rounded-lg border px-4 py-3 text-sm ${darkMode ? "border-yellow-600 bg-yellow-900/20 text-yellow-300" : "border-yellow-400 bg-yellow-50 text-yellow-800"}`}
+              >
+                <ExclamationTriangleIcon className="h-4 w-4 shrink-0" />
+                <span>
+                  You have <strong>read-only</strong> access. Only admins can
+                  add, delete, or change passwords.
+                </span>
+              </div>
+            )}
+
+            {isAdmin && showAddForm && (
               <form
                 onSubmit={handleAddUser}
                 className={`rounded-lg border p-4 space-y-4 ${darkMode ? "border-blue-500 bg-gray-700" : "border-blue-200 bg-blue-50"}`}
@@ -412,16 +432,20 @@ const SettingsContent = () => {
                 <table className="min-w-full divide-y divide-gray-200 text-sm">
                   <thead className={darkMode ? "bg-gray-700" : "bg-gray-50"}>
                     <tr>
-                      {["Name", "Username", "Role", "Created", "Actions"].map(
-                        (h) => (
-                          <th
-                            key={h}
-                            className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide ${darkMode ? "text-gray-300" : "text-gray-500"}`}
-                          >
-                            {h}
-                          </th>
-                        ),
-                      )}
+                      {[
+                        "Name",
+                        "Username",
+                        "Role",
+                        "Created",
+                        ...(isAdmin ? ["Actions"] : []),
+                      ].map((h) => (
+                        <th
+                          key={h}
+                          className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide ${darkMode ? "text-gray-300" : "text-gray-500"}`}
+                        >
+                          {h}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody
@@ -458,34 +482,39 @@ const SettingsContent = () => {
                             ? new Date(u.createdAt).toLocaleDateString()
                             : "—"}
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <button
-                              title="Change password"
-                              onClick={() => {
-                                setPwModal({ id: u._id, username: u.username });
-                                setPwValue("");
-                                setPwError("");
-                              }}
-                              className="p-1.5 rounded text-blue-500 hover:bg-blue-50 transition-colors"
-                            >
-                              <LockClosedIcon className="h-4 w-4" />
-                            </button>
-                            <button
-                              title="Delete user"
-                              onClick={() => setDeleteConfirm(u)}
-                              className="p-1.5 rounded text-red-500 hover:bg-red-50 transition-colors"
-                            >
-                              <TrashIcon className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
+                        {isAdmin && (
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <button
+                                title="Change password"
+                                onClick={() => {
+                                  setPwModal({
+                                    id: u._id,
+                                    username: u.username,
+                                  });
+                                  setPwValue("");
+                                  setPwError("");
+                                }}
+                                className="p-1.5 rounded text-blue-500 hover:bg-blue-50 transition-colors"
+                              >
+                                <LockClosedIcon className="h-4 w-4" />
+                              </button>
+                              <button
+                                title="Delete user"
+                                onClick={() => setDeleteConfirm(u)}
+                                className="p-1.5 rounded text-red-500 hover:bg-red-50 transition-colors"
+                              >
+                                <TrashIcon className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))}
                     {users.length === 0 && (
                       <tr>
                         <td
-                          colSpan={5}
+                          colSpan={isAdmin ? 5 : 4}
                           className={`px-4 py-6 text-center text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
                         >
                           No users found.
