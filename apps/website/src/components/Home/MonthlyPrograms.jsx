@@ -94,7 +94,7 @@ const MonthlyPrograms = () => {
           whileInView={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.7 }}
           viewport={{ once: true }}
-          className="relative z-10 h-full flex flex-col justify-center px-6 sm:px-12 py-10 sm:py-14"
+          className="relative z-10 h-full flex flex-col justify-center px-6 sm:px-12 3xl:px-20 py-10 sm:py-14 3xl:max-w-xl 3xl:mx-auto 3xl:w-full"
         >
           <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-8">
             Service Times
@@ -104,7 +104,7 @@ const MonthlyPrograms = () => {
           <div className="space-y-8 mb-10">
             {SERVICE_TIMES.map((s, i) => (
               <div key={i}>
-                <p className="text-white text-4xl sm:text-5xl font-bold leading-none">
+                <p className="text-white text-4xl sm:text-5xl 3xl:text-6xl font-bold leading-none">
                   {s.time}
                 </p>
                 <p className="text-white/50 text-xs uppercase tracking-widest mt-2">
@@ -145,11 +145,12 @@ const MonthlyPrograms = () => {
           whileInView={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.7 }}
           viewport={{ once: true }}
+          className="w-full 3xl:max-w-2xl 3xl:mx-auto"
         >
           <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-3">
             Regular Services
           </p>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-10">
+          <h2 className="text-3xl md:text-4xl 3xl:text-5xl font-bold text-gray-900 mb-10">
             Monthly <span className="text-primary-600">Programs</span>
           </h2>
 

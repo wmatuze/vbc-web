@@ -109,7 +109,7 @@ const Sermons = () => {
   return (
     <section className="bg-gray-50">
       {/* ── Section header ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 pt-14 sm:pt-20 pb-8 sm:pb-12 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="max-w-7xl 3xl:max-w-screen-2xl mx-auto px-4 sm:px-8 pt-14 sm:pt-20 pb-8 sm:pb-12 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -119,7 +119,7 @@ const Sermons = () => {
           <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-2">
             Messages
           </p>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+          <h2 className="text-3xl md:text-4xl 3xl:text-5xl font-bold text-gray-900">
             Latest <span className="text-primary-600">Sermons</span>
           </h2>
         </motion.div>
@@ -138,7 +138,7 @@ const Sermons = () => {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
         viewport={{ once: true }}
-        className="max-w-7xl mx-auto px-4 sm:px-8 mb-8 sm:mb-12"
+        className="max-w-7xl 3xl:max-w-screen-2xl mx-auto px-4 sm:px-8 mb-8 sm:mb-12"
       >
         <div className="flex flex-col md:flex-row overflow-hidden shadow-lg">
           {/* Thumbnail */}
@@ -211,7 +211,7 @@ const Sermons = () => {
 
       {/* ── Recent sermons — flat cards ── */}
       {rest.length > 0 && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 pb-14 sm:pb-20">
+        <div className="max-w-7xl 3xl:max-w-screen-2xl mx-auto px-4 sm:px-8 pb-14 sm:pb-20">
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-0 border-t border-l border-gray-200">
             {rest.map((sermon, i) => (
               <motion.div

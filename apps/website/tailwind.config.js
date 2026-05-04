@@ -3,6 +3,10 @@ export default {
   darkMode: "class",
   theme: {
     extend: {
+      screens: {
+        "3xl": "1920px",
+        "4xl": "2560px",
+      },
       fontFamily: {
         sans: ["Poppins", "sans-serif"],
         serif: ["Merriweather", "serif"],
@@ -11,12 +15,12 @@ export default {
       colors: {
         // VBC dark backgrounds & red accent
         vbc: {
-          dark:    "#0a0a0a",
+          dark: "#0a0a0a",
           section: "#111111",
-          card:    "#1a1a1a",
+          card: "#1a1a1a",
         },
         brand: {
-          red:       "#dc2626",
+          red: "#dc2626",
           "red-light": "#ef4444",
         },
         primary: {

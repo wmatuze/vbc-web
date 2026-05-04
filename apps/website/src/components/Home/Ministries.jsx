@@ -95,7 +95,7 @@ const Ministries = () => {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
-        className="px-5 sm:px-10 pt-10 sm:pt-14 pb-6 sm:pb-8 flex items-end justify-between"
+        className="px-5 sm:px-10 pt-10 sm:pt-14 pb-6 sm:pb-8 flex items-end justify-between max-w-screen-2xl 3xl:max-w-[1800px] mx-auto w-full"
       >
         <div>
           <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-2">
@@ -120,26 +120,26 @@ const Ministries = () => {
         whileInView={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
         viewport={{ once: true }}
-        className="flex flex-col lg:flex-row"
+        className="flex flex-col lg:flex-row max-w-screen-2xl 3xl:max-w-[1800px] mx-auto w-full"
       >
         {/* Large left card — Youth */}
         <MinistryCard
           ministry={MINISTRIES[0]}
-          className="lg:w-3/5 min-h-[340px] sm:min-h-[420px] lg:min-h-[500px]"
-          textSize="text-3xl sm:text-4xl"
+          className="lg:w-3/5 min-h-[340px] sm:min-h-[420px] lg:min-h-[500px] 3xl:min-h-[640px]"
+          textSize="text-3xl sm:text-4xl 3xl:text-5xl"
         />
 
         {/* Right column — Men + Women stacked */}
         <div className="flex flex-col lg:w-2/5">
           <MinistryCard
             ministry={MINISTRIES[1]}
-            className="flex-1 min-h-[200px] sm:min-h-[220px] lg:min-h-[250px] border-b border-white/5"
-            textSize="text-2xl"
+            className="flex-1 min-h-[200px] sm:min-h-[220px] lg:min-h-[250px] 3xl:min-h-[320px] border-b border-white/5"
+            textSize="text-2xl 3xl:text-3xl"
           />
           <MinistryCard
             ministry={MINISTRIES[2]}
-            className="flex-1 min-h-[200px] sm:min-h-[220px] lg:min-h-[250px]"
-            textSize="text-2xl"
+            className="flex-1 min-h-[200px] sm:min-h-[220px] lg:min-h-[250px] 3xl:min-h-[320px]"
+            textSize="text-2xl 3xl:text-3xl"
           />
         </div>
       </motion.div>
@@ -158,14 +158,16 @@ const Ministries = () => {
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-r from-purple-900/90 via-indigo-950/85 to-purple-900/90" />
-        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 sm:gap-6 px-5 sm:px-10 py-8 sm:py-12 max-w-7xl mx-auto">
+        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 sm:gap-6 px-5 sm:px-10 py-8 sm:py-12 max-w-screen-2xl 3xl:max-w-[1800px] mx-auto w-full">
           <div>
             <p
               className={`${PRAISE.accent} text-xs font-semibold uppercase tracking-widest mb-1.5`}
             >
               {PRAISE.number} · {PRAISE.label}
             </p>
-            <h3 className="text-3xl font-bold text-white">{PRAISE.name}</h3>
+            <h3 className="text-3xl 3xl:text-4xl font-bold text-white">
+              {PRAISE.name}
+            </h3>
             <p className="text-white/50 text-sm mt-1">{PRAISE.description}</p>
           </div>
           <Link

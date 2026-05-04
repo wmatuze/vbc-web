@@ -110,11 +110,11 @@ const HeroSection = forwardRef((props, ref) => {
       </div>
 
       {/* ── Content grid ── */}
-      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 min-h-screen max-w-screen-2xl mx-auto">
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 min-h-screen max-w-screen-2xl 3xl:max-w-[1800px] 4xl:max-w-[2400px] mx-auto">
         {/* ════════════════════════════════════════════════════════════
             LEFT COLUMN — welcome + headline + CTAs
         ═══════════════════════════════════════════════════════════════ */}
-        <div className="lg:col-span-7 flex flex-col justify-start px-5 sm:px-8 lg:px-16 pt-24 sm:pt-28 lg:pt-36 pb-10 sm:pb-16 lg:pb-24">
+        <div className="lg:col-span-7 flex flex-col justify-start px-5 sm:px-8 lg:px-16 3xl:px-24 pt-24 sm:pt-28 lg:pt-36 3xl:pt-48 pb-10 sm:pb-16 lg:pb-24 3xl:pb-36">
           {/* Eyebrow */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -148,7 +148,7 @@ const HeroSection = forwardRef((props, ref) => {
                 }}
               >
                 <span
-                  className={`block text-3xl sm:text-4xl lg:text-6xl font-black leading-tight tracking-tight ${
+                  className={`block text-3xl sm:text-4xl lg:text-6xl 2xl:text-7xl 3xl:text-8xl font-black leading-tight tracking-tight ${
                     line.accent ? "text-primary-400" : "text-white"
                   }`}
                 >
@@ -163,7 +163,7 @@ const HeroSection = forwardRef((props, ref) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 1.0 }}
-            className="text-white/60 text-base sm:text-lg leading-relaxed max-w-md mb-8 sm:mb-12"
+            className="text-white/60 text-base sm:text-lg 3xl:text-xl leading-relaxed max-w-md 3xl:max-w-xl mb-8 sm:mb-12"
           >
             Join our vibrant community where faith grows stronger through
             fellowship, worship, and service to others.
@@ -264,7 +264,7 @@ const HeroSection = forwardRef((props, ref) => {
                     {/* Date block */}
                     <div className="flex items-end gap-4 mb-5">
                       <div>
-                        <p className="text-white text-6xl sm:text-8xl font-black leading-none tracking-tighter">
+                        <p className="text-white text-6xl sm:text-8xl 3xl:text-9xl font-black leading-none tracking-tighter">
                           {date.getDate()}
                         </p>
                         <div className="flex items-center gap-2 mt-1">

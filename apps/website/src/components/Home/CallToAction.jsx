@@ -10,7 +10,7 @@ const ACTION_LINKS = [
 
 const CallToAction = () => {
   return (
-    <section className="relative overflow-hidden min-h-[600px] flex items-center">
+    <section className="relative overflow-hidden min-h-[600px] 3xl:min-h-[700px] flex items-center">
       {/* Background photo */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-fixed"
@@ -30,7 +30,7 @@ const CallToAction = () => {
         }}
       />
 
-      <div className="relative z-10 w-full max-w-4xl mx-auto px-5 sm:px-8 py-16 sm:py-24 text-center">
+      <div className="relative z-10 w-full max-w-4xl 2xl:max-w-5xl 3xl:max-w-7xl mx-auto px-5 sm:px-8 py-16 sm:py-24 3xl:py-32 text-center">
         {/* Eyebrow */}
         <motion.p
           initial={{ opacity: 0, y: 16 }}
@@ -48,7 +48,7 @@ const CallToAction = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.1 }}
           viewport={{ once: true }}
-          className="text-3xl sm:text-4xl md:text-6xl font-bold text-white leading-tight mb-5 sm:mb-6"
+          className="text-3xl sm:text-4xl md:text-6xl 3xl:text-7xl font-bold text-white leading-tight mb-5 sm:mb-6"
         >
           New to <span className="text-primary-400">Victory</span> Bible Church?
         </motion.h2>
@@ -59,7 +59,7 @@ const CallToAction = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
           viewport={{ once: true }}
-          className="text-gray-400 text-base sm:text-lg leading-relaxed max-w-xl mx-auto mb-8 sm:mb-12"
+          className="text-gray-400 text-base sm:text-lg 3xl:text-xl leading-relaxed max-w-xl 3xl:max-w-2xl mx-auto mb-8 sm:mb-12"
         >
           We'd love to welcome you to our church family. Discover what to
           expect, meet our team, and find your place in our community.
