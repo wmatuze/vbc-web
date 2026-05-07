@@ -149,17 +149,19 @@ const ConnectionCard = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-8">
 
           <div>
+            <LabelRow label="Title" />
+            <select value={form.title} onChange={(e) => set("title", e.target.value)} className={selectCls}>
+              <option value="">Select…</option>
+              <option>Mr</option>
+              <option>Mrs</option>
+              <option>Miss</option>
+            </select>
+          </div>
+
+          <div>
             <LabelRow label="Full Name" required />
-            <div className="flex gap-3">
-              <select value={form.title} onChange={(e) => set("title", e.target.value)} className={`${selectCls} w-24 flex-shrink-0`}>
-                <option value="">—</option>
-                <option>Mr</option>
-                <option>Mrs</option>
-                <option>Miss</option>
-              </select>
-              <input type="text" value={form.fullName} onChange={(e) => set("fullName", e.target.value)}
-                placeholder="Your full name" className={`${inputCls} flex-1`} required />
-            </div>
+            <input type="text" value={form.fullName} onChange={(e) => set("fullName", e.target.value)}
+              placeholder="Your full name" className={inputCls} />
           </div>
 
           <div>
