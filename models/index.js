@@ -15,6 +15,7 @@ const DiscipleshipSession = require("./DiscipleshipSession");
 const DiscipleshipRegistration = require("./DiscipleshipRegistration");
 const Resource = require("./Resource");
 const EventSignupRequest = require("./EventSignupRequest");
+const VisitorRegistration = require("./VisitorRegistration");
 
 module.exports = {
   User,
@@ -34,4 +35,5 @@ module.exports = {
   DiscipleshipRegistration,
   Resource,
   EventSignupRequest,
+  VisitorRegistration,
 };

@@ -119,6 +119,58 @@ router.post("/foundation-classes/register", async (req, res) => {
   }
 });
 
+// ─── Visitor / first-timer connection card ───────────────────────────────────
+
+router.post("/visitors", async (req, res) => {
+  try {
+    const {
+      title, fullName, ageGroup, maritalStatus,
+      phone, email, address, birthday,
+      hasChildren, children,
+      requestContact, acceptedJesus, wantToAccept,
+    } = req.body;
+
+    if (!fullName) {
+      return res.status(400).json({ success: false, error: "Full name is required." });
+    }
+
+    const visitor = new models.VisitorRegistration({
+      title:          title          || "",
+      fullName:       fullName.trim(),
+      ageGroup:       ageGroup       || "",
+      maritalStatus:  maritalStatus  || "",
+      phone:          phone          || "",
+      email:          email          || "",
+      address:        address        || "",
+      birthday:       birthday       || "",
+      hasChildren:    !!hasChildren,
+      children:       Array.isArray(children) ? children.filter(Boolean) : [],
+      requestContact: !!requestContact,
+      acceptedJesus:  acceptedJesus === true || acceptedJesus === "true"  ? true
+                    : acceptedJesus === false|| acceptedJesus === "false" ? false
+                    : null,
+      wantToAccept:   wantToAccept   || "",
+      visitDate:      new Date(),
+    });
+
+    const saved = await visitor.save();
+
+    // Send emails — non-blocking, failure doesn't affect response
+    emailService.sendVisitorRegistrationEmails(saved).catch((err) =>
+      console.error("Visitor email error:", err)
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Connection card submitted successfully.",
+      data: formatResponse(saved),
+    });
+  } catch (error) {
+    console.error("Error saving visitor registration:", error);
+    res.status(500).json({ success: false, error: "Failed to submit connection card." });
+  }
+});
+
 // Support request endpoint
 router.post("/support", async (req, res) => {
   try {

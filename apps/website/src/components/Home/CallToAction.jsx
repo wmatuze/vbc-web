@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
 
 const ACTION_LINKS = [
-  { label: "Plan Your Visit", path: "/about/visitors" },
+  { label: "Plan Your Visit", path: "/first-timers" },
   { label: "Meet Our Pastors", path: "/about/leadership-team" },
   { label: "Join a Cell Group", path: "/cell-groups" },
 ];
@@ -13,7 +13,7 @@ const CallToAction = () => {
     <section className="relative overflow-hidden min-h-[600px] 3xl:min-h-[700px] flex items-center">
       {/* Background photo */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-fixed"
+        className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: "url(/assets/hero-bg.jpg)" }}
       />
       {/* Dark overlay — intentionally heavy, cinematic */}
@@ -97,7 +97,7 @@ const CallToAction = () => {
           viewport={{ once: true }}
         >
           <Link
-            to="/about/visitors"
+            to="/first-timers"
             className="inline-flex items-center gap-3 border-2 border-white text-white text-sm font-bold uppercase tracking-widest px-8 sm:px-12 py-4 sm:py-5 hover:bg-white hover:text-black transition-all duration-300 group"
           >
             I'm New Here

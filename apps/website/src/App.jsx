@@ -34,6 +34,7 @@ const ZoneDetailPage = lazy(() => import("./pages/ZoneDetailPage"));
 const ContactUs = lazy(() => import("./pages/ContactUs"));
 const Membership = lazy(() => import("./pages/Membership"));
 const Renew = lazy(() => import("./pages/Renew"));
+const FirstTimers = lazy(() => import("./pages/FirstTimers"));
 const FoundationClasses = lazy(() => import("./pages/FoundationClasses"));
 const DiscipleshipClasses = lazy(() => import("./pages/DiscipleshipClasses"));
 const ChurchCalendar = lazy(
@@ -227,6 +228,14 @@ const AppContent = () => {
                 element={
                   <PageWrapper noPadding>
                     <Renew />
+                  </PageWrapper>
+                }
+              />
+              <Route
+                path="/first-timers"
+                element={
+                  <PageWrapper noPadding>
+                    <FirstTimers />
                   </PageWrapper>
                 }
               />

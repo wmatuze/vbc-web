@@ -402,6 +402,79 @@ const sendSupportRequestEmail = async (supportData) => {
   });
 };
 
+// ─── Visitor / first-timer connection card ───────────────────────────────────
+
+const sendVisitorRegistrationEmails = async (visitor) => {
+  const name = visitor.fullName || "Friend";
+  const displayName = [visitor.title, visitor.fullName].filter(Boolean).join(" ");
+  const adminEmail = process.env.ADMIN_EMAIL || "admin@victorybiblechurch.org";
+
+  // ── Visitor confirmation ──
+  if (visitor.email) {
+    await sendEmail({
+      to: visitor.email,
+      subject: "Welcome to Victory Bible Church — We're Glad You Came!",
+      text: `Dear ${name}, thank you for visiting Victory Bible Church. We are so glad you were with us!`,
+      html: createEmailTemplate(
+        "Welcome to VBC",
+        BRAND.red,
+        `<p style="color:#374151;font-size:15px;line-height:1.7;">Dear ${displayName},</p>
+         <p style="color:#374151;font-size:15px;line-height:1.7;">
+           Thank you for visiting <strong>Victory Bible Church</strong>. We are so glad you were with us and we hope your experience was everything you expected and more.
+         </p>
+         <p style="color:#374151;font-size:15px;line-height:1.7;">
+           Your connection card has been received. ${visitor.requestContact ? "Someone from our team will be in touch with you soon." : "We would love to stay connected with you."}
+         </p>
+         <div style="border-left:3px solid ${BRAND.red};background:#fef2f2;padding:16px 20px;margin:20px 0;border-radius:0 4px 4px 0;">
+           <p style="margin:0 0 4px;color:#991b1b;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Our Vision</p>
+           <p style="margin:0;color:#374151;font-size:14px;line-height:1.7;font-style:italic;">"Winning a Generation for Christ."</p>
+         </div>
+         <p style="color:#374151;font-size:15px;line-height:1.7;">
+           We meet every Sunday at 9:30 AM at Off Chiwala Road, CBU East Gate, Kitwe. We would love to see you again!
+         </p>
+         <p style="color:#374151;font-size:15px;line-height:1.7;">
+           God bless you,<br>
+           <strong>Bishop Cyrus &amp; Pastor Getrude Simwanza</strong><br>
+           Victory Bible Church, Kitwe
+         </p>`
+      ),
+    });
+  }
+
+  // ── Admin notification ──
+  const childrenList = visitor.children?.filter(Boolean).join(", ") || "—";
+  await sendEmail({
+    to: adminEmail,
+    subject: `New First-Timer Connection Card: ${displayName}`,
+    text: `New visitor connection card from ${displayName}.`,
+    html: createEmailTemplate(
+      "New Visitor Connection Card",
+      BRAND.red,
+      `<p style="color:#374151;font-size:15px;line-height:1.7;">A new visitor has submitted their connection card.</p>
+       ${detailBlock([
+         ["Name",           displayName],
+         ["Age Group",      visitor.ageGroup   || "—"],
+         ["Marital Status", visitor.maritalStatus || "—"],
+         ["Phone",          visitor.phone      || "—"],
+         ["Email",          visitor.email      || "—"],
+         ["Address",        visitor.address    || "—"],
+         ["Birthday",       visitor.birthday   || "—"],
+         ["Has Children",   visitor.hasChildren ? `Yes — ${childrenList}` : "No"],
+         ["Wants Contact",  visitor.requestContact ? "Yes" : "No"],
+         ["Accepted Jesus", visitor.acceptedJesus === true ? "Yes" : visitor.acceptedJesus === false ? "No" : "—"],
+         ["Decision Today", visitor.wantToAccept === "yes" ? "Yes" : visitor.wantToAccept === "not-today" ? "Not Today" : "—"],
+         ["Visit Date",     formatDate(visitor.visitDate)],
+       ])}
+       <p style="text-align:center;margin:28px 0;">
+         <a href="${process.env.ADMIN_URL || "https://victorybiblechurch.org/admin"}/members?tab=visitors"
+            style="background:${BRAND.red};color:${BRAND.white};padding:12px 24px;text-decoration:none;border-radius:2px;font-size:14px;font-weight:600;display:inline-block;">
+           View in Admin Dashboard
+         </a>
+       </p>`
+    ),
+  });
+};
+
 module.exports = {
   sendEmail,
   sendMembershipRenewalEmails,
@@ -410,4 +483,5 @@ module.exports = {
   sendFoundationClassCompletionEmail,
   sendCellGroupJoinRequestEmails,
   sendSupportRequestEmail,
+  sendVisitorRegistrationEmails,
 };
