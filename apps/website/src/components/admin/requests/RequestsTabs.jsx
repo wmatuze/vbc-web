@@ -4,6 +4,7 @@ import {
   AcademicCapIcon,
   UserPlusIcon,
   BookOpenIcon,
+  HandRaisedIcon,
 } from "@heroicons/react/24/outline";
 
 const TABS = [
@@ -11,6 +12,7 @@ const TABS = [
   { id: "foundation",   label: "Foundation Enrollments",     Icon: AcademicCapIcon    },
   { id: "discipleship", label: "Discipleship Registrations", Icon: BookOpenIcon       },
   { id: "events",       label: "Event Signups",              Icon: UserPlusIcon       },
+  { id: "visitors",     label: "First Timers",               Icon: HandRaisedIcon     },
 ];
 
 const RequestsTabs = ({ activeTab, setActiveTab, counts = {} }) => (

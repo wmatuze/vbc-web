@@ -30,6 +30,7 @@ import DiscipleshipTab from "./requests/DiscipleshipTab";
 import DiscipleshipDetailsModal from "./requests/DiscipleshipDetailsModal";
 import EventSignupsTab from "./requests/EventSignupsTab";
 import EventSignupDetailsModal from "./requests/EventSignupDetailsModal";
+import VisitorsTab from "./requests/VisitorsTab";
 import ConfirmationModal from "../common/ConfirmationModal"; // Added import
 
 /**
@@ -68,6 +69,11 @@ const RequestsManager = () => {
   const [showEventSignupDetails, setShowEventSignupDetails] = useState(false);
   const [eventTypeFilter, setEventTypeFilter] = useState("all");
 
+  // Visitor / first-timer states
+  const [visitors, setVisitors] = useState([]);
+  const [visitorsLoading, setVisitorsLoading] = useState(false);
+  const [visitorsError, setVisitorsError] = useState(null);
+
   // Confirmation Modal State
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmModalProps, setConfirmModalProps] = useState({
@@ -86,6 +92,8 @@ const RequestsManager = () => {
       fetchDiscipleshipRegistrations();
     } else if (activeTab === "events") {
       fetchEventSignups();
+    } else if (activeTab === "visitors") {
+      fetchVisitors();
     }
   }, [activeTab]);
 
@@ -759,6 +767,63 @@ const RequestsManager = () => {
       (filterStatus === "all" || signup.status === filterStatus)
   );
 
+  // Fetch visitor registrations
+  const fetchVisitors = async () => {
+    try {
+      setVisitorsLoading(true);
+      setVisitorsError(null);
+      const res  = await fetch("/api/visitors", { credentials: "include" });
+      const data = await res.json();
+      if (data.success) setVisitors(data.data || []);
+      else setVisitorsError("Failed to load visitor registrations.");
+    } catch {
+      setVisitorsError("Failed to load visitor registrations.");
+    } finally {
+      setVisitorsLoading(false);
+    }
+  };
+
+  // Update visitor status
+  const handleVisitorStatusChange = async (id, status) => {
+    try {
+      const res  = await fetch(`/api/visitors/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setVisitors((prev) => prev.map((v) => v._id === id ? { ...v, status } : v));
+        toast.success("Visitor status updated.");
+      }
+    } catch {
+      toast.error("Failed to update visitor status.");
+    }
+  };
+
+  // Delete visitor registration
+  const handleDeleteVisitor = (id, name) => {
+    setConfirmModalProps({
+      title: "Delete Visitor Card",
+      message: `Are you sure you want to delete ${name}'s connection card? This action cannot be undone.`,
+      onConfirm: async () => {
+        try {
+          const res  = await fetch(`/api/visitors/${id}`, { method: "DELETE", credentials: "include" });
+          const data = await res.json();
+          if (data.success) {
+            setVisitors((prev) => prev.filter((v) => v._id !== id));
+            toast.success(`${name}'s connection card deleted.`);
+          }
+        } catch {
+          toast.error("Failed to delete visitor card.");
+        }
+        setShowConfirmModal(false);
+      },
+    });
+    setShowConfirmModal(true);
+  };
+
   // Refresh data based on active tab
   const refreshData = () => {
     if (activeTab === "membership") {
@@ -769,6 +834,8 @@ const RequestsManager = () => {
       fetchDiscipleshipRegistrations();
     } else if (activeTab === "events") {
       fetchEventSignups();
+    } else if (activeTab === "visitors") {
+      fetchVisitors();
     }
   };
 
@@ -826,6 +893,7 @@ const RequestsManager = () => {
     foundation:   filteredEnrollments.length,
     discipleship: filteredDiscipleshipRegistrations.length,
     events:       filteredEventSignups.length,
+    visitors:     visitors.length,
   };
 
   return (
@@ -909,6 +977,15 @@ const RequestsManager = () => {
             declineAndNotifyEventSignup={declineAndNotifyEventSignup}
             deleteEventSignupRequest={deleteEventSignupRequest}
             actionLoading={actionLoading}
+          />
+        )}
+        {activeTab === "visitors" && (
+          <VisitorsTab
+            visitors={visitors}
+            loading={visitorsLoading}
+            error={visitorsError}
+            onStatusChange={handleVisitorStatusChange}
+            onDelete={handleDeleteVisitor}
           />
         )}
         </div>

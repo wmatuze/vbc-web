@@ -156,9 +156,26 @@ router.post("/visitors", async (req, res) => {
     const saved = await visitor.save();
 
     // Send emails — non-blocking, failure doesn't affect response
-    emailService.sendVisitorRegistrationEmails(saved).catch((err) =>
-      console.error("Visitor email error:", err)
-    );
+    emailService.sendVisitorRegistrationEmails({
+      fullName:       saved.fullName,
+      title:          saved.title,
+      email:          saved.email,
+      phone:          saved.phone,
+      ageGroup:       saved.ageGroup,
+      maritalStatus:  saved.maritalStatus,
+      address:        saved.address,
+      birthday:       saved.birthday,
+      hasChildren:    saved.hasChildren,
+      children:       saved.children,
+      requestContact: saved.requestContact,
+      acceptedJesus:  saved.acceptedJesus,
+      wantToAccept:   saved.wantToAccept,
+      visitDate:      saved.visitDate,
+    }).then(() => {
+      console.log("Visitor emails sent successfully to:", saved.email || "(no email)");
+    }).catch((err) => {
+      console.error("Visitor email failed:", err?.message || err);
+    });
 
     res.status(201).json({
       success: true,
@@ -168,6 +185,46 @@ router.post("/visitors", async (req, res) => {
   } catch (error) {
     console.error("Error saving visitor registration:", error);
     res.status(500).json({ success: false, error: "Failed to submit connection card." });
+  }
+});
+
+// GET all visitor registrations (admin)
+router.get("/visitors", authMiddleware, async (req, res) => {
+  try {
+    const visitors = await models.VisitorRegistration.find().sort({ visitDate: -1 });
+    res.json({ success: true, data: formatResponse(visitors) });
+  } catch (error) {
+    console.error("Error fetching visitors:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch visitors." });
+  }
+});
+
+// UPDATE visitor status (admin)
+router.put("/visitors/:id", authMiddleware, async (req, res) => {
+  try {
+    const { status, notes } = req.body;
+    const visitor = await models.VisitorRegistration.findByIdAndUpdate(
+      req.params.id,
+      { ...(status && { status }), ...(notes !== undefined && { notes }) },
+      { new: true }
+    );
+    if (!visitor) return res.status(404).json({ success: false, error: "Visitor not found." });
+    res.json({ success: true, data: formatResponse(visitor) });
+  } catch (error) {
+    console.error("Error updating visitor:", error);
+    res.status(500).json({ success: false, error: "Failed to update visitor." });
+  }
+});
+
+// DELETE visitor registration (admin)
+router.delete("/visitors/:id", authMiddleware, async (req, res) => {
+  try {
+    const visitor = await models.VisitorRegistration.findByIdAndDelete(req.params.id);
+    if (!visitor) return res.status(404).json({ success: false, error: "Visitor not found." });
+    res.json({ success: true, message: "Visitor registration deleted." });
+  } catch (error) {
+    console.error("Error deleting visitor:", error);
+    res.status(500).json({ success: false, error: "Failed to delete visitor." });
   }
 });
 
