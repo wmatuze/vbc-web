@@ -48,7 +48,7 @@ const DiscipleshipTab = ({ registrations, onViewDetails, onApprove, onReject, on
 
         return (
           <div key={reg._id} className="py-5 first:pt-0 last:pb-0">
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               {/* Left — info */}
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -94,8 +94,8 @@ const DiscipleshipTab = ({ registrations, onViewDetails, onApprove, onReject, on
                 )}
               </div>
 
-              {/* Right — actions */}
-              <div className="flex flex-col gap-2 flex-shrink-0">
+              {/* Actions — below content on mobile, right column on sm+ */}
+              <div className="flex flex-row sm:flex-col gap-2 flex-shrink-0 flex-wrap">
                 <button
                   onClick={() => onViewDetails(reg)}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-md transition-colors"
