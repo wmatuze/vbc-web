@@ -24,8 +24,8 @@ const formatObject = (item) => {
   // If item is null or undefined, return it as is
   if (!item) return item;
 
-  // If item is a Mongoose document, convert to plain object (include virtuals)
-  const obj = item && item.toObject ? item.toObject({ virtuals: true }) : { ...item };
+  // If item is a Mongoose document, convert to plain object
+  const obj = item && item.toObject ? item.toObject() : { ...item };
 
   // Add id property (frontend expects this)
   if (obj._id) {

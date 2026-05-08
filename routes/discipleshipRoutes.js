@@ -145,7 +145,12 @@ router.get('/sessions', async (req, res) => {
     
     res.json({
       success: true,
-      data: sessions.map(session => formatResponse(session))
+      data: sessions.map(session => ({
+        ...formatResponse(session),
+        dateRange:        session.dateRange,
+        spotsLeft:        session.spotsLeft,
+        registrationOpen: session.registrationOpen,
+      }))
     });
   } catch (error) {
     console.error('Error fetching discipleship sessions:', error);
@@ -172,7 +177,12 @@ router.get('/sessions/:id', async (req, res) => {
 
     res.json({
       success: true,
-      data: formatResponse(session)
+      data: {
+        ...formatResponse(session),
+        dateRange:        session.dateRange,
+        spotsLeft:        session.spotsLeft,
+        registrationOpen: session.registrationOpen,
+      }
     });
   } catch (error) {
     console.error('Error fetching discipleship session:', error);
