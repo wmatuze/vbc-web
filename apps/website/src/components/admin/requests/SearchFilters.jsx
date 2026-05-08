@@ -39,6 +39,9 @@ const SearchFilters = ({
     onFetchEventSignups();
   };
 
+  // Visitors tab has its own filter UI built in
+  if (activeTab === "visitors") return null;
+
   return (
     <div className="px-6 py-3 border-b border-gray-200 dark:border-gray-700 flex flex-wrap gap-3 items-center">
       {/* Search */}
