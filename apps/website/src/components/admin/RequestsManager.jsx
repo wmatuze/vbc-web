@@ -8,6 +8,7 @@ import {
 // Services
 import RequestsService from "../../services/requestsService";
 import NotificationService from "../../services/notificationService";
+import { getApiUrl, getAuthHeaders } from "../../services/api/core";
 
 // Validation
 import {
@@ -772,7 +773,7 @@ const RequestsManager = () => {
     try {
       setVisitorsLoading(true);
       setVisitorsError(null);
-      const res  = await fetch("/api/visitors", { credentials: "include" });
+      const res  = await fetch(`${getApiUrl()}/api/visitors`, { headers: getAuthHeaders() });
       const data = await res.json();
       if (data.success) setVisitors(data.data || []);
       else setVisitorsError("Failed to load visitor registrations.");
@@ -786,10 +787,9 @@ const RequestsManager = () => {
   // Update visitor status
   const handleVisitorStatusChange = async (id, status) => {
     try {
-      const res  = await fetch(`/api/visitors/${id}`, {
+      const res  = await fetch(`${getApiUrl()}/api/visitors/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        headers: { "Content-Type": "application/json", ...getAuthHeaders() },
         body: JSON.stringify({ status }),
       });
       const data = await res.json();
@@ -809,7 +809,10 @@ const RequestsManager = () => {
       message: `Are you sure you want to delete ${name}'s connection card? This action cannot be undone.`,
       onConfirm: async () => {
         try {
-          const res  = await fetch(`/api/visitors/${id}`, { method: "DELETE", credentials: "include" });
+          const res  = await fetch(`${getApiUrl()}/api/visitors/${id}`, {
+            method: "DELETE",
+            headers: getAuthHeaders(),
+          });
           const data = await res.json();
           if (data.success) {
             setVisitors((prev) => prev.filter((v) => v._id !== id));
