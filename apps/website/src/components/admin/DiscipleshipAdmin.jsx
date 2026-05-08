@@ -249,6 +249,7 @@ const DiscipleshipAdmin = () => {
         await fetchSessions();
         setShowModal(false);
         toast.success(selectedItem ? "Session updated." : "Session created.");
+        if (!selectedItem) setActiveTab("sessions"); // navigate to sessions tab after creating
       } else {
         toast.error(data.error || "Failed to save session.");
       }
@@ -328,6 +329,12 @@ const DiscipleshipAdmin = () => {
       {/* ── CLASSES TAB ─────────────────────────────────────────────── */}
       {activeTab === "classes" && (
         <div className="space-y-3">
+          <div className="flex justify-end">
+            <button onClick={() => Promise.all([fetchClasses(), fetchSessions()])}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-md transition-colors">
+              <ArrowPathIcon className="h-3.5 w-3.5" /> Refresh
+            </button>
+          </div>
           {classes.length === 0 ? (
             <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
               <BookOpenIcon className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
@@ -444,6 +451,13 @@ const DiscipleshipAdmin = () => {
 
       {/* ── SESSIONS TAB ────────────────────────────────────────────── */}
       {activeTab === "sessions" && (
+        <div className="space-y-4">
+          <div className="flex justify-end">
+            <button onClick={fetchSessions}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-md transition-colors">
+              <ArrowPathIcon className="h-3.5 w-3.5" /> Refresh
+            </button>
+          </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
           {sessions.length === 0 ? (
             <div className="col-span-full text-center py-16 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
@@ -473,6 +487,7 @@ const DiscipleshipAdmin = () => {
               </div>
             ))
           )}
+        </div>
         </div>
       )}
 
