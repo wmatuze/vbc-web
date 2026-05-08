@@ -55,11 +55,12 @@ const DiscipleshipClassSchema = new mongoose.Schema({
 
 // Virtual property to get curriculum length
 DiscipleshipClassSchema.virtual('curriculumLength').get(function() {
-  return this.curriculum.length;
+  return this.curriculum?.length ?? 0;
 });
 
 // Virtual property to format duration display
 DiscipleshipClassSchema.virtual('durationDisplay').get(function() {
+  if (!this.duration) return '';
   return `${this.duration.value} ${this.duration.unit}`;
 });
 
