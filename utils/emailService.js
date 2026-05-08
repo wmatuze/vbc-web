@@ -654,6 +654,95 @@ const sendDiscipleshipCertificate = async (registration) => {
   });
 };
 
+// ─── Discipleship class registration confirmation ─────────────────────────────
+
+const sendDiscipleshipRegistrationEmails = async (registration) => {
+  if (!registration?.email || !registration?.fullName) {
+    throw new Error("Missing required data: email and fullName are required");
+  }
+
+  const className    = registration.classId?.title     || registration.className     || "Discipleship Class";
+  const sessionName  = registration.sessionId?.cohortName || registration.preferredSession || "—";
+  const schedule     = registration.sessionId?.schedule
+    ? `${registration.sessionId.schedule.day}s at ${registration.sessionId.schedule.time}`
+    : null;
+  const location     = registration.sessionId?.location || null;
+  const facilitator  = registration.sessionId?.facilitator?.name || null;
+
+  try {
+    // ── Registrant confirmation ──────────────────────────────────────────────
+    await sendEmail({
+      to: registration.email,
+      subject: `Discipleship Class Registration Received — Victory Bible Church`,
+      text: `Dear ${registration.fullName}, your registration for ${className} has been received. We will review it and contact you shortly.`,
+      html: createEmailTemplate(
+        "Registration Received",
+        BRAND.red,
+        `<p style="color:#374151;font-size:15px;line-height:1.7;">Dear ${registration.fullName},</p>
+         <p style="color:#374151;font-size:15px;line-height:1.7;">
+           Thank you for registering for <strong>${className}</strong>. We're excited to walk this discipleship journey with you.
+           Your registration has been received and a facilitator will be in touch shortly to confirm your place.
+         </p>
+         ${detailBlock([
+           ["Class",        className],
+           ["Session",      sessionName],
+           ["Schedule",     schedule],
+           ["Venue",        location],
+           ["Facilitator",  facilitator],
+           ["Registered",   formatDate(registration.registrationDate || new Date())],
+         ])}
+         <p style="color:#374151;font-size:15px;line-height:1.7;"><strong>What happens next?</strong></p>
+         <ul style="color:#374151;font-size:14px;line-height:2;padding-left:20px;margin:0 0 20px;">
+           <li>Your registration will be reviewed by the facilitator.</li>
+           <li>You will receive an approval confirmation with final class details.</li>
+           <li>Please arrive a few minutes early on your first day.</li>
+         </ul>
+         <p style="color:#374151;font-size:15px;line-height:1.7;">
+           If you have any questions before then, feel free to reach out to our church office.
+         </p>
+         <p style="color:#374151;font-size:15px;line-height:1.7;">God bless,<br><strong>Victory Bible Church</strong></p>`
+      ),
+    });
+
+    // ── Admin notification ───────────────────────────────────────────────────
+    await sendEmail({
+      to: process.env.ADMIN_EMAIL || "admin@victorybiblechurch.org",
+      subject: `New Discipleship Registration: ${registration.fullName} — ${className}`,
+      text: `New discipleship registration from ${registration.fullName} (${registration.email}) for ${className}.`,
+      html: createEmailTemplate(
+        "New Discipleship Registration",
+        BRAND.red,
+        `<p style="color:#374151;font-size:15px;line-height:1.7;">A new discipleship class registration has been submitted.</p>
+         ${detailBlock([
+           ["Name",          registration.fullName],
+           ["Email",         registration.email],
+           ["Phone",         registration.phone],
+           ["Class",         className],
+           ["Session",       sessionName],
+           ["Schedule",      schedule],
+           ["Venue",         location],
+           ["Facilitator",   facilitator],
+           ["Previous classes", registration.previousClasses || null],
+           ["Motivation",    registration.motivationReason],
+           ["Questions",     registration.questions || null],
+           ["Emergency contact", registration.emergencyContact
+             ? `${registration.emergencyContact.name} (${registration.emergencyContact.relationship}) · ${registration.emergencyContact.phone}`
+             : null],
+           ["Registered",    formatDate(registration.registrationDate || new Date())],
+         ])}
+         <p style="text-align:center;margin:28px 0;">
+           <a href="${process.env.ADMIN_URL || "https://victorybiblechurch.org/admin"}/requests"
+              style="background:${BRAND.red};color:${BRAND.white};padding:12px 24px;text-decoration:none;border-radius:2px;font-size:14px;font-weight:600;display:inline-block;">
+             Review in Admin Dashboard
+           </a>
+         </p>`
+      ),
+    });
+  } catch (error) {
+    console.error("Error sending discipleship registration emails:", error);
+  }
+};
+
 module.exports = {
   sendEmail,
   sendMembershipRenewalEmails,
@@ -664,4 +753,5 @@ module.exports = {
   sendSupportRequestEmail,
   sendVisitorRegistrationEmails,
   sendDiscipleshipCertificate,
+  sendDiscipleshipRegistrationEmails,
 };

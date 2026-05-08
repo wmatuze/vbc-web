@@ -359,10 +359,14 @@ router.post('/register', async (req, res) => {
     // Format for response
     const formattedRegistration = formatResponse(savedRegistration);
 
-    // Send confirmation emails (implement if needed)
-    // emailService.sendDiscipleshipRegistrationEmails(savedRegistration)
-    //   .then(() => console.log('Registration emails sent successfully'))
-    //   .catch((err) => console.error('Error sending registration emails:', err));
+    // Populate for email (session + class data needed for template)
+    const populated = await models.DiscipleshipRegistration.findById(savedRegistration._id)
+      .populate('sessionId', 'cohortName schedule location facilitator')
+      .populate('classId', 'title');
+
+    emailService.sendDiscipleshipRegistrationEmails(populated || savedRegistration)
+      .then(() => console.log('Discipleship registration emails sent'))
+      .catch((err) => console.error('Error sending discipleship registration emails:', err));
 
     res.status(201).json({
       success: true,

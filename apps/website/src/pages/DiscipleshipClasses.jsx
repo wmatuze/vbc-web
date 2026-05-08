@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
-import { CheckCircle, ChevronDown } from "lucide-react";
-import { ArrowRightIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import {
+  CheckCircleIcon,
+  ChevronDownIcon,
+  ArrowRightIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 import HeroSection from "../components/common/HeroSection";
-import { isAuthenticated } from "../services/api/auth";
 
 const levelTiers = [
   {
@@ -217,7 +220,7 @@ const DiscipleshipClasses = () => {
       {/* Success toast */}
       {formSubmitted && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-vbc-section border border-white/10 px-6 py-4 flex items-center gap-3 shadow-xl">
-          <CheckCircle className="w-4 h-4 text-primary-400 flex-shrink-0" />
+          <CheckCircleIcon className="w-4 h-4 text-green-400 flex-shrink-0" />
           <p className="text-white text-sm">
             Registration submitted — we'll be in touch soon.
           </p>
@@ -536,7 +539,7 @@ const DiscipleshipClasses = () => {
                   <span className="font-semibold text-white text-sm">
                     {faq.question}
                   </span>
-                  <ChevronDown
+                  <ChevronDownIcon
                     className={`w-4 h-4 text-white/30 flex-shrink-0 transition-transform duration-200 ${
                       expandedFaq === index ? "rotate-180" : ""
                     }`}
