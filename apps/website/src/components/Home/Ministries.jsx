@@ -59,7 +59,7 @@ const MinistryCard = ({ ministry, className = "", textSize = "text-3xl" }) => (
     />
 
     {/* Bottom content */}
-    <div className="absolute bottom-0 left-0 right-0 p-8">
+    <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-8">
       <p
         className={`${ministry.accent} text-xs font-semibold uppercase tracking-widest mb-1.5`}
       >

@@ -15,6 +15,8 @@ import {
   XMarkIcon,
   ClipboardDocumentListIcon,
   ArrowPathIcon,
+  MagnifyingGlassIcon,
+  EnvelopeIcon,
 } from "@heroicons/react/24/outline";
 import { getApiUrl, getAuthHeaders } from "../../services/api/core";
 import { toast } from "react-toastify";
@@ -35,6 +37,18 @@ const statusBadge = (status) => {
     upcoming:  "bg-blue-100  dark:bg-blue-900/40  text-blue-800  dark:text-blue-300",
     active:    "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300",
     completed: "bg-gray-100  dark:bg-gray-700     text-gray-600  dark:text-gray-400",
+  };
+  return map[status] || "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400";
+};
+
+const regStatusBadge = (status) => {
+  const map = {
+    pending:   "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300",
+    approved:  "bg-blue-100   dark:bg-blue-900/40   text-blue-800   dark:text-blue-300",
+    attending: "bg-green-100  dark:bg-green-900/40  text-green-800  dark:text-green-300",
+    completed: "bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300",
+    rejected:  "bg-red-100    dark:bg-red-900/40    text-red-800    dark:text-red-300",
+    cancelled: "bg-red-100    dark:bg-red-900/40    text-red-800    dark:text-red-300",
   };
   return map[status] || "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400";
 };
@@ -93,22 +107,28 @@ const EMPTY_SESSION = {
 };
 
 const DiscipleshipAdmin = () => {
-  const [classes,       setClasses]       = useState([]);
-  const [sessions,      setSessions]      = useState([]);
-  const [loading,       setLoading]       = useState(true);
-  const [saving,        setSaving]        = useState(false);
-  const [activeTab,     setActiveTab]     = useState("classes");
-  const [showModal,     setShowModal]     = useState(false);
-  const [modalType,     setModalType]     = useState("");
-  const [selectedItem,  setSelectedItem]  = useState(null);
-  const [expandedClass, setExpandedClass] = useState(null);
-  const [classForm,     setClassForm]     = useState(EMPTY_CLASS);
-  const [sessionForm,   setSessionForm]   = useState(EMPTY_SESSION);
+  const [classes,          setClasses]          = useState([]);
+  const [sessions,         setSessions]         = useState([]);
+  const [registrations,    setRegistrations]    = useState([]);
+  const [loading,          setLoading]          = useState(true);
+  const [saving,           setSaving]           = useState(false);
+  const [certLoading,      setCertLoading]      = useState(null); // registration _id
+  const [activeTab,        setActiveTab]        = useState("classes");
+  const [showModal,        setShowModal]        = useState(false);
+  const [modalType,        setModalType]        = useState("");
+  const [selectedItem,     setSelectedItem]     = useState(null);
+  const [expandedClass,    setExpandedClass]    = useState(null);
+  const [classForm,        setClassForm]        = useState(EMPTY_CLASS);
+  const [sessionForm,      setSessionForm]      = useState(EMPTY_SESSION);
+  // Students tab filters
+  const [studSearch,       setStudSearch]       = useState("");
+  const [studStatusFilter, setStudStatusFilter] = useState("all");
+  const [studClassFilter,  setStudClassFilter]  = useState("all");
 
   const API = getApiUrl();
 
   useEffect(() => {
-    Promise.all([fetchClasses(), fetchSessions()]).finally(() => setLoading(false));
+    Promise.all([fetchClasses(), fetchSessions(), fetchRegistrations()]).finally(() => setLoading(false));
   }, []);
 
   const fetchClasses = async () => {
@@ -125,6 +145,32 @@ const DiscipleshipAdmin = () => {
       const data = await res.json();
       if (data.success) setSessions(data.data);
     } catch { toast.error("Failed to load sessions."); }
+  };
+
+  const fetchRegistrations = async () => {
+    try {
+      const res  = await fetch(`${API}/api/discipleship/registrations`, { headers: getAuthHeaders() });
+      const data = await res.json();
+      if (data.success) setRegistrations(data.data);
+    } catch { toast.error("Failed to load registrations."); }
+  };
+
+  const sendCertificate = async (reg) => {
+    setCertLoading(reg._id);
+    try {
+      const res  = await fetch(`${API}/api/discipleship/registrations/${reg._id}/certificate`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`Certificate sent to ${reg.email}`);
+        await fetchRegistrations();
+      } else {
+        toast.error(data.error || "Failed to send certificate.");
+      }
+    } catch { toast.error("Failed to send certificate."); }
+    finally { setCertLoading(null); }
   };
 
   // ── Class handlers ──────────────────────────────────────────────────────────
@@ -259,8 +305,9 @@ const DiscipleshipAdmin = () => {
       <div className="border-b border-gray-200 dark:border-gray-700">
         <nav className="-mb-px flex gap-6">
           {[
-            { id: "classes",  label: "Classes",  Icon: BookOpenIcon,    count: classes.length  },
-            { id: "sessions", label: "Sessions", Icon: CalendarDaysIcon, count: sessions.length },
+            { id: "classes",  label: "Classes",  Icon: BookOpenIcon,              count: classes.length       },
+            { id: "sessions", label: "Sessions", Icon: CalendarDaysIcon,          count: sessions.length      },
+            { id: "students", label: "Students", Icon: ClipboardDocumentListIcon, count: registrations.length },
           ].map(({ id, label, Icon, count }) => (
             <button key={id} onClick={() => setActiveTab(id)}
               className={`flex items-center gap-2 py-2.5 px-1 border-b-2 text-sm font-medium transition-colors ${
@@ -428,6 +475,184 @@ const DiscipleshipAdmin = () => {
           )}
         </div>
       )}
+
+      {/* ── STUDENTS TAB ────────────────────────────────────────────── */}
+      {activeTab === "students" && (() => {
+        const term = studSearch.toLowerCase();
+        const filtered = registrations.filter((r) => {
+          const matchSearch =
+            !term ||
+            r.fullName?.toLowerCase().includes(term) ||
+            r.email?.toLowerCase().includes(term) ||
+            r.phone?.toLowerCase().includes(term);
+          const matchStatus = studStatusFilter === "all" || r.status === studStatusFilter;
+          const matchClass  = studClassFilter  === "all" || r.classId?._id === studClassFilter || r.classId === studClassFilter;
+          return matchSearch && matchStatus && matchClass;
+        });
+
+        const stats = {
+          total:     registrations.length,
+          attending: registrations.filter((r) => r.status === "attending").length,
+          completed: registrations.filter((r) => r.status === "completed").length,
+        };
+
+        return (
+          <div className="space-y-5">
+
+            {/* Stats strip */}
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: "Total Enrolled", value: stats.total,     color: "text-gray-900 dark:text-white"   },
+                { label: "Currently Attending", value: stats.attending, color: "text-green-600 dark:text-green-400" },
+                { label: "Completed",      value: stats.completed, color: "text-purple-600 dark:text-purple-400" },
+              ].map(({ label, value, color }) => (
+                <div key={label} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-center">
+                  <p className={`text-2xl font-bold ${color}`}>{value}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{label}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Filters */}
+            <div className="flex flex-wrap gap-3">
+              <div className="relative flex-1 min-w-[200px]">
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Search by name, email or phone…"
+                  value={studSearch}
+                  onChange={(e) => setStudSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+              <select value={studStatusFilter} onChange={(e) => setStudStatusFilter(e.target.value)}
+                className="py-2 pl-3 pr-8 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500">
+                <option value="all">All Statuses</option>
+                {["pending","approved","attending","completed","rejected","cancelled"].map((s) => (
+                  <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                ))}
+              </select>
+              <select value={studClassFilter} onChange={(e) => setStudClassFilter(e.target.value)}
+                className="py-2 pl-3 pr-8 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500">
+                <option value="all">All Classes</option>
+                {classes.map((c) => <option key={c._id} value={c._id}>{c.title}</option>)}
+              </select>
+              <button onClick={fetchRegistrations}
+                className="flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-md transition-colors">
+                <ArrowPathIcon className="h-4 w-4" /> Refresh
+              </button>
+            </div>
+
+            {/* Student list */}
+            {filtered.length === 0 ? (
+              <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <AcademicCapIcon className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-500 dark:text-gray-400 text-sm">No students match your filters.</p>
+              </div>
+            ) : (
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                {/* Desktop table */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+                      <tr>
+                        <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Student</th>
+                        <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Class / Session</th>
+                        <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
+                        <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Registered</th>
+                        <th className="px-4 py-3"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                      {filtered.map((r) => (
+                        <tr key={r._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                          <td className="px-4 py-3">
+                            <p className="font-medium text-gray-900 dark:text-white">{r.fullName}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">{r.email}</p>
+                            {r.phone && <p className="text-xs text-gray-400 dark:text-gray-500">{r.phone}</p>}
+                          </td>
+                          <td className="px-4 py-3">
+                            <p className="text-gray-900 dark:text-white">{r.classId?.title || "—"}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">{r.preferredSession}</p>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${regStatusBadge(r.status)}`}>
+                              {r.status?.charAt(0).toUpperCase() + r.status?.slice(1)}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
+                            {r.registrationDate ? new Date(r.registrationDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "—"}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            {(r.status === "attending" || r.status === "completed") && (
+                              <button
+                                onClick={() => sendCertificate(r)}
+                                disabled={certLoading === r._id}
+                                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white rounded-md disabled:opacity-50 transition-colors ${
+                                  r.status === "completed"
+                                    ? "bg-gray-500 hover:bg-gray-600"
+                                    : "bg-purple-600 hover:bg-purple-700"
+                                }`}
+                              >
+                                {certLoading === r._id
+                                  ? <ArrowPathIcon className="h-3.5 w-3.5 animate-spin" />
+                                  : <EnvelopeIcon className="h-3.5 w-3.5" />
+                                }
+                                {r.status === "completed" ? "Resend Certificate" : "Complete + Send Certificate"}
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile cards */}
+                <div className="md:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                  {filtered.map((r) => (
+                    <div key={r._id} className="p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-gray-900 dark:text-white text-sm truncate">{r.fullName}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{r.email}</p>
+                        </div>
+                        <span className={`px-2 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${regStatusBadge(r.status)}`}>
+                          {r.status?.charAt(0).toUpperCase() + r.status?.slice(1)}
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 space-y-0.5">
+                        <p><span className="font-medium text-gray-700 dark:text-gray-300">Class:</span> {r.classId?.title || "—"}</p>
+                        <p><span className="font-medium text-gray-700 dark:text-gray-300">Session:</span> {r.preferredSession}</p>
+                        {r.registrationDate && (
+                          <p><span className="font-medium text-gray-700 dark:text-gray-300">Registered:</span> {new Date(r.registrationDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</p>
+                        )}
+                      </div>
+                      {(r.status === "attending" || r.status === "completed") && (
+                        <button
+                          onClick={() => sendCertificate(r)}
+                          disabled={certLoading === r._id}
+                          className={`w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-white rounded-md disabled:opacity-50 transition-colors ${
+                            r.status === "completed"
+                              ? "bg-gray-500 hover:bg-gray-600"
+                              : "bg-purple-600 hover:bg-purple-700"
+                          }`}
+                        >
+                          {certLoading === r._id
+                            ? <ArrowPathIcon className="h-3.5 w-3.5 animate-spin" />
+                            : <EnvelopeIcon className="h-3.5 w-3.5" />
+                          }
+                          {r.status === "completed" ? "Resend Certificate" : "Complete + Send Certificate"}
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── MODAL ───────────────────────────────────────────────────── */}
       {showModal && (

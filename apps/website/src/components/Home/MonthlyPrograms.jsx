@@ -77,7 +77,7 @@ const MonthlyPrograms = () => {
       className="flex flex-col lg:flex-row min-h-[640px]"
     >
       {/* ── Left panel — photo + service times ──────────────────────────── */}
-      <div className="relative lg:w-5/12 min-h-[320px] sm:min-h-[380px] lg:min-h-0 overflow-hidden">
+      <div className="relative lg:w-5/12 min-h-[320px] sm:min-h-[380px] lg:min-h-0 overflow-hidden order-2 lg:order-1">
         {/* Background photo */}
         <div
           className="absolute inset-0 bg-cover bg-center scale-105"
@@ -139,7 +139,7 @@ const MonthlyPrograms = () => {
       </div>
 
       {/* ── Right panel — white + programs list ─────────────────────────── */}
-      <div className="lg:w-7/12 bg-white flex flex-col justify-center px-6 sm:px-10 lg:px-16 py-10 sm:py-14">
+      <div className="lg:w-7/12 bg-white flex flex-col justify-center px-6 sm:px-10 lg:px-16 py-10 sm:py-14 order-1 lg:order-2">
         <motion.div
           initial={{ opacity: 0, x: 24 }}
           whileInView={{ opacity: 1, x: 0 }}

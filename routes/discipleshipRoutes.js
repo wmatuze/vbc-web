@@ -498,4 +498,38 @@ router.delete('/registrations/:id', authMiddleware, async (req, res) => {
   }
 });
 
+// Send completion certificate (admin only) — also marks status as 'completed'
+router.post('/registrations/:id/certificate', authMiddleware, async (req, res) => {
+  try {
+    const registration = await models.DiscipleshipRegistration.findById(req.params.id)
+      .populate('sessionId', 'cohortName facilitator startDate endDate')
+      .populate('classId', 'title level duration');
+
+    if (!registration) {
+      return res.status(404).json({ success: false, error: 'Registration not found' });
+    }
+
+    if (!registration.email) {
+      return res.status(400).json({ success: false, error: 'Registration has no email address' });
+    }
+
+    // Mark as completed if not already
+    if (registration.status !== 'completed') {
+      registration.status = 'completed';
+      await registration.save();
+    }
+
+    await emailService.sendDiscipleshipCertificate(registration);
+
+    res.json({
+      success: true,
+      message: `Certificate sent to ${registration.email}`,
+      data: { status: registration.status },
+    });
+  } catch (error) {
+    console.error('Error sending discipleship certificate:', error);
+    res.status(500).json({ success: false, error: 'Failed to send certificate' });
+  }
+});
+
 module.exports = router;

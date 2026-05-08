@@ -110,11 +110,11 @@ const HeroSection = forwardRef((props, ref) => {
       </div>
 
       {/* ── Content grid ── */}
-      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 min-h-screen max-w-screen-2xl 3xl:max-w-[1800px] 4xl:max-w-[2400px] mx-auto">
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 lg:min-h-screen max-w-screen-2xl 3xl:max-w-[1800px] 4xl:max-w-[2400px] mx-auto">
         {/* ════════════════════════════════════════════════════════════
             LEFT COLUMN — welcome + headline + CTAs
         ═══════════════════════════════════════════════════════════════ */}
-        <div className="lg:col-span-7 flex flex-col justify-start px-5 sm:px-8 lg:px-16 3xl:px-24 pt-24 sm:pt-28 lg:pt-36 3xl:pt-48 pb-10 sm:pb-16 lg:pb-24 3xl:pb-36">
+        <div className="lg:col-span-7 min-h-screen lg:min-h-0 flex flex-col justify-start px-5 sm:px-8 lg:px-16 3xl:px-24 pt-[180px] sm:pt-[180px] lg:pt-36 3xl:pt-48 pb-10 sm:pb-16 lg:pb-24 3xl:pb-36">
           {/* Eyebrow */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -123,8 +123,8 @@ const HeroSection = forwardRef((props, ref) => {
             className="flex items-center gap-4 mb-8"
           >
             <div className="h-px w-10 bg-brand-red" />
-            <p className="text-white/70 text-xs font-semibold uppercase tracking-[0.2em]">
-              Welcome to Victory Bible Church
+            <p className="text-white/70 text-xs font-semibold tracking-[0.2em]">
+              Welcome!
             </p>
           </motion.div>
 
@@ -201,7 +201,7 @@ const HeroSection = forwardRef((props, ref) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="lg:col-span-5 relative flex flex-col justify-start px-5 sm:px-8 lg:px-10 pt-6 sm:pt-8 pb-10 sm:pb-14 lg:pt-36 lg:pb-24"
+          className="lg:col-span-5 relative flex flex-col justify-start px-5 sm:px-8 lg:px-10 pt-8 sm:pt-10 pb-10 sm:pb-14 lg:pt-36 lg:pb-24"
         >
           {/* Dark panel background */}
           <div className="absolute inset-0 bg-black/50 lg:bg-black/60 backdrop-blur-sm" />
@@ -213,8 +213,8 @@ const HeroSection = forwardRef((props, ref) => {
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-4">
                 <div className="h-px w-10 bg-brand-red" />
-                <p className="text-white/70 text-xs font-semibold uppercase tracking-[0.2em]">
-                  Upcoming Events
+                <p className="text-white/70 text-xs font-semibold tracking-[0.2em]">
+                  Events
                 </p>
               </div>
               <Link

@@ -475,6 +475,185 @@ const sendVisitorRegistrationEmails = async (visitor) => {
   });
 };
 
+// ─── Discipleship completion certificate ──────────────────────────────────────
+
+const sendDiscipleshipCertificate = async (registration) => {
+  const studentName   = registration.fullName || "Student";
+  const className     = registration.classId?.title     || registration.className     || "Discipleship Class";
+  const classLevel    = registration.classId?.level     || "";
+  const duration      = registration.classId?.durationDisplay || "";
+  const facilitator   = registration.sessionId?.facilitator?.name || registration.facilitator || "Course Facilitator";
+  const cohortName    = registration.sessionId?.cohortName  || "";
+  const completedDate = formatDate(new Date());
+  const logoUrl       = process.env.CHURCH_LOGO_URL || "";
+
+  const cert = `
+  <!-- Certificate wrapper -->
+  <table role="presentation" cellpadding="0" cellspacing="0" width="100%"
+    style="background:#faf7f0;border:3px solid #0a0a0a;margin:24px 0;">
+    <!-- Top accent stripe -->
+    <tr><td style="background:#dc2626;height:6px;font-size:0;line-height:0;">&nbsp;</td></tr>
+
+    <!-- Header -->
+    <tr>
+      <td style="background:#0a0a0a;padding:28px 40px;text-align:center;">
+        ${logoUrl ? `<img src="${logoUrl}" alt="Victory Bible Church" style="height:44px;width:auto;display:block;margin:0 auto 12px;" />` : ""}
+        <p style="margin:0;color:#9ca3af;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;font-family:Arial,sans-serif;">
+          Victory Bible Church · Kitwe, Zambia
+        </p>
+      </td>
+    </tr>
+
+    <!-- Certificate body -->
+    <tr>
+      <td style="padding:40px 48px;text-align:center;">
+
+        <!-- Title -->
+        <p style="margin:0 0 2px;color:#6b7280;font-size:11px;letter-spacing:0.3em;text-transform:uppercase;font-family:Georgia,serif;">
+          Certificate
+        </p>
+        <h1 style="margin:0 0 24px;color:#0a0a0a;font-size:28px;font-weight:700;letter-spacing:0.04em;font-family:Georgia,serif;">
+          of Completion
+        </h1>
+
+        <!-- Decorative rule -->
+        <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:28px;">
+          <tr>
+            <td style="border-top:1px solid #d4b896;"></td>
+            <td width="12" style="text-align:center;padding:0 8px;">
+              <span style="color:#dc2626;font-size:16px;">✦</span>
+            </td>
+            <td style="border-top:1px solid #d4b896;"></td>
+          </tr>
+        </table>
+
+        <p style="margin:0 0 6px;color:#374151;font-size:14px;font-style:italic;font-family:Georgia,serif;">
+          This is to certify that
+        </p>
+
+        <!-- Student name -->
+        <h2 style="margin:0 0 20px;color:#0a0a0a;font-size:32px;font-weight:700;font-family:Georgia,serif;border-bottom:2px solid #dc2626;display:inline-block;padding-bottom:8px;">
+          ${studentName}
+        </h2>
+
+        <p style="margin:0 0 8px;color:#374151;font-size:14px;font-family:Arial,sans-serif;">
+          has successfully completed the course
+        </p>
+
+        <!-- Course name -->
+        <h3 style="margin:0 0 8px;color:#dc2626;font-size:20px;font-weight:700;font-family:Georgia,serif;">
+          ${className}
+        </h3>
+
+        ${classLevel || duration ? `
+        <p style="margin:0 0 24px;color:#6b7280;font-size:12px;font-family:Arial,sans-serif;">
+          ${[classLevel && `Level: ${classLevel.charAt(0).toUpperCase() + classLevel.slice(1)}`, duration].filter(Boolean).join("&nbsp;&nbsp;·&nbsp;&nbsp;")}
+          ${cohortName ? `&nbsp;&nbsp;·&nbsp;&nbsp;${cohortName}` : ""}
+        </p>
+        ` : `<p style="margin:0 0 24px;">&nbsp;</p>`}
+
+        <!-- Decorative rule -->
+        <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:32px;">
+          <tr>
+            <td style="border-top:1px solid #d4b896;"></td>
+            <td width="12" style="text-align:center;padding:0 8px;">
+              <span style="color:#dc2626;font-size:16px;">✦</span>
+            </td>
+            <td style="border-top:1px solid #d4b896;"></td>
+          </tr>
+        </table>
+
+        <!-- Completion date -->
+        <p style="margin:0 0 36px;color:#6b7280;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;font-family:Arial,sans-serif;">
+          Awarded on &nbsp;<strong style="color:#374151;">${completedDate}</strong>
+        </p>
+
+        <!-- Signature block -->
+        <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+          <tr>
+            <td width="45%" style="text-align:center;vertical-align:bottom;padding:0 12px;">
+              <p style="margin:0 0 6px;color:#0a0a0a;font-size:13px;font-weight:700;font-family:Georgia,serif;">
+                Bishop Cyrus Simwanza
+              </p>
+              <div style="border-top:1px solid #374151;padding-top:6px;">
+                <p style="margin:0;color:#6b7280;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;font-family:Arial,sans-serif;">
+                  Senior Pastor
+                </p>
+              </div>
+            </td>
+            <td width="10%" style="text-align:center;">
+              <span style="color:#dc2626;font-size:20px;">✦</span>
+            </td>
+            <td width="45%" style="text-align:center;vertical-align:bottom;padding:0 12px;">
+              <p style="margin:0 0 6px;color:#0a0a0a;font-size:13px;font-weight:700;font-family:Georgia,serif;">
+                ${facilitator}
+              </p>
+              <div style="border-top:1px solid #374151;padding-top:6px;">
+                <p style="margin:0;color:#6b7280;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;font-family:Arial,sans-serif;">
+                  Course Facilitator
+                </p>
+              </div>
+            </td>
+          </tr>
+        </table>
+
+      </td>
+    </tr>
+
+    <!-- Footer motto -->
+    <tr>
+      <td style="background:#0a0a0a;padding:16px 40px;text-align:center;">
+        <p style="margin:0;color:#9ca3af;font-size:11px;font-style:italic;font-family:Georgia,serif;">
+          "Winning a Generation for Christ."
+        </p>
+      </td>
+    </tr>
+
+    <!-- Bottom accent stripe -->
+    <tr><td style="background:#dc2626;height:4px;font-size:0;line-height:0;">&nbsp;</td></tr>
+  </table>`;
+
+  await sendEmail({
+    to: registration.email,
+    subject: `Certificate of Completion — ${className} · Victory Bible Church`,
+    text: `Congratulations ${studentName}! You have completed ${className} at Victory Bible Church.`,
+    html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Certificate of Completion</title>
+</head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,sans-serif;">
+  <div style="max-width:600px;margin:32px auto;padding:0 16px;">
+
+    <!-- Personal message above certificate -->
+    <div style="background:#0a0a0a;padding:24px 32px;margin-bottom:0;border-radius:4px 4px 0 0;">
+      <p style="margin:0 0 4px;color:#9ca3af;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;">Victory Bible Church</p>
+      <h2 style="margin:0;color:#ffffff;font-size:20px;font-weight:700;">Congratulations, ${studentName.split(" ")[0]}!</h2>
+    </div>
+    <div style="background:#ffffff;padding:20px 32px;border:1px solid #e5e7eb;border-top:none;margin-bottom:0;">
+      <p style="margin:0 0 12px;color:#374151;font-size:14px;line-height:1.7;">
+        We are so proud of your commitment and dedication. Completing <strong>${className}</strong> is a significant milestone in your walk with Christ — this is just the beginning of deeper service and growth.
+      </p>
+      <p style="margin:0;color:#374151;font-size:14px;line-height:1.7;">
+        Your certificate is below. You can save or print it directly from your email client.
+      </p>
+    </div>
+
+    <!-- The certificate -->
+    ${cert}
+
+    <!-- Footer -->
+    <div style="text-align:center;padding:20px 0;">
+      <p style="margin:0;color:#9ca3af;font-size:11px;">Victory Bible Church · Off Chiwala Road CBU East Gate, Kitwe, Zambia</p>
+    </div>
+  </div>
+</body>
+</html>`,
+  });
+};
+
 module.exports = {
   sendEmail,
   sendMembershipRenewalEmails,
@@ -484,4 +663,5 @@ module.exports = {
   sendCellGroupJoinRequestEmails,
   sendSupportRequestEmail,
   sendVisitorRegistrationEmails,
+  sendDiscipleshipCertificate,
 };
