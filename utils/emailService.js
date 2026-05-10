@@ -127,6 +127,7 @@ const sendEmail = async (options) => {
     subject: options.subject,
     text: options.text,
     html: options.html,
+    attachments: options.attachments,
   };
   const info = await transporter.sendMail(mailOptions);
   return info;
@@ -477,6 +478,166 @@ const sendVisitorRegistrationEmails = async (visitor) => {
 
 // ─── Discipleship completion certificate ──────────────────────────────────────
 
+const buildCertificateHTML = ({ studentName, className, classLevel, duration, facilitator, cohortName, completedDate }) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Dancing+Script:wght@700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 297mm; height: 210mm; overflow: hidden; background: #f9f7f2; }
+    .page { width: 297mm; height: 210mm; position: relative; background: #f9f7f2; overflow: hidden; }
+    .layout { position: absolute; inset: 0; display: flex; }
+    .left-col { width: 255px; flex-shrink: 0; position: relative; }
+    .content {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 28px 52px 28px 36px; text-align: center; position: relative; z-index: 2;
+    }
+    .cert-title {
+      font-family: 'Cinzel', 'Times New Roman', serif;
+      font-size: 38px; font-weight: 700; letter-spacing: 0.18em; color: #0a0a0a; line-height: 1; margin-bottom: 4px;
+    }
+    .cert-subtitle {
+      font-family: 'Cinzel', 'Times New Roman', serif;
+      font-size: 13px; font-weight: 400; letter-spacing: 0.35em; color: #444; margin-bottom: 16px;
+    }
+    .gold-rule {
+      width: 220px; height: 1px;
+      background: linear-gradient(90deg, transparent, #c9a84c 20%, #c9a84c 80%, transparent);
+      margin: 0 auto 16px;
+    }
+    .presented-to {
+      font-family: 'Lato', Arial, sans-serif;
+      font-size: 12px; font-weight: 300; color: #999; letter-spacing: 0.06em; margin-bottom: 4px;
+    }
+    .student-name {
+      font-family: 'Dancing Script', cursive;
+      font-size: 54px; font-weight: 700; color: #c9a84c; line-height: 1.1; margin-bottom: 12px;
+    }
+    .completed-text {
+      font-family: 'Lato', Arial, sans-serif;
+      font-size: 12px; font-weight: 300; color: #666; margin-bottom: 5px;
+    }
+    .course-name {
+      font-family: 'Cinzel', serif;
+      font-size: 14px; font-weight: 600; color: #0a0a0a; letter-spacing: 0.05em; margin-bottom: 4px;
+    }
+    .course-meta { font-family: 'Lato', Arial, sans-serif; font-size: 10px; color: #999; letter-spacing: 0.08em; margin-bottom: 14px; }
+    .date-location { font-family: 'Cinzel', serif; font-size: 12px; font-weight: 600; color: #444; letter-spacing: 0.05em; margin-bottom: 22px; }
+    .signatures { display: flex; justify-content: center; gap: 60px; }
+    .sig-item { text-align: center; width: 150px; }
+    .sig-line { width: 130px; height: 1px; background: #c9a84c; margin: 0 auto 8px; }
+    .sig-name { font-family: 'Cinzel', serif; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: #0a0a0a; }
+    .sig-role { font-family: 'Lato', Arial, sans-serif; font-size: 9px; letter-spacing: 0.15em; color: #999; text-transform: uppercase; margin-top: 3px; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Background geometric shapes -->
+  <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 1122 793" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="0,0 310,0 220,793 0,793" fill="#0a0a0a"/>
+    <polygon points="0,0 200,0 130,793 0,793" fill="#dc2626" opacity="0.10"/>
+    <polygon points="285,0 345,0 260,793 200,793" fill="#ffffff" opacity="0.04"/>
+  </svg>
+
+  <!-- Gold seal -->
+  <svg style="position:absolute;left:52px;top:50%;transform:translateY(-50%);z-index:3;" width="152" height="152" viewBox="0 0 152 152" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="76" cy="76" r="73" fill="none" stroke="#c9a84c" stroke-width="1.5" stroke-dasharray="5 3"/>
+    <circle cx="76" cy="76" r="67" fill="none" stroke="#c9a84c" stroke-width="2"/>
+    <circle cx="76" cy="76" r="64" fill="#c9a84c" fill-opacity="0.10"/>
+    <!-- 5-pointed star (outer r=43, inner r=18) -->
+    <polygon points="76,33 87,61 116,63 93,82 101,110 76,94 51,110 59,82 36,63 65,61" fill="#c9a84c"/>
+    <!-- Inner dark circle -->
+    <circle cx="76" cy="76" r="31" fill="#0e0e0e"/>
+    <circle cx="76" cy="76" r="28" fill="none" stroke="#c9a84c" stroke-width="1.2"/>
+    <text x="76" y="85" text-anchor="middle" font-size="26" fill="#c9a84c" font-family="serif">✦</text>
+  </svg>
+
+  <div class="layout">
+    <div class="left-col">
+      <!-- Church wordmark -->
+      <div style="position:absolute;top:22px;left:18px;z-index:4;">
+        <div style="line-height:1;white-space:nowrap;">
+          <span style="font-family:'Cinzel',serif;font-size:30px;font-weight:900;color:#c9a84c;vertical-align:middle;">V</span><span style="font-family:'Cinzel',serif;font-size:12px;font-weight:400;letter-spacing:0.08em;color:#ffffff;vertical-align:middle;">ictory Bible Church</span>
+        </div>
+        <div style="font-family:'Lato',Arial,sans-serif;font-size:8px;font-weight:300;letter-spacing:0.2em;color:#c9a84c;text-transform:uppercase;margin-top:5px;">Kitwe, Zambia</div>
+        <div style="width:110px;height:1px;background:linear-gradient(90deg,#c9a84c,transparent);margin-top:6px;"></div>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- Laurel wreath -->
+      <svg width="66" height="42" viewBox="0 0 66 42" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:10px;">
+        <ellipse cx="9"  cy="21" rx="8" ry="3.5" transform="rotate(-15 9 21)"  fill="#c9a84c" opacity="0.9"/>
+        <ellipse cx="15" cy="12" rx="8" ry="3.5" transform="rotate(-42 15 12)" fill="#c9a84c" opacity="0.85"/>
+        <ellipse cx="23" cy="5"  rx="7" ry="3"   transform="rotate(-64 23 5)"  fill="#c9a84c" opacity="0.8"/>
+        <ellipse cx="6"  cy="31" rx="7" ry="3"   transform="rotate(5 6 31)"    fill="#c9a84c" opacity="0.8"/>
+        <ellipse cx="57" cy="21" rx="8" ry="3.5" transform="rotate(15 57 21)"  fill="#c9a84c" opacity="0.9"/>
+        <ellipse cx="51" cy="12" rx="8" ry="3.5" transform="rotate(42 51 12)"  fill="#c9a84c" opacity="0.85"/>
+        <ellipse cx="43" cy="5"  rx="7" ry="3"   transform="rotate(64 43 5)"   fill="#c9a84c" opacity="0.8"/>
+        <ellipse cx="60" cy="31" rx="7" ry="3"   transform="rotate(-5 60 31)"  fill="#c9a84c" opacity="0.8"/>
+        <line x1="17" y1="38" x2="30" y2="38" stroke="#c9a84c" stroke-width="1"/>
+        <circle cx="33" cy="38" r="3" fill="#c9a84c"/>
+        <line x1="36" y1="38" x2="49" y2="38" stroke="#c9a84c" stroke-width="1"/>
+      </svg>
+
+      <div class="cert-title">CERTIFICATE</div>
+      <div class="cert-subtitle">OF COMPLETION</div>
+      <div class="gold-rule"></div>
+      <div class="presented-to">Proudly presented to :</div>
+      <div class="student-name">${studentName}</div>
+      <div class="completed-text">has successfully completed the discipleship course</div>
+      <div class="course-name">${className}</div>
+      ${(classLevel || duration || cohortName)
+        ? `<div class="course-meta">${[classLevel && `Level: ${classLevel.charAt(0).toUpperCase() + classLevel.slice(1)}`, duration, cohortName].filter(Boolean).join(" · ")}</div>`
+        : `<div style="height:14px;"></div>`}
+      <div class="date-location">Kitwe, ${completedDate}</div>
+
+      <div class="signatures">
+        <div class="sig-item">
+          <div class="sig-line"></div>
+          <div class="sig-name">Bishop Cyrus Simwanza</div>
+          <div class="sig-role">Senior Pastor</div>
+        </div>
+        <div class="sig-item">
+          <div class="sig-line"></div>
+          <div class="sig-name">${facilitator}</div>
+          <div class="sig-role">Course Facilitator</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>`;
+
+const generateCertificatePDF = async (data) => {
+  const puppeteer = require("puppeteer");
+  const browser = await puppeteer.launch({
+    headless: "new",
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
+  try {
+    const page = await browser.newPage();
+    await page.setContent(buildCertificateHTML(data), { waitUntil: "networkidle0" });
+    await page.evaluateHandle("document.fonts.ready");
+    const pdfBuffer = await page.pdf({
+      width: "297mm",
+      height: "210mm",
+      printBackground: true,
+      margin: { top: 0, right: 0, bottom: 0, left: 0 },
+    });
+    return pdfBuffer;
+  } finally {
+    await browser.close();
+  }
+};
+
 const sendDiscipleshipCertificate = async (registration) => {
   const studentName   = registration.fullName || "Student";
   const className     = registration.classId?.title     || registration.className     || "Discipleship Class";
@@ -485,172 +646,37 @@ const sendDiscipleshipCertificate = async (registration) => {
   const facilitator   = registration.sessionId?.facilitator?.name || registration.facilitator || "Course Facilitator";
   const cohortName    = registration.sessionId?.cohortName  || "";
   const completedDate = formatDate(new Date());
-  const logoUrl       = process.env.CHURCH_LOGO_URL || "";
 
-  const cert = `
-  <!-- Certificate wrapper -->
-  <table role="presentation" cellpadding="0" cellspacing="0" width="100%"
-    style="background:#faf7f0;border:3px solid #0a0a0a;margin:24px 0;">
-    <!-- Top accent stripe -->
-    <tr><td style="background:#dc2626;height:6px;font-size:0;line-height:0;">&nbsp;</td></tr>
+  const pdfBuffer = await generateCertificatePDF({
+    studentName, className, classLevel, duration, facilitator, cohortName, completedDate,
+  });
 
-    <!-- Header -->
-    <tr>
-      <td style="background:#0a0a0a;padding:28px 40px;text-align:center;">
-        ${logoUrl ? `<img src="${logoUrl}" alt="Victory Bible Church" style="height:44px;width:auto;display:block;margin:0 auto 12px;" />` : ""}
-        <p style="margin:0;color:#9ca3af;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;font-family:Arial,sans-serif;">
-          Victory Bible Church · Kitwe, Zambia
-        </p>
-      </td>
-    </tr>
-
-    <!-- Certificate body -->
-    <tr>
-      <td style="padding:40px 48px;text-align:center;">
-
-        <!-- Title -->
-        <p style="margin:0 0 2px;color:#6b7280;font-size:11px;letter-spacing:0.3em;text-transform:uppercase;font-family:Georgia,serif;">
-          Certificate
-        </p>
-        <h1 style="margin:0 0 24px;color:#0a0a0a;font-size:28px;font-weight:700;letter-spacing:0.04em;font-family:Georgia,serif;">
-          of Completion
-        </h1>
-
-        <!-- Decorative rule -->
-        <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:28px;">
-          <tr>
-            <td style="border-top:1px solid #d4b896;"></td>
-            <td width="12" style="text-align:center;padding:0 8px;">
-              <span style="color:#dc2626;font-size:16px;">✦</span>
-            </td>
-            <td style="border-top:1px solid #d4b896;"></td>
-          </tr>
-        </table>
-
-        <p style="margin:0 0 6px;color:#374151;font-size:14px;font-style:italic;font-family:Georgia,serif;">
-          This is to certify that
-        </p>
-
-        <!-- Student name -->
-        <h2 style="margin:0 0 20px;color:#0a0a0a;font-size:32px;font-weight:700;font-family:Georgia,serif;border-bottom:2px solid #dc2626;display:inline-block;padding-bottom:8px;">
-          ${studentName}
-        </h2>
-
-        <p style="margin:0 0 8px;color:#374151;font-size:14px;font-family:Arial,sans-serif;">
-          has successfully completed the course
-        </p>
-
-        <!-- Course name -->
-        <h3 style="margin:0 0 8px;color:#dc2626;font-size:20px;font-weight:700;font-family:Georgia,serif;">
-          ${className}
-        </h3>
-
-        ${classLevel || duration ? `
-        <p style="margin:0 0 24px;color:#6b7280;font-size:12px;font-family:Arial,sans-serif;">
-          ${[classLevel && `Level: ${classLevel.charAt(0).toUpperCase() + classLevel.slice(1)}`, duration].filter(Boolean).join("&nbsp;&nbsp;·&nbsp;&nbsp;")}
-          ${cohortName ? `&nbsp;&nbsp;·&nbsp;&nbsp;${cohortName}` : ""}
-        </p>
-        ` : `<p style="margin:0 0 24px;">&nbsp;</p>`}
-
-        <!-- Decorative rule -->
-        <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:32px;">
-          <tr>
-            <td style="border-top:1px solid #d4b896;"></td>
-            <td width="12" style="text-align:center;padding:0 8px;">
-              <span style="color:#dc2626;font-size:16px;">✦</span>
-            </td>
-            <td style="border-top:1px solid #d4b896;"></td>
-          </tr>
-        </table>
-
-        <!-- Completion date -->
-        <p style="margin:0 0 36px;color:#6b7280;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;font-family:Arial,sans-serif;">
-          Awarded on &nbsp;<strong style="color:#374151;">${completedDate}</strong>
-        </p>
-
-        <!-- Signature block -->
-        <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
-          <tr>
-            <td width="45%" style="text-align:center;vertical-align:bottom;padding:0 12px;">
-              <p style="margin:0 0 6px;color:#0a0a0a;font-size:13px;font-weight:700;font-family:Georgia,serif;">
-                Bishop Cyrus Simwanza
-              </p>
-              <div style="border-top:1px solid #374151;padding-top:6px;">
-                <p style="margin:0;color:#6b7280;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;font-family:Arial,sans-serif;">
-                  Senior Pastor
-                </p>
-              </div>
-            </td>
-            <td width="10%" style="text-align:center;">
-              <span style="color:#dc2626;font-size:20px;">✦</span>
-            </td>
-            <td width="45%" style="text-align:center;vertical-align:bottom;padding:0 12px;">
-              <p style="margin:0 0 6px;color:#0a0a0a;font-size:13px;font-weight:700;font-family:Georgia,serif;">
-                ${facilitator}
-              </p>
-              <div style="border-top:1px solid #374151;padding-top:6px;">
-                <p style="margin:0;color:#6b7280;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;font-family:Arial,sans-serif;">
-                  Course Facilitator
-                </p>
-              </div>
-            </td>
-          </tr>
-        </table>
-
-      </td>
-    </tr>
-
-    <!-- Footer motto -->
-    <tr>
-      <td style="background:#0a0a0a;padding:16px 40px;text-align:center;">
-        <p style="margin:0;color:#9ca3af;font-size:11px;font-style:italic;font-family:Georgia,serif;">
-          "Winning a Generation for Christ."
-        </p>
-      </td>
-    </tr>
-
-    <!-- Bottom accent stripe -->
-    <tr><td style="background:#dc2626;height:4px;font-size:0;line-height:0;">&nbsp;</td></tr>
-  </table>`;
+  const firstName = studentName.split(" ")[0];
 
   await sendEmail({
     to: registration.email,
     subject: `Certificate of Completion — ${className} · Victory Bible Church`,
-    text: `Congratulations ${studentName}! You have completed ${className} at Victory Bible Church.`,
-    html: `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Certificate of Completion</title>
-</head>
-<body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,sans-serif;">
-  <div style="max-width:600px;margin:32px auto;padding:0 16px;">
-
-    <!-- Personal message above certificate -->
-    <div style="background:#0a0a0a;padding:24px 32px;margin-bottom:0;border-radius:4px 4px 0 0;">
-      <p style="margin:0 0 4px;color:#9ca3af;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;">Victory Bible Church</p>
-      <h2 style="margin:0;color:#ffffff;font-size:20px;font-weight:700;">Congratulations, ${studentName.split(" ")[0]}!</h2>
-    </div>
-    <div style="background:#ffffff;padding:20px 32px;border:1px solid #e5e7eb;border-top:none;margin-bottom:0;">
-      <p style="margin:0 0 12px;color:#374151;font-size:14px;line-height:1.7;">
-        We are so proud of your commitment and dedication. Completing <strong>${className}</strong> is a significant milestone in your walk with Christ — this is just the beginning of deeper service and growth.
-      </p>
-      <p style="margin:0;color:#374151;font-size:14px;line-height:1.7;">
-        Your certificate is below. You can save or print it directly from your email client.
-      </p>
-    </div>
-
-    <!-- The certificate -->
-    ${cert}
-
-    <!-- Footer -->
-    <div style="text-align:center;padding:20px 0;">
-      <p style="margin:0;color:#9ca3af;font-size:11px;">Victory Bible Church · Off Chiwala Road CBU East Gate, Kitwe, Zambia</p>
-    </div>
-  </div>
-</body>
-</html>`,
+    text: `Congratulations ${studentName}! You have successfully completed ${className} at Victory Bible Church. Please find your certificate of completion attached.`,
+    html: createEmailTemplate(
+      `Congratulations, ${firstName}!`,
+      BRAND.red,
+      `<p style="color:#374151;font-size:15px;line-height:1.7;">
+         We are so proud of your commitment and dedication. Completing <strong>${className}</strong> is a significant milestone in your walk with Christ — this is just the beginning of deeper service and growth.
+       </p>
+       <p style="color:#374151;font-size:15px;line-height:1.7;margin-top:16px;">
+         Your certificate of completion is attached as a PDF. You can save or print it for your records.
+       </p>
+       <p style="color:#374151;font-size:15px;line-height:1.7;margin-top:16px;">
+         God bless,<br><strong>Victory Bible Church</strong>
+       </p>`
+    ),
+    attachments: [
+      {
+        filename: `Certificate — ${className}.pdf`,
+        content: pdfBuffer,
+        contentType: "application/pdf",
+      },
+    ],
   });
 };
 

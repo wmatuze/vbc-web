@@ -8,7 +8,7 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const rateLimit = require("express-rate-limit");
 const connectDB = require("./config/database");
-const { uploadBuffer, folderFor } = require("./config/cloudinary");
+const { cloudinary, uploadBuffer, folderFor } = require("./config/cloudinary");
 const models = require("./models");
 require("dotenv").config();
 
@@ -874,6 +874,66 @@ app.get("/media/:id", async (req, res) => {
   } catch (error) {
     console.error(`Error fetching media with ID ${req.params.id}:`, error);
     res.status(500).json({ error: "Failed to fetch media" });
+  }
+});
+
+// Delete media by ID — removes from DB and Cloudinary
+app.delete("/api/media/:id", authMiddleware, async (req, res) => {
+  try {
+    const media = await models.Media.findById(req.params.id);
+    if (!media) return res.status(404).json({ error: "Media not found" });
+
+    if (media.cloudinaryId) {
+      try {
+        await cloudinary.uploader.destroy(media.cloudinaryId, { resource_type: "auto" });
+      } catch (cloudErr) {
+        console.warn("Cloudinary deletion warning:", cloudErr.message);
+      }
+    }
+
+    await models.Media.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: "Media deleted" });
+  } catch (error) {
+    console.error("Error deleting media:", error);
+    res.status(500).json({ error: "Failed to delete media" });
+  }
+});
+
+// Media usage — which collections reference each media ID
+app.get("/api/media/usage", authMiddleware, async (req, res) => {
+  try {
+    const [sermons, events, leaders, cellGroups, zones] = await Promise.all([
+      models.Sermon.find({ image: { $exists: true, $ne: null } }, "title image"),
+      models.Event.find({ image: { $exists: true, $ne: null } }, "title image"),
+      models.Leader.find({ image: { $exists: true, $ne: null } }, "name image"),
+      models.CellGroup.find({}, "name image leaderImage"),
+      models.Zone.find({}, "name coverImage elder"),
+    ]);
+
+    const usage = {};
+    const add = (mediaId, type, name) => {
+      if (!mediaId) return;
+      const key = mediaId.toString();
+      if (!usage[key]) usage[key] = [];
+      usage[key].push({ type, name });
+    };
+
+    sermons.forEach(s  => add(s.image,         "Sermon",     s.title));
+    events.forEach(e   => add(e.image,          "Event",      e.title));
+    leaders.forEach(l  => add(l.image,          "Leader",     l.name));
+    cellGroups.forEach(g => {
+      add(g.image,       "Cell Group", g.name);
+      add(g.leaderImage, "Cell Group", `${g.name} (leader photo)`);
+    });
+    zones.forEach(z => {
+      add(z.coverImage,   "Zone", z.name);
+      add(z.elder?.image, "Zone", `${z.name} (elder photo)`);
+    });
+
+    res.json({ success: true, data: usage });
+  } catch (error) {
+    console.error("Error fetching media usage:", error);
+    res.status(500).json({ error: "Failed to fetch media usage" });
   }
 });
 

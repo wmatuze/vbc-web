@@ -41,24 +41,14 @@ export const getMedia = async () => {
       throw new Error("Invalid media data format");
     }
 
-    // Filter out any invalid items (those without path or id)
-    const validData = data.filter(
-      (item) =>
-        item &&
-        item.id &&
-        (item.path || (item.filename && `/uploads/${item.filename}`))
-    );
-
-    // Fix any items that have filename but not path
-    const fixedData = validData.map((item) => {
-      if (!item.path && item.filename) {
-        return {
-          ...item,
-          path: `/uploads/${item.filename}`,
-        };
-      }
-      return item;
-    });
+    // Normalise items — MongoDB returns _id, not id
+    const fixedData = data
+      .filter(item => item && (item._id || item.id) && (item.path || item.filename))
+      .map(item => ({
+        ...item,
+        id: item.id || item._id?.toString(),
+        path: item.path || `/uploads/${item.filename}`,
+      }));
 
     console.log(`Fetched ${fixedData.length} valid media items from server`);
 

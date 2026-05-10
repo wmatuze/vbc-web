@@ -222,13 +222,19 @@ const DiscipleshipAdmin = () => {
     setSessionForm({ ...EMPTY_SESSION, classId }); setShowModal(true);
   };
 
+  const toDateInput = (val) => {
+    if (!val) return "";
+    const d = new Date(val);
+    return isNaN(d) ? "" : d.toISOString().split("T")[0];
+  };
+
   const openEditSession = (session) => {
     setModalType("editSession"); setSelectedItem(session);
     setSessionForm({
       ...session,
-      startDate:            session.startDate            ? new Date(session.startDate).toISOString().split("T")[0]            : "",
-      endDate:              session.endDate              ? new Date(session.endDate).toISOString().split("T")[0]              : "",
-      registrationDeadline: session.registrationDeadline ? new Date(session.registrationDeadline).toISOString().split("T")[0] : "",
+      startDate:            toDateInput(session.startDate),
+      endDate:              toDateInput(session.endDate),
+      registrationDeadline: toDateInput(session.registrationDeadline),
     });
     setShowModal(true);
   };
