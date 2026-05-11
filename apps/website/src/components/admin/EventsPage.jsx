@@ -17,7 +17,7 @@ const EventsPage = () => {
   return (
     <div>
       <div className={`border-b mb-6 -mt-1 ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
-        <nav className="-mb-px flex gap-1">
+        <nav className="-mb-px flex gap-1 overflow-x-auto">
           {TABS.map(({ id, label }) => (
             <button
               key={id}
