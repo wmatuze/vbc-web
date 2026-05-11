@@ -48,3 +48,39 @@ export const changeUserPassword = async (id, password) => {
   });
   return handleResponse(res);
 };
+
+/** Update own display name */
+export const updateProfile = async (name) => {
+  const res = await fetch(`${base}/me`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+    body: JSON.stringify({ name }),
+  });
+  return handleResponse(res);
+};
+
+/** Change own password (requires current password) */
+export const changeOwnPassword = async (currentPassword, newPassword) => {
+  const res = await fetch(`${base}/me/password`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+  return handleResponse(res);
+};
+
+/** Get church config */
+export const getChurchConfig = async () => {
+  const res = await fetch(`${API_URL}/api/config`);
+  return handleResponse(res);
+};
+
+/** Update church config (admin only) */
+export const updateChurchConfig = async (data) => {
+  const res = await fetch(`${API_URL}/api/config`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+};

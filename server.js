@@ -714,6 +714,11 @@ const adminOnly = (req, res, next) => {
 
 // ── User Management Routes (admin only) ──────────────────────────────────────
 
+// GET /api/health — liveness probe
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
 // GET /api/users — list all admin users (no passwords returned)
 app.get("/api/users", authMiddleware, adminOnly, async (req, res) => {
   try {
@@ -790,6 +795,50 @@ app.delete("/api/users/:id", authMiddleware, adminOnly, async (req, res) => {
   }
 });
 
+// PATCH /api/users/me — update own display name (must come before /:id routes)
+app.patch("/api/users/me", authMiddleware, async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: "Name is required" });
+    }
+    const user = await models.User.findByIdAndUpdate(
+      req.user.id,
+      { name: name.trim() },
+      { new: true, select: "-hashedPassword" },
+    );
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.json({ message: "Profile updated", user });
+  } catch (err) {
+    console.error("Error updating profile:", err);
+    res.status(500).json({ error: "Failed to update profile" });
+  }
+});
+
+// PATCH /api/users/me/password — change own password (must come before /:id/password)
+app.patch("/api/users/me/password", authMiddleware, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: "currentPassword and newPassword are required" });
+    }
+    if (newPassword.length < 8) {
+      return res.status(400).json({ error: "New password must be at least 8 characters" });
+    }
+    const user = await models.User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+    if (user.hashedPassword !== hashPassword(currentPassword)) {
+      return res.status(401).json({ error: "Current password is incorrect" });
+    }
+    user.hashedPassword = hashPassword(newPassword);
+    await user.save();
+    res.json({ message: "Password changed successfully" });
+  } catch (err) {
+    console.error("Error changing own password:", err);
+    res.status(500).json({ error: "Failed to change password" });
+  }
+});
+
 // PATCH /api/users/:id/password — change a user's password
 app.patch(
   "/api/users/:id/password",
@@ -822,6 +871,34 @@ app.patch(
     }
   },
 );
+
+// GET /api/config — get church config (public)
+app.get("/api/config", async (req, res) => {
+  try {
+    let cfg = await models.ChurchConfig.findOne();
+    if (!cfg) cfg = await models.ChurchConfig.create({});
+    res.json(cfg);
+  } catch (err) {
+    console.error("Error fetching config:", err);
+    res.status(500).json({ error: "Failed to fetch config" });
+  }
+});
+
+// PUT /api/config — update church config (admin only)
+app.put("/api/config", authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const { name, address, email, phone, website, siteTitle, metaDescription } = req.body;
+    const cfg = await models.ChurchConfig.findOneAndUpdate(
+      {},
+      { name, address, email, phone, website, siteTitle, metaDescription, updatedAt: new Date() },
+      { upsert: true, new: true },
+    );
+    res.json(cfg);
+  } catch (err) {
+    console.error("Error updating config:", err);
+    res.status(500).json({ error: "Failed to update config" });
+  }
+});
 
 // Media routes
 app.get("/api/media", async (req, res) => {
