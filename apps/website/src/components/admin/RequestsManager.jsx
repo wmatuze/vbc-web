@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
   ArrowPathIcon,
@@ -46,8 +47,13 @@ const RequestsManager = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
 
-  // Active tab state (membership, foundation, or events)
-  const [activeTab, setActiveTab] = useState("membership");
+  // Active tab — persisted in the URL so refresh keeps the selected tab
+  const [searchParams, setSearchParams] = useSearchParams();
+  const VALID_TABS = ["membership", "foundation", "discipleship", "events", "visitors"];
+  const activeTab = VALID_TABS.includes(searchParams.get("tab"))
+    ? searchParams.get("tab")
+    : "membership";
+  const setActiveTab = (tab) => setSearchParams({ tab }, { replace: true });
 
   // Membership renewal states
   const [renewals, setRenewals] = useState([]);
