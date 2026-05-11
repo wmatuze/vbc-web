@@ -42,18 +42,29 @@ const EventSignupsTab = ({
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-[700px] w-full divide-y divide-gray-200 dark:divide-gray-700">
+      <table className="min-w-[700px] w-full table-fixed divide-y divide-gray-200 dark:divide-gray-700">
+        <colgroup>
+          <col />
+          <col className="w-44" />
+          <col className="w-36" />
+          <col className="w-28" />
+          <col className="w-32" />
+        </colgroup>
         <thead className="bg-gray-50 dark:bg-gray-700/50">
           <tr>
-            {["Requester", "Contact", "Event", "Status", "Actions"].map((h, i) => (
+            {[
+              { label: "Requester", cls: "text-left"  },
+              { label: "Contact",   cls: "text-left"  },
+              { label: "Event",     cls: "text-left"  },
+              { label: "Status",    cls: "text-left"  },
+              { label: "Actions",   cls: "text-right" },
+            ].map(({ label, cls }) => (
               <th
-                key={h}
+                key={label}
                 scope="col"
-                className={`px-5 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 ${
-                  i === 4 ? "text-right" : "text-left"
-                }`}
+                className={`px-5 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 ${cls}`}
               >
-                {h}
+                {label}
               </th>
             ))}
           </tr>
@@ -83,13 +94,13 @@ const EventSignupsTab = ({
               </td>
 
               {/* Contact */}
-              <td className="px-5 py-3.5 whitespace-nowrap">
-                <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 mb-0.5">
-                  <EnvelopeIcon className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
-                  {signup.email}
+              <td className="px-5 py-3.5">
+                <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 mb-0.5 min-w-0">
+                  <EnvelopeIcon className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                  <span className="truncate">{signup.email}</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-                  <PhoneIcon className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
+                  <PhoneIcon className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
                   {signup.phone}
                 </div>
               </td>
