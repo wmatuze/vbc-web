@@ -38,11 +38,11 @@ const MembershipTab = ({
     <div className="overflow-x-auto">
       <table className="min-w-[700px] w-full table-fixed divide-y divide-gray-200 dark:divide-gray-700">
         <colgroup>
-          <col />
-          <col className="w-44" />
-          <col className="w-36" />
-          <col className="w-28" />
-          <col className="w-32" />
+          <col style={{ width: "30%" }} />
+          <col style={{ width: "26%" }} />
+          <col style={{ width: "17%" }} />
+          <col style={{ width: "14%" }} />
+          <col style={{ width: "13%" }} />
         </colgroup>
         <thead className="bg-gray-50 dark:bg-gray-700/50">
           <tr>

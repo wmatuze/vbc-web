@@ -40,11 +40,11 @@ const FoundationTab = ({
     <div className="overflow-x-auto">
       <table className="min-w-[700px] w-full table-fixed divide-y divide-gray-200 dark:divide-gray-700">
         <colgroup>
-          <col />
-          <col className="w-40" />
-          <col className="w-48" />
-          <col className="w-28" />
-          <col className="w-32" />
+          <col style={{ width: "27%" }} />
+          <col style={{ width: "20%" }} />
+          <col style={{ width: "26%" }} />
+          <col style={{ width: "14%" }} />
+          <col style={{ width: "13%" }} />
         </colgroup>
         <thead className="bg-gray-50 dark:bg-gray-700/50">
           <tr>
