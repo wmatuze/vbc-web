@@ -9,353 +9,347 @@ import {
   PlusIcon,
   CalendarIcon,
   ClockIcon,
-  MapPinIcon as LocationMarkerIcon,
-  XMarkIcon as XIcon,
+  MapPinIcon,
+  XMarkIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
-  MagnifyingGlassIcon as SearchIcon,
-  FunnelIcon as FilterIcon,
-  Squares2X2Icon as ViewGridIcon,
-  ListBulletIcon as ViewListIcon,
-  ArrowPathIcon as RefreshIcon,
+  MagnifyingGlassIcon,
+  Squares2X2Icon,
+  ListBulletIcon,
+  ArrowPathIcon,
+  PencilIcon,
+  TrashIcon,
+  StarIcon,
 } from "@heroicons/react/24/outline";
+
+// ── Recurrence helpers ────────────────────────────────────────────────────────
+const DAY_NAMES    = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const MONTH_NAMES  = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const ordinal = (n) => { const s=["th","st","nd","rd"]; const v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); };
+
+const formatRecurrence = (ev) => {
+  const t = ev.recurrenceType;
+  if (t === "weekly") return `Every ${DAY_NAMES[ev.dayOfWeek] ?? "week"}`;
+  if (t === "monthly") {
+    if (ev.weekOfMonth != null && ev.dayOfWeek != null)
+      return `${String(ev.weekOfMonth).charAt(0).toUpperCase()+String(ev.weekOfMonth).slice(1)} ${DAY_NAMES[ev.dayOfWeek]??""} monthly`;
+    if (ev.dayOfMonth) return `${ordinal(ev.dayOfMonth)} of every month`;
+    return "Monthly";
+  }
+  if (t === "yearly") return `Every ${MONTH_NAMES[ev.month] ?? "year"}`;
+  return t ? t.charAt(0).toUpperCase()+t.slice(1) : "Recurring";
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 const RecurringEventManager = () => {
   const { darkMode } = useDarkMode();
-  // Use React Query for fetching recurring events
-  const {
-    data: recurringEvents = [],
-    isLoading: eventsLoading,
-    error: eventsError,
-    refetch: refetchEvents,
-  } = useRecurringEventsQuery();
 
-  // Use our custom error handling hook
+  const { data: recurringEvents = [], isLoading: eventsLoading, error: eventsError, refetch: refetchEvents } =
+    useRecurringEventsQuery();
+
   const { error, errorMessage, handleError, clearError, withErrorHandling } =
     useErrorHandler("RecurringEventManager");
 
-  // Use our custom form handling hook
-  const {
-    currentEvent,
-    formErrors,
-    formMode,
-    showForm,
-    isSubmitting,
-    setShowForm,
-    handleInputChange,
-    handleCheckboxChange,
-    resetForm,
-    editEvent,
-    addEvent,
-    submitForm,
-  } = useRecurringEventForm({
-    onSuccess: (savedEvent, action) => {
-      console.log(`Recurring event ${action} successfully:`, savedEvent);
-      setSuccessMessage(`Recurring event ${action} successfully!`);
-      refetchEvents();
-
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccessMessage(""), 3000);
-    },
-    onError: (error) => {
-      console.error("Error in RecurringEventForm submission:", error);
-      handleError(error, "Recurring Event Form Submission");
-    },
-  });
-
-  // UI state
-  const [searchTerm, setSearchTerm] = useState("");
-  const [viewMode, setViewMode] = useState("grid");
-  const [sortBy, setSortBy] = useState("title");
-  const [sortOrder, setSortOrder] = useState("asc");
-  const [successMessage, setSuccessMessage] = useState("");
-
-  // Display any query errors
-  useEffect(() => {
-    if (eventsError) {
-      handleError(eventsError, "Failed to load recurring events");
-    }
-  }, [eventsError, handleError]);
-
-  // Handle adding a new recurring event
-  const handleAddEvent = () => {
-    addEvent();
-  };
-
-  // Handle editing a recurring event
-  const handleEdit = withErrorHandling(
-    (event) => {
-      editEvent(event);
-    },
-    {
-      context: "Recurring Event Editing",
-    }
-  );
-
-  // Handle deleting a recurring event
-  const handleDelete = withErrorHandling(
-    async (event) => {
-      if (
-        window.confirm("Are you sure you want to delete this recurring event?")
-      ) {
-        const eventId = event.id || event._id;
-
-        if (!eventId) {
-          throw new Error("Cannot delete recurring event: Missing event ID");
-        }
-
-        await deleteRecurringEvent(eventId);
-        setSuccessMessage("Recurring event deleted successfully!");
-        await refetchEvents();
-
-        // Clear success message after 3 seconds
+  const { currentEvent, formErrors, formMode, showForm, isSubmitting, setShowForm,
+    handleInputChange, handleCheckboxChange, resetForm, editEvent, addEvent, submitForm } =
+    useRecurringEventForm({
+      onSuccess: (_, action) => {
+        setSuccessMessage(`Recurring event ${action} successfully!`);
+        refetchEvents();
         setTimeout(() => setSuccessMessage(""), 3000);
-      }
-    },
-    {
-      context: "Recurring Event Deletion",
-    }
-  );
-
-  // Filter recurring events based on search
-  const filteredEvents = recurringEvents
-    .filter((event) => {
-      // Filter by search term
-      const matchesSearch =
-        searchTerm === "" ||
-        event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.location?.toLowerCase().includes(searchTerm.toLowerCase());
-
-      return matchesSearch;
-    })
-    .sort((a, b) => {
-      // Sort by the selected field
-      const aValue = a[sortBy] || "";
-      const bValue = b[sortBy] || "";
-
-      // Handle string comparison
-      if (typeof aValue === "string" && typeof bValue === "string") {
-        return sortOrder === "asc"
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
-      }
-
-      // Handle numeric comparison
-      return sortOrder === "asc" ? aValue - bValue : bValue - aValue;
+      },
+      onError: (err) => handleError(err, "Recurring Event Form Submission"),
     });
 
+  const [searchTerm,      setSearchTerm]      = useState("");
+  const [viewMode,        setViewMode]        = useState("grid");
+  const [successMessage,  setSuccessMessage]  = useState("");
+
+  useEffect(() => {
+    if (eventsError) handleError(eventsError, "Failed to load recurring events");
+  }, [eventsError, handleError]);
+
+  const handleEdit = withErrorHandling((ev) => editEvent(ev), { context: "Recurring Event Editing" });
+
+  const handleDelete = withErrorHandling(async (ev) => {
+    if (!window.confirm("Delete this recurring event? This cannot be undone.")) return;
+    const id = ev.id || ev._id;
+    if (!id) throw new Error("Missing event ID");
+    await deleteRecurringEvent(id);
+    setSuccessMessage("Recurring event deleted.");
+    await refetchEvents();
+    setTimeout(() => setSuccessMessage(""), 3000);
+  }, { context: "Recurring Event Deletion" });
+
+  const filtered = recurringEvents.filter((ev) =>
+    !searchTerm ||
+    ev.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    ev.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    ev.location?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // ── Style helpers ──────────────────────────────────────────────────────────
+  const card = darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100";
+  const actionBtn = (red) => `p-1.5 rounded-lg transition-colors ${
+    red
+      ? darkMode ? "text-red-400 hover:bg-red-900/30" : "text-red-400 hover:bg-red-50"
+      : darkMode ? "text-gray-400 hover:bg-gray-700 hover:text-gray-200" : "text-gray-400 hover:bg-gray-100"
+  }`;
+
   return (
-    <div className="space-y-6">
-      {/* Success message */}
+    <div className="space-y-5">
+
+      {/* Alerts */}
       {successMessage && (
-        <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-4">
-          <div className="flex">
-            <CheckCircleIcon className="h-5 w-5 text-green-500 dark:text-green-400 mr-2" />
-            <span className="text-green-800 dark:text-green-200">
-              {successMessage}
-            </span>
-          </div>
+        <div className={`flex items-center gap-2 p-4 rounded-lg border text-sm ${darkMode ? "bg-green-900/20 border-green-800 text-green-300" : "bg-green-50 border-green-200 text-green-700"}`}>
+          <CheckCircleIcon className="h-5 w-5 flex-shrink-0" />
+          {successMessage}
         </div>
       )}
-
-      {/* Error message */}
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
-          <div className="flex">
-            <ExclamationCircleIcon className="h-5 w-5 text-red-500 dark:text-red-400 mr-2" />
-            <div>
-              <span className="text-red-800 dark:text-red-200 font-medium">
-                Error:{" "}
-              </span>
-              <span className="text-red-800 dark:text-red-200">
-                {errorMessage}
-              </span>
-            </div>
-            <button
-              onClick={clearError}
-              className="ml-auto text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-            >
-              <XIcon className="h-5 w-5" />
-            </button>
-          </div>
+        <div className={`flex items-start gap-3 p-4 rounded-lg border text-sm ${darkMode ? "bg-red-900/20 border-red-800 text-red-300" : "bg-red-50 border-red-200 text-red-700"}`}>
+          <ExclamationCircleIcon className="h-5 w-5 flex-shrink-0 mt-0.5" />
+          <span className="flex-1">{errorMessage}</span>
+          <button onClick={clearError} className="text-xs underline opacity-70 hover:opacity-100">Dismiss</button>
         </div>
       )}
 
       {/* Toolbar */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        {/* Search and filters */}
-        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-          {/* Search input */}
-          <div className="relative w-full sm:w-64">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <SearchIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search recurring events..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-            />
-          </div>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="relative flex-1 max-w-sm w-full">
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Search recurring events…"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className={`pl-9 pr-3 py-2 w-full rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-red-600 transition-colors ${
+              darkMode ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400" : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+            }`}
+          />
         </div>
 
-        {/* Actions */}
         <div className="flex items-center gap-2">
-          {/* View mode toggle */}
-          <div className="flex items-center border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
-            <button
-              onClick={() => setViewMode("grid")}
-              className={`p-2 ${
-                viewMode === "grid"
-                  ? "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400"
-                  : "bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400"
-              }`}
-              title="Grid view"
-            >
-              <ViewGridIcon className="h-5 w-5" />
+          {/* View toggle */}
+          <div className={`flex rounded-lg border overflow-hidden ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
+            <button onClick={() => setViewMode("grid")}
+              className={`p-2 transition-colors ${viewMode === "grid" ? "bg-red-600 text-white" : darkMode ? "bg-gray-800 text-gray-400 hover:bg-gray-700" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
+              <Squares2X2Icon className="h-4 w-4" />
             </button>
-            <button
-              onClick={() => setViewMode("list")}
-              className={`p-2 ${
-                viewMode === "list"
-                  ? "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400"
-                  : "bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400"
-              }`}
-              title="List view"
-            >
-              <ViewListIcon className="h-5 w-5" />
+            <button onClick={() => setViewMode("list")}
+              className={`p-2 transition-colors ${viewMode === "list" ? "bg-red-600 text-white" : darkMode ? "bg-gray-800 text-gray-400 hover:bg-gray-700" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
+              <ListBulletIcon className="h-4 w-4" />
             </button>
           </div>
 
-          {/* Refresh button */}
-          <button
-            onClick={() => refetchEvents()}
-            className="p-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
-            title="Refresh"
-          >
-            <RefreshIcon className="h-5 w-5" />
+          <button onClick={() => refetchEvents()} title="Refresh"
+            className={`p-2 rounded-lg transition-colors ${darkMode ? "text-gray-400 hover:bg-gray-700" : "text-gray-400 hover:bg-gray-100"}`}>
+            <ArrowPathIcon className="h-4 w-4" />
           </button>
 
-          {/* Add event button */}
-          <button
-            onClick={handleAddEvent}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
-          >
-            <PlusIcon className="h-5 w-5" />
-            <span>Add Recurring Event</span>
+          <button onClick={() => addEvent()}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors shadow-sm">
+            <PlusIcon className="h-4 w-4" />
+            Add Recurring Event
           </button>
         </div>
       </div>
 
-      {/* Form Modal */}
-      {showForm && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            {/* Background overlay */}
-            <div
-              className="fixed inset-0 transition-opacity"
-              aria-hidden="true"
-              onClick={() => setShowForm(false)}
-            >
-              <div className="absolute inset-0 bg-gray-500 dark:bg-gray-900 opacity-75"></div>
-            </div>
-
-            {/* Modal panel */}
-            <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
-              <div className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <div className="sm:flex sm:items-start">
-                  <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
-                    <h3
-                      className="text-lg leading-6 font-medium text-gray-900 dark:text-white"
-                      id="modal-title"
-                    >
-                      {formMode === "add"
-                        ? "Add Recurring Event"
-                        : "Edit Recurring Event"}
-                    </h3>
-                    <div className="mt-4">
-                      <RecurringEventForm
-                        currentEvent={currentEvent}
-                        formErrors={formErrors}
-                        formMode={formMode}
-                        isSubmitting={isSubmitting}
-                        handleInputChange={handleInputChange}
-                        handleCheckboxChange={handleCheckboxChange}
-                        submitForm={submitForm}
-                        onCancel={() => setShowForm(false)}
-                        darkMode={darkMode}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <p className={`text-xs ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
+        {filtered.length} recurring event{filtered.length !== 1 ? "s" : ""}
+      </p>
 
       {/* Content */}
       {eventsLoading && recurringEvents.length === 0 ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 dark:border-blue-400 border-t-transparent dark:border-t-transparent"></div>
+        <div className="flex items-center justify-center h-48">
+          <div className="h-8 w-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
         </div>
-      ) : filteredEvents.length === 0 ? (
-        <div className="text-center py-12">
-          <CalendarIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
-            No recurring events found
-          </h3>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {searchTerm
-              ? "Try adjusting your search"
-              : "Get started by adding a new recurring event"}
+      ) : filtered.length === 0 ? (
+        <div className={`text-center py-16 rounded-xl border ${darkMode ? "border-gray-700" : "border-gray-100"}`}>
+          <CalendarIcon className={`mx-auto h-10 w-10 mb-3 ${darkMode ? "text-gray-600" : "text-gray-300"}`} />
+          <p className={`text-sm font-medium ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+            {searchTerm ? "No events match your search" : "No recurring events yet"}
           </p>
+          {!searchTerm && (
+            <button onClick={() => addEvent()} className="mt-3 text-sm text-red-600 hover:underline">
+              Add your first recurring event →
+            </button>
+          )}
         </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredEvents.map((event) => (
-            <div
-              key={event.id || event._id}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
-            >
-              <div className="p-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {event.title}
-                </h3>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
-                  {event.description}
-                </p>
-                <div className="mt-4 space-y-2">
-                  <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                    <ClockIcon className="h-4 w-4 mr-1.5" />
-                    <span>{event.time}</span>
+      ) : viewMode === "grid" ? (
+
+        /* ── Grid ── */
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {filtered.map((ev) => (
+            <div key={ev.id || ev._id}
+              className={`rounded-xl border overflow-hidden transition-all hover:shadow-md hover:-translate-y-0.5 flex flex-col ${card}`}>
+              <div className="p-4 flex flex-col flex-1">
+
+                {/* Title + featured */}
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <h3 className={`font-semibold text-sm leading-snug line-clamp-2 flex-1 ${darkMode ? "text-white" : "text-gray-900"}`}>
+                    {ev.title}
+                  </h3>
+                  {ev.featured && (
+                    <span title="Featured" className="flex-shrink-0 mt-0.5">
+                      <StarIcon className="h-4 w-4 text-amber-400" />
+                    </span>
+                  )}
+                </div>
+
+                {/* Recurrence badge */}
+                <span className={`inline-flex items-center gap-1 self-start px-2 py-0.5 rounded-full text-xs font-medium mb-3 ${
+                  darkMode ? "bg-red-900/30 text-red-400" : "bg-red-50 text-red-700"
+                }`}>
+                  <ArrowPathIcon className="h-3 w-3" />
+                  {formatRecurrence(ev)}
+                </span>
+
+                {/* Time + Location */}
+                <div className={`space-y-1 text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                  <div className="flex items-center gap-1.5">
+                    <ClockIcon className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span>{ev.time || "—"}</span>
                   </div>
-                  {event.location && (
-                    <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                      <LocationMarkerIcon className="h-4 w-4 mr-1.5" />
-                      <span>{event.location}</span>
+                  {ev.location && (
+                    <div className="flex items-center gap-1.5">
+                      <MapPinIcon className="h-3.5 w-3.5 flex-shrink-0" />
+                      <span className="truncate">{ev.location}</span>
                     </div>
                   )}
                 </div>
-                <div className="mt-4 flex justify-end space-x-2">
-                  <button
-                    onClick={() => handleEdit(event)}
-                    className="px-3 py-1.5 text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/50"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(event)}
-                    className="px-3 py-1.5 text-sm bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-md hover:bg-red-100 dark:hover:bg-red-900/50"
-                  >
-                    Delete
-                  </button>
+
+                {ev.description && (
+                  <p className={`mt-2 text-xs line-clamp-2 ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
+                    {ev.description}
+                  </p>
+                )}
+
+                {/* Footer */}
+                <div className={`mt-auto pt-3 flex items-center justify-between border-t ${darkMode ? "border-gray-700" : "border-gray-100"}`}>
+                  <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                    ev.active !== false
+                      ? darkMode ? "bg-green-900/30 text-green-400" : "bg-green-100 text-green-700"
+                      : darkMode ? "bg-gray-700 text-gray-500" : "bg-gray-100 text-gray-500"
+                  }`}>
+                    {ev.active !== false ? "Active" : "Inactive"}
+                  </span>
+                  <div className="flex items-center gap-0.5">
+                    <button onClick={() => handleEdit(ev)} title="Edit" className={actionBtn(false)}>
+                      <PencilIcon className="h-4 w-4" />
+                    </button>
+                    <button onClick={() => handleDelete(ev)} title="Delete" className={actionBtn(true)}>
+                      <TrashIcon className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           ))}
+        </div>
+
+      ) : (
+
+        /* ── List ── */
+        <div className={`rounded-xl border overflow-hidden ${darkMode ? "border-gray-700" : "border-gray-100"}`}>
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead className={`text-xs uppercase tracking-wider ${darkMode ? "bg-gray-800 text-gray-400" : "bg-gray-50 text-gray-500"}`}>
+                <tr>
+                  <th className="px-5 py-3 text-left font-medium">Event</th>
+                  <th className="px-5 py-3 text-left font-medium">Recurrence</th>
+                  <th className="px-5 py-3 text-left font-medium">Time</th>
+                  <th className="px-5 py-3 text-left font-medium">Location</th>
+                  <th className="px-5 py-3 text-left font-medium">Status</th>
+                  <th className="px-5 py-3 text-right font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody className={`divide-y ${darkMode ? "divide-gray-700" : "divide-gray-100"}`}>
+                {filtered.map((ev) => (
+                  <tr key={ev.id || ev._id} className={`transition-colors ${darkMode ? "hover:bg-gray-800/50" : "hover:bg-gray-50"}`}>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-2">
+                        {ev.featured && <StarIcon className="h-3.5 w-3.5 text-amber-400 flex-shrink-0" />}
+                        <div>
+                          <p className={`text-sm font-medium ${darkMode ? "text-white" : "text-gray-900"}`}>{ev.title}</p>
+                          {ev.description && (
+                            <p className={`text-xs truncate max-w-[200px] ${darkMode ? "text-gray-500" : "text-gray-400"}`}>{ev.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                        darkMode ? "bg-red-900/30 text-red-400" : "bg-red-50 text-red-700"
+                      }`}>
+                        <ArrowPathIcon className="h-3 w-3" />
+                        {formatRecurrence(ev)}
+                      </span>
+                    </td>
+                    <td className={`px-5 py-3 text-sm whitespace-nowrap ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                      {ev.time || "—"}
+                    </td>
+                    <td className={`px-5 py-3 text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                      <span className="truncate max-w-[160px] block">{ev.location || "—"}</span>
+                    </td>
+                    <td className="px-5 py-3">
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                        ev.active !== false
+                          ? darkMode ? "bg-green-900/30 text-green-400" : "bg-green-100 text-green-700"
+                          : darkMode ? "bg-gray-700 text-gray-500" : "bg-gray-100 text-gray-500"
+                      }`}>
+                        {ev.active !== false ? "Active" : "Inactive"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <button onClick={() => handleEdit(ev)} title="Edit" className={actionBtn(false)}>
+                          <PencilIcon className="h-4 w-4" />
+                        </button>
+                        <button onClick={() => handleDelete(ev)} title="Delete" className={actionBtn(true)}>
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Form modal */}
+      {showForm && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4 py-8">
+            <div className="fixed inset-0 bg-black/50" onClick={() => setShowForm(false)} />
+            <div className={`relative w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden ${darkMode ? "bg-gray-800" : "bg-white"}`}>
+              <div className={`flex items-center justify-between px-6 py-4 border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
+                <h3 className={`text-base font-semibold ${darkMode ? "text-white" : "text-gray-900"}`}>
+                  {formMode === "add" ? "New Recurring Event" : "Edit Recurring Event"}
+                </h3>
+                <button onClick={() => setShowForm(false)}
+                  className={`p-1.5 rounded-lg transition-colors ${darkMode ? "hover:bg-gray-700 text-gray-400" : "hover:bg-gray-100 text-gray-400"}`}>
+                  <XMarkIcon className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="px-6 py-5 overflow-y-auto max-h-[80vh]">
+                <RecurringEventForm
+                  currentEvent={currentEvent}
+                  formErrors={formErrors}
+                  formMode={formMode}
+                  isSubmitting={isSubmitting}
+                  handleInputChange={handleInputChange}
+                  handleCheckboxChange={handleCheckboxChange}
+                  submitForm={submitForm}
+                  onCancel={() => setShowForm(false)}
+                  darkMode={darkMode}
+                />
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

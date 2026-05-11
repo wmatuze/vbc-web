@@ -33,7 +33,6 @@ const NAV_ITEMS = [
   { path: "/admin",               label: "Dashboard",           icon: HomeIcon,          end: true },
   { path: "/admin/sermons",       label: "Sermons",             icon: VideoCameraIcon },
   { path: "/admin/events",        label: "Events",              icon: CalendarIcon },
-  { path: "/admin/recurring-events", label: "Recurring Events", icon: CalendarIcon },
   { path: "/admin/leaders",       label: "Leadership",          icon: UserGroupIcon },
   { path: "/admin/cell-groups",   label: "Cell Groups",         icon: UsersIcon },
   { path: "/admin/members",       label: "Members & Requests",  icon: IdentificationIcon },
@@ -48,8 +47,7 @@ const NAV_ITEMS = [
 const PAGE_TITLES = {
   "/admin":                    { title: "Dashboard",           sub: "Overview of your church content" },
   "/admin/sermons":            { title: "Sermons",             sub: "Manage sermon recordings and notes" },
-  "/admin/events":             { title: "Events",              sub: "Manage upcoming church events" },
-  "/admin/recurring-events":   { title: "Recurring Events",    sub: "Manage regular weekly and monthly programs" },
+  "/admin/events":             { title: "Events",              sub: "Manage one-time and recurring church events" },
   "/admin/leaders":            { title: "Leadership",          sub: "Manage church leaders and pastors" },
   "/admin/cell-groups":        { title: "Cell Groups",         sub: "Manage zones and cell groups" },
   "/admin/members":            { title: "Members & Requests",  sub: "Review membership and signup requests" },
@@ -108,7 +106,7 @@ const AdminLayoutInner = () => {
   if (authenticating) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${darkMode ? "bg-gray-900" : "bg-gray-50"}`}>
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-red-600 border-t-transparent" />
       </div>
     );
   }
@@ -196,7 +194,7 @@ const AdminLayoutInner = () => {
                 className={({ isActive }) =>
                   `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-150 text-sm font-medium ${
                     isActive
-                      ? darkMode ? "bg-blue-900/40 text-blue-300" : "bg-blue-50 text-blue-700"
+                      ? darkMode ? "bg-red-900/30 text-red-400" : "bg-red-50 text-red-700"
                       : darkMode ? "text-gray-300 hover:bg-gray-700" : "text-gray-600 hover:bg-gray-50"
                   }`
                 }

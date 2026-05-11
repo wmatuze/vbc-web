@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { HelmetProvider } from "react-helmet-async";
 import { ToastContainer } from "react-toastify";
@@ -59,10 +59,7 @@ const DashboardContent = lazy(
 const SermonManagerWrapper = lazy(
   () => import("./components/admin/SermonManagerWrapper"),
 );
-const EventManager = lazy(() => import("./components/admin/EventManager"));
-const RecurringEventManager = lazy(
-  () => import("./components/admin/RecurringEventManager"),
-);
+const EventsPage = lazy(() => import("./components/admin/EventsPage"));
 const LeaderManager = lazy(() => import("./components/admin/LeaderManager"));
 const CellGroupManager = lazy(
   () => import("./components/admin/CellGroupManager"),
@@ -402,11 +399,8 @@ const AppContent = () => {
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<DashboardContent />} />
                 <Route path="sermons" element={<SermonManagerWrapper />} />
-                <Route path="events" element={<EventManager />} />
-                <Route
-                  path="recurring-events"
-                  element={<RecurringEventManager />}
-                />
+                <Route path="events" element={<EventsPage />} />
+                <Route path="recurring-events" element={<Navigate to="/admin/events?tab=recurring" replace />} />
                 <Route path="leaders" element={<LeaderManager />} />
                 <Route path="cell-groups" element={<CellGroupManager />} />
                 <Route path="members" element={<RequestsManager />} />

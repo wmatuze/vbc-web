@@ -197,13 +197,13 @@ const EventManager = () => {
 
   // ─── Input classes helper ────────────────────────────────────────────────
   const inp = (hasError) =>
-    `w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
+    `w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-red-600 transition-colors ${
       hasError ? "border-red-500" :
       darkMode ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
     }`;
 
-  const sel = `w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+  const sel = `w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-red-600 ${
     darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300 text-gray-900"
   }`;
 
@@ -249,11 +249,11 @@ const EventManager = () => {
           {/* view toggle */}
           <div className={`flex rounded-lg border overflow-hidden ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
             <button onClick={() => setViewMode("grid")}
-              className={`p-2 transition-colors ${viewMode === "grid" ? "bg-blue-600 text-white" : darkMode ? "bg-gray-800 text-gray-400 hover:bg-gray-700" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
+              className={`p-2 transition-colors ${viewMode === "grid" ? "bg-red-600 text-white" : darkMode ? "bg-gray-800 text-gray-400 hover:bg-gray-700" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
               <Squares2X2Icon className="h-4 w-4" />
             </button>
             <button onClick={() => setViewMode("list")}
-              className={`p-2 transition-colors ${viewMode === "list" ? "bg-blue-600 text-white" : darkMode ? "bg-gray-800 text-gray-400 hover:bg-gray-700" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
+              className={`p-2 transition-colors ${viewMode === "list" ? "bg-red-600 text-white" : darkMode ? "bg-gray-800 text-gray-400 hover:bg-gray-700" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
               <ListBulletIcon className="h-4 w-4" />
             </button>
           </div>
@@ -264,7 +264,7 @@ const EventManager = () => {
           </button>
 
           <button onClick={addEvent}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm">
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors shadow-sm">
             <PlusIcon className="h-4 w-4" />
             Add Event
           </button>
@@ -297,7 +297,7 @@ const EventManager = () => {
             {searchTerm || eventFilter !== "all" ? "No events match your filters" : "No events yet"}
           </p>
           {!searchTerm && eventFilter === "all" && (
-            <button onClick={addEvent} className="mt-3 text-sm text-blue-500 hover:underline">
+            <button onClick={addEvent} className="mt-3 text-sm text-red-600 hover:underline">
               Create your first event →
             </button>
           )}
@@ -315,6 +315,7 @@ const EventManager = () => {
       ) : (
         // List view
         <div className={`rounded-xl border overflow-hidden ${darkMode ? "border-gray-700" : "border-gray-100"}`}>
+          <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead className={`text-xs uppercase tracking-wider ${darkMode ? "bg-gray-800 text-gray-400" : "bg-gray-50 text-gray-500"}`}>
               <tr>
@@ -379,6 +380,7 @@ const EventManager = () => {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
@@ -609,7 +611,7 @@ const EventManager = () => {
                   Cancel
                 </button>
                 <button type="submit" disabled={isSubmitting}
-                  className="px-5 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors inline-flex items-center gap-2">
+                  className="px-5 py-2 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors inline-flex items-center gap-2">
                   {isSubmitting && <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>}
                   {isSubmitting ? "Saving…" : formMode === "add" ? "Create Event" : "Save Changes"}
                 </button>

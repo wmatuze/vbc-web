@@ -116,7 +116,7 @@ const EventAdminCard = ({ event, onEdit, onDelete, onDuplicate, onImageClick }) 
               <DocumentDuplicateIcon className="h-4 w-4" />
             </button>
             <button onClick={() => onEdit?.(event)} title="Edit"
-              className={`p-1.5 rounded-lg transition-colors ${darkMode ? "text-blue-400 hover:bg-blue-900/30" : "text-blue-500 hover:bg-blue-50"}`}>
+              className={`p-1.5 rounded-lg transition-colors ${darkMode ? "text-gray-400 hover:bg-gray-700 hover:text-gray-200" : "text-gray-400 hover:bg-gray-100"}`}>
               <PencilIcon className="h-4 w-4" />
             </button>
             <button onClick={() => onDelete?.(event)} title="Delete"
