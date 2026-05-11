@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import config from "../../config";
 
 // Static data moved outside component for better performance
 const FOOTER_LINKS = {
@@ -55,6 +56,25 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
   const [email, setEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [churchInfo, setChurchInfo] = useState({
+    address: "Off Chiwala Road, CBU East Gate",
+    phone: "+260 964 985 651",
+    email: "info@victorybiblechurch.com",
+  });
+
+  useEffect(() => {
+    fetch(`${config.API_URL}/api/config`)
+      .then(r => r.ok ? r.json() : null)
+      .then(cfg => {
+        if (!cfg) return;
+        setChurchInfo({
+          address: cfg.address || "Off Chiwala Road, CBU East Gate",
+          phone:   cfg.phone   || "+260 964 985 651",
+          email:   cfg.email   || "info@victorybiblechurch.com",
+        });
+      })
+      .catch(() => {});
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -98,23 +118,23 @@ const Footer = () => {
             <p className="text-brand-red text-xs font-semibold uppercase tracking-widest mt-1">Worship · Grow · Impact</p>
             <address className="not-italic text-gray-400">
               <p>Victory Bible Church - Kitwe</p>
-              <p>Off Chiwala Road, CBU East Gate</p>
+              <p>{churchInfo.address}</p>
               <p className="mt-2">
                 Phone:{" "}
                 <a
-                  href="tel:+260964985651"
+                  href={`tel:${churchInfo.phone.replace(/\s/g, "")}`}
                   className="hover:text-primary-400 transition-colors"
                 >
-                  +260 964 985 651
+                  {churchInfo.phone}
                 </a>
               </p>
               <p>
                 Email:{" "}
                 <a
-                  href="mailto:info@victorybiblechurch.com"
+                  href={`mailto:${churchInfo.email}`}
                   className="hover:text-primary-400 transition-colors"
                 >
-                  info@victorybiblechurch.com
+                  {churchInfo.email}
                 </a>
               </p>
             </address>

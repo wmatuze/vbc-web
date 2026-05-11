@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import {
@@ -12,38 +12,7 @@ import {
 } from "@heroicons/react/24/outline";
 import HeroSection from "../components/common/HeroSection";
 import { getApiUrl } from "../services/api/core";
-
-// ── Info panels ───────────────────────────────────────────────────────────────
-const INFO = [
-  {
-    num: "01",
-    Icon: MapPinIcon,
-    label: "Address",
-    value: "Off Chiwala Road CBU East Gate",
-    sub: "Kitwe, Zambia",
-  },
-  {
-    num: "02",
-    Icon: PhoneIcon,
-    label: "Phone",
-    value: "+260 97 000 0000",
-    sub: "Mon – Fri, 8 AM – 5 PM",
-  },
-  {
-    num: "03",
-    Icon: EnvelopeIcon,
-    label: "Email",
-    value: "info@victorybiblechurch.org",
-    sub: "We reply within 24 hours",
-  },
-  {
-    num: "04",
-    Icon: ClockIcon,
-    label: "Office Hours",
-    value: "Mon – Fri",
-    sub: "8:00 AM – 5:00 PM",
-  },
-];
+import appConfig from "../config";
 
 // ── Services ─────────────────────────────────────────────────────────────────
 const SERVICES = [
@@ -82,6 +51,33 @@ const ContactUs = () => {
   const [sending,  setSending]  = useState(false);
   const [sent,     setSent]     = useState(false);
   const [sendErr,  setSendErr]  = useState("");
+
+  const [churchInfo, setChurchInfo] = useState({
+    address: "Off Chiwala Road CBU East Gate",
+    phone:   "+260 97 000 0000",
+    email:   "info@victorybiblechurch.org",
+  });
+
+  useEffect(() => {
+    fetch(`${appConfig.API_URL}/api/config`)
+      .then(r => r.ok ? r.json() : null)
+      .then(cfg => {
+        if (!cfg) return;
+        setChurchInfo({
+          address: cfg.address || "Off Chiwala Road CBU East Gate",
+          phone:   cfg.phone   || "+260 97 000 0000",
+          email:   cfg.email   || "info@victorybiblechurch.org",
+        });
+      })
+      .catch(() => {});
+  }, []);
+
+  const INFO = [
+    { num: "01", Icon: MapPinIcon,    label: "Address",      value: churchInfo.address, sub: "Kitwe, Zambia"          },
+    { num: "02", Icon: PhoneIcon,     label: "Phone",        value: churchInfo.phone,   sub: "Mon – Fri, 8 AM – 5 PM" },
+    { num: "03", Icon: EnvelopeIcon,  label: "Email",        value: churchInfo.email,   sub: "We reply within 24 hours"},
+    { num: "04", Icon: ClockIcon,     label: "Office Hours", value: "Mon – Fri",        sub: "8:00 AM – 5:00 PM"      },
+  ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
