@@ -27,7 +27,7 @@ const RequestsTabs = ({ activeTab, setActiveTab, counts = {} }) => (
             onClick={() => setActiveTab(id)}
             className={`flex items-center gap-2 py-3.5 px-3 border-b-2 text-sm font-medium whitespace-nowrap transition-colors ${
               isActive
-                ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                ? "border-red-600 text-red-600 dark:text-red-500"
                 : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600"
             }`}
           >
@@ -36,7 +36,7 @@ const RequestsTabs = ({ activeTab, setActiveTab, counts = {} }) => (
             {count !== undefined && (
               <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
                 isActive
-                  ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"
+                  ? "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400"
                   : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
               }`}>
                 {count}

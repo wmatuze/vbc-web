@@ -71,7 +71,7 @@ const VisitorCard = ({ visitor, onStatusChange, onDelete }) => {
         {visitor.email && (
           <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300">
             <EnvelopeIcon className="h-3 w-3 text-gray-400 flex-shrink-0" />
-            <a href={`mailto:${visitor.email}`} className="truncate hover:text-blue-600">{visitor.email}</a>
+            <a href={`mailto:${visitor.email}`} className="truncate hover:text-red-600">{visitor.email}</a>
           </div>
         )}
         {visitor.phone && (
@@ -172,7 +172,7 @@ const VisitorRow = ({ visitor, onStatusChange, onDelete }) => {
             {visitor.email && (
               <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300">
                 <EnvelopeIcon className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                <a href={`mailto:${visitor.email}`} className="hover:text-blue-600 dark:hover:text-blue-400 truncate max-w-[160px]">
+                <a href={`mailto:${visitor.email}`} className="hover:text-red-600 dark:hover:text-red-400 truncate max-w-[160px]">
                   {visitor.email}
                 </a>
               </div>
@@ -201,7 +201,7 @@ const VisitorRow = ({ visitor, onStatusChange, onDelete }) => {
           <select
             value={visitor.status || "new"}
             onChange={(e) => onStatusChange(visitor._id, e.target.value)}
-            className={`text-xs px-2 py-1 rounded font-medium border-0 cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-400 ${STATUS_STYLES[visitor.status] || STATUS_STYLES.new}`}
+            className={`text-xs px-2 py-1 rounded font-medium border-0 cursor-pointer focus:outline-none focus:ring-1 focus:ring-red-600 ${STATUS_STYLES[visitor.status] || STATUS_STYLES.new}`}
           >
             {Object.entries(STATUS_LABELS).map(([val, label]) => (
               <option key={val} value={val}>{label}</option>
@@ -272,7 +272,7 @@ const VisitorsTab = ({ visitors = [], loading, error, onStatusChange, onDelete }
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        <div className="h-8 w-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -304,7 +304,7 @@ const VisitorsTab = ({ visitors = [], loading, error, onStatusChange, onDelete }
           placeholder="Search name or email…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 min-w-[160px] px-3 py-2 text-sm border border-gray-200 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
+          className="flex-1 min-w-[160px] px-3 py-2 text-sm border border-gray-200 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-red-600"
         />
         <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
           className="px-3 py-2 text-sm border border-gray-200 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none">

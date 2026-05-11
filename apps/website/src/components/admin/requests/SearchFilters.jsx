@@ -52,7 +52,7 @@ const SearchFilters = ({
           placeholder="Search by name, email or phone…"
           value={searchTerm}
           onChange={(e) => onSearchTermChange(e.target.value)}
-          className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-md focus:outline-none focus:ring-1 focus:ring-red-600 focus:border-red-600"
         />
       </div>
 
@@ -60,7 +60,7 @@ const SearchFilters = ({
       <select
         value={filterStatus}
         onChange={(e) => onFilterStatusChange(e.target.value)}
-        className="py-2 pl-3 pr-8 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+        className="py-2 pl-3 pr-8 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-1 focus:ring-red-600"
       >
         <option value="all">All Statuses</option>
         {statuses.map((s) => (
@@ -75,7 +75,7 @@ const SearchFilters = ({
         <select
           value={eventTypeFilter}
           onChange={handleEventTypeChange}
-          className="py-2 pl-3 pr-8 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="py-2 pl-3 pr-8 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-1 focus:ring-red-600"
         >
           <option value="all">All Event Types</option>
           <option value="baptism">Baptism</option>

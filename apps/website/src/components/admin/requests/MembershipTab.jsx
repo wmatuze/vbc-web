@@ -36,7 +36,7 @@ const MembershipTab = ({
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+      <table className="min-w-[700px] w-full divide-y divide-gray-200 dark:divide-gray-700">
         <thead className="bg-gray-50 dark:bg-gray-700/50">
           <tr>
             {["Member", "Contact", "Renewal Date", "Status", "Actions"].map((h, i) => (
@@ -117,18 +117,18 @@ const MembershipTab = ({
                       <button
                         onClick={() => approveAndNotifyMember(renewal)}
                         disabled={actionLoading}
-                        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-md disabled:opacity-50 transition-colors"
+                        title="Approve"
+                        className="inline-flex items-center justify-center p-1.5 text-white bg-green-600 hover:bg-green-700 rounded-md disabled:opacity-50 transition-colors"
                       >
-                        <CheckCircleIcon className="h-3.5 w-3.5" />
-                        Approve
+                        <CheckCircleIcon className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => declineAndNotifyMember(renewal)}
                         disabled={actionLoading}
-                        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded-md disabled:opacity-50 transition-colors"
+                        title="Decline"
+                        className="inline-flex items-center justify-center p-1.5 text-white bg-red-600 hover:bg-red-700 rounded-md disabled:opacity-50 transition-colors"
                       >
-                        <XCircleIcon className="h-3.5 w-3.5" />
-                        Decline
+                        <XCircleIcon className="h-4 w-4" />
                       </button>
                     </>
                   )}
