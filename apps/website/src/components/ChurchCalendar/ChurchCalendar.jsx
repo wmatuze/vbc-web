@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Modal from "react-modal";
 import FullCalendar from "@fullcalendar/react";
@@ -30,6 +31,7 @@ const MONTH = (d) => d.toLocaleString("default", { month: "short" }).toUpperCase
 const ChurchCalendar = () => {
   const currentYear = new Date().getFullYear();
   const { data: events = [], isLoading: loading, error, refetch } = useEventsQuery({ year: currentYear });
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [viewMode,         setViewMode]         = useState("grid");
   const [selectedEvent,    setSelectedEvent]    = useState(null);
@@ -38,6 +40,20 @@ const ChurchCalendar = () => {
   const [filteredEvents,   setFilteredEvents]   = useState([]);
   const [searchTerm,       setSearchTerm]       = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+
+  // Auto-open event modal when ?event=ID is in the URL (e.g. from home page links)
+  useEffect(() => {
+    const eventId = searchParams.get("event");
+    if (!eventId || !events.length) return;
+    const match = events.find(
+      (e) => (e.id || e._id?.toString()) === eventId
+    );
+    if (match) {
+      setSelectedEvent(match);
+      setIsModalOpen(true);
+      setSearchParams({}, { replace: true }); // clean up URL after opening
+    }
+  }, [searchParams, events]);
 
   const ministryCategories = [
     "All",

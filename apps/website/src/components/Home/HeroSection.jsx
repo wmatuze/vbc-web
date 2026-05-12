@@ -54,9 +54,13 @@ const MONTH_FULL = [
 
 // ── Compact event row (secondary events) ──────────────────────────────────────
 const EventRow = ({ event }) => {
-  const date = parseEventDate(event);
+  const date    = parseEventDate(event);
+  const eventId = event.id || event._id?.toString() || "";
   return (
-    <div className="flex items-center gap-4 py-4 border-b border-white/10 group">
+    <Link
+      to={`/events${eventId ? `?event=${eventId}` : ""}`}
+      className="flex items-center gap-4 py-4 border-b border-white/10 group cursor-pointer"
+    >
       {/* Red date badge */}
       <div className="flex-shrink-0 w-10 text-center">
         <p className="text-brand-red text-xs font-bold uppercase">
@@ -68,15 +72,15 @@ const EventRow = ({ event }) => {
       </div>
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className="text-white text-sm font-semibold leading-snug truncate group-hover:text-primary-300 transition-colors">
+        <p className="text-white text-sm font-semibold leading-snug truncate group-hover:text-white transition-colors">
           {event.title}
         </p>
         {event.time && (
           <p className="text-white/40 text-xs mt-0.5">{event.time}</p>
         )}
       </div>
-      <ArrowRightIcon className="h-3.5 w-3.5 text-white/20 group-hover:text-white/60 flex-shrink-0 transition-colors group-hover:translate-x-0.5 transition-transform" />
-    </div>
+      <ArrowRightIcon className="h-3.5 w-3.5 text-white/30 group-hover:text-brand-red flex-shrink-0 group-hover:translate-x-1 transition-all duration-200" />
+    </Link>
   );
 };
 
@@ -92,11 +96,11 @@ const HeroSection = forwardRef((props, ref) => {
       .map((e) => ({ ...e, _parsed: parseEventDate(e) }))
       .filter((e) => e._parsed >= today)
       .sort((a, b) => a._parsed - b._parsed)
-      .slice(0, 4);
+      .slice(0, 6);
   }, [events, isLoading]);
 
-  const featured = upcomingEvents[0] || null;
-  const secondary = upcomingEvents.slice(1, 4);
+  const featured  = upcomingEvents[0] || null;
+  const secondary = upcomingEvents.slice(1);
 
   return (
     <section ref={ref} className="relative min-h-screen overflow-hidden">
@@ -201,7 +205,7 @@ const HeroSection = forwardRef((props, ref) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="lg:col-span-5 relative flex flex-col justify-start px-5 sm:px-8 lg:px-10 pt-8 sm:pt-10 pb-10 sm:pb-14 lg:pt-36 lg:pb-24"
+          className="lg:col-span-5 relative flex flex-col justify-start px-5 sm:px-8 lg:px-10 3xl:px-16 pt-8 sm:pt-10 pb-10 sm:pb-14 lg:pt-36 lg:pb-24 3xl:pt-48 3xl:pb-36"
         >
           {/* Dark panel background */}
           <div className="absolute inset-0 bg-black/50 lg:bg-black/60 backdrop-blur-sm" />
@@ -301,8 +305,8 @@ const HeroSection = forwardRef((props, ref) => {
                     </div>
 
                     <Link
-                      to="/events"
-                      className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary-400 hover:text-primary-300 transition-colors group"
+                      to={`/events${featured.id || featured._id ? `?event=${featured.id || featured._id}` : ""}`}
+                      className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-brand-red hover:text-red-400 transition-colors group"
                     >
                       Learn More
                       <ArrowRightIcon className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
