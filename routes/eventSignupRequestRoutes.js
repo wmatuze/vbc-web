@@ -123,32 +123,13 @@ router.put("/:id", authMiddleware, async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    console.log(
-      `=== Updating event signup request ${id} to status: ${status} ===`
-    );
-
-    // Validate status
     if (!status || !["pending", "approved", "declined"].includes(status)) {
-      console.error(`Invalid status value: ${status}`);
       return res.status(400).json({
         error: "Invalid status value",
         allowedValues: ["pending", "approved", "declined"],
       });
     }
 
-    // Find the request first to log its details
-    const existingRequest = await models.EventSignupRequest.findById(id);
-    if (!existingRequest) {
-      console.error(`Signup request with ID ${id} not found`);
-      return res.status(404).json({ error: "Signup request not found" });
-    }
-
-    console.log(
-      `Found request for ${existingRequest.fullName}, event type: ${existingRequest.eventType}`
-    );
-    console.log(`EventId reference: ${existingRequest.eventId}`);
-
-    // Update the request and ensure eventId is populated
     const updatedRequest = await models.EventSignupRequest.findByIdAndUpdate(
       id,
       { status },
@@ -156,38 +137,12 @@ router.put("/:id", authMiddleware, async (req, res) => {
     ).populate("eventId");
 
     if (!updatedRequest) {
-      console.error(`Failed to update signup request with ID ${id}`);
       return res.status(404).json({ error: "Signup request not found" });
     }
 
-    console.log(
-      `Successfully updated request status to: ${updatedRequest.status}`
-    );
-
-    // Check if eventId was properly populated
-    if (updatedRequest.eventId) {
-      if (typeof updatedRequest.eventId === "object") {
-        console.log(
-          `Event details populated: ${updatedRequest.eventId.title || "No title"}`
-        );
-      } else {
-        console.log(
-          `EventId is not populated as an object: ${updatedRequest.eventId}`
-        );
-      }
-    } else {
-      console.log(`EventId is null or undefined after population`);
-    }
-
-    const formattedRequest = formatResponse(updatedRequest);
-    console.log(
-      `Returning formatted response for request ID: ${formattedRequest.id}`
-    );
-
-    res.json(formattedRequest);
+    res.json(formatResponse(updatedRequest));
   } catch (error) {
     console.error(`Error updating signup request ${req.params.id}:`, error);
-    console.error(`Error details:`, error.stack);
     res.status(500).json({ error: "Failed to update signup request" });
   }
 });
