@@ -13,8 +13,9 @@ import { formatDate } from "../../../utils/requests/requestsUtils.jsx";
 import StatusBadge from "./StatusBadge";
 
 const formatEventType = (type) => {
-  if (type === "babyDedication") return "Baby Dedication";
   if (!type) return "—";
+  if (type === "babyDedication") return "Baby Dedication";
+  if (type === "event" || type === "general") return "General Event";
   return type.charAt(0).toUpperCase() + type.slice(1);
 };
 

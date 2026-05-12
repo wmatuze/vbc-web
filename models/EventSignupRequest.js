@@ -9,7 +9,7 @@ const EventSignupRequestSchema = new mongoose.Schema({
   eventType: {
     type: String,
     required: true,
-    enum: ['baptism', 'babyDedication', 'other']
+    enum: ['event', 'general', 'baptism', 'babyDedication', 'other']
   },
   fullName: { 
     type: String, 

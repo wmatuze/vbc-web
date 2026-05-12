@@ -80,9 +80,10 @@ const EventSignUpForm = ({ event, onClose }) => {
     setServerError("");
 
     try {
+      const VALID_TYPES = new Set(["event", "general", "baptism", "babyDedication", "other"]);
       const payload = {
         eventId,
-        eventType: event.type || "event",
+        eventType: VALID_TYPES.has(event.type) ? event.type : "event",
         fullName:  formData.fullName,
         email:     formData.email,
         phone:     formData.phone,
