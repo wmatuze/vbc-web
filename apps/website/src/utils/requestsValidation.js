@@ -352,7 +352,7 @@ export const eventSignupRequestValidationRules = {
   eventType: {
     type: "string",
     required: true,
-    enum: ["baptism", "babyDedication", "other"],
+    enum: ["event", "general", "baptism", "babyDedication", "other"],
     fieldName: "Event Type",
   },
   fullName: {
