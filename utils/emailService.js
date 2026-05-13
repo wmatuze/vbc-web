@@ -97,26 +97,18 @@ const detailBlock = (items, accentColor) => {
 // ─── Transporter ─────────────────────────────────────────────────────────────
 
 if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-  console.error("ERROR: EMAIL_USER and EMAIL_PASSWORD must be set in .env file");
+  console.error("EMAIL_USER and EMAIL_PASSWORD must be set as environment variables");
   process.exit(1);
 }
 
-const isDevelopment = process.env.NODE_ENV !== "production";
-let transporter;
-
-if (isDevelopment || !process.env.NODE_ENV) {
-  transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASSWORD },
-  });
-} else {
-  transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
-    secure: process.env.EMAIL_SECURE === "true",
-    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASSWORD },
-  });
-}
+// Always use Gmail — credentials are a Gmail app password in all environments
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD,
+  },
+});
 
 // ─── Core sender ─────────────────────────────────────────────────────────────
 
