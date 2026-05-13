@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
@@ -89,20 +89,25 @@ const RequestsManager = () => {
     onConfirm: () => {},
   });
 
-  // Fetch data when tab changes
+  // On mount: fetch ALL tabs in parallel so every count badge is correct immediately
   useEffect(() => {
-    if (activeTab === "membership") {
-      fetchRenewals();
-    } else if (activeTab === "foundation") {
-      fetchEnrollments();
-    } else if (activeTab === "discipleship") {
-      fetchDiscipleshipRegistrations();
-    } else if (activeTab === "events") {
-      fetchEventSignups();
-    } else if (activeTab === "visitors") {
-      fetchVisitors();
-    }
-  }, [activeTab]);
+    fetchRenewals();
+    fetchEnrollments();
+    fetchDiscipleshipRegistrations();
+    fetchEventSignups();
+    fetchVisitors();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // On tab switch: refetch that tab's data for freshness (skip first render — mount already did it)
+  const initialRender = useRef(true);
+  useEffect(() => {
+    if (initialRender.current) { initialRender.current = false; return; }
+    if (activeTab === "membership")   fetchRenewals();
+    else if (activeTab === "foundation")   fetchEnrollments();
+    else if (activeTab === "discipleship") fetchDiscipleshipRegistrations();
+    else if (activeTab === "events")       fetchEventSignups();
+    else if (activeTab === "visitors")     fetchVisitors();
+  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fetch membership renewals
   const fetchRenewals = async () => {
