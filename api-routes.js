@@ -46,15 +46,6 @@ router.post("/foundation-classes/register", async (req, res) => {
   try {
     console.log("Received foundation class registration:", req.body);
 
-    // Set CORS headers explicitly for this endpoint
-    res.header("Access-Control-Allow-Origin", "http://localhost:5173");
-    res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
-    res.header(
-      "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-    );
-    res.header("Access-Control-Allow-Credentials", "true");
-
     const { fullName, email, phone, preferredSession, questions } = req.body;
 
     if (!fullName || !email || !phone || !preferredSession) {
@@ -65,11 +56,11 @@ router.post("/foundation-classes/register", async (req, res) => {
     }
 
     // Resolve session ID → human-readable name for the confirmation email
-    let sessionName = preferredSession;
+    let sessionName = "Session details to be confirmed";
     try {
       const session = await models.FoundationClassSession.findById(preferredSession);
       if (session?.name) sessionName = session.name;
-    } catch (_) { /* keep raw value if lookup fails */ }
+    } catch (_) { /* keep fallback label if lookup fails */ }
 
     const registrationDate = new Date();
 

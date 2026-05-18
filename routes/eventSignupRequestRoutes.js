@@ -3,6 +3,7 @@ const router = express.Router();
 const models = require("../models");
 const { authMiddleware } = require("../auth-middleware");
 const formatResponse = require("../utils/formatResponse");
+const emailService = require("../utils/emailService");
 
 // Get all event signup requests (admin only)
 router.get("/", authMiddleware, async (req, res) => {
@@ -109,6 +110,10 @@ router.post("/", async (req, res) => {
 
     const savedRequest = await signupRequest.save();
     const formattedRequest = formatResponse(savedRequest);
+
+    // Send confirmation emails — non-blocking, failure doesn't affect response
+    emailService.sendEventSignupRequestEmails(savedRequest, event)
+      .catch((err) => console.error("Error sending event signup emails:", err));
 
     res.status(201).json(formattedRequest);
   } catch (error) {

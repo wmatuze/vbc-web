@@ -672,6 +672,95 @@ const sendDiscipleshipCertificate = async (registration) => {
   });
 };
 
+// ─── Event signup request confirmation ───────────────────────────────────────
+
+const sendEventSignupRequestEmails = async (request, event) => {
+  if (!request?.email || !request?.fullName) {
+    throw new Error("Missing required signup data: email and fullName are required");
+  }
+
+  const isBaptism       = request.eventType === "baptism";
+  const isBabyDedication = request.eventType === "babyDedication";
+
+  const eventTitle = event?.title || "the upcoming event";
+  const eventDate  = event?.startDate ? formatDate(event.startDate) : null;
+
+  const subjectSuffix = isBaptism
+    ? "Baptism Registration"
+    : isBabyDedication
+    ? "Baby Dedication Registration"
+    : "Event Registration";
+
+  try {
+    // ── Registrant confirmation ──────────────────────────────────────────────
+    await sendEmail({
+      to: request.email,
+      subject: `${subjectSuffix} Received — Victory Bible Church`,
+      text: `Dear ${request.fullName}, your registration for ${eventTitle} has been received. We will be in touch shortly to confirm your spot.`,
+      html: createEmailTemplate(
+        "Registration Received",
+        BRAND.red,
+        `<p style="color:#374151;font-size:15px;line-height:1.7;">Dear ${request.fullName},</p>
+         <p style="color:#374151;font-size:15px;line-height:1.7;">
+           Thank you for registering for <strong>${eventTitle}</strong>. We've received your submission and our team will be in touch shortly to confirm your spot.
+         </p>
+         ${detailBlock([
+           ["Event",   eventTitle],
+           ...(eventDate ? [["Date", eventDate]] : []),
+           ["Name",    request.fullName],
+           ["Phone",   request.phone],
+           ...(isBabyDedication && request.childName
+             ? [["Child's Name", request.childName]] : []),
+           ...(isBabyDedication && request.childDateOfBirth
+             ? [["Child's Date of Birth", formatDate(request.childDateOfBirth)]] : []),
+         ])}
+         <p style="color:#374151;font-size:15px;line-height:1.7;">If you have any questions in the meantime, feel free to reach out to our church office.</p>
+         <p style="color:#374151;font-size:15px;line-height:1.7;">God bless,<br><strong>Victory Bible Church</strong></p>`
+      ),
+    });
+
+    // ── Admin notification ───────────────────────────────────────────────────
+    await sendEmail({
+      to: process.env.ADMIN_EMAIL || "admin@victorybiblechurch.org",
+      subject: `New ${subjectSuffix}: ${request.fullName}`,
+      text: `New ${subjectSuffix.toLowerCase()} from ${request.fullName} (${request.email}) for ${eventTitle}.`,
+      html: createEmailTemplate(
+        `New ${subjectSuffix}`,
+        BRAND.red,
+        `<p style="color:#374151;font-size:15px;line-height:1.7;">A new ${subjectSuffix.toLowerCase()} has been submitted.</p>
+         ${detailBlock([
+           ["Event",          eventTitle],
+           ...(eventDate ? [["Date", eventDate]] : []),
+           ["Name",           request.fullName],
+           ["Email",          request.email],
+           ["Phone",          request.phone],
+           ...(isBaptism && request.testimony
+             ? [["Testimony", request.testimony]] : []),
+           ...(isBaptism && request.previousReligion
+             ? [["Previous Religion", request.previousReligion]] : []),
+           ...(isBabyDedication && request.childName
+             ? [["Child's Name", request.childName]] : []),
+           ...(isBabyDedication && request.childDateOfBirth
+             ? [["Child's Date of Birth", formatDate(request.childDateOfBirth)]] : []),
+           ...(isBabyDedication && request.parentNames
+             ? [["Parent Names", request.parentNames]] : []),
+           ...(!isBaptism && !isBabyDedication && request.message
+             ? [["Message", request.message]] : []),
+           ["Submitted", formatDate(request.submittedAt || new Date())],
+         ])}
+         <p style="text-align:center;margin:28px 0;">
+           <a href="${process.env.ADMIN_URL || "https://victorybiblechurch.org/admin"}/requests"
+              style="background:${BRAND.red};color:${BRAND.white};padding:12px 24px;text-decoration:none;border-radius:2px;font-size:14px;font-weight:600;display:inline-block;">
+             Review in Admin Dashboard
+           </a>
+         </p>`
+      ),
+    });
+  } catch (error) {
+    console.error("Error sending event signup request emails:", error);
+  }
+};
+
 // ─── Discipleship class registration confirmation ─────────────────────────────
 
 const sendDiscipleshipRegistrationEmails = async (registration) => {
@@ -770,6 +859,7 @@ module.exports = {
   sendCellGroupJoinRequestEmails,
   sendSupportRequestEmail,
   sendVisitorRegistrationEmails,
+  sendEventSignupRequestEmails,
   sendDiscipleshipCertificate,
   sendDiscipleshipRegistrationEmails,
 };
