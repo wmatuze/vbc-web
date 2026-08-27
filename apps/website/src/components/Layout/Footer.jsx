@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import config from "../../config";
 
 // Static data moved outside component for better performance
@@ -87,8 +88,8 @@ const Footer = () => {
   return (
     <footer className="bg-vbc-dark text-white border-t-2 border-brand-red/40">
       {/* Main Footer Content */}
-      <div className="container mx-auto px-4 pt-16 pb-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-8">
+      <div className="container mx-auto px-5 pb-6 pt-10 sm:px-8 sm:pb-8 sm:pt-14 lg:px-4 lg:pt-16">
+        <div className="grid grid-cols-1 gap-7 md:grid-cols-3 md:gap-8 lg:grid-cols-6">
           {/* Church Info */}
           <div className="lg:col-span-2 space-y-4">
             <Link
@@ -141,7 +142,7 @@ const Footer = () => {
           </div>
 
           {/* About Links */}
-          <nav aria-label="About">
+          <nav aria-label="About" className="hidden md:block">
             <h4 className="text-lg font-semibold mb-4 border-b border-white/10 pb-2">
               About
             </h4>
@@ -160,7 +161,7 @@ const Footer = () => {
           </nav>
 
           {/* Programs Links */}
-          <nav aria-label="Programs">
+          <nav aria-label="Programs" className="hidden md:block">
             <h4 className="text-lg font-semibold mb-4 border-b border-white/10 pb-2">
               Programs
             </h4>
@@ -179,7 +180,7 @@ const Footer = () => {
           </nav>
 
           {/* Media Links */}
-          <nav aria-label="Media">
+          <nav aria-label="Media" className="hidden md:block">
             <h4 className="text-lg font-semibold mb-4 border-b border-white/10 pb-2">
               Media
             </h4>
@@ -198,7 +199,7 @@ const Footer = () => {
           </nav>
 
           {/* Connect Links */}
-          <nav aria-label="Connect">
+          <nav aria-label="Connect" className="hidden md:block">
             <h4 className="text-lg font-semibold mb-4 border-b border-white/10 pb-2">
               Connect
             </h4>
@@ -217,20 +218,46 @@ const Footer = () => {
           </nav>
         </div>
 
+        {/* Compact navigation on phones keeps the footer useful without becoming a second page. */}
+        <div className="mt-7 divide-y divide-white/10 border-y border-white/10 md:hidden">
+          {Object.entries(FOOTER_LINKS).map(([section, links]) => (
+            <details key={section} className="group">
+              <summary className="flex cursor-pointer list-none items-center justify-between py-4 text-sm font-semibold capitalize outline-none focus-visible:text-primary-400 [&::-webkit-details-marker]:hidden">
+                {section}
+                <ChevronDownIcon className="h-4 w-4 text-white/35 transition-transform group-open:rotate-180" />
+              </summary>
+              <nav aria-label={`${section} links`} className="pb-4">
+                <ul className="grid grid-cols-2 gap-x-5 gap-y-3">
+                  {links.map((link) => (
+                    <li key={link.path}>
+                      <Link
+                        to={link.path}
+                        className="text-sm text-gray-400 transition-colors hover:text-primary-400 focus:outline-none focus:text-primary-400"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            </details>
+          ))}
+        </div>
+
         {/* Secondary Footer Info */}
-        <div className="border-t border-white/5 mt-12 pt-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="mt-8 border-t border-white/5 pt-7 sm:mt-10 md:mt-12 md:pt-8">
+          <div className="grid grid-cols-1 gap-7 md:grid-cols-3 md:gap-8">
             {/* Service Times */}
             <div>
-              <h4 className="text-lg font-semibold mb-4">Service Times</h4>
-              <div className="space-y-3">
-                <div>
+              <h4 className="mb-3 text-base font-semibold sm:text-lg md:mb-4">Service Times</h4>
+              <div className="grid grid-cols-2 gap-4 md:block md:space-y-3">
+                <div className="min-w-0">
                   <p className="font-medium">Sunday Services</p>
                   <time className="text-gray-400" dateTime="09:30">
                     09:30 AM
                   </time>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="font-medium">Wednesday Service</p>
                   <time className="text-gray-400" dateTime="18:00">
                     06:00 PM
@@ -238,7 +265,7 @@ const Footer = () => {
                 </div>
                 <Link
                   to="/contact"
-                  className="inline-block mt-2 text-primary-400 hover:text-primary-300 transition-colors"
+                  className="col-span-2 inline-block text-sm text-primary-400 transition-colors hover:text-primary-300 md:mt-2"
                 >
                   Get Directions →
                 </Link>
@@ -247,8 +274,8 @@ const Footer = () => {
 
             {/* Newsletter Signup */}
             <div>
-              <h4 className="text-lg font-semibold mb-4">Stay Connected</h4>
-              <p className="text-gray-400 mb-4">
+              <h4 className="mb-3 text-base font-semibold sm:text-lg md:mb-4">Stay Connected</h4>
+              <p className="mb-3 text-sm leading-6 text-gray-400 md:mb-4">
                 Subscribe to our newsletter for updates and inspiration.
               </p>
 
@@ -266,7 +293,7 @@ const Footer = () => {
                   <label htmlFor="newsletter-email" className="sr-only">
                     Email address
                   </label>
-                  <div className="flex">
+                  <div className="flex min-w-0">
                     <input
                       id="newsletter-email"
                       name="email"
@@ -276,11 +303,11 @@ const Footer = () => {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="Your email address"
                       required
-                      className="px-3 py-2 bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary-500 flex-grow text-sm"
+                      className="min-w-0 flex-1 border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                     />
                     <button
                       type="submit"
-                      className="bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-400 text-white px-4 py-2 transition-colors font-semibold text-xs uppercase tracking-wider"
+                      className="shrink-0 bg-primary-600 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-400"
                     >
                       Sign Up
                     </button>
@@ -291,7 +318,7 @@ const Footer = () => {
 
             {/* Social Media */}
             <div>
-              <h4 className="text-lg font-semibold mb-4">Follow Us</h4>
+              <h4 className="mb-3 text-base font-semibold sm:text-lg md:mb-4">Follow Us</h4>
               <div className="flex space-x-4">
                 {SOCIAL_LINKS.map((social) => (
                   <a
@@ -352,7 +379,7 @@ const Footer = () => {
 
       {/* Copyright */}
       <div className="border-t border-white/5">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-5 py-5 sm:px-8 lg:px-4 lg:py-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm text-gray-500">
               © {currentYear} Victory Bible Church. All rights reserved.

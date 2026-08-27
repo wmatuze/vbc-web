@@ -1,193 +1,190 @@
+import { useLayoutEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ArrowRightIcon } from "@heroicons/react/24/outline";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 
-// Each ministry has its own gradient overlay applied over the shared hero photo
+gsap.registerPlugin(ScrollTrigger);
+
 const MINISTRIES = [
   {
     number: "01",
     label: "Youth Ministry",
     name: "Lit Nation",
-    description: "Empowering the next generation to live boldly in faith.",
+    description: "A generation learning to live boldly in faith.",
     path: "/ministries/youths",
-    overlay: "from-blue-900/90 via-blue-800/70 to-transparent",
-    accent: "text-blue-300",
+    image: "/images/youth-ministry.jpg",
+    size: "max-w-[13rem] lg:h-[11rem] lg:w-[11rem] xl:h-[13rem] xl:w-[13rem] xl:max-w-none",
   },
   {
     number: "02",
     label: "Men's Ministry",
     name: "Men of Valour",
-    description: "Building men of integrity, purpose, and unshakeable faith.",
+    description: "Men shaped by integrity, purpose, and service.",
     path: "/ministries/mens",
-    overlay: "from-slate-900/95 via-slate-800/75 to-transparent",
-    accent: "text-gray-300",
+    image: "/images/mens-ministry.jpg",
+    size: "max-w-[17rem] lg:h-[16rem] lg:w-[16rem] xl:h-[18rem] xl:w-[18rem] xl:max-w-none",
   },
   {
     number: "03",
     label: "Women's Ministry",
     name: "Daughters of Zion",
-    description: "Empowering women through fellowship, faith, and service.",
+    description: "Women growing together through faith and fellowship.",
     path: "/ministries/womens",
-    overlay: "from-rose-900/90 via-rose-800/70 to-transparent",
-    accent: "text-rose-300",
+    image: "/images/andressa-voltolini-H7WdV-dNRZE-unsplash.jpg",
+    size: "max-w-[21rem] lg:h-[21rem] lg:w-[21rem] xl:h-[24rem] xl:w-[24rem] xl:max-w-none",
+  },
+  {
+    number: "04",
+    label: "Praise & Worship",
+    name: "Praise Ministry",
+    description: "Leading people into God's presence through worship.",
+    path: "/ministries/praise",
+    image: "/images/praise-ministry.jpg",
+    size: "max-w-[25rem] lg:h-[27rem] lg:w-[27rem] xl:h-[30rem] xl:w-[30rem] xl:max-w-none",
   },
 ];
 
-const PRAISE = {
-  number: "04",
-  label: "Praise & Worship",
-  name: "Ministry",
-  description: "Leading people into God's presence through worship.",
-  path: "/ministries/praise",
-  overlay: "from-purple-900/85 via-indigo-900/70 to-transparent",
-  accent: "text-purple-300",
-};
-
-const MinistryCard = ({ ministry, className = "", textSize = "text-3xl" }) => (
-  <Link
-    to={ministry.path}
-    className={`group relative overflow-hidden block ${className}`}
-    style={{
-      backgroundImage: "url(/assets/hero-bg.jpg)",
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-    }}
-  >
-    {/* Gradient overlay */}
-    <div
-      className={`absolute inset-0 bg-gradient-to-t ${ministry.overlay} group-hover:opacity-90 transition-opacity duration-500`}
-    />
-
-    {/* Bottom content */}
-    <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-8">
-      <p
-        className={`${ministry.accent} text-xs font-semibold uppercase tracking-widest mb-1.5`}
-      >
-        {ministry.number} · {ministry.label}
-      </p>
-      <h3
-        className={`${textSize} font-bold text-white leading-tight mb-3 group-hover:translate-x-1 transition-transform duration-300`}
-      >
-        {ministry.name}
-      </h3>
-      <p className="text-white/55 text-sm leading-relaxed mb-5 max-w-xs">
-        {ministry.description}
-      </p>
-      <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-white/50 group-hover:text-white transition-colors duration-300">
-        Explore
-        <ArrowRightIcon className="h-3.5 w-3.5 group-hover:translate-x-1.5 transition-transform duration-300" />
-      </span>
-    </div>
-
-    {/* Top number (decorative, fades on hover) */}
-    <div className="absolute top-6 right-6 text-white/5 text-8xl font-black leading-none select-none group-hover:text-white/10 transition-colors duration-500">
-      {ministry.number}
-    </div>
-  </Link>
-);
-
 const Ministries = () => {
+  const sectionRef = useRef(null);
+  const stickyRef = useRef(null);
+  const circlesRef = useRef([]);
+  const lineRef = useRef(null);
+
+  useLayoutEffect(() => {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) return undefined;
+
+    const context = gsap.context(() => {
+      const media = gsap.matchMedia();
+
+      media.add("(min-width: 1024px)", () => {
+        gsap.fromTo(
+          circlesRef.current,
+          { scale: 0.45, opacity: 0.16, y: 100 },
+          {
+            scale: 1,
+            opacity: 1,
+            y: 0,
+            stagger: 0.22,
+            ease: "none",
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: "top top",
+              end: "bottom bottom",
+              scrub: 1,
+            },
+          },
+        );
+        gsap.fromTo(
+          lineRef.current,
+          { scaleY: 0, transformOrigin: "top" },
+          {
+            scaleY: 1,
+            ease: "none",
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: "top 70%",
+              end: "bottom 45%",
+              scrub: 1,
+            },
+          },
+        );
+      });
+
+      media.add("(max-width: 1023px)", () => {
+        gsap.fromTo(
+          circlesRef.current,
+          { scale: 0.82, opacity: 0, y: 45 },
+          {
+            scale: 1,
+            opacity: 1,
+            y: 0,
+            duration: 0.65,
+            stagger: 0.12,
+            ease: "power2.out",
+            scrollTrigger: { trigger: sectionRef.current, start: "top 75%" },
+          },
+        );
+      });
+
+      return () => media.revert();
+    }, sectionRef);
+
+    return () => context.revert();
+  }, []);
+
   return (
-    <section className="bg-[#0f172a]">
-      {/* Section label */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
-        className="px-5 sm:px-10 pt-10 sm:pt-14 pb-6 sm:pb-8 flex items-end justify-between max-w-screen-2xl 3xl:max-w-[1800px] mx-auto w-full"
-      >
-        <div>
-          <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-2">
-            Serving Together
-          </p>
-          <h2 className="text-3xl md:text-4xl font-bold text-white">
-            Our <span className="text-primary-400">Ministries</span>
-          </h2>
-        </div>
-        <Link
-          to="/ministries"
-          className="hidden md:inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-white/40 hover:text-white transition-colors group"
-        >
-          All Ministries
-          <ArrowRightIcon className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
-        </Link>
-      </motion.div>
+    <section ref={sectionRef} className="relative min-h-[140vh] bg-[#07101f] text-white lg:min-h-[190vh]">
+      <div ref={stickyRef} className="relative overflow-hidden px-5 py-16 sm:px-10 lg:sticky lg:top-0 lg:flex lg:h-screen lg:items-center lg:px-12 lg:py-20 2xl:px-20">
+        <div className="pointer-events-none absolute -right-[18vw] top-[-25vw] h-[55vw] w-[55vw] rounded-full border border-primary-500/10" />
+        <div ref={lineRef} className="pointer-events-none absolute left-7 top-0 hidden h-full w-px bg-gradient-to-b from-brand-red via-brand-red/80 to-transparent lg:block" />
 
-      {/* Main grid — large left + two stacked right */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ once: true }}
-        className="flex flex-col lg:flex-row max-w-screen-2xl 3xl:max-w-[1800px] mx-auto w-full"
-      >
-        {/* Large left card — Youth */}
-        <MinistryCard
-          ministry={MINISTRIES[0]}
-          className="lg:w-3/5 min-h-[340px] sm:min-h-[420px] lg:min-h-[500px] 3xl:min-h-[640px]"
-          textSize="text-3xl sm:text-4xl 3xl:text-5xl"
-        />
-
-        {/* Right column — Men + Women stacked */}
-        <div className="flex flex-col lg:w-2/5">
-          <MinistryCard
-            ministry={MINISTRIES[1]}
-            className="flex-1 min-h-[200px] sm:min-h-[220px] lg:min-h-[250px] 3xl:min-h-[320px] border-b border-white/5"
-            textSize="text-2xl 3xl:text-3xl"
-          />
-          <MinistryCard
-            ministry={MINISTRIES[2]}
-            className="flex-1 min-h-[200px] sm:min-h-[220px] lg:min-h-[250px] 3xl:min-h-[320px]"
-            textSize="text-2xl 3xl:text-3xl"
-          />
-        </div>
-      </motion.div>
-
-      {/* Bottom banner — Praise & Worship */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
-        className="relative overflow-hidden border-t border-white/5"
-        style={{
-          backgroundImage: "url(/assets/hero-bg.jpg)",
-          backgroundSize: "cover",
-          backgroundPosition: "center 70%",
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/90 via-indigo-950/85 to-purple-900/90" />
-        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 sm:gap-6 px-5 sm:px-10 py-8 sm:py-12 max-w-screen-2xl 3xl:max-w-[1800px] mx-auto w-full">
-          <div>
-            <p
-              className={`${PRAISE.accent} text-xs font-semibold uppercase tracking-widest mb-1.5`}
-            >
-              {PRAISE.number} · {PRAISE.label}
+        <div className="relative z-10 mx-auto grid w-full max-w-screen-2xl gap-14 lg:grid-cols-[0.7fr_2.3fr] lg:items-center lg:gap-8">
+          <div className="lg:self-start lg:pt-8">
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-red">Our ministries</p>
+            <h2 className="mt-5 max-w-sm font-display text-5xl leading-[0.96] sm:text-6xl lg:max-w-[15rem] lg:text-6xl xl:text-7xl">
+              There is a place for you here.
+            </h2>
+            <p className="mt-6 max-w-xs text-sm leading-7 text-white/45 lg:max-w-[13rem]">
+              One church. Different generations, gifts, and callings—growing outward from the same centre.
             </p>
-            <h3 className="text-3xl 3xl:text-4xl font-bold text-white">
-              {PRAISE.name}
-            </h3>
-            <p className="text-white/50 text-sm mt-1">{PRAISE.description}</p>
-          </div>
-          <Link
-            to={PRAISE.path}
-            className="flex-shrink-0 inline-flex items-center gap-3 border border-white/25 text-white text-xs font-semibold uppercase tracking-widest px-8 py-4 hover:bg-white hover:text-black transition-all duration-300 group"
-          >
-            Explore Ministry
-            <ArrowRightIcon className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
-        </div>
-      </motion.div>
 
-      {/* Mobile all-ministries link */}
-      <div className="md:hidden px-10 py-6 text-center">
-        <Link
-          to="/ministries"
-          className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-white/40 hover:text-white transition-colors"
-        >
-          All Ministries <ArrowRightIcon className="h-3.5 w-3.5" />
-        </Link>
+            <div className="mt-10 hidden items-center gap-4 lg:flex">
+              <span className="h-2.5 w-2.5 rounded-full bg-brand-red" />
+              <span className="h-px w-16 bg-white/25" />
+              <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/45">Featured ministries</span>
+            </div>
+
+            <Link
+              to="/ministries/youths"
+              className="group mt-10 inline-flex items-center gap-3 border-b border-white/20 pb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white/60 hover:border-white hover:text-white"
+            >
+              Begin exploring
+              <ArrowUpRightIcon className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+            </Link>
+          </div>
+
+          <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-end lg:justify-end lg:gap-0">
+            {MINISTRIES.map((ministry, index) => (
+              <Link
+                key={ministry.number}
+                ref={(node) => { circlesRef.current[index] = node; }}
+                to={ministry.path}
+                className={`group relative aspect-square w-full flex-none overflow-hidden rounded-full border ${
+                  index === MINISTRIES.length - 1 ? "border-brand-red/70" : "border-primary-400/55"
+                } ${ministry.size} lg:-ml-24 xl:-ml-28`}
+                style={{ zIndex: MINISTRIES.length - index }}
+                aria-label={`Explore ${ministry.name}`}
+              >
+                <img
+                  src={ministry.image}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover grayscale-[20%] transition duration-700 group-hover:scale-105 group-hover:grayscale-0"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#050b16] via-[#07101f]/30 to-transparent" />
+                <div className="absolute inset-[7%] rounded-full border border-white/10 transition-transform duration-700 group-hover:scale-95" />
+
+                <div className="absolute inset-x-0 bottom-0 p-[12%]">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary-300">
+                    {ministry.number} · {ministry.label}
+                  </p>
+                  <h3 className="mt-2 max-w-[12ch] text-xl font-semibold leading-tight sm:text-2xl">
+                    {ministry.name}
+                  </h3>
+                  {index >= 2 && (
+                    <p className="mt-2 hidden max-w-[24ch] text-xs leading-5 text-white/55 xl:block">
+                      {ministry.description}
+                    </p>
+                  )}
+                </div>
+
+                <ArrowUpRightIcon className="absolute right-[12%] top-[12%] h-5 w-5 text-white/45 transition-all group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:text-white" />
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );

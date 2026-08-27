@@ -1,355 +1,226 @@
+import { forwardRef, useLayoutEffect, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
-import { forwardRef, useState, useEffect, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useEventsQuery } from "../../hooks/useEventsQuery";
+import { gsap } from "gsap";
 import {
   ArrowRightIcon,
   CalendarDaysIcon,
-  MapPinIcon,
   ClockIcon,
+  MapPinIcon,
 } from "@heroicons/react/24/outline";
+import { useEventsQuery } from "../../hooks/useEventsQuery";
 
-// ── Date helpers ──────────────────────────────────────────────────────────────
 const parseEventDate = (event) => {
-  try {
-    const raw = event?.startDate || event?.date;
-    if (!raw) return new Date();
-    if (raw instanceof Date) return raw;
-    const d = new Date(raw);
-    return isNaN(d.getTime()) ? new Date() : d;
-  } catch {
-    return new Date();
-  }
+  const raw = event?.startDate || event?.date;
+  const parsed = raw ? new Date(raw) : null;
+  return parsed && !Number.isNaN(parsed.getTime()) ? parsed : null;
 };
 
-const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const MONTH_NAMES = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-const MONTH_FULL = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
+const formatEventDate = (date) =>
+  date?.toLocaleDateString("en-GB", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+  });
 
-// ── Compact event row (secondary events) ──────────────────────────────────────
-const EventRow = ({ event }) => {
-  const date    = parseEventDate(event);
-  const eventId = event.id || event._id?.toString() || "";
-  return (
-    <Link
-      to={`/events${eventId ? `?event=${eventId}` : ""}`}
-      className="flex items-center gap-4 py-4 border-b border-white/10 group cursor-pointer"
-    >
-      {/* Red date badge */}
-      <div className="flex-shrink-0 w-10 text-center">
-        <p className="text-brand-red text-xs font-bold uppercase">
-          {MONTH_NAMES[date.getMonth()]}
-        </p>
-        <p className="text-white text-xl font-black leading-none">
-          {date.getDate()}
-        </p>
-      </div>
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <p className="text-white text-sm font-semibold leading-snug truncate group-hover:text-white transition-colors">
-          {event.title}
-        </p>
-        {event.time && (
-          <p className="text-white/40 text-xs mt-0.5">{event.time}</p>
-        )}
-      </div>
-      <ArrowRightIcon className="h-3.5 w-3.5 text-white/30 group-hover:text-brand-red flex-shrink-0 group-hover:translate-x-1 transition-all duration-200" />
-    </Link>
-  );
-};
-
-// ── Main HeroSection ──────────────────────────────────────────────────────────
-const HeroSection = forwardRef((props, ref) => {
-  const { data: events = [], isLoading, refetch } = useEventsQuery();
+const HeroSection = forwardRef((props, forwardedRef) => {
+  const sectionRef = useRef(null);
+  const ringRef = useRef(null);
+  const contentRef = useRef(null);
+  const eventRef = useRef(null);
+  const { data: events = [], isLoading } = useEventsQuery();
 
   const upcomingEvents = useMemo(() => {
-    if (isLoading || !events?.length) return [];
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return events
-      .map((e) => ({ ...e, _parsed: parseEventDate(e) }))
-      .filter((e) => e._parsed >= today)
-      .sort((a, b) => a._parsed - b._parsed)
-      .slice(0, 6);
-  }, [events, isLoading]);
 
-  const featured  = upcomingEvents[0] || null;
-  const secondary = upcomingEvents.slice(1);
+    return events
+      .map((event) => ({ ...event, _date: parseEventDate(event) }))
+      .filter((event) => event._date && event._date >= today)
+      .sort((a, b) => a._date - b._date)
+      .slice(0, 2);
+  }, [events]);
+
+  const featuredEvent = upcomingEvents[0];
+  const secondaryEvent = upcomingEvents[1];
+
+  const setSectionRef = (node) => {
+    sectionRef.current = node;
+    if (typeof forwardedRef === "function") forwardedRef(node);
+    else if (forwardedRef) forwardedRef.current = node;
+  };
+
+  useLayoutEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
+
+    const context = gsap.context(() => {
+      gsap.fromTo(
+        contentRef.current?.children || [],
+        { y: 34, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.85, stagger: 0.1, ease: "power3.out" },
+      );
+      gsap.fromTo(
+        ringRef.current,
+        { scale: 0.65, opacity: 0, rotate: -18 },
+        { scale: 1, opacity: 1, rotate: 0, duration: 1.4, ease: "power3.out" },
+      );
+      gsap.fromTo(
+        eventRef.current,
+        { x: 40, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.9, delay: 0.45, ease: "power3.out" },
+      );
+    }, sectionRef);
+
+    return () => context.revert();
+  }, []);
+
+  const eventId = featuredEvent?.id || featuredEvent?._id;
+  const secondaryEventId = secondaryEvent?.id || secondaryEvent?._id;
 
   return (
-    <section ref={ref} className="relative min-h-screen overflow-hidden">
-      {/* ── Background ── */}
-      <div className="absolute inset-0">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url(/assets/hero-bg.jpg)" }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-black/85 via-black/70 to-black/85" />
+    <section
+      ref={setSectionRef}
+      className="relative isolate min-h-[100svh] overflow-hidden bg-[#06080d] text-white"
+    >
+      <div
+        className="absolute inset-0 bg-cover bg-[72%_center] lg:bg-center"
+        style={{ backgroundImage: "url(/assets/hero-bg.jpg)" }}
+        aria-hidden="true"
+      />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,6,10,.98)_0%,rgba(4,6,10,.88)_42%,rgba(4,6,10,.34)_72%,rgba(4,6,10,.7)_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.22),rgba(0,0,0,.08)_60%,rgba(0,0,0,.82))]" />
+
+      <div
+        ref={ringRef}
+        className="pointer-events-none absolute -right-[34vw] top-[12vh] h-[82vw] w-[82vw] rounded-full border border-brand-red/55 sm:-right-[26vw] lg:-right-[8vw] lg:top-[-18vh] lg:h-[70vw] lg:w-[70vw] xl:h-[58vw] xl:w-[58vw]"
+        aria-hidden="true"
+      >
+        <div className="absolute inset-[12%] rounded-full border border-primary-500/20" />
       </div>
 
-      {/* ── Content grid ── */}
-      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 lg:min-h-screen max-w-screen-2xl 3xl:max-w-[1800px] 4xl:max-w-[2400px] mx-auto">
-        {/* ════════════════════════════════════════════════════════════
-            LEFT COLUMN — welcome + headline + CTAs
-        ═══════════════════════════════════════════════════════════════ */}
-        <div className="lg:col-span-7 min-h-screen lg:min-h-0 flex flex-col justify-start px-5 sm:px-8 lg:px-16 3xl:px-24 pt-[180px] sm:pt-[180px] lg:pt-36 3xl:pt-48 pb-10 sm:pb-16 lg:pb-24 3xl:pb-36">
-          {/* Eyebrow */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.7, delay: 0.1 }}
-            className="flex items-center gap-4 mb-8"
-          >
-            <div className="h-px w-10 bg-brand-red" />
-            <p className="text-white/70 text-xs font-semibold tracking-[0.2em]">
-              Welcome!
-            </p>
-          </motion.div>
-
-          {/* Headline */}
-          <div className="mb-6 sm:mb-8 space-y-0.5 sm:space-y-1 overflow-hidden">
-            {[
-              { text: "Sinning when alone", delay: 0.2 },
-              { text: "is easy, but", delay: 0.35, accent: false },
-              { text: "worshipping", delay: 0.5, accent: true },
-              { text: "alone is", delay: 0.65 },
-              { text: "difficult.", delay: 0.8, accent: true },
-            ].map((line, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  duration: 0.6,
-                  delay: line.delay,
-                  ease: "easeOut",
-                }}
-              >
-                <span
-                  className={`block text-3xl sm:text-4xl lg:text-6xl 2xl:text-7xl 3xl:text-8xl font-black leading-tight tracking-tight ${
-                    line.accent ? "text-primary-400" : "text-white"
-                  }`}
-                >
-                  {line.text}
-                </span>
-              </motion.div>
-            ))}
+      <div className="relative z-10 mx-auto grid min-h-[100svh] max-w-screen-2xl grid-cols-1 items-end px-5 pb-10 pt-28 sm:px-8 sm:pb-14 lg:grid-cols-12 lg:items-center lg:px-14 lg:pb-20 lg:pt-32 2xl:px-20">
+        <div ref={contentRef} className="lg:col-span-7 lg:max-w-3xl">
+          <div className="mb-6 flex items-center gap-4 sm:mb-8">
+            <span className="h-px w-10 bg-brand-red" />
           </div>
 
-          {/* Tagline */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 1.0 }}
-            className="text-white/60 text-base sm:text-lg 3xl:text-xl leading-relaxed max-w-md 3xl:max-w-xl mb-8 sm:mb-12"
-          >
-            Join our vibrant community where faith grows stronger through
-            fellowship, worship, and service to others.
-          </motion.p>
+          <h1 className="max-w-[15ch] font-sans text-[clamp(2.65rem,6.2vw,6.8rem)] font-black leading-[0.94] tracking-[-0.055em]">
+            <span className="block">Sinning when alone</span>
+            <span className="block">is easy, but</span>
+            <span className="block text-primary-400">worshipping</span>
+            <span className="block">
+              alone is <span className="text-primary-400">difficult.</span>
+            </span>
+          </h1>
 
-          {/* CTAs */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.2 }}
-            className="flex flex-wrap items-center gap-5"
-          >
+          <p className="mt-6 max-w-md text-sm leading-7 text-white/60 sm:text-base">
+            Faith grows stronger when we gather—through fellowship, worship,
+            and service to others.
+          </p>
+
+          <div className="mt-8 flex flex-wrap items-center gap-5 sm:mt-10">
             <Link
               to="/membership"
-              className="inline-flex items-center gap-3 border-2 border-white text-white text-xs font-bold uppercase tracking-widest px-8 py-4 hover:bg-white hover:text-black transition-all duration-300 group"
+              className="group inline-flex items-center gap-4 bg-brand-red px-7 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-white transition-colors hover:bg-red-700"
             >
               Get Connected
-              <ArrowRightIcon className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
-
             <Link
               to="/about"
-              className="inline-flex items-center gap-2 text-white/60 text-xs font-semibold uppercase tracking-widest hover:text-white transition-colors group"
+              className="group inline-flex items-center gap-3 border-b border-white/30 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70 transition-colors hover:border-white hover:text-white"
             >
-              Learn More
-              <ArrowRightIcon className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+              Discover Victory
+              <ArrowRightIcon className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
             </Link>
-          </motion.div>
+          </div>
         </div>
 
-        {/* ════════════════════════════════════════════════════════════
-            RIGHT COLUMN — events spotlight
-        ═══════════════════════════════════════════════════════════════ */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="lg:col-span-5 relative flex flex-col justify-start px-5 sm:px-8 lg:px-10 3xl:px-16 pt-8 sm:pt-10 pb-10 sm:pb-14 lg:pt-36 lg:pb-24 3xl:pt-48 3xl:pb-36"
-        >
-          {/* Dark panel background */}
-          <div className="absolute inset-0 bg-black/50 lg:bg-black/60 backdrop-blur-sm" />
-          {/* Red top accent line */}
-          <div className="absolute top-0 left-0 right-0 h-px bg-brand-red/60" />
-
-          <div className="relative z-10">
-            {/* Section header — mirrors the left eyebrow */}
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-4">
-                <div className="h-px w-10 bg-brand-red" />
-                <p className="text-white/70 text-xs font-semibold tracking-[0.2em]">
-                  Events
-                </p>
-              </div>
-              <Link
-                to="/events"
-                className="inline-flex items-center gap-1.5 text-white/40 hover:text-white text-xs font-semibold uppercase tracking-widest transition-colors group"
-              >
-                View All
-                <ArrowRightIcon className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+        <div ref={eventRef} className="mt-10 lg:col-span-4 lg:col-start-9 lg:mt-0 lg:self-end lg:pb-4">
+          <div className="block border-l border-brand-red bg-black/55 px-6 py-6 backdrop-blur-md sm:max-w-md lg:ml-auto">
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-brand-red">
+                Upcoming Events
+              </p>
+              <Link to="/events" className="group inline-flex items-center gap-2 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/45 hover:text-white">
+                View all
+                <ArrowRightIcon className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
 
-            {/* Loading state */}
-            {isLoading && (
-              <div className="space-y-4">
-                {[1, 2].map((i) => (
-                  <div key={i} className="animate-pulse">
-                    <div className="h-32 bg-white/5 mb-3" />
-                    <div className="h-3 bg-white/5 rounded w-3/4 mb-2" />
-                    <div className="h-3 bg-white/5 rounded w-1/2" />
-                  </div>
-                ))}
+            {isLoading ? (
+              <div className="space-y-3 animate-pulse">
+                <div className="h-5 w-2/3 bg-white/10" />
+                <div className="h-12 w-1/2 bg-white/10" />
               </div>
-            )}
-
-            {/* No events state */}
-            {!isLoading && !featured && (
-              <div className="text-center py-12">
-                <CalendarDaysIcon className="h-10 w-10 text-white/15 mx-auto mb-4" />
-                <p className="text-white/30 text-sm">
-                  No upcoming events scheduled.
+            ) : featuredEvent ? (
+              <div>
+                <Link to={eventId ? `/events?event=${eventId}` : "/events"} className="group block">
+                <p className="font-display text-2xl text-white sm:text-3xl">
+                  {featuredEvent.title}
                 </p>
-                <p className="text-white/20 text-xs mt-1">Check back soon!</p>
-              </div>
-            )}
+                <p className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
+                  {featuredEvent.time || formatEventDate(featuredEvent._date)}
+                </p>
+                <div className="mt-5 flex flex-wrap gap-4 border-t border-white/15 pt-4 text-xs text-white/55">
+                  <span className="inline-flex items-center gap-2">
+                    <ClockIcon className="h-4 w-4 text-brand-red" />
+                    {formatEventDate(featuredEvent._date)}
+                  </span>
+                  {featuredEvent.location && (
+                    <span className="inline-flex items-center gap-2">
+                      <MapPinIcon className="h-4 w-4 text-brand-red" />
+                      {featuredEvent.location}
+                    </span>
+                  )}
+                </div>
+                </Link>
 
-            {/* Featured event — spotlight */}
-            {featured &&
-              (() => {
-                const date = featured._parsed;
-                return (
-                  <motion.div
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.9 }}
-                    className="mb-8"
+                {secondaryEvent && (
+                  <Link
+                    to={secondaryEventId ? `/events?event=${secondaryEventId}` : "/events"}
+                    className="group mt-5 grid grid-cols-[auto_1fr_auto] items-center gap-3 border-t border-white/15 pt-4"
                   >
-                    {/* Date block */}
-                    <div className="flex items-end gap-4 mb-5">
-                      <div>
-                        <p className="text-white text-6xl sm:text-8xl 3xl:text-9xl font-black leading-none tracking-tighter">
-                          {date.getDate()}
-                        </p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <p className="text-brand-red text-xs font-bold uppercase tracking-widest">
-                            {MONTH_FULL[date.getMonth()]}
-                          </p>
-                          <span className="text-white/20 text-xs">·</span>
-                          <p className="text-white/40 text-xs uppercase tracking-wider">
-                            {DAY_NAMES[date.getDay()]}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Event title */}
-                    <h3 className="text-2xl font-bold text-white leading-snug mb-3">
-                      {featured.title}
-                    </h3>
-
-                    {/* Meta */}
-                    <div className="flex flex-wrap gap-4 mb-5">
-                      {featured.time && (
-                        <div className="flex items-center gap-1.5 text-white/50 text-xs">
-                          <ClockIcon className="h-3.5 w-3.5" />
-                          {featured.time}
-                        </div>
-                      )}
-                      {featured.location && (
-                        <div className="flex items-center gap-1.5 text-white/50 text-xs">
-                          <MapPinIcon className="h-3.5 w-3.5" />
-                          {featured.location}
-                        </div>
-                      )}
-                    </div>
-
-                    <Link
-                      to={`/events${featured.id || featured._id ? `?event=${featured.id || featured._id}` : ""}`}
-                      className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-brand-red hover:text-red-400 transition-colors group"
-                    >
-                      Learn More
-                      <ArrowRightIcon className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
-                    </Link>
-
-                    {/* Divider */}
-                    {secondary.length > 0 && (
-                      <div className="h-px bg-white/10 mt-8" />
-                    )}
-                  </motion.div>
-                );
-              })()}
-
-            {/* Secondary events — compact list */}
-            {secondary.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, delay: 1.1 }}
-              >
-                {secondary.map((event) => (
-                  <EventRow key={event.id || event._id} event={event} />
-                ))}
-              </motion.div>
+                    <span className="font-display text-2xl text-white/80">
+                      {secondaryEvent._date.getDate().toString().padStart(2, "0")}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold text-white/75 group-hover:text-white">
+                        {secondaryEvent.title}
+                      </span>
+                      <span className="mt-0.5 block text-[10px] uppercase tracking-[0.14em] text-white/35">
+                        {formatEventDate(secondaryEvent._date)}{secondaryEvent.time ? ` · ${secondaryEvent.time}` : ""}
+                      </span>
+                    </span>
+                    <ArrowRightIcon className="h-3.5 w-3.5 text-white/30 transition-transform group-hover:translate-x-1 group-hover:text-white" />
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <div className="flex min-h-36 items-center gap-4 border-t border-white/10 py-5">
+                <CalendarDaysIcon className="h-9 w-9 shrink-0 text-white/20" aria-hidden="true" />
+                <div>
+                  <p className="font-display text-2xl text-white">
+                    No upcoming events scheduled.
+                  </p>
+                  <p className="mt-2 text-xs leading-5 text-white/40">
+                    New events will appear here as soon as they are posted.
+                  </p>
+                </div>
+              </div>
             )}
           </div>
-        </motion.div>
+        </div>
       </div>
 
-      {/* ── Scroll indicator ── */}
-      <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 hidden lg:flex flex-col items-center cursor-pointer"
-        animate={{ y: [0, 6, 0] }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        onClick={() =>
-          window.scrollTo({ top: window.innerHeight, behavior: "smooth" })
-        }
+      <button
+        type="button"
+        onClick={() => document.getElementById("monthly-programs")?.scrollIntoView({ behavior: "smooth" })}
+        className="absolute bottom-5 left-1/2 z-20 hidden -translate-x-1/2 flex-col items-center gap-2 text-[9px] font-semibold uppercase tracking-[0.3em] text-white/35 lg:flex"
+        aria-label="Scroll to service times"
       >
-        <span className="text-white/30 text-xs font-medium uppercase tracking-widest mb-2">
-          Scroll
-        </span>
-        <div className="w-px h-8 bg-gradient-to-b from-white/30 to-transparent" />
-      </motion.div>
+        Scroll
+        <span className="h-8 w-px bg-gradient-to-b from-white/45 to-transparent" />
+      </button>
     </section>
   );
 });

@@ -475,11 +475,11 @@ const Navbar = ({
             ref={mobileMenuRef}
             className={`
               md:hidden
-              overflow-hidden
+              overscroll-contain
               transition-all
               duration-300
               ease-in-out
-              ${isMobileMenuOpen ? "max-h-screen" : "max-h-0"}
+              ${isMobileMenuOpen ? "max-h-[calc(100svh-5rem)] overflow-y-auto" : "max-h-0 overflow-hidden"}
             `}
           >
             <div

@@ -25,7 +25,7 @@
     scroll-behavior: smooth;
   }
 
-  body {
+body {
     @apply font-sans text-gray-900 antialiased;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -96,6 +96,29 @@
     p {
       @apply text-lg;
     }
+  }
+}
+
+/* Homepage editorial image treatment. The circular crop becomes a clean
+   rectangle on smaller screens where the full image needs to remain legible. */
+.sermon-orbit-media {
+  clip-path: none;
+}
+
+@media (min-width: 768px) {
+  .sermon-orbit-media {
+    clip-path: ellipse(88% 82% at 12% 50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 

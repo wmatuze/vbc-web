@@ -2,111 +2,60 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
 
-const ACTION_LINKS = [
-  { label: "Plan Your Visit", path: "/first-timers" },
-  { label: "Meet Our Pastors", path: "/about/leadership-team" },
-  { label: "Join a Cell Group", path: "/cell-groups" },
-];
-
-const CallToAction = () => {
-  return (
-    <section className="relative overflow-hidden min-h-[600px] 3xl:min-h-[700px] flex items-center">
-      {/* Background photo */}
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: "url(/assets/hero-bg.jpg)" }}
-      />
-      {/* Dark overlay — intentionally heavy, cinematic */}
-      <div className="absolute inset-0 bg-black/82" />
-
-      {/* Subtle animated glow */}
+const CallToAction = () => (
+  <section className="relative overflow-hidden bg-[#06090f] text-white">
+    <div className="mx-auto grid max-w-screen-2xl items-center gap-12 px-5 py-16 sm:px-10 sm:py-20 lg:min-h-[720px] lg:grid-cols-12 lg:px-14 lg:py-24 2xl:px-20">
       <motion.div
-        className="absolute inset-0 pointer-events-none"
-        animate={{ opacity: [0.3, 0.5, 0.3] }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-        style={{
-          background:
-            "radial-gradient(ellipse 60% 50% at 50% 50%, rgba(29,78,216,0.15) 0%, transparent 70%)",
-        }}
-      />
+        initial={{ opacity: 0, x: -28 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true, amount: 0.35 }}
+        transition={{ duration: 0.8 }}
+        className="relative z-10 lg:col-span-5"
+      >
+        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-red">Your next step</p>
+        <h2 className="mt-6 max-w-xl font-display text-5xl leading-[0.98] tracking-tight sm:text-6xl lg:text-7xl">
+          Worship was never meant to be done <span className="text-primary-400">alone.</span>
+        </h2>
+        <p className="mt-6 max-w-md text-sm leading-7 text-white/50 sm:text-base">
+          Come as you are. Meet our family, experience a service, and discover where your story can grow.
+        </p>
 
-      <div className="relative z-10 w-full max-w-4xl 2xl:max-w-5xl 3xl:max-w-7xl mx-auto px-5 sm:px-8 py-16 sm:py-24 3xl:py-32 text-center">
-        {/* Eyebrow */}
-        <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="text-brand-red text-xs font-semibold uppercase tracking-[0.25em] mb-6"
-        >
-          First Time Here?
-        </motion.p>
-
-        {/* Main headline */}
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          viewport={{ once: true }}
-          className="text-3xl sm:text-4xl md:text-6xl 3xl:text-7xl font-bold text-white leading-tight mb-5 sm:mb-6"
-        >
-          New to <span className="text-primary-400">Victory</span> Bible Church?
-        </motion.h2>
-
-        {/* Subtitle */}
-        <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          viewport={{ once: true }}
-          className="text-gray-400 text-base sm:text-lg 3xl:text-xl leading-relaxed max-w-xl 3xl:max-w-2xl mx-auto mb-8 sm:mb-12"
-        >
-          We'd love to welcome you to our church family. Discover what to
-          expect, meet our team, and find your place in our community.
-        </motion.p>
-
-        {/* Three text action links */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          viewport={{ once: true }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-0 mb-12"
-        >
-          {ACTION_LINKS.map((link, i) => (
-            <div key={i} className="flex items-center">
-              <Link
-                to={link.path}
-                className="group inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-white/50 hover:text-white transition-colors px-6 py-2"
-              >
-                {link.label}
-                <ArrowRightIcon className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              {i < ACTION_LINKS.length - 1 && (
-                <span className="text-white/15 hidden sm:block">|</span>
-              )}
-            </div>
-          ))}
-        </motion.div>
-
-        {/* Primary CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          viewport={{ once: true }}
-        >
+        <div className="mt-9 flex flex-wrap items-center gap-6">
           <Link
             to="/first-timers"
-            className="inline-flex items-center gap-3 border-2 border-white text-white text-sm font-bold uppercase tracking-widest px-8 sm:px-12 py-4 sm:py-5 hover:bg-white hover:text-black transition-all duration-300 group"
+            className="group inline-flex items-center gap-5 border border-white/60 px-8 py-4 text-[11px] font-bold uppercase tracking-[0.2em] transition-colors hover:bg-white hover:text-black"
           >
             I'm New Here
-            <ArrowRightIcon className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+            <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Link>
-        </motion.div>
-      </div>
-    </section>
-  );
-};
+          <Link to="/cell-groups" className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45 hover:text-white">
+            Find your community
+          </Link>
+        </div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.78 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true, amount: 0.25 }}
+        transition={{ duration: 1, ease: "easeOut" }}
+        className="relative mx-auto aspect-square w-full max-w-[42rem] lg:col-span-7"
+      >
+        <div className="absolute -inset-[7%] rounded-full border border-brand-red/65" />
+        <div className="absolute -inset-[15%] rounded-full border border-primary-500/15" />
+        <div className="absolute inset-0 overflow-hidden rounded-full">
+          <img
+            src="/images/mission-church.jpg"
+            alt="Victory Bible Church community gathering"
+            className="h-full w-full object-cover transition-transform duration-1000 hover:scale-105"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-tr from-black/55 via-transparent to-primary-900/20" />
+        </div>
+        <span className="absolute -bottom-4 left-1/2 h-20 w-px -translate-x-1/2 bg-gradient-to-b from-brand-red to-transparent" />
+      </motion.div>
+    </div>
+  </section>
+);
 
 export default CallToAction;
