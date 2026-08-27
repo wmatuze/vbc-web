@@ -107,9 +107,10 @@ const Sermons = () => {
   const rest = sermonsToDisplay.slice(1, 4);
 
   return (
-    <section className="bg-gray-50">
+    <section className="relative overflow-hidden bg-[#f3f0e8] text-[#10131a]">
+      <div className="pointer-events-none absolute left-[43%] top-0 hidden h-24 w-px bg-brand-red lg:block" />
       {/* ── Section header ── */}
-      <div className="max-w-7xl 3xl:max-w-screen-2xl mx-auto px-4 sm:px-8 pt-14 sm:pt-20 pb-8 sm:pb-12 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="max-w-7xl 3xl:max-w-screen-2xl mx-auto px-5 sm:px-10 pt-16 sm:pt-24 pb-10 sm:pb-14 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -119,8 +120,8 @@ const Sermons = () => {
           <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-2">
             Messages
           </p>
-          <h2 className="text-3xl md:text-4xl 3xl:text-5xl font-bold text-gray-900">
-            Latest <span className="text-primary-600">Sermons</span>
+          <h2 className="max-w-xl font-display text-5xl leading-none text-gray-950 md:text-6xl 3xl:text-7xl">
+            Messages for <span className="text-primary-600">the journey.</span>
           </h2>
         </motion.div>
         <Link
@@ -138,14 +139,14 @@ const Sermons = () => {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
         viewport={{ once: true }}
-        className="max-w-7xl 3xl:max-w-screen-2xl mx-auto px-4 sm:px-8 mb-8 sm:mb-12"
+        className="max-w-7xl 3xl:max-w-screen-2xl mx-auto px-5 sm:px-10 mb-10 sm:mb-14"
       >
-        <div className="flex flex-col md:flex-row overflow-hidden shadow-lg">
+        <div className="relative flex flex-col overflow-hidden border-y border-black/15 md:min-h-[520px] md:flex-row">
           {/* Thumbnail */}
           <button
             type="button"
             onClick={() => setSelectedSermon(latest)}
-            className="relative md:w-3/5 h-64 md:h-auto group text-left overflow-hidden"
+            className="sermon-orbit-media relative h-72 overflow-hidden text-left md:h-auto md:w-[58%] group"
             aria-label={`Watch ${latest.title}`}
           >
             <img
@@ -159,8 +160,8 @@ const Sermons = () => {
             />
             <div className="absolute inset-0 bg-black/30 group-hover:bg-black/15 transition-colors" />
             {/* Play button */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-16 h-16 rounded-full bg-primary-600/90 flex items-center justify-center group-hover:bg-primary-500 group-hover:scale-110 transition-all shadow-xl">
+            <div className="absolute inset-0 flex items-center justify-center md:justify-end md:pr-3">
+              <div className="w-16 h-16 rounded-full bg-primary-600 flex items-center justify-center group-hover:bg-primary-500 group-hover:scale-110 transition-all shadow-xl md:w-20 md:h-20">
                 <PlayIcon className="h-7 w-7 text-white ml-1" />
               </div>
             </div>
@@ -170,23 +171,23 @@ const Sermons = () => {
           </button>
 
           {/* Info panel — charcoal dark */}
-          <div className="md:w-2/5 bg-[#111827] flex flex-col justify-center p-8 md:p-10">
+          <div className="flex flex-col justify-center bg-[#f3f0e8] p-8 md:w-[42%] md:pl-16 md:pr-10">
             <p className="text-brand-red text-xs font-bold uppercase tracking-widest mb-3">
               {formatDate(latest.date)}
             </p>
-            <h3 className="text-2xl md:text-3xl font-bold text-white leading-tight mb-3">
+            <h3 className="font-display text-3xl md:text-5xl text-gray-950 leading-[1.02] mb-4">
               {latest.title}
             </h3>
-            <p className="text-primary-400 text-sm font-medium mb-4">
+            <p className="text-primary-600 text-sm font-medium mb-4">
               {latest.speaker || "Guest Speaker"}
             </p>
             {latest.series && (
-              <span className="inline-block text-xs border border-white/10 text-gray-400 px-3 py-1 mb-5 self-start">
+              <span className="inline-block text-xs border border-black/15 text-gray-500 px-3 py-1 mb-5 self-start">
                 {latest.series}
               </span>
             )}
             {latest.description && typeof latest.description === "string" && (
-              <p className="text-gray-400 text-sm leading-relaxed mb-7 line-clamp-3">
+              <p className="text-gray-600 text-sm leading-relaxed mb-7 line-clamp-3">
                 {latest.description}
               </p>
             )}
@@ -200,7 +201,7 @@ const Sermons = () => {
               </button>
               <Link
                 to="/sermons"
-                className="inline-flex items-center gap-2 border border-white/15 text-white text-xs font-bold uppercase tracking-widest px-6 py-3 hover:bg-white/5 transition-colors"
+                className="inline-flex items-center gap-2 border border-black/30 text-gray-900 text-xs font-bold uppercase tracking-widest px-6 py-3 hover:bg-black hover:text-white transition-colors"
               >
                 All Messages
               </Link>
@@ -211,8 +212,8 @@ const Sermons = () => {
 
       {/* ── Recent sermons — flat cards ── */}
       {rest.length > 0 && (
-        <div className="max-w-7xl 3xl:max-w-screen-2xl mx-auto px-4 sm:px-8 pb-14 sm:pb-20">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-0 border-t border-l border-gray-200">
+        <div className="max-w-7xl 3xl:max-w-screen-2xl mx-auto px-5 sm:px-10 pb-16 sm:pb-24">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-0 border-t border-l border-black/15">
             {rest.map((sermon, i) => (
               <motion.div
                 key={sermon.id || i}
@@ -220,7 +221,7 @@ const Sermons = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 viewport={{ once: true }}
-                className="border-r border-b border-gray-200 group"
+                className="border-r border-b border-black/15 group"
               >
                 {/* Thumbnail */}
                 <button
@@ -245,7 +246,7 @@ const Sermons = () => {
                 </button>
 
                 {/* Text */}
-                <div className="p-6 bg-white">
+                <div className="p-6 bg-transparent">
                   <p className="text-brand-red text-xs font-bold uppercase tracking-widest mb-2">
                     {formatDate(sermon.date)}
                   </p>
