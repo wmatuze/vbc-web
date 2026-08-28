@@ -295,7 +295,7 @@ const Navbar = ({
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-1.5 lg:space-x-2 xl:space-x-2.5">
+            <div className="hidden lg:flex items-center space-x-2 xl:space-x-2.5">
               {links.map((link) =>
                 link.children ? (
                   <div
@@ -451,7 +451,7 @@ const Navbar = ({
               aria-expanded={isMobileMenuOpen}
               className="
                 p-1.5
-                md:hidden
+                lg:hidden
                 focus:outline-none focus:ring-2 focus:ring-primary-400
                 rounded-lg hover:bg-primary-50/50
                 transition-colors duration-200
@@ -474,7 +474,7 @@ const Navbar = ({
           <div
             ref={mobileMenuRef}
             className={`
-              md:hidden
+              lg:hidden
               overscroll-contain
               transition-all
               duration-300
