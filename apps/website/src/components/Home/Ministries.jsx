@@ -61,7 +61,7 @@ const Ministries = () => {
       media.add("(min-width: 1024px)", () => {
         gsap.fromTo(
           circlesRef.current,
-          { scale: 0.45, opacity: 0.16, y: 100 },
+          { scale: 0.72, opacity: 0.58, y: 48 },
           {
             scale: 1,
             opacity: 1,
@@ -92,22 +92,6 @@ const Ministries = () => {
         );
       });
 
-      media.add("(max-width: 1023px)", () => {
-        gsap.fromTo(
-          circlesRef.current,
-          { scale: 0.82, opacity: 0, y: 45 },
-          {
-            scale: 1,
-            opacity: 1,
-            y: 0,
-            duration: 0.65,
-            stagger: 0.12,
-            ease: "power2.out",
-            scrollTrigger: { trigger: sectionRef.current, start: "top 75%" },
-          },
-        );
-      });
-
       return () => media.revert();
     }, sectionRef);
 
@@ -115,7 +99,7 @@ const Ministries = () => {
   }, []);
 
   return (
-    <section ref={sectionRef} className="relative min-h-[140vh] bg-[#07101f] text-white lg:min-h-[190vh]">
+    <section ref={sectionRef} className="relative bg-[#07101f] text-white lg:min-h-[150vh]">
       <div ref={stickyRef} className="relative overflow-hidden px-5 py-16 sm:px-10 lg:sticky lg:top-0 lg:flex lg:h-screen lg:items-center lg:px-12 lg:py-20 2xl:px-20">
         <div className="pointer-events-none absolute -right-[18vw] top-[-25vw] h-[55vw] w-[55vw] rounded-full border border-primary-500/10" />
         <div ref={lineRef} className="pointer-events-none absolute left-7 top-0 hidden h-full w-px bg-gradient-to-b from-brand-red via-brand-red/80 to-transparent lg:block" />
