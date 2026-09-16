@@ -18,12 +18,19 @@ const seedUsers = async () => {
     const adminExists = await models.User.findOne({ username: "admin" });
 
     if (!adminExists) {
+      const initialAdminPassword = process.env.INITIAL_ADMIN_PASSWORD;
+      if (!initialAdminPassword && process.env.NODE_ENV === "production") {
+        throw new Error(
+          "INITIAL_ADMIN_PASSWORD is required when creating the production admin user",
+        );
+      }
+
       console.log("Seeding admin user...");
 
       // Create admin user
       const admin = new models.User({
         username: "admin",
-        hashedPassword: hashPassword("admin123"),
+        hashedPassword: hashPassword(initialAdminPassword || "admin123"),
         name: "Admin User",
         role: "admin",
         email: "admin@example.com",
@@ -36,6 +43,9 @@ const seedUsers = async () => {
     }
   } catch (error) {
     console.error("Error seeding users:", error);
+    if (process.env.NODE_ENV === "production") {
+      throw error;
+    }
   }
 };
 

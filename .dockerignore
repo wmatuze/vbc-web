@@ -1,0 +1,11 @@
+.git
+.gitignore
+.env
+.env.*
+node_modules
+apps/website/node_modules
+apps/website/dist
+uploads
+logs
+*.log
+npm-debug.log*

@@ -8,6 +8,7 @@ import {
 } from "@heroicons/react/24/outline";
 import axios from "axios";
 import { useDarkMode } from "../../contexts/DarkModeContext";
+import { getApiUrl } from "../../services/api/core";
 
 const Support = () => {
   const { darkMode } = useDarkMode();
@@ -37,16 +38,12 @@ const Support = () => {
     setSubmitError("");
 
     try {
-      console.log(
-        "Submitting support request to http://localhost:3000/api/support"
-      );
+      const apiUrl = getApiUrl();
+      console.log(`Submitting support request to ${apiUrl}/api/support`);
       console.log("Form data:", formData);
 
       // Send the support request directly to the API endpoint
-      const response = await axios.post(
-        "http://localhost:3000/api/support",
-        formData
-      );
+      const response = await axios.post(`${apiUrl}/api/support`, formData);
 
       console.log("Support request submitted successfully:", response.data);
 

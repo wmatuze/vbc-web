@@ -1,5 +1,11 @@
 // Resource-related API functions
-import { fetchData, postData, updateData, deleteData } from './core';
+import {
+  fetchData,
+  postData,
+  updateData,
+  deleteData,
+  getApiUrl,
+} from './core';
 
 /**
  * Get all resources with optional filtering
@@ -94,7 +100,7 @@ export const deleteResource = (id) => {
  */
 export const uploadResourceFile = async (formData) => {
   try {
-    const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000'}/api/upload-resource`, {
+    const response = await fetch(`${getApiUrl()}/api/upload-resource`, {
       method: 'POST',
       headers: {
         // Don't set Content-Type for FormData, let browser set it with boundary
