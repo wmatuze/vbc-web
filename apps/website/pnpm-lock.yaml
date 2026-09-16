@@ -41,6 +41,9 @@ importers:
       framer-motion:
         specifier: ^12.0.11
         version: 12.4.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      gsap:
+        specifier: ^3.13.0
+        version: 3.15.0
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -2019,6 +2022,9 @@ packages:
 
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
+
+  gsap@3.15.0:
+    resolution: {integrity: sha512-dMW4CWBTUK1AEEDeZc1g4xpPGIrSf9fJF960qbTZmN/QwZIWY5wgliS6JWl9/25fpTGJrMRtSjGtOmPnfjZB+A==}
 
   gulp-decompress@1.2.0:
     resolution: {integrity: sha512-ChTv+4/4BwAdQLUgQoAvLFjYFvxYF6p9Mmf/b19/Lp7yNCvb8+KRkdXV8Gd7XErxtrEh8XDCCVon3DgqW4TgfA==}
@@ -6393,6 +6399,8 @@ snapshots:
       url-to-options: 1.0.1
 
   graceful-fs@4.2.11: {}
+
+  gsap@3.15.0: {}
 
   gulp-decompress@1.2.0:
     dependencies:
