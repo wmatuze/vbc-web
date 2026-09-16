@@ -16,7 +16,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://vbc-web-production.up.railway.app/api/:path*"
+      "destination": "https://vbc-api.onrender.com/api/:path*"
     },
     {
       "source": "/:path*",
