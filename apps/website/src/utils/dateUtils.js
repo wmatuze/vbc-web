@@ -1,5 +1,24 @@
 import { format, parseISO, isValid } from "date-fns";
 
+// Events use calendar dates rather than instants in time. Sending local
+// midnight to the API can serialize the previous UTC day (for example,
+// 2026-10-23 in Zambia became 2026-10-22T22:00:00Z). Midday UTC keeps the
+// selected calendar day stable when it crosses the frontend/backend boundary.
+const toStableEventDate = (isoDate) => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate || "");
+  if (!match) return null;
+
+  const [, year, month, day] = match;
+  const date = new Date(Date.UTC(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    12,
+  ));
+
+  return isValid(date) ? date : null;
+};
+
 /**
  * Normalize date input to return standard date formats for an event
  * @param {string|Date} dateInput - The date input (can be ISO string, Date object, or formatted string)
@@ -39,20 +58,24 @@ export const normalizeEventDate = (dateInput) => {
     isoDate = format(dateObject, "yyyy-MM-dd");
     formattedDate = format(dateObject, "MMMM d, yyyy");
     
+    const stableDate = toStableEventDate(isoDate) || dateObject;
+
     return {
       date: isoDate,                // For date input field
       formattedDate: formattedDate, // For display and API
-      startDate: dateObject,        // Date object for the API
-      endDate: dateObject,          // Date object for the API
+      startDate: stableDate,        // Timezone-stable date for the API
+      endDate: stableDate,          // Timezone-stable date for the API
     };
   } catch (error) {
     // Fallback to current date if any errors occur
     const today = new Date();
+    const fallbackIsoDate = format(today, "yyyy-MM-dd");
+    const stableDate = toStableEventDate(fallbackIsoDate) || today;
     return {
-      date: format(today, "yyyy-MM-dd"),
+      date: fallbackIsoDate,
       formattedDate: format(today, "MMMM d, yyyy"),
-      startDate: today,
-      endDate: today,
+      startDate: stableDate,
+      endDate: stableDate,
     };
   }
 };
@@ -162,4 +185,4 @@ export const parseEventFromAPI = (event) => {
     date: dateData.date,
     formattedDate: dateData.formattedDate,
   };
-}; 
+};

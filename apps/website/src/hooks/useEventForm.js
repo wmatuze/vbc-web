@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createEvent, updateEvent } from "../services/api/events";
 import { validateEvent, validateField } from "../utils/validationUtils";
-import { prepareEventForAPI } from "../utils/dateUtils";
+import { normalizeEventDate, prepareEventForAPI } from "../utils/dateUtils";
 import {
   INITIAL_EVENT_STATE,
   EVENT_VALIDATION_RULES,
@@ -222,6 +222,16 @@ export const useEventForm = ({ onSuccess, onError }) => {
         if (submittedTime && savedTime !== submittedTime) {
           throw new Error(
             `The event was not saved with the requested time (${serverEvent.time}). Please try again.`
+          );
+        }
+
+        const submittedDate = normalizeEventDate(serverEvent.startDate).date;
+        const savedDate = normalizeEventDate(
+          savedEvent?.startDate || savedEvent?.date
+        ).date;
+        if (submittedDate && savedDate !== submittedDate) {
+          throw new Error(
+            `The event was not saved with the requested date (${submittedDate}). Please try again.`
           );
         }
       }

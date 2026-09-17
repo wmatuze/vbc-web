@@ -198,9 +198,13 @@ const EventManager = () => {
   // ─── Input classes helper ────────────────────────────────────────────────
   const inp = (hasError) =>
     `w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-red-600 transition-colors ${
-      hasError ? "border-red-500" :
-      darkMode ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-               : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+      darkMode
+        ? "bg-gray-700 text-white placeholder-gray-400 [color-scheme:dark]"
+        : "bg-white text-gray-900 placeholder-gray-400"
+    } ${
+      hasError
+        ? "border-red-500"
+        : darkMode ? "border-gray-600" : "border-gray-300"
     }`;
 
   const sel = `w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-red-600 ${
