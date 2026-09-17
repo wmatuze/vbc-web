@@ -17,12 +17,6 @@ const API_URL = config.API_URL;
 const isValidYouTubeID = (id) =>
   id && typeof id === "string" && /^[a-zA-Z0-9_-]{11}$/.test(id);
 
-const staticSermons = [
-  { id: 1, title: "Faith That Moves Mountains",   date: "January 21, 2025", videoId: "l7fzlle9g84", speaker: "Pastor John Doe",   description: "Discover how faith can transform your life and overcome any obstacle in your path.", duration: "45:30" },
-  { id: 2, title: "Walking in God's Purpose",     date: "January 14, 2025", videoId: "8nOKvkVN5dI", speaker: "Pastor Jane Smith", description: "Learn how to identify and fulfill God's purpose for your life.", duration: "38:15" },
-  { id: 3, title: "The Power of Prayer",          date: "January 7, 2025",  videoId: "VgTVfZ3O-7A", speaker: "Pastor John Doe",   description: "Understand the transformative power of prayer in your daily walk with Christ.", duration: "42:10" },
-];
-
 // ─── Share buttons ────────────────────────────────────────────────────────────
 
 const ShareButtons = ({ sermonTitle, sermonUrl }) => {
@@ -119,9 +113,8 @@ const Sermons = () => {
   const selectedVideoIdRef = useRef(null);
 
   const sermonsToDisplay = useMemo(() => {
-    const source = sermonsError || !sermons?.length ? staticSermons : sermons;
-    return [...source].sort((a, b) => (new Date(b.date)?.getTime() || 0) - (new Date(a.date)?.getTime() || 0));
-  }, [sermons, sermonsError]);
+    return [...sermons].sort((a, b) => (new Date(b.date)?.getTime() || 0) - (new Date(a.date)?.getTime() || 0));
+  }, [sermons]);
 
   const getSermonImageUrl = useCallback((sermon) => {
     if (!sermon || typeof sermon !== "object") return placeholderImage;
@@ -172,9 +165,13 @@ const Sermons = () => {
       setSearchParams({ video: sermon.videoId }, { replace: true });
     }
 
-    // The URL update re-runs the selection effect. Do not reload the same
-    // YouTube iframe or restart its timers when that happens.
-    if (selectedVideoIdRef.current === sermon.videoId) return;
+    // The URL update and query refresh re-run the selection effect. Refresh
+    // the metadata from the API, but do not reload the same YouTube iframe or
+    // restart its timers when only the sermon record changed.
+    if (selectedVideoIdRef.current === sermon.videoId) {
+      setSelectedSermon(sermon);
+      return;
+    }
 
     selectedVideoIdRef.current = sermon.videoId;
     clearLoadingTimeout();
@@ -240,7 +237,7 @@ const Sermons = () => {
   }
 
   // ── Empty state ────────────────────────────────────────────────────────────
-  if (!isLoading && !sermonsError && sermons.length === 0) {
+  if (!sermonsLoading && !sermonsError && sermons.length === 0) {
     return (
       <div className="min-h-screen bg-vbc-dark flex items-center justify-center">
         <div className="text-center">
