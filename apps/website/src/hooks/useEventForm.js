@@ -214,6 +214,16 @@ export const useEventForm = ({ onSuccess, onError }) => {
         console.log(`Updating event with ID: ${eventId}`);
         savedEvent = await updateEvent(eventId, serverEvent);
         console.log("Event updated successfully:", savedEvent);
+
+        // Do not report a successful edit if the API returned an older or
+        // transformed time instead of the value the administrator submitted.
+        const submittedTime = serverEvent.time?.trim().toUpperCase();
+        const savedTime = savedEvent?.time?.trim().toUpperCase();
+        if (submittedTime && savedTime !== submittedTime) {
+          throw new Error(
+            `The event was not saved with the requested time (${serverEvent.time}). Please try again.`
+          );
+        }
       }
 
       // Reset form state after successful save
@@ -221,7 +231,7 @@ export const useEventForm = ({ onSuccess, onError }) => {
 
       // Call success callback if provided
       if (onSuccess) {
-        onSuccess(savedEvent, formMode === "add" ? "added" : "updated");
+        await onSuccess(savedEvent, formMode === "add" ? "added" : "updated");
       }
 
       return savedEvent;

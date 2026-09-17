@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import {
@@ -13,15 +13,6 @@ import placeholderImage from "../assets/placeholders/default-image.svg";
 const API_URL = config.API_URL;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-
-const checkYouTubeConnectivity = async () => {
-  try {
-    await fetch("https://i.ytimg.com/vi/default/default.jpg", {
-      mode: "no-cors", cache: "no-store", method: "HEAD",
-    });
-    return true;
-  } catch { return false; }
-};
 
 const isValidYouTubeID = (id) =>
   id && typeof id === "string" && /^[a-zA-Z0-9_-]{11}$/.test(id);
@@ -124,10 +115,8 @@ const Sermons = () => {
   const [videoError,        setVideoError]        = useState(false);
   const [videoErrorMessage, setVideoErrorMessage] = useState("");
   const [playerMode,        setPlayerMode]        = useState("default");
-  const [youtubeAccessible, setYoutubeAccessible] = useState(true);
-  const [loadingTimeout,    setLoadingTimeout]    = useState(null);
-
-  useEffect(() => { checkYouTubeConnectivity().then(setYoutubeAccessible); }, []);
+  const loadingTimeoutRef = useRef(null);
+  const selectedVideoIdRef = useRef(null);
 
   const sermonsToDisplay = useMemo(() => {
     const source = sermonsError || !sermons?.length ? staticSermons : sermons;
@@ -169,12 +158,31 @@ const Sermons = () => {
     } catch { return "Date unavailable"; }
   };
 
-  const selectSermon = (sermon) => {
-    if (loadingTimeout) { clearTimeout(loadingTimeout); setLoadingTimeout(null); }
+  const clearLoadingTimeout = useCallback(() => {
+    if (loadingTimeoutRef.current) {
+      clearTimeout(loadingTimeoutRef.current);
+      loadingTimeoutRef.current = null;
+    }
+  }, []);
+
+  const selectSermon = useCallback((sermon) => {
+    if (!sermon) return;
+
+    if (videoIdParam !== sermon.videoId) {
+      setSearchParams({ video: sermon.videoId }, { replace: true });
+    }
+
+    // The URL update re-runs the selection effect. Do not reload the same
+    // YouTube iframe or restart its timers when that happens.
+    if (selectedVideoIdRef.current === sermon.videoId) return;
+
+    selectedVideoIdRef.current = sermon.videoId;
+    clearLoadingTimeout();
     setIsLoading(true);
     setVideoError(false);
     setVideoErrorMessage("");
-    setSearchParams({ video: sermon.videoId }, { replace: true });
+    setPlayerMode("default");
+    setSelectedSermon(sermon);
 
     if (!sermon.videoId || !isValidYouTubeID(sermon.videoId)) {
       setVideoError(true);
@@ -183,27 +191,17 @@ const Sermons = () => {
       return;
     }
 
-    const timeout = setTimeout(() => {
-      setIsLoading((stillLoading) => {
-        if (stillLoading) {
-          setVideoError(true);
-          setVideoErrorMessage("Video loading timed out. Please try again.");
-        }
-        return false;
-      });
+    loadingTimeoutRef.current = setTimeout(() => {
+      setVideoError(true);
+      setVideoErrorMessage("Video loading timed out. Please try again.");
+      setIsLoading(false);
+      loadingTimeoutRef.current = null;
     }, 12000);
-    setLoadingTimeout(timeout);
-    setPlayerMode("default");
-    setSelectedSermon(sermon);
-  };
+  }, [clearLoadingTimeout, setSearchParams, videoIdParam]);
 
-  useEffect(() => () => { if (loadingTimeout) clearTimeout(loadingTimeout); }, [loadingTimeout]);
+  useEffect(() => clearLoadingTimeout, [clearLoadingTimeout]);
 
   useEffect(() => {
-    const resetTimer = setTimeout(() => {
-      if (isLoading) { setIsLoading(false); if (loadingTimeout) { clearTimeout(loadingTimeout); setLoadingTimeout(null); } }
-    }, 3000);
-
     if (sermonsToDisplay?.length > 0) {
       if (videoIdParam) {
         const found = sermonsToDisplay.find((s) => s.videoId === videoIdParam);
@@ -212,8 +210,7 @@ const Sermons = () => {
         selectSermon(sermonsToDisplay[0]);
       }
     }
-    return () => { clearTimeout(resetTimer); if (loadingTimeout) { clearTimeout(loadingTimeout); setLoadingTimeout(null); } };
-  }, [sermonsToDisplay, videoIdParam]);
+  }, [sermonsToDisplay, videoIdParam, selectSermon]);
 
   // ── Loading state ──────────────────────────────────────────────────────────
   if (sermonsLoading || (isLoading && !selectedSermon)) {
@@ -260,7 +257,7 @@ const Sermons = () => {
   //   "default"   → youtube-nocookie.com (fewer tracking restrictions, less likely to be blocked)
   //   "alternate" → youtube.com standard embed
   //   "youtube"   → external link fallback
-  const VideoPlayer = () => {
+  const renderVideoPlayer = () => {
     if (playerMode === "youtube") {
       return (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black text-white p-6 text-center">
@@ -337,7 +334,7 @@ const Sermons = () => {
           loading="eager"
           onLoad={() => {
             setIsLoading(false);
-            if (loadingTimeout) { clearTimeout(loadingTimeout); setLoadingTimeout(null); }
+            clearLoadingTimeout();
           }}
         />
       </>
@@ -384,7 +381,7 @@ const Sermons = () => {
 
               {/* Video */}
               <div className="w-full lg:w-3/5 aspect-video relative bg-black flex-shrink-0">
-                <VideoPlayer />
+                {renderVideoPlayer()}
               </div>
 
               {/* Info */}

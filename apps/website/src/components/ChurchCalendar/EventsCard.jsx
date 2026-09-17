@@ -90,16 +90,24 @@ const EventCard = ({ event, highlight, compact = false }) => {
     } hover:border-gray-300 transition-colors overflow-hidden`}>
 
       {/* Image */}
-      <div className="relative h-48 bg-gray-100 overflow-hidden flex-shrink-0">
+      <div className="relative h-48 bg-vbc-dark overflow-hidden flex-shrink-0">
+        <img
+          src={imageUrl}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full scale-110 object-cover opacity-35 blur-xl"
+          onError={(e) => { e.target.style.display = "none"; }}
+        />
         <img
           src={imageUrl}
           alt={event?.title || "Event"}
-          className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+          className="relative z-[1] w-full h-full object-contain group-hover:scale-[1.015] transition-transform duration-500"
           onError={(e) => { e.target.src = eventPlaceholderImage; e.target.onerror = null; }}
         />
+        <div className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-black/15 via-transparent to-black/10" />
 
         {/* Date chip — top left */}
-        <div className="absolute top-3 left-3 text-center">
+        <div className="absolute z-[3] top-3 left-3 text-center">
           <div className="bg-brand-red text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5">
             {MONTH(d)}
           </div>
@@ -110,19 +118,19 @@ const EventCard = ({ event, highlight, compact = false }) => {
 
         {/* Ministry badge — top right */}
         {event?.ministry && (
-          <div className="absolute top-3 right-3 bg-vbc-dark/80 text-white text-[10px] font-semibold uppercase tracking-wider px-2 py-1">
+          <div className="absolute z-[3] top-3 right-3 bg-vbc-dark/80 text-white text-[10px] font-semibold uppercase tracking-wider px-2 py-1">
             {event.ministry}
           </div>
         )}
 
         {/* Signup badge */}
         {(event?.signupMode === "required" || event?.signupRequired) && (
-          <div className="absolute bottom-3 left-3 bg-brand-red text-white text-[10px] font-semibold uppercase tracking-wider px-2 py-1">
+          <div className="absolute z-[3] bottom-3 left-3 bg-brand-red text-white text-[10px] font-semibold uppercase tracking-wider px-2 py-1">
             Sign-up required
           </div>
         )}
         {event?.signupMode === "optional" && (
-          <div className="absolute bottom-3 left-3 bg-white/90 text-gray-800 text-[10px] font-semibold uppercase tracking-wider px-2 py-1">
+          <div className="absolute z-[3] bottom-3 left-3 bg-white/90 text-gray-800 text-[10px] font-semibold uppercase tracking-wider px-2 py-1">
             Sign-up optional
           </div>
         )}

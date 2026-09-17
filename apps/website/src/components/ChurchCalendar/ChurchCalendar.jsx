@@ -330,19 +330,22 @@ const ChurchCalendar = () => {
           return (
             <div className="flex flex-col max-h-[90vh]">
               {/* Image header */}
-              <div className="relative h-52 bg-gray-100 flex-shrink-0">
-                <img src={img} alt={selectedEvent.title} className="w-full h-full object-cover"
+              <div className="relative aspect-video max-h-[42vh] min-h-52 overflow-hidden bg-vbc-dark flex-shrink-0">
+                <img src={img} alt="" aria-hidden="true"
+                  className="absolute inset-0 h-full w-full scale-110 object-cover opacity-35 blur-xl"
+                  onError={(e) => { e.target.style.display = "none"; }} />
+                <img src={img} alt={selectedEvent.title} className="relative z-[1] w-full h-full object-contain"
                   onError={(e) => { e.target.src = eventPlaceholderImage; e.target.onerror = null; }} />
-                <div className="absolute inset-0 bg-gradient-to-t from-vbc-dark/80 to-transparent" />
+                <div className="absolute inset-0 z-[2] bg-gradient-to-t from-vbc-dark/85 via-transparent to-black/15" />
 
                 {/* Close */}
                 <button onClick={closeModal}
-                  className="absolute top-3 right-3 p-1.5 bg-white/10 hover:bg-white/20 text-white transition-colors">
+                  className="absolute z-[3] top-3 right-3 p-1.5 bg-black/40 hover:bg-black/60 text-white transition-colors">
                   <XMarkIcon className="h-5 w-5" />
                 </button>
 
                 {/* Date overlay bottom-left */}
-                <div className="absolute bottom-4 left-4 flex items-end gap-3">
+                <div className="absolute z-[3] bottom-4 left-4 right-4 flex items-end gap-3">
                   <div className="text-center">
                     <div className="bg-brand-red text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5">{MONTH(d)}</div>
                     <div className="bg-vbc-dark text-white text-2xl font-black px-3 py-1">{d.getDate()}</div>

@@ -523,11 +523,16 @@ router.put("/events/:id", authMiddleware, async (req, res) => {
       const year = updateData.startDate.getFullYear();
       updateData.date = `${month} ${day}, ${year}`;
 
-      updateData.time = updateData.startDate.toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "numeric",
-        hour12: true,
-      });
+      // The admin form submits the display time separately from startDate.
+      // Only derive it from startDate for older clients that omit `time`;
+      // otherwise an edit such as 18:30 -> 6:30 PM is silently overwritten.
+      if (!req.body.time) {
+        updateData.time = updateData.startDate.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "numeric",
+          hour12: true,
+        });
+      }
     }
 
     // Handle image properly

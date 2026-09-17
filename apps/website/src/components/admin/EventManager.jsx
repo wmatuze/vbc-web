@@ -74,9 +74,9 @@ const EventManager = () => {
     setCurrentEvent, setFormErrors, handleInputChange, handleCheckboxChange,
     handleTagsChange, resetForm, editEvent, addEvent, duplicateEvent, submitForm,
   } = useEventForm({
-    onSuccess: (_, action) => {
+    onSuccess: async (_, action) => {
+      await refetchEvents();
       setSuccessMessage(`Event ${action} successfully!`);
-      refetchEvents();
       setTimeout(() => setSuccessMessage(""), 4000);
     },
     onError: (err) => handleError(err, "Event Form Submission"),

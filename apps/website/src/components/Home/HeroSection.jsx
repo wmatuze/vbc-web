@@ -8,6 +8,7 @@ import {
   MapPinIcon,
 } from "@heroicons/react/24/outline";
 import { useEventsQuery } from "../../hooks/useEventsQuery";
+import { resolveImageUrl } from "../ChurchCalendar/EventsCard";
 
 const parseEventDate = (event) => {
   const raw = event?.startDate || event?.date;
@@ -42,6 +43,10 @@ const HeroSection = forwardRef((props, forwardedRef) => {
 
   const featuredEvent = upcomingEvents[0];
   const secondaryEvent = upcomingEvents[1];
+  const featuredEventImage = featuredEvent &&
+    (featuredEvent.imageUrl || featuredEvent.image)
+    ? resolveImageUrl(featuredEvent)
+    : null;
 
   const setSectionRef = (node) => {
     sectionRef.current = node;
@@ -136,7 +141,24 @@ const HeroSection = forwardRef((props, forwardedRef) => {
         </div>
 
         <div ref={eventRef} className="mt-10 lg:col-span-4 lg:col-start-9 lg:mt-0 lg:self-end lg:pb-4">
-          <div className="block border-l border-brand-red bg-black/55 px-6 py-6 backdrop-blur-md sm:max-w-md lg:ml-auto">
+          <div className="relative block overflow-hidden border-l border-brand-red bg-black/55 px-6 py-6 backdrop-blur-md sm:max-w-md lg:ml-auto">
+            {featuredEventImage && (
+              <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+                <img
+                  src={featuredEventImage}
+                  alt=""
+                  className="h-full w-full scale-110 object-cover opacity-30 blur-lg"
+                />
+                <img
+                  src={featuredEventImage}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-contain object-right opacity-70"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-black via-black/90 to-black/45" />
+              </div>
+            )}
+
+            <div className="relative z-10">
             <div className="mb-5 flex items-center justify-between gap-4">
               <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-brand-red">
                 Upcoming Events
@@ -208,6 +230,7 @@ const HeroSection = forwardRef((props, forwardedRef) => {
                 </div>
               </div>
             )}
+            </div>
           </div>
         </div>
       </div>
