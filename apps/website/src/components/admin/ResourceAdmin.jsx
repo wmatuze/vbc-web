@@ -203,6 +203,9 @@ const ResourceAdmin = ({
       if (searchTerm) params.append("search", searchTerm);
       if (lockedCategory || filterCategory) {
         params.append("category", lockedCategory || filterCategory);
+      } else {
+        // Audio sermons have their own management surface under Sermons.
+        params.append("excludeCategory", "audio_sermons");
       }
       if (lockedType || filterType) {
         params.append("type", lockedType || filterType);
@@ -504,7 +507,6 @@ const ResourceAdmin = ({
               className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
               <option value="">All Categories</option>
-              <option value="audio_sermons">Audio Sermons</option>
               <option value="foundation">Foundation</option>
               <option value="discipleship">Discipleship</option>
               <option value="leadership">Leadership</option>
@@ -905,7 +907,6 @@ const ResourceAdmin = ({
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       >
                         <option value="general">General</option>
-                        <option value="audio_sermons">Audio Sermons</option>
                         <option value="foundation">Foundation</option>
                         <option value="discipleship">Discipleship</option>
                         <option value="leadership">Leadership</option>

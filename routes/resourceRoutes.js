@@ -78,10 +78,14 @@ const upload = multer({
 // Get all resources
 router.get('/', async (req, res) => {
   try {
-    const { category, type, search, featured } = req.query;
+    const { category, excludeCategory, type, search, featured } = req.query;
     let query = { active: true };
     
-    if (category) query.category = category;
+    if (category) {
+      query.category = category;
+    } else if (excludeCategory) {
+      query.category = { $ne: excludeCategory };
+    }
     if (type) query.type = type;
     if (featured) query.featured = featured === 'true';
     
