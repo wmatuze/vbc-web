@@ -96,6 +96,7 @@ const isDateField = (fieldName) => {
     'submittedAt', 
     'registrationDate', 
     'childDateOfBirth',
+    'sermonDate',
     'date', 
     'startDate', 
     'endDate', 

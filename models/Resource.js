@@ -23,6 +23,8 @@ const ResourceSchema = new mongoose.Schema({
     filename: String,
     originalName: String,
     path: String,
+    cloudinaryId: String,
+    resourceType: String,
     mimetype: String,
     size: Number
   },
@@ -30,6 +32,8 @@ const ResourceSchema = new mongoose.Schema({
   // Removed accessLevel and classRestrictions - everything is public
   // Categories provide sufficient organization
   tags: [String],
+  series: String,
+  sermonDate: Date,
   author: {
     name: String,
     email: String

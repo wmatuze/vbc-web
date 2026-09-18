@@ -25,7 +25,139 @@ import {
   ToggleLeft,
 } from "lucide-react";
 
-const ResourceAdmin = () => {
+const createEmptyResourceForm = (lockedCategory, lockedType) => ({
+  title: "",
+  description: "",
+  type: lockedType || "document",
+  category: lockedCategory || "general",
+  url: "",
+  tags: [],
+  series: "",
+  sermonDate: "",
+  featured: false,
+  author: { name: "", email: "" },
+});
+
+const formatSermonDate = (value) => {
+  if (!value || typeof value === "object") return "Date unavailable";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "Date unavailable" : date.toLocaleDateString();
+};
+
+const AudioSermonAdminRow = ({
+  resource,
+  onToggleFeatured,
+  onEdit,
+  onDelete,
+}) => (
+  <motion.article
+    initial={{ opacity: 0, y: 12 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
+  >
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+      <div className="flex min-w-0 flex-1 items-start gap-4">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+          <Music size={21} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="truncate text-base font-semibold text-gray-900 dark:text-white">
+              {resource.title}
+            </h3>
+            {resource.featured && (
+              <Star size={16} className="shrink-0 fill-yellow-400 text-yellow-500" />
+            )}
+          </div>
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500 dark:text-gray-400">
+            <span>{resource.author?.name || "Speaker not specified"}</span>
+            <span aria-hidden="true">•</span>
+            <span>{formatSermonDate(resource.sermonDate)}</span>
+            {resource.series && (
+              <>
+                <span aria-hidden="true">•</span>
+                <span>{resource.series}</span>
+              </>
+            )}
+            {resource.fileSizeFormatted && (
+              <>
+                <span aria-hidden="true">•</span>
+                <span>{resource.fileSizeFormatted}</span>
+              </>
+            )}
+          </div>
+          {resource.description && (
+            <p className="mt-2 line-clamp-1 text-sm text-gray-600 dark:text-gray-300">
+              {resource.description}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between gap-3 border-t border-gray-100 pt-3 dark:border-gray-700 lg:justify-end lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0">
+        <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+          <span className="inline-flex items-center gap-1" title="Views">
+            <Eye size={16} /> {resource.views || 0}
+          </span>
+          <span className="inline-flex items-center gap-1" title="Downloads">
+            <Download size={16} /> {resource.downloads || 0}
+          </span>
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => onToggleFeatured(resource)}
+            className={`rounded-md p-2 transition-colors ${
+              resource.featured
+                ? "text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
+                : "text-gray-400 hover:bg-gray-100 hover:text-yellow-500 dark:hover:bg-gray-700"
+            }`}
+            title="Toggle featured sermon"
+            aria-label="Toggle featured sermon"
+          >
+            <Star size={18} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onEdit(resource)}
+            className="rounded-md p-2 text-blue-600 transition-colors hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20"
+            title="Edit audio sermon"
+            aria-label={`Edit ${resource.title}`}
+          >
+            <Edit size={18} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(resource._id)}
+            className="rounded-md p-2 text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+            title="Delete audio sermon"
+            aria-label={`Delete ${resource.title}`}
+          >
+            <Trash2 size={18} />
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              window.open(`/api/resources/${resource._id}/download`, "_blank")
+            }
+            className="ml-1 inline-flex items-center gap-2 rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
+          >
+            <Download size={17} />
+            <span className="hidden sm:inline">Download</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </motion.article>
+);
+
+const ResourceAdmin = ({
+  lockedCategory = "",
+  lockedType = "",
+  title = "Resource Management",
+  createLabel = "Add Resource",
+}) => {
+  const isAudioSermonMode = lockedCategory === "audio_sermons";
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -35,17 +167,11 @@ const ResourceAdmin = () => {
   const [filterCategory, setFilterCategory] = useState("");
   const [filterType, setFilterType] = useState("");
   const fileInputRef = useRef(null);
+  const [selectedFileName, setSelectedFileName] = useState("");
 
-  const [resourceForm, setResourceForm] = useState({
-    title: "",
-    description: "",
-    type: "document",
-    category: "general",
-    url: "",
-    tags: [],
-    featured: false,
-    author: { name: "", email: "" },
-  });
+  const [resourceForm, setResourceForm] = useState(() =>
+    createEmptyResourceForm(lockedCategory, lockedType),
+  );
 
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
@@ -75,8 +201,12 @@ const ResourceAdmin = () => {
     try {
       const params = new URLSearchParams();
       if (searchTerm) params.append("search", searchTerm);
-      if (filterCategory) params.append("category", filterCategory);
-      if (filterType) params.append("type", filterType);
+      if (lockedCategory || filterCategory) {
+        params.append("category", lockedCategory || filterCategory);
+      }
+      if (lockedType || filterType) {
+        params.append("type", lockedType || filterType);
+      }
 
       const response = await fetch(`/api/resources?${params}`);
       const data = await response.json();
@@ -94,25 +224,28 @@ const ResourceAdmin = () => {
   const handleCreateResource = () => {
     setModalType("create");
     setSelectedResource(null);
-    setResourceForm({
-      title: "",
-      description: "",
-      type: "document",
-      category: "general",
-      url: "",
-      tags: [],
-      featured: false,
-      author: { name: "", email: "" },
-    });
+    setSelectedFileName("");
+    setResourceForm(createEmptyResourceForm(lockedCategory, lockedType));
     setShowModal(true);
   };
 
   const handleEditResource = (resource) => {
     setModalType("edit");
     setSelectedResource(resource);
+    setSelectedFileName("");
     setResourceForm({
-      ...resource,
+      title: resource.title || "",
+      description: resource.description || "",
+      type: lockedType || resource.type || "document",
+      category: lockedCategory || resource.category || "general",
+      url: resource.url || "",
       tags: resource.tags || [],
+      series: resource.series || resource.tags?.[0] || "",
+      sermonDate: resource.sermonDate
+        ? new Date(resource.sermonDate).toISOString().slice(0, 10)
+        : "",
+      featured: Boolean(resource.featured),
+      author: resource.author || { name: "", email: "" },
     });
     setShowModal(true);
   };
@@ -120,6 +253,7 @@ const ResourceAdmin = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setSelectedFileName(file.name);
       // Auto-detect type based on file extension
       const extension = file.name.split(".").pop().toLowerCase();
       let detectedType = "document";
@@ -128,7 +262,7 @@ const ResourceAdmin = () => {
         detectedType = "image";
       } else if (["mp4", "avi", "mov", "wmv", "webm"].includes(extension)) {
         detectedType = "video";
-      } else if (["mp3", "wav", "ogg", "aac"].includes(extension)) {
+      } else if (["mp3", "wav", "ogg", "aac", "m4a"].includes(extension)) {
         detectedType = "audio";
       } else if (["ppt", "pptx"].includes(extension)) {
         detectedType = "presentation";
@@ -147,12 +281,30 @@ const ResourceAdmin = () => {
 
     // Basic validation
     if (!resourceForm.title.trim()) {
-      alert("Please enter a title for the resource");
+      alert(
+        isAudioSermonMode
+          ? "Please enter the sermon title"
+          : "Please enter a title for the resource",
+      );
       return;
     }
 
     if (!resourceForm.description.trim()) {
-      alert("Please enter a description for the resource");
+      alert(
+        isAudioSermonMode
+          ? "Please enter a short sermon summary"
+          : "Please enter a description for the resource",
+      );
+      return;
+    }
+
+    if (isAudioSermonMode && !resourceForm.author.name.trim()) {
+      alert("Please enter the speaker's name");
+      return;
+    }
+
+    if (isAudioSermonMode && !resourceForm.sermonDate) {
+      alert("Please select the sermon date");
       return;
     }
 
@@ -166,7 +318,11 @@ const ResourceAdmin = () => {
       !selectedResource &&
       !fileInputRef.current?.files[0]
     ) {
-      alert("Please select a file to upload");
+      alert(
+        isAudioSermonMode
+          ? "Please select an audio recording to upload"
+          : "Please select a file to upload",
+      );
       return;
     }
 
@@ -215,8 +371,7 @@ const ResourceAdmin = () => {
       setUploadProgress(100);
 
       if (response.ok) {
-        const result = await response.json();
-        console.log("Resource saved successfully:", result);
+        await response.json();
         await fetchResources();
         setShowModal(false);
         setUploadProgress(0);
@@ -233,13 +388,17 @@ const ResourceAdmin = () => {
 
       // Show error message to user
       alert(
-        `Error saving resource: ${error.message || "Unknown error occurred"}`,
+        `Error saving ${isAudioSermonMode ? "audio sermon" : "resource"}: ${error.message || "Unknown error occurred"}`,
       );
     }
   };
 
   const handleDelete = async (resourceId) => {
-    if (window.confirm("Are you sure you want to delete this resource?")) {
+    if (
+      window.confirm(
+        `Are you sure you want to delete this ${isAudioSermonMode ? "audio sermon" : "resource"}?`,
+      )
+    ) {
       try {
         const response = await fetch(`/api/resources/${resourceId}`, {
           method: "DELETE",
@@ -305,7 +464,7 @@ const ResourceAdmin = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Resource Management
+          {title}
         </h1>
         <div className="flex space-x-3">
           <button
@@ -313,64 +472,89 @@ const ResourceAdmin = () => {
             className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
           >
             <Plus />
-            <span>Add Resource</span>
+            <span>{createLabel}</span>
           </button>
         </div>
       </div>
 
       {/* Filters */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div
+          className={`grid grid-cols-1 gap-4 ${
+            lockedCategory && lockedType ? "md:grid-cols-2" : "md:grid-cols-4"
+          }`}
+        >
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search resources..."
+              placeholder={
+                isAudioSermonMode ? "Search audio sermons..." : "Search resources..."
+              }
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             />
           </div>
 
-          <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-          >
-            <option value="">All Categories</option>
-            <option value="audio_sermons">Audio Sermons</option>
-            <option value="foundation">Foundation</option>
-            <option value="discipleship">Discipleship</option>
-            <option value="leadership">Leadership</option>
-            <option value="ministry">Ministry</option>
-            <option value="bible_study">Bible Study</option>
-            <option value="worship">Worship</option>
-            <option value="general">General</option>
-          </select>
+          {!lockedCategory && (
+            <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            >
+              <option value="">All Categories</option>
+              <option value="audio_sermons">Audio Sermons</option>
+              <option value="foundation">Foundation</option>
+              <option value="discipleship">Discipleship</option>
+              <option value="leadership">Leadership</option>
+              <option value="ministry">Ministry</option>
+              <option value="bible_study">Bible Study</option>
+              <option value="worship">Worship</option>
+              <option value="general">General</option>
+            </select>
+          )}
 
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-          >
-            <option value="">All Types</option>
-            <option value="document">Documents</option>
-            <option value="video">Videos</option>
-            <option value="audio">Audio</option>
-            <option value="presentation">Presentations</option>
-            <option value="image">Images</option>
-            <option value="link">Links</option>
-          </select>
+          {!lockedType && (
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            >
+              <option value="">All Types</option>
+              <option value="document">Documents</option>
+              <option value="video">Videos</option>
+              <option value="audio">Audio</option>
+              <option value="presentation">Presentations</option>
+              <option value="image">Images</option>
+              <option value="link">Links</option>
+            </select>
+          )}
 
           <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
-            {resources.length} resources found
+            {resources.length} {isAudioSermonMode ? "audio sermons" : "resources"} found
           </div>
         </div>
       </div>
 
       {/* Resources Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {resources.map((resource) => (
+      <div
+        className={
+          isAudioSermonMode
+            ? "space-y-3"
+            : "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+        }
+      >
+        {resources.map((resource) =>
+          isAudioSermonMode ? (
+            <AudioSermonAdminRow
+              key={resource._id}
+              resource={resource}
+              onToggleFeatured={toggleFeatured}
+              onEdit={handleEditResource}
+              onDelete={handleDelete}
+            />
+          ) : (
           <motion.div
             key={resource._id}
             initial={{ opacity: 0, y: 20 }}
@@ -388,9 +572,11 @@ const ResourceAdmin = () => {
                       {resource.title}
                     </h3>
                     <div className="flex items-center space-x-2 mt-1">
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                        {resource.category.replace("_", " ")}
-                      </span>
+                      {!isAudioSermonMode && (
+                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                          {resource.category.replace("_", " ")}
+                        </span>
+                      )}
                       {resource.featured && (
                         <Star className="text-yellow-500 text-sm" />
                       )}
@@ -406,26 +592,47 @@ const ResourceAdmin = () => {
                         ? "text-yellow-500 hover:text-yellow-600"
                         : "text-gray-400 hover:text-yellow-500"
                     }`}
-                    title="Toggle Featured"
+                    title={isAudioSermonMode ? "Toggle featured sermon" : "Toggle featured"}
                   >
                     <Star />
                   </button>
                   <button
                     onClick={() => handleEditResource(resource)}
                     className="p-2 text-blue-600 hover:text-blue-700 dark:text-blue-400"
-                    title="Edit Resource"
+                    title={isAudioSermonMode ? "Edit audio sermon" : "Edit resource"}
                   >
                     <Edit />
                   </button>
                   <button
                     onClick={() => handleDelete(resource._id)}
                     className="p-2 text-red-600 hover:text-red-700 dark:text-red-400"
-                    title="Delete Resource"
+                    title={isAudioSermonMode ? "Delete audio sermon" : "Delete resource"}
                   >
                     <Trash2 />
                   </button>
                 </div>
               </div>
+
+              {isAudioSermonMode && (
+                <div className="mb-4 space-y-1 text-sm text-gray-500 dark:text-gray-400">
+                  <p>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Speaker:</span>{" "}
+                    {resource.author?.name || "Not specified"}
+                  </p>
+                  <p>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Date:</span>{" "}
+                    {resource.sermonDate
+                      ? new Date(resource.sermonDate).toLocaleDateString()
+                      : "Not specified"}
+                  </p>
+                  {resource.series && (
+                    <p>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">Series:</span>{" "}
+                      {resource.series}
+                    </p>
+                  )}
+                </div>
+              )}
 
               <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-3">
                 {resource.description}
@@ -485,17 +692,24 @@ const ResourceAdmin = () => {
               </div>
             </div>
           </motion.div>
-        ))}
+          ),
+        )}
       </div>
 
       {resources.length === 0 && (
         <div className="text-center py-12">
-          <File className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          {isAudioSermonMode ? (
+            <Music className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          ) : (
+            <File className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          )}
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            No resources found
+            {isAudioSermonMode ? "No audio sermons yet" : "No resources found"}
           </h3>
           <p className="text-gray-500 dark:text-gray-400">
-            Create your first resource to get started.
+            {isAudioSermonMode
+              ? "Upload the first sermon recording to publish it on the Audio Sermons page."
+              : "Create your first resource to get started."}
           </p>
         </div>
       )}
@@ -519,8 +733,8 @@ const ResourceAdmin = () => {
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                     {modalType === "create"
-                      ? "Add New Resource"
-                      : "Edit Resource"}
+                      ? `Add New ${isAudioSermonMode ? "Audio Sermon" : "Resource"}`
+                      : `Edit ${isAudioSermonMode ? "Audio Sermon" : "Resource"}`}
                   </h3>
                   <button
                     onClick={() => setShowModal(false)}
@@ -534,28 +748,43 @@ const ResourceAdmin = () => {
                   {/* File Upload */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      File Upload
+                      {isAudioSermonMode ? "Sermon Recording *" : "File Upload"}
                     </label>
                     <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6">
                       <div className="text-center">
                         <CloudUpload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                         <div className="flex text-sm text-gray-600 dark:text-gray-400">
                           <label className="relative cursor-pointer bg-white dark:bg-gray-800 rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none">
-                            <span>Upload a file</span>
+                            <span>
+                              {selectedResource
+                                ? `Choose ${isAudioSermonMode ? "a replacement recording" : "a replacement file"}`
+                                : `Choose ${isAudioSermonMode ? "an audio recording" : "a file"}`}
+                            </span>
                             <input
                               ref={fileInputRef}
                               type="file"
                               onChange={handleFileChange}
                               className="sr-only"
-                              accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.rtf,.odt,.ods,.odp,.jpg,.jpeg,.png,.gif,.webp,.mp3,.wav,.ogg,.aac,.mp4,.avi,.mov,.wmv,.webm,.mkv"
+                              accept={
+                                isAudioSermonMode
+                                  ? ".mp3,.wav,.ogg,.aac,.m4a,audio/*"
+                                  : ".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.rtf,.odt,.ods,.odp,.jpg,.jpeg,.png,.gif,.webp,.mp3,.wav,.ogg,.aac,.mp4,.avi,.mov,.wmv,.webm,.mkv"
+                              }
                             />
                           </label>
-                          <p className="pl-1">or drag and drop</p>
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          Documents (PDF, DOC, PPT, TXT), Images (JPG, PNG,
-                          GIF), Audio (MP3, WAV), Video (MP4, AVI) up to 50MB
+                          {isAudioSermonMode
+                            ? "MP3, WAV, OGG, AAC, or M4A up to 100MB"
+                            : "Documents, images, audio, and video up to 100MB"}
                         </p>
+                        {(selectedFileName || selectedResource?.file?.originalName) && (
+                          <p className="mt-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {selectedFileName
+                              ? `Selected: ${selectedFileName}`
+                              : `Current file: ${selectedResource.file.originalName}`}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -571,10 +800,14 @@ const ResourceAdmin = () => {
                   )}
 
                   {/* Basic Information */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div
+                    className={`grid grid-cols-1 gap-4 ${
+                      lockedType ? "" : "md:grid-cols-2"
+                    }`}
+                  >
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Title *
+                        {isAudioSermonMode ? "Sermon Title *" : "Title *"}
                       </label>
                       <input
                         type="text"
@@ -590,33 +823,35 @@ const ResourceAdmin = () => {
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Type
-                      </label>
-                      <select
-                        value={resourceForm.type}
-                        onChange={(e) =>
-                          setResourceForm((prev) => ({
-                            ...prev,
-                            type: e.target.value,
-                          }))
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      >
-                        <option value="document">Document</option>
-                        <option value="video">Video</option>
-                        <option value="audio">Audio</option>
-                        <option value="presentation">Presentation</option>
-                        <option value="image">Image</option>
-                        <option value="link">Link</option>
-                      </select>
-                    </div>
+                    {!lockedType && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Type
+                        </label>
+                        <select
+                          value={resourceForm.type}
+                          onChange={(e) =>
+                            setResourceForm((prev) => ({
+                              ...prev,
+                              type: e.target.value,
+                            }))
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        >
+                          <option value="document">Document</option>
+                          <option value="video">Video</option>
+                          <option value="audio">Audio</option>
+                          <option value="presentation">Presentation</option>
+                          <option value="image">Image</option>
+                          <option value="link">Link</option>
+                        </select>
+                      </div>
+                    )}
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Description *
+                      {isAudioSermonMode ? "Sermon Summary *" : "Description *"}
                     </label>
                     <textarea
                       value={resourceForm.description}
@@ -654,35 +889,76 @@ const ResourceAdmin = () => {
                   )}
 
                   {/* Category */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Category
-                    </label>
-                    <select
-                      value={resourceForm.category}
-                      onChange={(e) =>
-                        setResourceForm((prev) => ({
-                          ...prev,
-                          category: e.target.value,
-                        }))
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    >
-                      <option value="general">General</option>
-                      <option value="audio_sermons">Audio Sermons</option>
-                      <option value="foundation">Foundation</option>
-                      <option value="discipleship">Discipleship</option>
-                      <option value="leadership">Leadership</option>
-                      <option value="ministry">Ministry</option>
-                      <option value="bible_study">Bible Study</option>
-                      <option value="worship">Worship</option>
-                    </select>
-                  </div>
+                  {!lockedCategory && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Category
+                      </label>
+                      <select
+                        value={resourceForm.category}
+                        onChange={(e) =>
+                          setResourceForm((prev) => ({
+                            ...prev,
+                            category: e.target.value,
+                          }))
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      >
+                        <option value="general">General</option>
+                        <option value="audio_sermons">Audio Sermons</option>
+                        <option value="foundation">Foundation</option>
+                        <option value="discipleship">Discipleship</option>
+                        <option value="leadership">Leadership</option>
+                        <option value="ministry">Ministry</option>
+                        <option value="bible_study">Bible Study</option>
+                        <option value="worship">Worship</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {isAudioSermonMode && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Sermon Date
+                        </label>
+                        <input
+                          type="date"
+                          value={resourceForm.sermonDate}
+                          onChange={(e) =>
+                            setResourceForm((prev) => ({
+                              ...prev,
+                              sermonDate: e.target.value,
+                            }))
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          required={isAudioSermonMode}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Series
+                        </label>
+                        <input
+                          type="text"
+                          value={resourceForm.series}
+                          onChange={(e) =>
+                            setResourceForm((prev) => ({
+                              ...prev,
+                              series: e.target.value,
+                            }))
+                          }
+                          placeholder="Optional sermon series"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   {/* Tags */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Tags
+                      {isAudioSermonMode ? "Topics (optional)" : "Tags"}
                     </label>
                     <div className="flex flex-wrap gap-2 mb-2">
                       {resourceForm.tags.map((tag, index) => (
@@ -703,7 +979,11 @@ const ResourceAdmin = () => {
                     </div>
                     <input
                       type="text"
-                      placeholder="Add tags (press Enter)"
+                      placeholder={
+                        isAudioSermonMode
+                          ? "Add a topic and press Enter"
+                          : "Add tags (press Enter)"
+                      }
                       onKeyPress={(e) => {
                         if (e.key === "Enter") {
                           e.preventDefault();
@@ -717,13 +997,19 @@ const ResourceAdmin = () => {
 
                   {/* Author Information */}
                   <div>
-                    <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                      Author Information
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {!isAudioSermonMode && (
+                      <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                        Author Information
+                      </h4>
+                    )}
+                    <div
+                      className={`grid grid-cols-1 gap-4 ${
+                        isAudioSermonMode ? "" : "md:grid-cols-2"
+                      }`}
+                    >
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Name
+                          {isAudioSermonMode ? "Speaker *" : "Name"}
                         </label>
                         <input
                           type="text"
@@ -735,9 +1021,11 @@ const ResourceAdmin = () => {
                             }))
                           }
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          required={isAudioSermonMode}
                         />
                       </div>
 
+                      {!isAudioSermonMode && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Email
@@ -754,6 +1042,7 @@ const ResourceAdmin = () => {
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         />
                       </div>
+                      )}
                     </div>
                   </div>
 
@@ -761,11 +1050,12 @@ const ResourceAdmin = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Featured Resource
+                        {isAudioSermonMode ? "Featured Sermon" : "Featured Resource"}
                       </label>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Featured resources appear prominently on the resources
-                        page
+                        {isAudioSermonMode
+                          ? "Mark this recording as a featured sermon."
+                          : "Featured resources appear prominently on the resources page."}
                       </p>
                     </div>
                     <button
@@ -816,9 +1106,13 @@ const ResourceAdmin = () => {
                         <>
                           <Save />
                           <span>
-                            {selectedResource
-                              ? "Update Resource"
-                              : "Create Resource"}
+                            {isAudioSermonMode
+                              ? selectedResource
+                                ? "Update Sermon"
+                                : "Publish Sermon"
+                              : selectedResource
+                                ? "Update Resource"
+                                : "Create Resource"}
                           </span>
                         </>
                       )}

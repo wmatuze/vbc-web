@@ -56,9 +56,7 @@ const AdminLogin = lazy(() => import("./components/admin/AdminLogin"));
 const DashboardContent = lazy(
   () => import("./components/admin/DashboardContent"),
 );
-const SermonManagerWrapper = lazy(
-  () => import("./components/admin/SermonManagerWrapper"),
-);
+const SermonsAdmin = lazy(() => import("./components/admin/SermonsAdmin"));
 const EventsPage = lazy(() => import("./components/admin/EventsPage"));
 const LeaderManager = lazy(() => import("./components/admin/LeaderManager"));
 const CellGroupManager = lazy(
@@ -398,7 +396,7 @@ const AppContent = () => {
               {/* Admin — nested routes under shared layout */}
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<DashboardContent />} />
-                <Route path="sermons" element={<SermonManagerWrapper />} />
+                <Route path="sermons" element={<SermonsAdmin />} />
                 <Route path="events" element={<EventsPage />} />
                 <Route path="recurring-events" element={<Navigate to="/admin/events?tab=recurring" replace />} />
                 <Route path="leaders" element={<LeaderManager />} />

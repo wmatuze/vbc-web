@@ -5,39 +5,37 @@ const path = require('path');
 const fs = require('fs');
 const models = require('../models');
 const { authMiddleware } = require('../auth-middleware');
+const { cloudinary, folderFor, uploadBuffer } = require('../config/cloudinary');
 const formatResponse = require('../utils/formatResponse');
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadPath = 'uploads/resources/';
-    // Create directory if it doesn't exist
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    cb(null, uploadPath);
-  },
-  filename: function (req, file, cb) {
-    // Generate unique filename with timestamp
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+const normalizeOriginalName = (filename) => {
+  try {
+    return decodeURIComponent(filename);
+  } catch {
+    return filename;
   }
-});
+};
+
+const createPublicId = (filename) => {
+  const normalizedName = normalizeOriginalName(filename);
+  const baseName = path.basename(normalizedName, path.extname(normalizedName));
+  const safeName = baseName
+    .replace(/[^a-zA-Z0-9_-]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 50);
+  return `${Date.now()}-${safeName || 'resource'}`;
+};
 
 const upload = multer({
-  storage: storage,
+  // Files are sent to durable storage after validation rather than being kept
+  // on the application server's ephemeral filesystem.
+  storage: multer.memoryStorage(),
   limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB limit
+    fileSize: 100 * 1024 * 1024, // 100MB limit
   },
   fileFilter: function (req, file, cb) {
-    console.log('File filter check:', {
-      originalname: file.originalname,
-      mimetype: file.mimetype,
-      extension: path.extname(file.originalname).toLowerCase()
-    });
-
     // Allow common file types - expanded list
-    const allowedExtensions = /\.(jpeg|jpg|png|gif|webp|pdf|doc|docx|ppt|pptx|xls|xlsx|txt|rtf|odt|ods|odp|mp3|wav|ogg|aac|mp4|avi|mov|wmv|webm|mkv)$/i;
+    const allowedExtensions = /\.(jpeg|jpg|png|gif|webp|pdf|doc|docx|ppt|pptx|xls|xlsx|txt|rtf|odt|ods|odp|mp3|wav|ogg|aac|m4a|mp4|avi|mov|wmv|webm|mkv)$/i;
     
     // Allow common MIME types
     const allowedMimeTypes = [
@@ -56,19 +54,13 @@ const upload = multer({
       'application/vnd.oasis.opendocument.spreadsheet',
       'application/vnd.oasis.opendocument.presentation',
       // Audio
-      'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/aac',
+      'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/aac', 'audio/m4a', 'audio/x-m4a',
       // Video
       'video/mp4', 'video/avi', 'video/quicktime', 'video/x-msvideo', 'video/webm', 'video/x-matroska'
     ];
 
     const extname = allowedExtensions.test(file.originalname);
     const mimetype = allowedMimeTypes.includes(file.mimetype.toLowerCase());
-
-    console.log('File filter result:', {
-      extname: extname,
-      mimetype: mimetype,
-      allowed: extname || mimetype
-    });
 
     if (extname || mimetype) {
       return cb(null, true);
@@ -118,6 +110,35 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Record a public resource view. The frontend calls this when playback starts.
+router.post('/:id/view', async (req, res) => {
+  try {
+    const resource = await models.Resource.findOneAndUpdate(
+      { _id: req.params.id, active: true },
+      { $inc: { views: 1 } },
+      { new: true }
+    );
+
+    if (!resource) {
+      return res.status(404).json({
+        success: false,
+        error: 'Resource not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      views: resource.views
+    });
+  } catch (error) {
+    console.error('Error recording resource view:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to record resource view'
+    });
+  }
+});
+
 // Get a specific resource
 router.get('/:id', async (req, res) => {
   try {
@@ -129,9 +150,6 @@ router.get('/:id', async (req, res) => {
         error: 'Resource not found'
       });
     }
-
-    // Increment views
-    await models.Resource.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } });
 
     res.json({
       success: true,
@@ -148,22 +166,9 @@ router.get('/:id', async (req, res) => {
 
 // Create a new resource (admin only)
 router.post('/', authMiddleware, upload.single('file'), async (req, res) => {
+  let uploadedFile = null;
   try {
-    console.log('Creating resource with data:', req.body);
-    console.log('File info:', req.file);
-    
     const resourceData = { ...req.body };
-    
-    // Handle file upload
-    if (req.file) {
-      resourceData.file = {
-        filename: req.file.filename,
-        originalName: req.file.originalname,
-        path: req.file.path,
-        mimetype: req.file.mimetype,
-        size: req.file.size
-      };
-    }
 
     // Parse arrays if they come as strings
     try {
@@ -184,7 +189,22 @@ router.post('/', authMiddleware, upload.single('file'), async (req, res) => {
       });
     }
 
-    console.log('Processed resource data:', resourceData);
+    // Upload only after request fields have been parsed successfully.
+    if (req.file) {
+      uploadedFile = await uploadBuffer(req.file.buffer, {
+        folder: folderFor(resourceData.category === 'audio_sermons' ? 'audio' : 'resources'),
+        public_id: createPublicId(req.file.originalname),
+      });
+      resourceData.file = {
+        filename: uploadedFile.public_id,
+        originalName: normalizeOriginalName(req.file.originalname),
+        path: uploadedFile.secure_url,
+        cloudinaryId: uploadedFile.public_id,
+        resourceType: uploadedFile.resource_type,
+        mimetype: req.file.mimetype,
+        size: uploadedFile.bytes
+      };
+    }
 
     const newResource = new models.Resource(resourceData);
     const savedResource = await newResource.save();
@@ -198,11 +218,15 @@ router.post('/', authMiddleware, upload.single('file'), async (req, res) => {
     console.error('Error creating resource:', error);
     console.error('Error stack:', error.stack);
     
-    // Clean up uploaded file if creation failed
-    if (req.file) {
-      fs.unlink(req.file.path, (err) => {
-        if (err) console.error('Error deleting uploaded file:', err);
-      });
+    // Clean up the remote file when database creation fails.
+    if (uploadedFile?.public_id) {
+      try {
+        await cloudinary.uploader.destroy(uploadedFile.public_id, {
+          resource_type: uploadedFile.resource_type,
+        });
+      } catch (cleanupError) {
+        console.error('Error cleaning up Cloudinary upload:', cleanupError);
+      }
     }
     
     res.status(500).json({
@@ -215,27 +239,10 @@ router.post('/', authMiddleware, upload.single('file'), async (req, res) => {
 
 // Update a resource (admin only)
 router.put('/:id', authMiddleware, upload.single('file'), async (req, res) => {
+  let uploadedFile = null;
+  let oldResource = null;
   try {
     const resourceData = { ...req.body, updatedAt: Date.now() };
-    
-    // Handle new file upload
-    if (req.file) {
-      // Get old resource to delete old file
-      const oldResource = await models.Resource.findById(req.params.id);
-      if (oldResource && oldResource.file && oldResource.file.path) {
-        fs.unlink(oldResource.file.path, (err) => {
-          if (err) console.error('Error deleting old file:', err);
-        });
-      }
-
-      resourceData.file = {
-        filename: req.file.filename,
-        originalName: req.file.originalname,
-        path: req.file.path,
-        mimetype: req.file.mimetype,
-        size: req.file.size
-      };
-    }
 
     // Parse arrays if they come as strings
     if (typeof resourceData.tags === 'string') {
@@ -243,6 +250,34 @@ router.put('/:id', authMiddleware, upload.single('file'), async (req, res) => {
     }
     if (typeof resourceData.classRestrictions === 'string') {
       resourceData.classRestrictions = JSON.parse(resourceData.classRestrictions);
+    }
+    if (typeof resourceData.author === 'string') {
+      resourceData.author = JSON.parse(resourceData.author);
+    }
+
+    // Confirm the target exists before storing a replacement file.
+    if (req.file) {
+      oldResource = await models.Resource.findById(req.params.id);
+      if (!oldResource) {
+        return res.status(404).json({
+          success: false,
+          error: 'Resource not found'
+        });
+      }
+
+      uploadedFile = await uploadBuffer(req.file.buffer, {
+        folder: folderFor(resourceData.category === 'audio_sermons' ? 'audio' : 'resources'),
+        public_id: createPublicId(req.file.originalname),
+      });
+      resourceData.file = {
+        filename: uploadedFile.public_id,
+        originalName: normalizeOriginalName(req.file.originalname),
+        path: uploadedFile.secure_url,
+        cloudinaryId: uploadedFile.public_id,
+        resourceType: uploadedFile.resource_type,
+        mimetype: req.file.mimetype,
+        size: uploadedFile.bytes
+      };
     }
 
     const updatedResource = await models.Resource.findByIdAndUpdate(
@@ -258,6 +293,23 @@ router.put('/:id', authMiddleware, upload.single('file'), async (req, res) => {
       });
     }
 
+    // Only remove the previous file after the database points at the new one.
+    if (uploadedFile) {
+      try {
+        if (oldResource?.file?.cloudinaryId) {
+          await cloudinary.uploader.destroy(oldResource.file.cloudinaryId, {
+            resource_type: oldResource.file.resourceType || 'image',
+          });
+        } else if (oldResource?.file?.path && fs.existsSync(oldResource.file.path)) {
+          fs.unlink(oldResource.file.path, (err) => {
+            if (err) console.error('Error deleting old local file:', err);
+          });
+        }
+      } catch (cleanupError) {
+        console.error('Resource updated, but the previous file could not be removed:', cleanupError);
+      }
+    }
+
     res.json({
       success: true,
       message: 'Resource updated successfully',
@@ -265,6 +317,15 @@ router.put('/:id', authMiddleware, upload.single('file'), async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating resource:', error);
+    if (uploadedFile?.public_id) {
+      try {
+        await cloudinary.uploader.destroy(uploadedFile.public_id, {
+          resource_type: uploadedFile.resource_type,
+        });
+      } catch (cleanupError) {
+        console.error('Error cleaning up Cloudinary upload:', cleanupError);
+      }
+    }
     res.status(500).json({
       success: false,
       error: 'Failed to update resource'
@@ -285,7 +346,11 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     }
 
     // Delete file if it exists
-    if (resource.file && resource.file.path) {
+    if (resource.file?.cloudinaryId) {
+      await cloudinary.uploader.destroy(resource.file.cloudinaryId, {
+        resource_type: resource.file.resourceType || 'image',
+      });
+    } else if (resource.file?.path && fs.existsSync(resource.file.path)) {
       fs.unlink(resource.file.path, (err) => {
         if (err) console.error('Error deleting file:', err);
       });
@@ -320,13 +385,23 @@ router.get('/:id/download', async (req, res) => {
     }
 
     if (!resource.isDownloadable) {
+      if (resource.type === 'link' && resource.url) {
+        await models.Resource.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } });
+        return res.redirect(resource.url);
+      }
       return res.status(400).json({
         success: false,
         error: 'Resource is not downloadable'
       });
     }
 
-    // Check if file exists
+    // Cloudinary and other durable-storage URLs can be downloaded directly.
+    if (/^https?:\/\//i.test(resource.file.path)) {
+      await models.Resource.findByIdAndUpdate(req.params.id, { $inc: { downloads: 1 } });
+      return res.redirect(resource.file.path);
+    }
+
+    // Backward compatibility for files saved on local disk.
     if (!fs.existsSync(resource.file.path)) {
       return res.status(404).json({
         success: false,

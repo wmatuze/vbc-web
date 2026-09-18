@@ -53,7 +53,7 @@ const PAGE_TITLES = {
   "/admin/members":            { title: "Members & Requests",  sub: "Review membership and signup requests" },
   "/admin/foundation-classes": { title: "Foundation Classes",  sub: "Manage foundation class sessions" },
   "/admin/discipleship":       { title: "Discipleship",        sub: "Manage discipleship programs" },
-  "/admin/resources":          { title: "Resources",           sub: "Manage documents and links" },
+  "/admin/resources":          { title: "Resources",           sub: "Manage documents, media, and links" },
   "/admin/reports":            { title: "Reports",             sub: "View analytics and reports" },
   "/admin/media":              { title: "Media Library",       sub: "Manage uploaded images and files" },
   "/admin/settings":           { title: "Settings",            sub: "Configure your admin portal" },
