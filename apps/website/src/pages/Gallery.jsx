@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Helmet } from "react-helmet-async";
 import {
   XMarkIcon,
@@ -6,10 +6,11 @@ import {
   ChevronRightIcon,
   MagnifyingGlassPlusIcon,
 } from "@heroicons/react/24/outline";
+import config from "../config";
 
 // ─── Image data ───────────────────────────────────────────────────────────────
 
-const IMAGES = [
+const STATIC_IMAGES = [
   { id: 1,  src: "/images/gallery1.jpg",              alt: "Sunday Worship Service",        category: "worship"  },
   { id: 2,  src: "/images/gallery2.jpg",              alt: "Community Outreach",             category: "outreach" },
   { id: 3,  src: "/images/gallery3.jpg",              alt: "Youth Ministry",                 category: "youth"    },
@@ -161,10 +162,49 @@ const GalleryTile = ({ image, onClick }) => (
 const Gallery = () => {
   const [activeCategory, setActiveCategory] = useState("all");
   const [lightboxIndex,  setLightboxIndex]  = useState(null);
+  const [cmsImages, setCmsImages] = useState([]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const apiUrl = config.API_URL || "http://localhost:3000";
+
+    fetch(`${apiUrl}/api/media?category=gallery`, {
+      signal: controller.signal,
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error(`Gallery API error: ${response.status}`);
+        return response.json();
+      })
+      .then((items) => {
+        const galleryImages = (Array.isArray(items) ? items : [])
+          .filter((item) => item.type?.startsWith("image/") && item.path)
+          .map((item) => ({
+            id: `cms-${item._id || item.id}`,
+            src: /^https?:\/\//i.test(item.path)
+              ? item.path
+              : `${apiUrl}/${item.path.replace(/^\/+/, "")}`,
+            alt: item.title || item.originalName || "Victory Bible Church",
+            category: item.galleryCollection || "events",
+          }));
+        setCmsImages(galleryImages);
+      })
+      .catch((error) => {
+        if (error.name !== "AbortError") {
+          console.error("Failed to load CMS gallery images:", error);
+        }
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  const images = useMemo(
+    () => [...cmsImages, ...STATIC_IMAGES],
+    [cmsImages],
+  );
 
   const filtered = activeCategory === "all"
-    ? IMAGES
-    : IMAGES.filter((img) => img.category === activeCategory);
+    ? images
+    : images.filter((img) => img.category === activeCategory);
 
   const openLightbox = (index) => setLightboxIndex(index);
   const closeLightbox = () => setLightboxIndex(null);
@@ -178,8 +218,8 @@ const Gallery = () => {
 
   const counts = CATEGORIES.reduce((acc, cat) => {
     acc[cat.value] = cat.value === "all"
-      ? IMAGES.length
-      : IMAGES.filter((i) => i.category === cat.value).length;
+      ? images.length
+      : images.filter((i) => i.category === cat.value).length;
     return acc;
   }, {});
 
@@ -215,7 +255,7 @@ const Gallery = () => {
           {/* Stats */}
           <div className="flex items-center gap-8 mt-12 pt-12 border-t border-white/10">
             <div>
-              <p className="text-2xl font-black text-white">{IMAGES.length}</p>
+              <p className="text-2xl font-black text-white">{images.length}</p>
               <p className="text-white/30 text-xs uppercase tracking-wider mt-0.5">Photos</p>
             </div>
             <div className="w-px h-10 bg-white/10" />

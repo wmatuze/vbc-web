@@ -13,22 +13,23 @@ export const useLeadershipQuery = () => {
     // Use the same key as useLeadersQuery ("leaders") so admin mutations
     // that invalidate ["leaders"] automatically bust this cache too.
     queryKey: ["leaders"],
-    queryFn: async () => {
-      const data = await getLeaders();
-
+    queryFn: getLeaders,
+    // Keep normalization in select so it is applied even when this hook reads
+    // leader data already cached by the admin query with the same key.
+    select: (data) => {
       if (!Array.isArray(data)) {
         console.error("useLeadershipQuery: unexpected response shape", data);
         return [];
       }
 
-      // Process leaders to ensure email is properly extracted from contact object
       const processedLeaders = data.map((leader) => ({
         ...leader,
-        // Extract email from contact object if present
-        email: leader.contact?.email || leader.email || "info@victorybc.org",
+        // The admin form writes flattened contact fields. Legacy records may
+        // still contain stale nested values, so the current field wins.
+        email: leader.email || leader.contact?.email || "info@victorybc.org",
+        phone: leader.phone || leader.contact?.phone || "",
       }));
 
-      // Sort leaders by order property
       return processedLeaders.sort((a, b) => (a.order || 99) - (b.order || 99));
     },
     // Re-fetch whenever the component mounts so freshly-saved leaders always appear.

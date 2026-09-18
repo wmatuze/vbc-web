@@ -46,6 +46,31 @@ const ALLOWED_MIME = new Set([
   "application/pdf",
 ]);
 
+const MEDIA_CATEGORY_ALIASES = {
+  sermon: "sermons",
+  event: "events",
+  "cell-group": "cell-groups",
+  banner: "banners",
+};
+const MEDIA_CATEGORIES = new Set([
+  "general",
+  "sermons",
+  "events",
+  "leadership",
+  "cell-groups",
+  "banners",
+  "gallery",
+]);
+const GALLERY_COLLECTIONS = new Set([
+  "worship",
+  "youth",
+  "outreach",
+  "events",
+  "ministry",
+]);
+const normalizeMediaCategory = (category = "general") =>
+  MEDIA_CATEGORY_ALIASES[category] || category;
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB — Cloudinary enforces its own limits
@@ -646,12 +671,20 @@ app.post(
   authMiddleware,
   upload.single("file"),
   async (req, res) => {
+    let uploadedAsset = null;
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
       }
 
-      const category = req.body.category || "general";
+      const category = normalizeMediaCategory(req.body.category || "general");
+      if (!MEDIA_CATEGORIES.has(category)) {
+        return res.status(400).json({ error: "Invalid media category" });
+      }
+      const galleryCollection = req.body.galleryCollection || "events";
+      if (category === "gallery" && !GALLERY_COLLECTIONS.has(galleryCollection)) {
+        return res.status(400).json({ error: "Invalid gallery collection" });
+      }
       const title =
         req.body.title ||
         path.basename(
@@ -659,39 +692,66 @@ app.post(
           path.extname(req.file.originalname),
         );
 
-      // Upload buffer to Cloudinary
-      const result = await uploadBuffer(req.file.buffer, {
+      const safeTitle = title
+        .replace(/[^a-zA-Z0-9_-]+/g, "_")
+        .replace(/^_+|_+$/g, "")
+        .slice(0, 50) || "media";
+      const isImage = req.file.mimetype.startsWith("image/");
+
+      // Upload the validated buffer to durable storage.
+      uploadedAsset = await uploadBuffer(req.file.buffer, {
         folder: folderFor(category),
-        public_id: `${Date.now()}-${title.replace(/\s+/g, "_").slice(0, 50)}`,
+        public_id: `${Date.now()}-${safeTitle}`,
         overwrite: false,
-        // For images: auto-format (serve WebP/AVIF to modern browsers), auto-quality
-        ...(req.file.mimetype.startsWith("image/") && {
-          transformation: [{ fetch_format: "auto", quality: "auto" }],
+        // Normalize user-uploaded images before storage. A 2000px longest edge
+        // is sufficient for full-screen web use without retaining huge originals.
+        ...(isImage && {
+          transformation: [{
+            width: 2000,
+            height: 2000,
+            crop: "limit",
+            quality: "auto:good",
+            flags: "strip_profile",
+          }],
         }),
       });
 
       // Persist to MongoDB
       const newMedia = new models.Media({
-        filename: result.public_id,
+        filename: uploadedAsset.public_id,
         originalName: req.file.originalname,
-        path: result.secure_url, // full Cloudinary HTTPS URL
-        cloudinaryId: result.public_id,
+        path: uploadedAsset.secure_url, // full Cloudinary HTTPS URL
+        cloudinaryId: uploadedAsset.public_id,
+        resourceType: uploadedAsset.resource_type,
         type: req.file.mimetype,
-        size: result.bytes,
+        size: uploadedAsset.bytes,
+        width: uploadedAsset.width,
+        height: uploadedAsset.height,
+        format: uploadedAsset.format,
         title,
         category,
+        ...(category === "gallery" && { galleryCollection }),
       });
       await newMedia.save();
 
       res.status(200).json({
         ...newMedia._doc,
         id: newMedia._id,
-        path: result.secure_url,
-        url: result.secure_url,
-        thumbnailUrl: result.secure_url,
+        path: uploadedAsset.secure_url,
+        url: uploadedAsset.secure_url,
+        thumbnailUrl: uploadedAsset.secure_url,
       });
     } catch (error) {
       console.error("Upload error:", error);
+      if (uploadedAsset?.public_id) {
+        try {
+          await cloudinary.uploader.destroy(uploadedAsset.public_id, {
+            resource_type: uploadedAsset.resource_type,
+          });
+        } catch (cleanupError) {
+          console.error("Failed to clean up incomplete media upload:", cleanupError);
+        }
+      }
       res
         .status(500)
         .json({ error: "Failed to upload file: " + error.message });
@@ -903,7 +963,11 @@ app.put("/api/config", authMiddleware, adminOnly, async (req, res) => {
 // Media routes
 app.get("/api/media", async (req, res) => {
   try {
-    const media = await models.Media.find().sort({ uploadDate: -1 });
+    const category = req.query.category
+      ? normalizeMediaCategory(req.query.category)
+      : null;
+    const media = await models.Media.find(category ? { category } : {})
+      .sort({ uploadDate: -1 });
     res.json(media);
   } catch (error) {
     console.error("Error fetching media:", error);
@@ -923,7 +987,11 @@ app.get("/media", async (req, res) => {
   res.header("Access-Control-Allow-Credentials", "true");
 
   try {
-    const media = await models.Media.find().sort({ uploadDate: -1 });
+    const category = req.query.category
+      ? normalizeMediaCategory(req.query.category)
+      : null;
+    const media = await models.Media.find(category ? { category } : {})
+      .sort({ uploadDate: -1 });
     res.json(media);
   } catch (error) {
     console.error("Error fetching media:", error);
@@ -961,11 +1029,12 @@ app.delete("/api/media/:id", authMiddleware, async (req, res) => {
     if (!media) return res.status(404).json({ error: "Media not found" });
 
     if (media.cloudinaryId) {
-      try {
-        await cloudinary.uploader.destroy(media.cloudinaryId, { resource_type: "auto" });
-      } catch (cloudErr) {
-        console.warn("Cloudinary deletion warning:", cloudErr.message);
-      }
+      const resourceType = media.resourceType ||
+        (/^(audio|video)\//.test(media.type) ? "video" :
+          media.type === "application/pdf" ? "raw" : "image");
+      await cloudinary.uploader.destroy(media.cloudinaryId, {
+        resource_type: resourceType,
+      });
     }
 
     await models.Media.findByIdAndDelete(req.params.id);
@@ -1014,6 +1083,24 @@ app.get("/api/media/usage", authMiddleware, async (req, res) => {
   }
 });
 
+const normalizeLeaderPayload = (payload) => {
+  const leaderData = { ...payload };
+  const hasOwn = (field) => Object.prototype.hasOwnProperty.call(payload, field);
+
+  // The current admin form uses flattened contact fields, while older clients
+  // read the nested contact object. Keep both representations synchronized.
+  if (hasOwn("email") || hasOwn("phone") || hasOwn("socialMedia")) {
+    leaderData.contact = { ...(payload.contact || {}) };
+    if (hasOwn("email")) leaderData.contact.email = payload.email;
+    if (hasOwn("phone")) leaderData.contact.phone = payload.phone;
+    if (hasOwn("socialMedia")) {
+      leaderData.contact.socialMedia = payload.socialMedia;
+    }
+  }
+
+  return leaderData;
+};
+
 // Leaders routes
 app.get("/api/leaders", async (req, res) => {
   try {
@@ -1029,7 +1116,7 @@ app.get("/api/leaders", async (req, res) => {
 
 app.post("/api/leaders", authMiddleware, async (req, res) => {
   try {
-    const leader = new models.Leader(req.body);
+    const leader = new models.Leader(normalizeLeaderPayload(req.body));
     await leader.save();
     res.status(201).json(leader);
   } catch (error) {
@@ -1057,7 +1144,7 @@ app.put("/api/leaders/:id", authMiddleware, async (req, res) => {
   try {
     const leader = await models.Leader.findByIdAndUpdate(
       req.params.id,
-      { ...req.body, updatedAt: Date.now() },
+      { ...normalizeLeaderPayload(req.body), updatedAt: Date.now() },
       { new: true },
     );
     if (!leader) {
@@ -1876,7 +1963,7 @@ app.post("/leaders", authMiddleware, async (req, res) => {
 
     // Create a new leader from the request body
     const leaderData = {
-      ...req.body,
+      ...normalizeLeaderPayload(req.body),
       // Set default values if not provided
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -1909,7 +1996,7 @@ app.put("/leaders/:id", authMiddleware, async (req, res) => {
   try {
     const leader = await models.Leader.findByIdAndUpdate(
       req.params.id,
-      { ...req.body, updatedAt: new Date() },
+      { ...normalizeLeaderPayload(req.body), updatedAt: new Date() },
       { new: true },
     ).populate("image");
 

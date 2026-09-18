@@ -8,7 +8,7 @@ const MAX_SIZE_BYTES = 100 * 1024 * 1024; // 100 MB — Cloudinary enforces its 
  * Upload a file to the backend, which streams it to Cloudinary.
  * Returns the media record including the permanent Cloudinary URL in `path`.
  */
-export const uploadFile = async (file, title, category) => {
+export const uploadFile = async (file, title, category, options = {}) => {
   if (!ALLOWED_TYPES.test(file.type)) {
     throw new Error(
       "File type not supported. Allowed: images (JPG/PNG/GIF/WebP), audio (MP3/WAV/AAC), video (MP4), PDF."
@@ -26,6 +26,9 @@ export const uploadFile = async (file, title, category) => {
   formData.append("file", file);
   formData.append("title", title || file.name.replace(/\.[^.]+$/, ""));
   formData.append("category", category || "general");
+  if (category === "gallery" && options.galleryCollection) {
+    formData.append("galleryCollection", options.galleryCollection);
+  }
 
   const response = await fetch(`${API_URL}/api/upload`, {
     method: "POST",

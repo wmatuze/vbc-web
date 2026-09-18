@@ -20,7 +20,7 @@ export const mediaValidationRules = {
   file: {
     type: "file",
     required: true,
-    maxSize: 5 * 1024 * 1024, // 5MB
+    maxSize: 10 * 1024 * 1024, // Source images are optimized server-side.
     allowedTypes: ["image/jpeg", "image/png", "image/gif", "image/webp"],
     fieldName: "File",
   },

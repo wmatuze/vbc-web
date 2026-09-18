@@ -22,6 +22,7 @@ const CATEGORY_FOLDER = {
   resources:     "vbc/resources",
   audio:         "vbc/audio",
   gallery:       "vbc/gallery",
+  banners:       "vbc/banners",
   media:         "vbc/media",
   general:       "vbc/general",
 };

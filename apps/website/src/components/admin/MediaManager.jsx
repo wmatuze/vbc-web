@@ -25,12 +25,29 @@ const API_URL = config.API_URL;
 
 const CATEGORIES = [
   { value: "general",    label: "General" },
-  { value: "sermon",     label: "Sermons" },
-  { value: "event",      label: "Events" },
+  { value: "sermons",    label: "Sermons" },
+  { value: "events",     label: "Events" },
   { value: "leadership", label: "Leadership" },
-  { value: "cell-group", label: "Cell Groups" },
-  { value: "banner",     label: "Banners" },
+  { value: "cell-groups", label: "Cell Groups" },
+  { value: "banners",    label: "Banners" },
   { value: "gallery",    label: "Gallery" },
+];
+
+const CATEGORY_ALIASES = {
+  sermon: "sermons",
+  event: "events",
+  "cell-group": "cell-groups",
+  banner: "banners",
+};
+
+const normalizeCategory = (category) => CATEGORY_ALIASES[category] || category;
+
+const GALLERY_COLLECTIONS = [
+  { value: "worship", label: "Worship" },
+  { value: "youth", label: "Youth" },
+  { value: "outreach", label: "Outreach" },
+  { value: "events", label: "Events" },
+  { value: "ministry", label: "Ministry" },
 ];
 
 const formatBytes = (bytes) => {
@@ -70,7 +87,10 @@ const MediaManager = () => {
     : [];
 
   const filteredMedia = validMedia.filter(item => {
-    if (filterCategory !== "all" && item.category !== filterCategory) return false;
+    if (
+      filterCategory !== "all" &&
+      normalizeCategory(item.category) !== filterCategory
+    ) return false;
     if (searchTerm) {
       const s = searchTerm.toLowerCase();
       return item.title?.toLowerCase().includes(s)
@@ -132,6 +152,7 @@ const MediaManager = () => {
       file,
       title: file.name.split(".").slice(0, -1).join(".") || file.name,
       category: "general",
+      galleryCollection: "events",
       status: "pending",
       progress: 0,
       error: null,
@@ -168,11 +189,8 @@ const MediaManager = () => {
 
       updateQueueItem(item.id, { status: "uploading", progress: 0 });
       try {
-        await uploadFile(item.file, item.title, item.category, (progress) => {
-          const pct = typeof progress?.percent === "number"
-            ? progress.percent
-            : progress?.total ? Math.round((progress.loaded / progress.total) * 100) : 0;
-          updateQueueItem(item.id, { progress: pct });
+        await uploadFile(item.file, item.title, item.category, {
+          galleryCollection: item.galleryCollection,
         });
         updateQueueItem(item.id, { status: "done", progress: 100 });
       } catch (err) {
@@ -482,7 +500,7 @@ const MediaManager = () => {
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   <span className="text-red-600 font-medium">Click to select</span> or drag and drop
                 </p>
-                <p className="text-xs text-gray-400 mt-0.5">Select multiple files — PNG, JPG, GIF up to 5MB each</p>
+                <p className="text-xs text-gray-400 mt-0.5">Select multiple files — PNG, JPG, GIF or WebP up to 10MB each. Large images are optimized automatically.</p>
                 <input ref={fileInputRef} type="file" className="sr-only" accept="image/*" multiple
                   onChange={e => { if (e.target.files?.length) { addFilesToQueue(e.target.files); e.target.value = ""; } }} />
               </div>
@@ -531,6 +549,21 @@ const MediaManager = () => {
                           >
                             {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                           </select>
+                          {item.category === "gallery" && (
+                            <select
+                              value={item.galleryCollection}
+                              onChange={e => updateQueueItem(item.id, { galleryCollection: e.target.value })}
+                              disabled={item.status !== "pending"}
+                              className="w-full text-xs px-2 py-1 border border-gray-300 dark:border-gray-500 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-60"
+                              aria-label="Gallery collection"
+                            >
+                              {GALLERY_COLLECTIONS.map(collection => (
+                                <option key={collection.value} value={collection.value}>
+                                  {collection.label} collection
+                                </option>
+                              ))}
+                            </select>
+                          )}
                         </div>
 
                         {/* Status */}
