@@ -75,7 +75,7 @@ const Membership = () => {
       {/* ── Hero ─────────────────────────────────────────────────── */}
       <HeroSection
         subtitle="Membership"
-        title="Be Part of the Family"
+        title="Membership"
         description="Membership at VBC is a covenant — a commitment to community, growth, and purpose. It starts with four weeks and lasts a lifetime."
         backgroundImage="/assets/hero-bg.jpg"
         breadcrumbs={[

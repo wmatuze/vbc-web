@@ -156,7 +156,7 @@ const PraiseMinistry = () => {
       {/* ── Hero ──────────────────────────────────────────────────── */}
       <HeroSection
         subtitle="Praise Ministry"
-        title="Let Everything That Has Breath."
+        title="Praise Ministry"
         description="Musicians, vocalists, and technicians — one team, one purpose. To create the space where every person in the room can encounter God."
         backgroundImage="/assets/hero-bg.jpg"
         breadcrumbs={[

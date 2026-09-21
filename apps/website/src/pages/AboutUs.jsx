@@ -49,7 +49,7 @@ const AboutUs = () => {
       </Helmet>
 
       <HeroSection
-        title="About Victory Bible Church"
+        title="About Us"
         subtitle="Who We Are"
         description="Get to know our story, our leaders, our vision, and what we believe."
         primaryAccentText="Victory Bible Church"

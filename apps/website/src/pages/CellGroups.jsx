@@ -183,11 +183,11 @@ const CellGroups = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-vbc-dark/60 to-vbc-dark" />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-32 md:py-40">
+        <div className="relative z-10 mx-auto max-w-7xl px-5 pb-16 pt-28 sm:px-6 sm:py-32 md:py-40">
           <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-6">Community & Fellowship</p>
           <h1
             className="font-black text-white leading-[0.88] mb-8"
-            style={{ fontSize: "clamp(3.5rem, 9vw, 7rem)" }}
+            style={{ fontSize: "clamp(2.75rem, 12vw, 7rem)" }}
           >
             WHERE DO<br />
             <span className="text-white/20">YOU</span><br />

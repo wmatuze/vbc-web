@@ -15,6 +15,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useZoneByIdQuery, useZoneCellGroupsQuery } from "../hooks/useZonesQuery";
 import JoinGroupModal from "../components/JoinGroupModal";
+import HeroSection from "../components/common/HeroSection";
 import config from "../config";
 
 const API_URL = config.API_URL;
@@ -166,60 +167,28 @@ const ZoneDetailPage = () => {
           content={zone ? `Cell groups in the ${zone.name} zone. Find one near you and join a small group for fellowship and growth.` : ""} />
       </Helmet>
 
-      {/* ── Hero ──────────────────────────────────────────────────── */}
-      <section className="relative bg-vbc-dark overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-20"
-          style={{ backgroundImage: "url(/assets/hero-bg.jpg)" }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-vbc-dark/60 to-vbc-dark" />
+      <HeroSection
+        title={isLoading ? "Loading Zone…" : zone?.name || "Zone"}
+        backgroundImage="/assets/hero-bg.jpg"
+      />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-28 md:py-36">
+      <div className="border-b border-white/10 bg-vbc-dark px-6 py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
           <Link
             to="/cell-groups"
-            className="inline-flex items-center gap-2 text-white/30 hover:text-white text-xs font-semibold uppercase tracking-wider transition-colors mb-8"
+            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/50 hover:text-white"
           >
             <ArrowLeftIcon className="h-3.5 w-3.5" />
             All Zones
           </Link>
-
-          <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-4">Zone</p>
-
-          {isLoading ? (
-            <div className="h-16 w-64 bg-white/10 animate-pulse" />
-          ) : (
-            <h1
-              className="font-black text-white leading-[0.88] mb-6"
-              style={{ fontSize: "clamp(3rem, 8vw, 6rem)" }}
-            >
-              {zone?.name}
-            </h1>
-          )}
-
           {zone?.location && (
-            <p className="flex items-center gap-2 text-white/40 text-sm">
+            <p className="flex items-center gap-2 text-xs text-white/50">
               <MapPinIcon className="h-4 w-4" />
               {zone.location}
             </p>
           )}
-
-          <div className="flex items-center gap-8 mt-12 pt-12 border-t border-white/10">
-            <div>
-              <p className="text-2xl font-black text-white">{cellGroups.length}</p>
-              <p className="text-white/30 text-xs uppercase tracking-wider mt-0.5">Cell Groups</p>
-            </div>
-            {zone?.elder?.name && (
-              <>
-                <div className="w-px h-10 bg-white/10" />
-                <div>
-                  <p className="text-sm font-black text-white">{zone.elder.name}</p>
-                  <p className="text-white/30 text-xs uppercase tracking-wider mt-0.5">{zone.elder.title || "Zone Elder"}</p>
-                </div>
-              </>
-            )}
-          </div>
         </div>
-      </section>
+      </div>
 
       {/* ── Zone info + Elder ─────────────────────────────────────── */}
       {!isLoading && zone && (zone.description || zone.elder?.name) && (

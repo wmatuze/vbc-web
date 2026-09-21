@@ -150,8 +150,7 @@ const WomensMinistry = () => {
 
       {/* ── Hero ──────────────────────────────────────────────────── */}
       <HeroSection
-        subtitle="Women's Ministry"
-        title="Rooted. Restored. Rising."
+        title="Women's Ministry"
         description="A community where women encounter God, build lasting friendships, and grow into all He has called them to be."
         backgroundImage="/assets/hero-bg.jpg"
         breadcrumbs={[

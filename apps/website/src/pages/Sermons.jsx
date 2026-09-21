@@ -9,6 +9,7 @@ import {
 import config from "../config";
 import { useSermonsQuery } from "../hooks/useSermonsQuery";
 import placeholderImage from "../assets/placeholders/default-image.svg";
+import HeroSection from "../components/common/HeroSection";
 
 const API_URL = config.API_URL;
 
@@ -345,17 +346,7 @@ const Sermons = () => {
         <meta name="description" content="Watch and listen to past messages from Victory Bible Church. Grow in your faith through Scripture-driven preaching." />
       </Helmet>
 
-      {/* ── Page header ───────────────────────────────────────────── */}
-      <div className="border-b border-white/10 bg-vbc-dark">
-        <div className="max-w-7xl mx-auto px-6 pt-24 pb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-white font-black text-lg leading-tight">Sermons and Messages</h1>
-          </div>
-          <p className="text-white/20 text-xs uppercase tracking-wider hidden sm:block">
-            {sermonsToDisplay.length} message{sermonsToDisplay.length !== 1 ? "s" : ""}
-          </p>
-        </div>
-      </div>
+      <HeroSection title="Sermons" backgroundImage="/assets/hero-bg.jpg" />
 
       {/* ── Soft retry banner ─────────────────────────────────────── */}
       {sermonsError && (

@@ -27,6 +27,9 @@
 
 body {
     @apply font-sans text-gray-900 antialiased;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-x: clip;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

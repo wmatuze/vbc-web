@@ -102,7 +102,7 @@ const Missions = () => (
     {/* ── Hero ──────────────────────────────────────────────────── */}
     <HeroSection
       subtitle="Missions"
-      title="Sent to the World"
+      title="Missions"
       description="Spreading the love of Christ through outreach, church planting, and humanitarian efforts — locally and around the world."
       backgroundImage="/assets/hero-bg.jpg"
       breadcrumbs={[{ label: "Home", path: "/" }, { label: "Missions" }]}

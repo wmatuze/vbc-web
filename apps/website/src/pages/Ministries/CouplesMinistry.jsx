@@ -167,7 +167,7 @@ const CouplesMinistry = () => {
       {/* ── Hero ──────────────────────────────────────────────────── */}
       <HeroSection
         subtitle="Couples Ministry"
-        title="Two Are Better Than One."
+        title="Couples Ministry"
         description="A community dedicated to building marriages that don't just last — but flourish. Rooted in Scripture, grounded in community, growing together."
         backgroundImage="/assets/hero-bg.jpg"
         breadcrumbs={[

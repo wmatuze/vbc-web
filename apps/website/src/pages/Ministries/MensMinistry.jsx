@@ -155,15 +155,9 @@ const MensMinistry = () => {
 
       {/* ── Hero ──────────────────────────────────────────────────── */}
       <HeroSection
-        subtitle="Men's Ministry"
-        title="Iron Sharpens Iron."
-        description="A brotherhood built on Scripture, accountability, and service. Men discovering their ministry and rising into it — together."
+        subtitle="Victory Bible Church"
+        title="Men's Ministry"
         backgroundImage="/assets/hero-bg.jpg"
-        breadcrumbs={[
-          { label: "Home", path: "/" },
-          { label: "Ministries", path: "/ministries" },
-          { label: "Men's Ministry" },
-        ]}
       />
 
       {/* ── Vision ────────────────────────────────────────────────── */}

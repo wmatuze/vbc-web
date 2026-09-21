@@ -128,7 +128,7 @@ const ContactUs = () => {
       {/* ── Hero ──────────────────────────────────────────────────── */}
       <HeroSection
         subtitle="Contact"
-        title="Let's Talk"
+        title="Contact Us"
         description="We'd love to hear from you — questions, prayer requests, or just saying hello. We're here."
         backgroundImage="/assets/hero-bg.jpg"
         breadcrumbs={[{ label: "Home", path: "/" }, { label: "Contact" }]}

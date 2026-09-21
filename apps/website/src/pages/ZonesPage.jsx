@@ -12,6 +12,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useZonesQuery } from "../hooks/useZonesQuery";
 import { useCellGroupsQuery } from "../hooks/useCellGroupsQuery";
+import HeroSection from "../components/common/HeroSection";
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 const SkeletonCard = () => (
@@ -121,30 +122,10 @@ const ZonesPage = () => {
         <meta name="description" content="Find a VBC cell group near you. Browse our zones and connect with a small group meeting in your area every week." />
       </Helmet>
 
-      {/* ── Hero ──────────────────────────────────────────────────── */}
-      <section className="relative bg-vbc-dark overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-20"
-          style={{ backgroundImage: "url(/assets/hero-bg.jpg)" }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-vbc-dark/60 to-vbc-dark" />
+      <HeroSection title="Cell Groups" backgroundImage="/assets/hero-bg.jpg" />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-32 md:py-40">
-          <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-6">Community & Fellowship</p>
-          <h1
-            className="font-black text-white leading-[0.88] mb-8"
-            style={{ fontSize: "clamp(3.5rem, 9vw, 7rem)" }}
-          >
-            WHERE DO<br />
-            <span className="text-white/20">YOU</span><br />
-            BELONG?
-          </h1>
-          <p className="text-white/40 text-sm leading-relaxed max-w-md mb-12">
-            Our church is organised into zones across Kitwe — each led by a dedicated elder, each carrying a cluster of small groups meeting weekly in homes and neighbourhoods. Find yours.
-          </p>
-
-          {/* Search */}
-          <div className="relative max-w-lg">
+      <div className="border-b border-white/10 bg-vbc-dark px-5 py-5 sm:px-6">
+        <div className="relative mx-auto max-w-lg">
             <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 pointer-events-none" />
             <input
               type="text"
@@ -158,27 +139,8 @@ const ZonesPage = () => {
                 <XMarkIcon className="h-4 w-4" />
               </button>
             )}
-          </div>
-
-          {/* Stats */}
-          <div className="flex items-center gap-8 mt-12 pt-12 border-t border-white/10">
-            <div>
-              <p className="text-2xl font-black text-white">{zones.length}</p>
-              <p className="text-white/30 text-xs uppercase tracking-wider mt-0.5">Zones</p>
-            </div>
-            <div className="w-px h-10 bg-white/10" />
-            <div>
-              <p className="text-2xl font-black text-white">{allGroups.length}</p>
-              <p className="text-white/30 text-xs uppercase tracking-wider mt-0.5">Cell Groups</p>
-            </div>
-            <div className="w-px h-10 bg-white/10" />
-            <div>
-              <p className="text-2xl font-black text-white">7</p>
-              <p className="text-white/30 text-xs uppercase tracking-wider mt-0.5">Days a Week</p>
-            </div>
-          </div>
         </div>
-      </section>
+      </div>
 
       {/* ── Zones grid ────────────────────────────────────────────── */}
       <section className="max-w-7xl mx-auto px-6 py-16">

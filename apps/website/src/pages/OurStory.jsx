@@ -16,7 +16,7 @@ const OurStory = () => {
       </Helmet>
 
       <HeroSection
-        title="Our Journey of Faith"
+        title="Our Story"
         subtitle="Our Story"
         description="What began as a small gathering of believers has grown into a vibrant community reaching lives and nations."
         primaryAccentText="Faith"

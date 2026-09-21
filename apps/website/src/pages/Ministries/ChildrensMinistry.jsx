@@ -154,7 +154,7 @@ const ChildrensMinistry = () => {
       {/* ── Hero ──────────────────────────────────────────────────── */}
       <HeroSection
         subtitle="Children's Ministry"
-        title="Let the Children Come."
+        title="Children's Ministry"
         description="A safe, creative, and joyful space where children encounter God, make lifelong friends, and begin building a faith that will carry them through everything."
         backgroundImage="/assets/hero-bg.jpg"
         breadcrumbs={[

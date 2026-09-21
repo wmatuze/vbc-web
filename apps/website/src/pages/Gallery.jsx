@@ -7,6 +7,7 @@ import {
   MagnifyingGlassPlusIcon,
 } from "@heroicons/react/24/outline";
 import config from "../config";
+import HeroSection from "../components/common/HeroSection";
 
 // ─── Image data ───────────────────────────────────────────────────────────────
 
@@ -230,42 +231,7 @@ const Gallery = () => {
         <meta name="description" content="Photos from Victory Bible Church — worship services, youth events, community outreach, and church life in Kitwe." />
       </Helmet>
 
-      {/* ── Hero ──────────────────────────────────────────────────── */}
-      <section className="relative bg-vbc-dark overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-30"
-          style={{ backgroundImage: "url(/assets/hero-bg.jpg)" }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-vbc-dark/50 to-vbc-dark" />
-
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-32 md:py-40">
-          <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-6">Victory Bible Church</p>
-          <h1
-            className="font-black text-white leading-[0.88] mb-8"
-            style={{ fontSize: "clamp(4rem, 10vw, 8rem)" }}
-          >
-            LIFE<br />
-            <span className="text-white/20">AT</span><br />
-            VBC.
-          </h1>
-          <p className="text-white/40 text-sm leading-relaxed max-w-sm">
-            Moments from our worship services, community outreach, youth gatherings, and church life in Kitwe and beyond.
-          </p>
-
-          {/* Stats */}
-          <div className="flex items-center gap-8 mt-12 pt-12 border-t border-white/10">
-            <div>
-              <p className="text-2xl font-black text-white">{images.length}</p>
-              <p className="text-white/30 text-xs uppercase tracking-wider mt-0.5">Photos</p>
-            </div>
-            <div className="w-px h-10 bg-white/10" />
-            <div>
-              <p className="text-2xl font-black text-white">{CATEGORIES.length - 1}</p>
-              <p className="text-white/30 text-xs uppercase tracking-wider mt-0.5">Collections</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HeroSection title="Gallery" backgroundImage="/assets/hero-bg.jpg" />
 
       {/* ── Filter bar ────────────────────────────────────────────── */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-30">

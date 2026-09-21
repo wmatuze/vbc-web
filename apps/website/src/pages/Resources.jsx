@@ -22,6 +22,7 @@ import {
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolid } from "@heroicons/react/24/solid";
+import HeroSection from "../components/common/HeroSection";
 
 // ─── Static config ────────────────────────────────────────────────────────────
 
@@ -314,30 +315,10 @@ const Resources = () => {
         <meta name="description" content="Access foundation class materials, discipleship guides, leadership resources, Bible study tools, and more at Victory Bible Church." />
       </Helmet>
 
-      {/* ── Hero ──────────────────────────────────────────────────── */}
-      <section className="relative bg-vbc-dark overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-20"
-          style={{ backgroundImage: "url(/assets/hero-bg.jpg)" }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-vbc-dark/60 to-vbc-dark" />
+      <HeroSection title="Resources" backgroundImage="/assets/hero-bg.jpg" />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-32 md:py-40">
-          <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-6">Church Library</p>
-          <h1
-            className="font-black text-white leading-[0.88] mb-8"
-            style={{ fontSize: "clamp(3.5rem, 9vw, 7rem)" }}
-          >
-            GROW.<br />
-            <span className="text-white/20">STUDY.</span><br />
-            LEAD.
-          </h1>
-          <p className="text-white/40 text-sm leading-relaxed max-w-md mb-12">
-            Every resource you need to go deeper — foundation materials, discipleship guides, leadership tools, Bible studies, and more. All in one place.
-          </p>
-
-          {/* Search */}
-          <div className="relative max-w-xl">
+      <div className="border-b border-white/10 bg-vbc-dark px-5 py-5 sm:px-6">
+        <div className="relative mx-auto max-w-xl">
             <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 pointer-events-none" />
             <input
               type="text"
@@ -351,9 +332,8 @@ const Resources = () => {
                 <XMarkIcon className="h-4 w-4" />
               </button>
             )}
-          </div>
         </div>
-      </section>
+      </div>
 
       {/* ── Programs nav ──────────────────────────────────────────── */}
       <section className="bg-white py-20">

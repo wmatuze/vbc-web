@@ -84,7 +84,7 @@ const HeroSection = forwardRef((props, forwardedRef) => {
   return (
     <section
       ref={setSectionRef}
-      className="relative isolate min-h-[100svh] overflow-hidden bg-[#06080d] text-white"
+      className="relative isolate min-h-[42rem] overflow-hidden bg-[#06080d] text-white sm:min-h-[46rem] lg:min-h-[100svh]"
     >
       <div
         className="absolute inset-0 bg-cover bg-[72%_center] lg:bg-center"
@@ -102,13 +102,13 @@ const HeroSection = forwardRef((props, forwardedRef) => {
         <div className="absolute inset-[12%] rounded-full border border-primary-500/20" />
       </div>
 
-      <div className="relative z-10 mx-auto grid min-h-[100svh] max-w-screen-2xl grid-cols-1 items-end px-5 pb-10 pt-28 sm:px-8 sm:pb-14 lg:grid-cols-12 lg:items-center lg:px-14 lg:pb-20 lg:pt-32 2xl:px-20">
-        <div ref={contentRef} className="lg:col-span-7 lg:max-w-3xl">
+      <div className="relative z-10 mx-auto grid min-h-[42rem] max-w-screen-2xl grid-cols-1 items-end px-5 pb-10 pt-24 sm:min-h-[46rem] sm:px-8 sm:pb-14 sm:pt-28 lg:min-h-[100svh] lg:grid-cols-12 lg:items-center lg:px-14 lg:pb-20 lg:pt-32 2xl:px-20">
+        <div ref={contentRef} className="min-w-0 lg:col-span-7 lg:max-w-3xl">
           <div className="mb-6 flex items-center gap-4 sm:mb-8">
             <span className="h-px w-10 bg-brand-red" />
           </div>
 
-          <h1 className="max-w-[15ch] font-sans text-[clamp(2.65rem,6.2vw,6.8rem)] font-black leading-[0.94] tracking-[-0.055em]">
+          <h1 className="max-w-full font-sans text-[clamp(2rem,8.8vw,2.35rem)] font-black leading-[0.94] tracking-[-0.055em] sm:max-w-[15ch] sm:text-[clamp(2.65rem,6.2vw,6.8rem)]">
             <span className="block">Sinning when alone</span>
             <span className="block">is easy, but</span>
             <span className="block text-primary-400">worshipping</span>
@@ -140,7 +140,7 @@ const HeroSection = forwardRef((props, forwardedRef) => {
           </div>
         </div>
 
-        <div ref={eventRef} className="mt-10 lg:col-span-4 lg:col-start-9 lg:mt-0 lg:self-end lg:pb-4">
+        <div ref={eventRef} className="mt-10 min-w-0 lg:col-span-4 lg:col-start-9 lg:mt-0 lg:self-end lg:pb-4">
           <div className="relative block overflow-hidden border-l border-brand-red bg-black/55 px-6 py-6 backdrop-blur-md sm:max-w-md lg:ml-auto">
             {featuredEventImage && (
               <div className="pointer-events-none absolute inset-0" aria-hidden="true">

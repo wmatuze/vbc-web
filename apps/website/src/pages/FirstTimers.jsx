@@ -319,23 +319,21 @@ const FirstTimers = () => (
     </Helmet>
 
     {/* ── Hero ──────────────────────────────────────────────────── */}
-    <section className="relative bg-vbc-dark overflow-hidden">
+    <section className="relative h-80 overflow-hidden bg-vbc-dark sm:h-96 lg:h-screen">
       <div className="absolute inset-0 bg-cover bg-center opacity-20"
         style={{ backgroundImage: "url(/assets/hero-bg.jpg)" }} />
       <div className="absolute inset-0 bg-gradient-to-b from-vbc-dark/60 to-vbc-dark" />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-32 md:py-44">
-        <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-6">Victory Bible Church · Kitwe</p>
-        <h1 className="font-black text-white leading-[0.88] mb-8"
-          style={{ fontSize: "clamp(4rem, 10vw, 8rem)" }}>
-          WELCOME<br />
-          <span className="text-white/20">TO</span><br />
-          VBC.
+      <div className="relative z-10 mx-auto flex h-full max-w-7xl flex-col items-center justify-center px-5 pt-16 text-center sm:px-8 sm:pt-20">
+        <span className="mb-4 block h-px w-12 bg-white/60" aria-hidden="true" />
+        <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-white sm:text-xs">Victory Bible Church</p>
+        <h1 className="font-sans text-3xl font-semibold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
+          First Timers
         </h1>
-        <p className="text-white/50 text-sm leading-relaxed max-w-md mb-12">
+        <p className="hidden">
           We are glad you are here. Whether this is your first Sunday or you are still deciding — there is a place for you at Victory Bible Church.
         </p>
-        <p className="text-white/30 text-xs italic leading-relaxed max-w-sm">
+        <p className="hidden">
           "Winning a Generation for Christ." — Bishop Cyrus & Pastor Getrude Simwanza
         </p>
       </div>

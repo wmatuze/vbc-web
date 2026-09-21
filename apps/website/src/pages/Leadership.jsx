@@ -176,10 +176,10 @@ const Leadership = () => {
       </Helmet>
 
       {/* Hero */}
-      <section className="relative min-h-screen overflow-hidden">
+      <section className="relative h-80 overflow-hidden sm:h-96 lg:h-screen">
         <nav
           aria-label="Breadcrumb"
-          className="absolute top-20 left-0 right-0 z-20 px-4 sm:px-6 lg:px-8"
+          className="hidden"
         >
           <ol className="flex items-center space-x-1.5 text-sm text-white/60">
             <li>
@@ -202,21 +202,26 @@ const Leadership = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-black/85 via-black/70 to-black/85" />
         </div>
 
-        <div className="relative z-10 min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 flex h-full items-center justify-center px-5 pt-16 sm:px-8 sm:pt-20">
           <div className="text-center max-w-4xl mx-auto">
-            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-6">
-              Our Leaders
+            <span className="mx-auto mb-4 block h-px w-12 bg-white/60" aria-hidden="true" />
+            <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-white sm:text-xs">
+              Victory Bible Church
             </p>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-              Shepherds of Our <span className="text-primary-400">Faith</span>
+            <h1 className="font-sans text-3xl font-semibold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
+              Leadership
             </h1>
-            <p className="text-lg sm:text-xl text-gray-300 mb-12 leading-relaxed max-w-2xl mx-auto">
+            <p className="hidden">
               Meet the leaders who guide, nurture, and inspire our church community with love,
               wisdom, and unwavering commitment.
             </p>
             <div
-              className="flex flex-col items-center animate-bounce cursor-pointer"
-              onClick={() => window.scrollTo({ top: window.innerHeight, behavior: "smooth" })}
+              className="hidden"
+              onClick={(event) =>
+                event.currentTarget
+                  .closest("section")
+                  ?.nextElementSibling?.scrollIntoView({ behavior: "smooth" })
+              }
             >
               <span className="text-white/50 text-xs font-light tracking-widest mb-2">
                 MEET OUR LEADERS

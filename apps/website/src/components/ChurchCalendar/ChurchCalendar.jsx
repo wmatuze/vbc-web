@@ -144,7 +144,7 @@ const ChurchCalendar = () => {
       {/* ── Hero ──────────────────────────────────────────────────── */}
       <HeroSection
         subtitle="What's On"
-        title="Events & Gatherings"
+        title="Events"
         description="Join us for worship, community, and growth. Something is always happening at Victory Bible Church."
         backgroundImage="/assets/hero-bg.jpg"
         breadcrumbs={[{ label: "Home", path: "/" }, { label: "Events" }]}

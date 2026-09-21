@@ -109,32 +109,32 @@ const YouthMinistry = () => {
       </Helmet>
 
       {/* ── HERO ────────────────────────────────────────────────── */}
-      <section className="relative min-h-screen flex flex-col justify-center overflow-hidden">
+      <section className="relative flex h-80 flex-col justify-center overflow-hidden sm:h-96 lg:h-screen">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: "url(/assets/hero-bg.jpg)" }}
         />
         <div className="absolute inset-0 bg-vbc-dark/80" />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-32 text-center">
+        <div className="relative z-10 mx-auto flex h-full max-w-7xl flex-col items-center justify-center px-5 pt-16 text-center sm:px-8 sm:pt-20">
           {/* Eyebrow */}
-          <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.3em] mb-4">
-            Victory Bible Church · Youth Ministry
+          <span className="mb-4 block h-px w-12 bg-white/60" aria-hidden="true" />
+          <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-white sm:text-xs">
+            Victory Bible Church
           </p>
 
           {/* Title */}
           <h1
-            className="font-black text-white leading-[0.88] mb-6"
-            style={{ fontSize: "clamp(4rem, 14vw, 10rem)" }}
+            className="font-sans text-3xl font-semibold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl"
           >
-            LIT NATION
+            Youth Ministry
           </h1>
 
-          <p className="text-white/60 text-lg max-w-xl mx-auto mb-12 leading-relaxed">
+          <p className="hidden">
             A vibrant community where youth experience faith, friendship, and purpose — every Friday at 6:30 PM.
           </p>
 
-          <div className="flex flex-wrap gap-4 justify-center">
+          <div className="hidden">
             <button
               onClick={() => { setActiveTab("main"); document.getElementById("tab-content")?.scrollIntoView({ behavior: "smooth" }); }}
               className="bg-brand-red text-white text-sm font-semibold px-8 py-4 hover:bg-red-700 transition-colors"
@@ -148,7 +148,7 @@ const YouthMinistry = () => {
           </div>
 
           {/* Quick facts strip */}
-          <div className="mt-16 grid grid-cols-3 gap-px bg-white/10 max-w-xl mx-auto">
+          <div className="hidden">
             {[["Sunday", "13:00 – 15:00"], ["Tuesday", "CBU Fellowship"], ["Ages", "13 – 25"]].map(([top, bot]) => (
               <div key={top} className="bg-vbc-dark/60 py-5 px-4 text-center">
                 <p className="text-white font-black text-xl">{top}</p>
