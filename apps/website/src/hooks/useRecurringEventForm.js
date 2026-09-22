@@ -11,9 +11,10 @@ const INITIAL_RECURRING_EVENT_STATE = {
   recurrenceType: "monthly", // Default to monthly
   dayOfWeek: 0, // Default to Sunday
   weekOfMonth: "first", // Default to first week
-  dayOfMonth: 1, // Default to 1st day
+  dayOfMonth: "",
   month: 0, // Default to January
   time: "",
+  scheduleLabel: "",
   icon: "",
   color: "primary",
   featured: false,
@@ -45,6 +46,11 @@ const RECURRING_EVENT_VALIDATION_RULES = {
   dayOfMonth: { type: "number", min: 1, max: 31, fieldName: "Day of Month" },
   month: { type: "number", min: 0, max: 11, fieldName: "Month" },
   time: { type: "string", required: true, fieldName: "Time" },
+  scheduleLabel: {
+    type: "string",
+    maxLength: 120,
+    fieldName: "Schedule label",
+  },
   location: { type: "string", maxLength: 100, fieldName: "Location" },
 };
 
@@ -219,7 +225,35 @@ export const useRecurringEventForm = ({ onSuccess, onError }) => {
     }
 
     console.log(`Field ${name} changed to:`, processedValue);
-    setCurrentEvent((prev) => ({ ...prev, [name]: processedValue }));
+    setCurrentEvent((prev) => {
+      const next = { ...prev, [name]: processedValue };
+
+      if (name === "recurrenceType") {
+        if (processedValue === "weekly") {
+          next.dayOfWeek = prev.dayOfWeek === "" ? 0 : (prev.dayOfWeek ?? 0);
+          next.weekOfMonth = "";
+          next.dayOfMonth = "";
+          next.month = "";
+        } else if (processedValue === "monthly") {
+          next.weekOfMonth = prev.weekOfMonth || "first";
+          next.dayOfMonth = "";
+          next.dayOfWeek = prev.dayOfWeek === "" ? 0 : (prev.dayOfWeek ?? 0);
+          next.month = "";
+        } else if (processedValue === "yearly") {
+          next.dayOfWeek = "";
+          next.weekOfMonth = "";
+          next.dayOfMonth = "";
+          next.month = prev.month === "" ? 0 : (prev.month ?? 0);
+        }
+      } else if (name === "weekOfMonth" && processedValue) {
+        next.dayOfMonth = "";
+      } else if (name === "dayOfMonth" && processedValue !== "") {
+        next.weekOfMonth = "";
+        next.dayOfWeek = "";
+      }
+
+      return next;
+    });
 
     // Validate the field if it has validation rules
     if (RECURRING_EVENT_VALIDATION_RULES[name]) {
@@ -315,6 +349,10 @@ export const useRecurringEventForm = ({ onSuccess, onError }) => {
 
       if (serverEvent.month !== undefined && serverEvent.month !== "") {
         serverEvent.month = Number(serverEvent.month);
+      }
+
+      for (const field of ["dayOfWeek", "weekOfMonth", "dayOfMonth", "month", "scheduleLabel"]) {
+        if (serverEvent[field] === "") delete serverEvent[field];
       }
 
       console.log(

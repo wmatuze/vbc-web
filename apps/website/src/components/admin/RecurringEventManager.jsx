@@ -28,6 +28,7 @@ const MONTH_NAMES  = ["January","February","March","April","May","June","July","
 const ordinal = (n) => { const s=["th","st","nd","rd"]; const v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); };
 
 const formatRecurrence = (ev) => {
+  if (ev.scheduleLabel) return ev.scheduleLabel;
   const t = ev.recurrenceType;
   if (t === "weekly") return `Every ${DAY_NAMES[ev.dayOfWeek] ?? "week"}`;
   if (t === "monthly") {
@@ -46,7 +47,7 @@ const RecurringEventManager = () => {
   const { darkMode } = useDarkMode();
 
   const { data: recurringEvents = [], isLoading: eventsLoading, error: eventsError, refetch: refetchEvents } =
-    useRecurringEventsQuery();
+    useRecurringEventsQuery({ includeInactive: true });
 
   const { error, errorMessage, handleError, clearError, withErrorHandling } =
     useErrorHandler("RecurringEventManager");

@@ -57,9 +57,12 @@ export const deleteEvent = (id) => {
  * Get all recurring events
  * @returns {Promise<Array>} Promise resolving to array of recurring events
  */
-export const getRecurringEvents = () => {
+export const getRecurringEvents = ({ includeInactive = false } = {}) => {
   console.log("Calling getRecurringEvents API");
-  return fetchData("api/recurring-events")
+  const endpoint = includeInactive
+    ? "api/recurring-events/admin"
+    : "api/recurring-events";
+  return fetchData(endpoint)
     .then((data) => {
       console.log("Recurring Events API response:", data);
       return data;

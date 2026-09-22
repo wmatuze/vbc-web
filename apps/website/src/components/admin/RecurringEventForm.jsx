@@ -85,6 +85,30 @@ const RecurringEventForm = ({
               </FormField>
             </div>
 
+            {currentEvent.weekOfMonth && (
+              <div className="mb-4">
+                <FormField
+                  label="Day of Week"
+                  name="dayOfWeek"
+                  type="select"
+                  value={currentEvent.dayOfWeek ?? ""}
+                  onChange={handleInputChange}
+                  error={formErrors.dayOfWeek}
+                  darkmode={darkMode}
+                  helpText="Leave blank for an event that runs across the week"
+                >
+                  <option value="">Whole week / custom schedule</option>
+                  <option value="0">Sunday</option>
+                  <option value="1">Monday</option>
+                  <option value="2">Tuesday</option>
+                  <option value="3">Wednesday</option>
+                  <option value="4">Thursday</option>
+                  <option value="5">Friday</option>
+                  <option value="6">Saturday</option>
+                </FormField>
+              </div>
+            )}
+
             <div className="mb-4">
               <FormField
                 label="Day of Month"
@@ -225,6 +249,20 @@ const RecurringEventForm = ({
 
           {/* Render fields based on recurrence type */}
           {renderRecurrenceFields()}
+
+          <div className="mb-4">
+            <FormField
+              label="Schedule Label"
+              name="scheduleLabel"
+              type="text"
+              value={currentEvent.scheduleLabel || ""}
+              onChange={handleInputChange}
+              error={formErrors.scheduleLabel}
+              darkmode={darkMode}
+              placeholder="e.g. Last week - Monday-Friday"
+              helpText="Optional wording shown on the website for multi-day or special schedules"
+            />
+          </div>
 
           <div className="mb-4">
             <FormField

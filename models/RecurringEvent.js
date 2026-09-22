@@ -43,6 +43,12 @@ const RecurringEventSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  // Optional admin-controlled wording for schedules that span several days.
+  scheduleLabel: {
+    type: String,
+    trim: true,
+    maxlength: 120,
+  },
   // Display information
   icon: {
     type: String,
@@ -72,6 +78,29 @@ const RecurringEventSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+});
+
+RecurringEventSchema.pre("validate", function validateRecurrence(next) {
+  if (this.recurrenceType === "weekly" && this.dayOfWeek == null) {
+    this.invalidate("dayOfWeek", "Day of week is required for weekly events");
+  }
+
+  if (
+    this.recurrenceType === "monthly" &&
+    !this.weekOfMonth &&
+    this.dayOfMonth == null
+  ) {
+    this.invalidate(
+      "weekOfMonth",
+      "Week of month or day of month is required for monthly events",
+    );
+  }
+
+  if (this.recurrenceType === "yearly" && this.month == null) {
+    this.invalidate("month", "Month is required for yearly events");
+  }
+
+  next();
 });
 
 module.exports = mongoose.model("RecurringEvent", RecurringEventSchema);

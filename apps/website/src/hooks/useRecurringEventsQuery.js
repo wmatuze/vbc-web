@@ -10,10 +10,11 @@ import {
  * @returns {Object} Query result object with data, loading state, error, and refetch function
  */
 export const useRecurringEventsQuery = (options = {}) => {
+  const { includeInactive = false, ...queryOptions } = options;
   return useQuery({
-    queryKey: ["recurring-events"],
-    queryFn: getRecurringEvents,
-    ...options,
+    queryKey: ["recurring-events", { includeInactive }],
+    queryFn: () => getRecurringEvents({ includeInactive }),
+    ...queryOptions,
   });
 };
 

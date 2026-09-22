@@ -9,25 +9,45 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December",
 ];
 
-const getScheduleText = (event) => {
+const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const WEEK_ORDER = { first: 1, second: 2, third: 3, fourth: 4, last: 5 };
+
+const getProgramOrder = (event) => {
   if (event.recurrenceType === "monthly") {
     if (event.weekOfMonth) {
-      return `${event.weekOfMonth.charAt(0).toUpperCase()}${event.weekOfMonth.slice(1)} Sunday`;
+      return (WEEK_ORDER[event.weekOfMonth] || 6) * 10 + (event.dayOfWeek ?? 0);
+    }
+    if (event.dayOfMonth) return Number(event.dayOfMonth);
+  }
+  if (event.recurrenceType === "weekly") return 100 + (event.dayOfWeek ?? 7);
+  if (event.recurrenceType === "yearly") return 200 + (event.month ?? 12);
+  return 999;
+};
+
+const getScheduleText = (event) => {
+  if (event.scheduleLabel) return event.scheduleLabel;
+  if (event.recurrenceType === "monthly") {
+    if (event.weekOfMonth) {
+      const week = `${event.weekOfMonth.charAt(0).toUpperCase()}${event.weekOfMonth.slice(1)}`;
+      if (event.dayOfWeek !== undefined && event.dayOfWeek !== null) {
+        return `${week} ${DAYS[event.dayOfWeek]}`;
+      }
+      if (event.weekOfMonth === "last") return "Last week - Monday-Friday";
+      return `${week} week`;
     }
     if (event.dayOfMonth) return `${event.dayOfMonth} of each month`;
   }
   if (event.recurrenceType === "weekly") {
-    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    return `Every ${days[event.dayOfWeek]}`;
+    return `Every ${DAYS[event.dayOfWeek]}`;
   }
   if (event.recurrenceType === "yearly") return `Annually · ${MONTHS[event.month]}`;
   return "Recurring";
 };
 
 const FALLBACK_PROGRAMS = [
-  { title: "Prayer & Fasting Week", schedule: "Last week", time: "Various times" },
-  { title: "Holy Communion Service", schedule: "Third Sunday", time: "9:30 AM" },
   { title: "Anointing Service", schedule: "First Sunday", time: "9:30 AM" },
+  { title: "Holy Communion Service", schedule: "Third Sunday", time: "9:30 AM" },
+  { title: "Prayer & Fasting Week", schedule: "Last week - Monday-Friday", time: "6 PM" },
 ];
 
 const MonthlyPrograms = () => {
@@ -36,6 +56,7 @@ const MonthlyPrograms = () => {
   const programs = useMemo(() => {
     const featured = recurringEvents
       .filter((event) => event.featured && event.active)
+      .sort((a, b) => getProgramOrder(a) - getProgramOrder(b))
       .slice(0, 4)
       .map((event) => ({
         id: event.id || event._id,
