@@ -953,8 +953,15 @@ app.put("/api/config", authMiddleware, adminOnly, async (req, res) => {
     const socialFields = ["facebook", "instagram", "youtube", "whatsapp"];
 
     const email = typeof req.body.email === "string" ? req.body.email.trim() : "";
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    const phone = typeof req.body.phone === "string" ? req.body.phone.trim() : "";
+    if (!email) {
+      return res.status(400).json({ error: "Contact email is required" });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return res.status(400).json({ error: "Please provide a valid contact email" });
+    }
+    if (!phone) {
+      return res.status(400).json({ error: "Contact phone is required" });
     }
 
     const urls = [

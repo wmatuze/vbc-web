@@ -336,12 +336,12 @@ const SettingsContent = () => {
                   </div>
                   <div>
                     <label className={labelCls}>Contact Email</label>
-                    <input type="email" className={input}
+                    <input type="email" className={input} required
                       value={churchForm.email} onChange={e => setChurchForm(f => ({ ...f, email: e.target.value }))} />
                   </div>
                   <div>
                     <label className={labelCls}>Phone</label>
-                    <input type="tel" className={input}
+                    <input type="tel" className={input} required
                       value={churchForm.phone} onChange={e => setChurchForm(f => ({ ...f, phone: e.target.value }))} />
                   </div>
                   <div>
