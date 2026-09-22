@@ -98,12 +98,23 @@ const GroupCard = ({ group, onJoin }) => {
             ))}
           </div>
         )}
-        <button
-          onClick={() => onJoin(group)}
-          className="w-full py-3 text-xs font-semibold uppercase tracking-wider text-white bg-brand-red hover:bg-red-700 transition-colors"
-        >
-          Join This Group
-        </button>
+        {group.whatsappGroupLink ? (
+          <a
+            href={group.whatsappGroupLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full py-3 text-center text-xs font-semibold uppercase tracking-wider text-white bg-brand-red hover:bg-red-700 transition-colors"
+          >
+            Join This Group
+          </a>
+        ) : (
+          <button
+            onClick={() => onJoin(group)}
+            className="w-full py-3 text-xs font-semibold uppercase tracking-wider text-white bg-brand-red hover:bg-red-700 transition-colors"
+          >
+            Join This Group
+          </button>
+        )}
       </div>
     </div>
   );

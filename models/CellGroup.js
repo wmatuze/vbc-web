@@ -11,6 +11,15 @@ const CellGroupSchema = new mongoose.Schema({
   },
   contact: String,
   leaderContact: String, // legacy alias
+  whatsappGroupLink: {
+    type: String,
+    trim: true,
+    default: "",
+    validate: {
+      validator: (value) => !value || /^https:\/\/chat\.whatsapp\.com\/[A-Za-z0-9]+(?:\?.*)?$/.test(value),
+      message: "WhatsApp group link must be a valid chat.whatsapp.com invite URL",
+    },
+  },
   leaderImage: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Media",

@@ -28,6 +28,7 @@ const MEETING_DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday
 
 const EMPTY_GROUP = {
   name: "", zone: "", location: "", leader: "", contact: "",
+  whatsappGroupLink: "",
   meetingDay: "", meetingTime: "", capacity: "", description: "",
   tags: [], imageUrl: "", image: null,
 };
@@ -179,6 +180,16 @@ const CellGroupManager = () => {
     if (!currentGroup.leader?.trim()) errs.leader = "Leader name is required";
     if (!currentGroup.meetingDay) errs.meetingDay = "Meeting day is required";
     if (!currentGroup.description?.trim()) errs.description = "Description is required";
+    if (currentGroup.whatsappGroupLink?.trim()) {
+      try {
+        const url = new URL(currentGroup.whatsappGroupLink.trim());
+        if (url.protocol !== "https:" || url.hostname !== "chat.whatsapp.com" || url.pathname === "/") {
+          errs.whatsappGroupLink = "Enter a valid chat.whatsapp.com invite link";
+        }
+      } catch {
+        errs.whatsappGroupLink = "Enter a valid chat.whatsapp.com invite link";
+      }
+    }
     return errs;
   };
 
@@ -194,6 +205,7 @@ const CellGroupManager = () => {
         location: currentGroup.location,
         leader: currentGroup.leader,
         contact: currentGroup.contact,
+        whatsappGroupLink: currentGroup.whatsappGroupLink?.trim() || "",
         meetingDay: currentGroup.meetingDay,
         meetingTime: currentGroup.meetingTime,
         capacity: currentGroup.capacity,
@@ -623,6 +635,21 @@ const CellGroupManager = () => {
                   <Field label="Contact Email" error={groupErrors.contact} darkMode={darkMode}>
                     <input name="contact" type="email" value={currentGroup.contact} onChange={handleGroupChange}
                       placeholder="leader@church.org" className={inp(groupErrors.contact)} />
+                  </Field>
+                  <Field
+                    label="WhatsApp Group Invite"
+                    error={groupErrors.whatsappGroupLink}
+                    hint="Optional — opens directly when a visitor clicks Join This Group. Enable Approve new members in WhatsApp."
+                    darkMode={darkMode}
+                  >
+                    <input
+                      name="whatsappGroupLink"
+                      type="url"
+                      value={currentGroup.whatsappGroupLink || ""}
+                      onChange={handleGroupChange}
+                      placeholder="https://chat.whatsapp.com/..."
+                      className={inp(groupErrors.whatsappGroupLink)}
+                    />
                   </Field>
                 </Section>
 
