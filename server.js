@@ -1066,11 +1066,25 @@ app.delete("/api/media/:id", authMiddleware, async (req, res) => {
     const media = await models.Media.findById(req.params.id);
     if (!media) return res.status(404).json({ error: "Media not found" });
 
-    if (media.cloudinaryId) {
+    // Older records sometimes predate the cloudinaryId field even though their
+    // path is a Cloudinary URL. Recover the public ID so deleting the database
+    // record does not leave the remote asset orphaned.
+    const cloudinaryId = media.cloudinaryId || (() => {
+      if (!media.path || !media.path.includes("res.cloudinary.com")) return null;
+
+      const uploadPath = media.path.split("/upload/")[1];
+      if (!uploadPath) return null;
+
+      return decodeURIComponent(uploadPath)
+        .replace(/^(?:[^/]+\/)*v\d+\//, "")
+        .replace(/\.[^/.]+$/, "");
+    })();
+
+    if (cloudinaryId) {
       const resourceType = media.resourceType ||
         (/^(audio|video)\//.test(media.type) ? "video" :
           media.type === "application/pdf" ? "raw" : "image");
-      await cloudinary.uploader.destroy(media.cloudinaryId, {
+      await cloudinary.uploader.destroy(cloudinaryId, {
         resource_type: resourceType,
       });
     }
@@ -1086,33 +1100,61 @@ app.delete("/api/media/:id", authMiddleware, async (req, res) => {
 // Media usage — which collections reference each media ID
 app.get("/api/media/usage", authMiddleware, async (req, res) => {
   try {
-    const [sermons, events, leaders, cellGroups, zones] = await Promise.all([
-      models.Sermon.find({ image: { $exists: true, $ne: null } }, "title image"),
-      models.Event.find({ image: { $exists: true, $ne: null } }, "title image"),
-      models.Leader.find({ image: { $exists: true, $ne: null } }, "name image"),
-      models.CellGroup.find({}, "name image leaderImage"),
+    const [media, sermons, events, leaders, cellGroups, zones] = await Promise.all([
+      models.Media.find({}, "_id path category galleryCollection"),
+      models.Sermon.find({}, "title image imageUrl"),
+      models.Event.find({}, "title image imageUrl"),
+      models.Leader.find({}, "name image imageUrl"),
+      models.CellGroup.find({}, "name image imageUrl leaderImage"),
       models.Zone.find({}, "name coverImage elder"),
     ]);
 
     const usage = {};
-    const add = (mediaId, type, name) => {
-      if (!mediaId) return;
-      const key = mediaId.toString();
+    const knownIds = new Set(media.map(item => item._id.toString()));
+    const idByPath = new Map(
+      media
+        .filter(item => item.path)
+        .map(item => [item.path, item._id.toString()]),
+    );
+    const add = (reference, type, name) => {
+      if (!reference) return;
+      const value = (reference._id || reference).toString();
+      const key = knownIds.has(value) ? value : idByPath.get(value);
+      if (!key) return;
       if (!usage[key]) usage[key] = [];
-      usage[key].push({ type, name });
+      if (!usage[key].some(item => item.type === type && item.name === name)) {
+        usage[key].push({ type, name });
+      }
     };
 
-    sermons.forEach(s  => add(s.image,         "Sermon",     s.title));
-    events.forEach(e   => add(e.image,          "Event",      e.title));
-    leaders.forEach(l  => add(l.image,          "Leader",     l.name));
+    sermons.forEach(s => {
+      add(s.image,    "Sermon", s.title);
+      add(s.imageUrl, "Sermon", s.title);
+    });
+    events.forEach(e => {
+      add(e.image,    "Event", e.title);
+      add(e.imageUrl, "Event", e.title);
+    });
+    leaders.forEach(l => {
+      add(l.image,    "Leader", l.name);
+      add(l.imageUrl, "Leader", l.name);
+    });
     cellGroups.forEach(g => {
       add(g.image,       "Cell Group", g.name);
+      add(g.imageUrl,    "Cell Group", g.name);
       add(g.leaderImage, "Cell Group", `${g.name} (leader photo)`);
     });
     zones.forEach(z => {
       add(z.coverImage,   "Zone", z.name);
       add(z.elder?.image, "Zone", `${z.name} (elder photo)`);
     });
+    media
+      .filter(item => item.category === "gallery")
+      .forEach(item => add(
+        item._id,
+        "Gallery",
+        item.galleryCollection || "events",
+      ));
 
     res.json({ success: true, data: usage });
   } catch (error) {
