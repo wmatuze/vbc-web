@@ -47,11 +47,12 @@ const recurringEvents = [
 
 const seedRecurringEvents = async () => {
   try {
-    // Clear existing recurring events
-    await RecurringEvent.deleteMany({});
-    console.log("Cleared existing recurring events");
+    const existingCount = await RecurringEvent.countDocuments();
+    if (existingCount > 0) {
+      console.log(`Recurring events already exist (${existingCount}), skipping...`);
+      return [];
+    }
 
-    // Insert new recurring events
     const result = await RecurringEvent.insertMany(recurringEvents);
     console.log(`Added ${result.length} recurring events`);
 

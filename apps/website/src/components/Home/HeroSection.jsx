@@ -106,15 +106,18 @@ const HeroSection = forwardRef((props, forwardedRef) => {
         <div ref={contentRef} className="min-w-0 lg:col-span-7 lg:max-w-3xl">
           <div className="mb-6 flex items-center gap-4 sm:mb-8">
             <span className="h-px w-10 bg-brand-red" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.32em] text-white/55">
+              Welcome
+            </span>
           </div>
 
-          <h1 className="max-w-full font-sans text-[clamp(2rem,8.8vw,2.35rem)] font-black leading-[0.94] tracking-[-0.055em] sm:max-w-[15ch] sm:text-[clamp(2.65rem,6.2vw,6.8rem)]">
-            <span className="block">Sinning when alone</span>
-            <span className="block">is easy, but</span>
-            <span className="block text-primary-400">worshipping</span>
-            <span className="block">
-              alone is <span className="text-primary-400">difficult.</span>
+          <h1 className="max-w-full font-sans text-[clamp(2rem,8.8vw,2.35rem)] font-black leading-[0.94] tracking-[-0.055em] sm:max-w-[15ch] sm:text-[clamp(2.65rem,5.7vw,6.2rem)]">
+            <span className="block">Building lives.</span>
+            <span className="block">Impacting nations.</span>
+            <span className="mt-2 block text-primary-400 sm:mt-3">
+              Establishing the Kingdom
             </span>
+            <span className="block text-primary-400">with excellence.</span>
           </h1>
 
           <p className="mt-6 max-w-md text-sm leading-7 text-white/60 sm:text-base">

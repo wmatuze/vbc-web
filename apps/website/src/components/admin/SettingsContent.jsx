@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   BuildingOffice2Icon,
   KeyIcon,
@@ -26,11 +27,17 @@ import {
   updateChurchConfig,
 } from "../../services/api/users";
 import config from "../../config";
+import {
+  CHURCH_CONFIG_QUERY_KEY,
+  DEFAULT_CHURCH_CONFIG,
+  normalizeChurchConfig,
+} from "../../hooks/useChurchConfig";
 
 const API_URL = config.API_URL;
 const ROLE_LABELS = { admin: "Admin", editor: "Editor" };
 
 const SettingsContent = () => {
+  const queryClient = useQueryClient();
   const { darkMode } = useDarkMode();
   const currentUser = getCurrentUser();
   const isAdmin = currentUser?.role === "admin";
@@ -46,6 +53,8 @@ const SettingsContent = () => {
   // ── Church config ──────────────────────────────────────────────────────────
   const [churchForm, setChurchForm] = useState({
     name: "", address: "", email: "", phone: "", website: "", siteTitle: "", metaDescription: "",
+    officeHours: { ...DEFAULT_CHURCH_CONFIG.officeHours },
+    socialLinks: { ...DEFAULT_CHURCH_CONFIG.socialLinks },
   });
   const [churchLoading, setChurchLoading] = useState(false);
   const [churchSaving, setChurchSaving] = useState(false);
@@ -62,6 +71,16 @@ const SettingsContent = () => {
         website:         cfg.website         || "",
         siteTitle:       cfg.siteTitle       || "",
         metaDescription: cfg.metaDescription || "",
+        officeHours: {
+          days: cfg.officeHours?.days || DEFAULT_CHURCH_CONFIG.officeHours.days,
+          time: cfg.officeHours?.time || DEFAULT_CHURCH_CONFIG.officeHours.time,
+        },
+        socialLinks: {
+          facebook: cfg.socialLinks?.facebook || DEFAULT_CHURCH_CONFIG.socialLinks.facebook,
+          instagram: cfg.socialLinks?.instagram || DEFAULT_CHURCH_CONFIG.socialLinks.instagram,
+          youtube: cfg.socialLinks?.youtube || DEFAULT_CHURCH_CONFIG.socialLinks.youtube,
+          whatsapp: cfg.socialLinks?.whatsapp || DEFAULT_CHURCH_CONFIG.socialLinks.whatsapp,
+        },
       });
     } catch {
       showToast("Could not load church config", "error");
@@ -78,7 +97,9 @@ const SettingsContent = () => {
     e.preventDefault();
     setChurchSaving(true);
     try {
-      await updateChurchConfig(churchForm);
+      const saved = await updateChurchConfig(churchForm);
+      setChurchForm((current) => ({ ...current, ...saved }));
+      queryClient.setQueryData(CHURCH_CONFIG_QUERY_KEY, normalizeChurchConfig(saved));
       showToast("Church information saved");
     } catch (err) {
       showToast(err.message || "Failed to save", "error");
@@ -332,6 +353,43 @@ const SettingsContent = () => {
                     <label className={labelCls}>Address</label>
                     <textarea rows={2} className={input}
                       value={churchForm.address} onChange={e => setChurchForm(f => ({ ...f, address: e.target.value }))} />
+                  </div>
+                </div>
+
+                <div className={`pt-4 border-t ${darkMode ? "border-gray-700" : "border-gray-100"}`}>
+                  <h3 className="text-sm font-semibold mb-3">Office Hours</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelCls}>Open Days</label>
+                      <input type="text" className={input} placeholder="Tuesday – Friday" required
+                        value={churchForm.officeHours.days}
+                        onChange={e => setChurchForm(f => ({ ...f, officeHours: { ...f.officeHours, days: e.target.value } }))} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Opening Times</label>
+                      <input type="text" className={input} placeholder="09:30 – 16:00 hrs" required
+                        value={churchForm.officeHours.time}
+                        onChange={e => setChurchForm(f => ({ ...f, officeHours: { ...f.officeHours, time: e.target.value } }))} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className={`pt-4 border-t ${darkMode ? "border-gray-700" : "border-gray-100"}`}>
+                  <h3 className="text-sm font-semibold mb-3">Social Links</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {[
+                      ["facebook", "Facebook"],
+                      ["instagram", "Instagram"],
+                      ["youtube", "YouTube"],
+                      ["whatsapp", "WhatsApp"],
+                    ].map(([key, label]) => (
+                      <div key={key}>
+                        <label className={labelCls}>{label} URL</label>
+                        <input type="url" className={input} placeholder="https://" required
+                          value={churchForm.socialLinks[key]}
+                          onChange={e => setChurchForm(f => ({ ...f, socialLinks: { ...f.socialLinks, [key]: e.target.value } }))} />
+                      </div>
+                    ))}
                   </div>
                 </div>
 

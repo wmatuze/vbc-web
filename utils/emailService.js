@@ -1,4 +1,5 @@
 const nodemailer = require("nodemailer");
+const ChurchConfig = require("../models/ChurchConfig");
 require("dotenv").config();
 
 const BRAND = {
@@ -9,6 +10,51 @@ const BRAND = {
   border: "#e5e7eb",
   mutedText: "#6b7280",
   darkMuted: "#9ca3af",
+};
+
+const EMAIL_DEFAULTS = {
+  name: "Victory Bible Church",
+  address: "Off Chiwala Road CBU East Gate, Kitwe, Zambia",
+  email: "info@victorybiblechurch.org",
+  website: "https://victorybiblechurch.org",
+};
+
+const escapeHtml = (value) =>
+  String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+const getEmailBranding = async () => {
+  try {
+    const config = await ChurchConfig.findOne().lean();
+    return {
+      name: config?.name?.trim() || EMAIL_DEFAULTS.name,
+      address: config?.address?.trim() || EMAIL_DEFAULTS.address,
+      email: config?.email?.trim() || EMAIL_DEFAULTS.email,
+      website: config?.website?.trim() || EMAIL_DEFAULTS.website,
+    };
+  } catch (error) {
+    console.error("Could not load email branding; using defaults:", error.message);
+    return EMAIL_DEFAULTS;
+  }
+};
+
+const applyEmailBranding = (html, branding) => {
+  if (!html) return html;
+  const websiteLabel = branding.website.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  return Object.entries({
+    "{{CHURCH_NAME}}": branding.name,
+    "{{CHURCH_ADDRESS}}": branding.address,
+    "{{CHURCH_EMAIL}}": branding.email,
+    "{{CHURCH_WEBSITE}}": branding.website,
+    "{{CHURCH_WEBSITE_LABEL}}": websiteLabel,
+  }).reduce(
+    (output, [token, value]) => output.replaceAll(token, escapeHtml(value)),
+    html,
+  );
 };
 
 const formatDate = (date) => {
@@ -46,8 +92,8 @@ const createEmailTemplate = (headerTitle, accentColor, content) => {
 
     <!-- Header -->
     <div style="background:${BRAND.dark};padding:32px 24px;text-align:center;">
-      ${logoUrl ? `<img src="${logoUrl}" alt="Victory Bible Church" style="height:50px;width:auto;display:block;margin:0 auto 16px;" />` : ""}
-      <p style="margin:0 0 6px;color:${BRAND.darkMuted};font-size:10px;letter-spacing:0.2em;text-transform:uppercase;">Victory Bible Church</p>
+      ${logoUrl ? `<img src="${logoUrl}" alt="{{CHURCH_NAME}}" style="height:50px;width:auto;display:block;margin:0 auto 16px;" />` : ""}
+      <p style="margin:0 0 6px;color:${BRAND.darkMuted};font-size:10px;letter-spacing:0.2em;text-transform:uppercase;">{{CHURCH_NAME}}</p>
       <h1 style="margin:0;color:${BRAND.white};font-size:22px;font-weight:700;letter-spacing:-0.02em;">${headerTitle}</h1>
     </div>
 
@@ -59,14 +105,14 @@ const createEmailTemplate = (headerTitle, accentColor, content) => {
     <!-- Footer -->
     <div style="background:${BRAND.dark};padding:28px 24px;text-align:center;">
       <div style="height:1px;background:${accent};opacity:0.35;margin:0 0 20px;"></div>
-      <p style="margin:0 0 4px;color:${BRAND.white};font-size:13px;font-weight:600;">Victory Bible Church</p>
-      <p style="margin:0 0 4px;color:${BRAND.darkMuted};font-size:12px;line-height:1.6;">Off Chiwala Road CBU East Gate, Kitwe, Zambia</p>
+      <p style="margin:0 0 4px;color:${BRAND.white};font-size:13px;font-weight:600;">{{CHURCH_NAME}}</p>
+      <p style="margin:0 0 4px;color:${BRAND.darkMuted};font-size:12px;line-height:1.6;">{{CHURCH_ADDRESS}}</p>
       <p style="margin:0 0 16px;color:${BRAND.darkMuted};font-size:12px;">
-        <a href="mailto:info@victorybiblechurch.org" style="color:${BRAND.darkMuted};text-decoration:none;">info@victorybiblechurch.org</a>
+        <a href="mailto:{{CHURCH_EMAIL}}" style="color:${BRAND.darkMuted};text-decoration:none;">{{CHURCH_EMAIL}}</a>
         &nbsp;·&nbsp;
-        <a href="https://victorybiblechurch.org" style="color:${BRAND.darkMuted};text-decoration:none;">victorybiblechurch.org</a>
+        <a href="{{CHURCH_WEBSITE}}" style="color:${BRAND.darkMuted};text-decoration:none;">{{CHURCH_WEBSITE_LABEL}}</a>
       </p>
-      <p style="margin:0;color:#4b5563;font-size:11px;">&copy; ${year} Victory Bible Church. All rights reserved.</p>
+      <p style="margin:0;color:#4b5563;font-size:11px;">&copy; ${year} {{CHURCH_NAME}}. All rights reserved.</p>
     </div>
 
   </div>
@@ -113,12 +159,14 @@ const transporter = nodemailer.createTransport({
 // ─── Core sender ─────────────────────────────────────────────────────────────
 
 const sendEmail = async (options) => {
+  const branding = await getEmailBranding();
   const mailOptions = {
     from: process.env.EMAIL_FROM || "Victory Bible Church <no-reply@victorybiblechurch.org>",
     to: options.to,
+    replyTo: options.replyTo,
     subject: options.subject,
     text: options.text,
-    html: options.html,
+    html: applyEmailBranding(options.html, branding),
     attachments: options.attachments,
   };
   const info = await transporter.sendMail(mailOptions);
@@ -369,7 +417,14 @@ const sendSupportRequestEmail = async (supportData) => {
     throw new Error("Missing required support request data");
   }
 
-  const { name, email, subject, message, priority = "medium" } = supportData;
+  const {
+    name,
+    email,
+    subject,
+    message,
+    priority = "medium",
+    recipient,
+  } = supportData;
 
   const priorityColor = {
     urgent: "#dc2626",
@@ -379,8 +434,9 @@ const sendSupportRequestEmail = async (supportData) => {
   }[priority] || "#0284c7";
 
   await sendEmail({
-    to: process.env.ADMIN_EMAIL || "admin@victorybiblechurch.org",
-    subject: `[${priority.toUpperCase()}] Support: ${subject}`,
+    to: recipient || process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
+    replyTo: email,
+    subject: `Website enquiry: ${subject}`,
     text: `From: ${name} (${email})\n\n${message}`,
     html: createEmailTemplate(
       "Support Request",

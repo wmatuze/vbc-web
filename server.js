@@ -947,11 +947,49 @@ app.get("/api/config", async (req, res) => {
 // PUT /api/config — update church config (admin only)
 app.put("/api/config", authMiddleware, adminOnly, async (req, res) => {
   try {
-    const { name, address, email, phone, website, siteTitle, metaDescription } = req.body;
+    const updates = {};
+    const stringFields = ["name", "address", "email", "phone", "website", "siteTitle", "metaDescription"];
+    const officeFields = ["days", "time"];
+    const socialFields = ["facebook", "instagram", "youtube", "whatsapp"];
+
+    const email = typeof req.body.email === "string" ? req.body.email.trim() : "";
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: "Please provide a valid contact email" });
+    }
+
+    const urls = [
+      ["website", req.body.website],
+      ...socialFields.map((field) => [`socialLinks.${field}`, req.body.socialLinks?.[field]]),
+    ];
+    for (const [field, value] of urls) {
+      if (typeof value !== "string" || !value.trim()) continue;
+      try {
+        const parsed = new URL(value.trim());
+        if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error("Unsupported protocol");
+      } catch {
+        return res.status(400).json({ error: `${field} must be a valid HTTP or HTTPS URL` });
+      }
+    }
+
+    stringFields.forEach((field) => {
+      if (typeof req.body[field] === "string") updates[field] = req.body[field].trim();
+    });
+    officeFields.forEach((field) => {
+      if (typeof req.body.officeHours?.[field] === "string") {
+        updates[`officeHours.${field}`] = req.body.officeHours[field].trim();
+      }
+    });
+    socialFields.forEach((field) => {
+      if (typeof req.body.socialLinks?.[field] === "string") {
+        updates[`socialLinks.${field}`] = req.body.socialLinks[field].trim();
+      }
+    });
+    updates.updatedAt = new Date();
+
     const cfg = await models.ChurchConfig.findOneAndUpdate(
       {},
-      { name, address, email, phone, website, siteTitle, metaDescription, updatedAt: new Date() },
-      { upsert: true, new: true },
+      { $set: updates },
+      { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true },
     );
     res.json(cfg);
   } catch (err) {

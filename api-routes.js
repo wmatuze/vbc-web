@@ -231,13 +231,27 @@ router.post("/support", async (req, res) => {
       });
     }
 
-    // Send support request email using the centralized template
+    const churchConfig = await models.ChurchConfig.findOne();
+    const recipient =
+      churchConfig?.email?.trim() ||
+      process.env.ADMIN_EMAIL ||
+      process.env.EMAIL_USER;
+
+    if (!recipient) {
+      return res.status(503).json({
+        success: false,
+        error: "The church contact email has not been configured",
+      });
+    }
+
+    // Send the enquiry to the contact email managed in Admin Settings.
     await emailService.sendSupportRequestEmail({
       name,
       email,
       subject,
       message,
-      priority
+      priority,
+      recipient,
     });
 
     res.status(200).json({

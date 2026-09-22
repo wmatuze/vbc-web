@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import {
@@ -12,7 +12,7 @@ import {
 } from "@heroicons/react/24/outline";
 import HeroSection from "../components/common/HeroSection";
 import { getApiUrl } from "../services/api/core";
-import appConfig from "../config";
+import { useChurchConfig } from "../hooks/useChurchConfig";
 
 // ── Services ─────────────────────────────────────────────────────────────────
 const SERVICES = [
@@ -21,14 +21,6 @@ const SERVICES = [
   { day: "1st Sunday", time: "9:30 AM",  note: "Anointing Service" },
   { day: "3rd Sunday", time: "9:30 AM",  note: "Holy Communion" },
   { day: "Last Week",  time: "Various",  note: "Prayer & Fasting" },
-];
-
-// ── Social ────────────────────────────────────────────────────────────────────
-const SOCIAL = [
-  { platform: "Facebook",  handle: "@VictoryBibleChurchKitwe", href: "https://facebook.com/VictoryBibleChurchKitwe", color: "text-blue-400" },
-  { platform: "Instagram", handle: "@victorybiblechurch",       href: "https://instagram.com/victorybiblechurch",    color: "text-pink-400" },
-  { platform: "YouTube",   handle: "@BishopSimwanza",           href: "https://youtube.com/@BishopSimwanza",         color: "text-red-400"  },
-  { platform: "WhatsApp",  handle: "Chat with us",              href: "#",                                           color: "text-green-400"},
 ];
 
 // ── Flat input helper ─────────────────────────────────────────────────────────
@@ -52,31 +44,29 @@ const ContactUs = () => {
   const [sent,     setSent]     = useState(false);
   const [sendErr,  setSendErr]  = useState("");
 
-  const [churchInfo, setChurchInfo] = useState({
-    address: "Off Chiwala Road CBU East Gate",
-    phone:   "+260 97 000 0000",
-    email:   "info@victorybiblechurch.org",
-  });
+  const { data: churchInfo } = useChurchConfig();
 
-  useEffect(() => {
-    fetch(`${appConfig.API_URL}/api/config`)
-      .then(r => r.ok ? r.json() : null)
-      .then(cfg => {
-        if (!cfg) return;
-        setChurchInfo({
-          address: cfg.address || "Off Chiwala Road CBU East Gate",
-          phone:   cfg.phone   || "+260 97 000 0000",
-          email:   cfg.email   || "info@victorybiblechurch.org",
-        });
-      })
-      .catch(() => {});
-  }, []);
+  const getHandle = (url, fallback) => {
+    try {
+      const segment = new URL(url).pathname.split("/").filter(Boolean).at(-1);
+      return segment ? (segment.startsWith("@") ? segment : `@${segment}`) : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
+  const SOCIAL = [
+    { platform: "Facebook",  handle: getHandle(churchInfo.socialLinks.facebook, "Follow our page"), href: churchInfo.socialLinks.facebook, color: "text-blue-400" },
+    { platform: "Instagram", handle: getHandle(churchInfo.socialLinks.instagram, "Follow us"), href: churchInfo.socialLinks.instagram, color: "text-pink-400" },
+    { platform: "YouTube",   handle: getHandle(churchInfo.socialLinks.youtube, "Watch our channel"), href: churchInfo.socialLinks.youtube, color: "text-red-400" },
+    { platform: "WhatsApp",  handle: "Chat with us", href: churchInfo.socialLinks.whatsapp, color: "text-green-400" },
+  ];
 
   const INFO = [
     { num: "01", Icon: MapPinIcon,    label: "Address",      value: churchInfo.address, sub: "Kitwe, Zambia"          },
-    { num: "02", Icon: PhoneIcon,     label: "Phone",        value: churchInfo.phone,   sub: "Mon – Fri, 8 AM – 5 PM" },
+    { num: "02", Icon: PhoneIcon,     label: "Phone",        value: churchInfo.phone,   sub: "Call us during office hours" },
     { num: "03", Icon: EnvelopeIcon,  label: "Email",        value: churchInfo.email,   sub: "We reply within 24 hours"},
-    { num: "04", Icon: ClockIcon,     label: "Office Hours", value: "Mon – Fri",        sub: "8:00 AM – 5:00 PM"      },
+    { num: "04", Icon: ClockIcon,     label: "Office Hours", value: churchInfo.officeHours.days, sub: churchInfo.officeHours.time },
   ];
 
   const handleChange = (e) => {

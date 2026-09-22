@@ -1,10 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef, lazy, Suspense } from "react";
-import { HelmetProvider } from "react-helmet-async";
+import { Helmet, HelmetProvider } from "react-helmet-async";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import QueryProvider from "./providers/QueryProvider";
 import { DarkModeProvider } from "./contexts/DarkModeContext";
+import { useChurchConfig } from "./hooks/useChurchConfig";
 
 // ── Always-loaded layout / shell components ────────────────────────────────
 import Navbar from "./components/Layout/Navbar";
@@ -114,6 +115,8 @@ const AppContent = () => {
   const [isPageLoading, setIsPageLoading] = useState(false);
   const heroRef = useRef(null);
   const location = useLocation();
+  const { data: churchInfo } = useChurchConfig();
+  const canonicalBase = churchInfo.website?.replace(/\/$/, "");
 
   useEffect(() => {
     setIsPageLoading(true);
@@ -128,6 +131,15 @@ const AppContent = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-vbc-dark">
+      <Helmet>
+        <title>{churchInfo.siteTitle}</title>
+        {churchInfo.metaDescription && (
+          <meta name="description" content={churchInfo.metaDescription} />
+        )}
+        {canonicalBase && (
+          <link rel="canonical" href={`${canonicalBase}${location.pathname}`} />
+        )}
+      </Helmet>
       <ScrollToTop />
       <NavbarWrapper isNavHidden={isNavHidden} />
 

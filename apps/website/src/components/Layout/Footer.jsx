@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
-import config from "../../config";
+import { useChurchConfig } from "../../hooks/useChurchConfig";
 
 // Static data moved outside component for better performance
 const FOOTER_LINKS = {
@@ -30,52 +30,17 @@ const FOOTER_LINKS = {
   ],
 };
 
-const SOCIAL_LINKS = [
-  {
-    icon: "facebook",
-    url: "https://facebook.com/VictoryBibleChurchKitwe",
-    label: "Facebook",
-  },
-  {
-    icon: "instagram",
-    url: "https://instagram.com/victorybiblechurch",
-    label: "Instagram",
-  },
-  {
-    icon: "youtube",
-    url: "https://youtube.com/@BishopSimwanza",
-    label: "YouTube",
-  },
-  {
-    icon: "twitter",
-    url: "https://twitter.com/victorybible",
-    label: "Twitter",
-  },
-];
-
 const Footer = () => {
   const currentYear = new Date().getFullYear();
   const [email, setEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [churchInfo, setChurchInfo] = useState({
-    address: "Off Chiwala Road, CBU East Gate",
-    phone: "+260 964 985 651",
-    email: "info@victorybiblechurch.com",
-  });
-
-  useEffect(() => {
-    fetch(`${config.API_URL}/api/config`)
-      .then(r => r.ok ? r.json() : null)
-      .then(cfg => {
-        if (!cfg) return;
-        setChurchInfo({
-          address: cfg.address || "Off Chiwala Road, CBU East Gate",
-          phone:   cfg.phone   || "+260 964 985 651",
-          email:   cfg.email   || "info@victorybiblechurch.com",
-        });
-      })
-      .catch(() => {});
-  }, []);
+  const { data: churchInfo } = useChurchConfig();
+  const SOCIAL_LINKS = [
+    { icon: "facebook", url: churchInfo.socialLinks.facebook, label: "Facebook" },
+    { icon: "instagram", url: churchInfo.socialLinks.instagram, label: "Instagram" },
+    { icon: "youtube", url: churchInfo.socialLinks.youtube, label: "YouTube" },
+    { icon: "whatsapp", url: churchInfo.socialLinks.whatsapp, label: "WhatsApp" },
+  ];
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -118,7 +83,7 @@ const Footer = () => {
             </Link>
             <p className="text-brand-red text-xs font-semibold uppercase tracking-widest mt-1">Worship · Grow · Impact</p>
             <address className="not-italic text-gray-400">
-              <p>Victory Bible Church - Kitwe</p>
+              <p>{churchInfo.name} - Kitwe</p>
               <p>{churchInfo.address}</p>
               <p className="mt-2">
                 Phone:{" "}
@@ -359,14 +324,14 @@ const Footer = () => {
                         <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z" />
                       </svg>
                     )}
-                    {social.icon === "twitter" && (
+                    {social.icon === "whatsapp" && (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-5 w-5"
                         viewBox="0 0 24 24"
                         fill="currentColor"
                       >
-                        <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.5-.669-.51-.173-.009-.372-.011-.57-.011-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.262.489 1.693.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.981.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.002-5.45 4.438-9.887 9.892-9.887a9.82 9.82 0 017.021 2.91 9.825 9.825 0 012.898 7.024c-.002 5.45-4.439 9.886-9.927 9.886m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.88 11.88 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                       </svg>
                     )}
                   </a>
@@ -380,24 +345,10 @@ const Footer = () => {
       {/* Copyright */}
       <div className="border-t border-white/5">
         <div className="container mx-auto px-5 py-5 sm:px-8 lg:px-4 lg:py-6">
-          <div className="flex flex-col md:flex-row justify-between items-center">
+          <div className="flex justify-center text-center">
             <p className="text-sm text-gray-500">
-              © {currentYear} Victory Bible Church. All rights reserved.
+              © {currentYear} {churchInfo.name}. All rights reserved.
             </p>
-            <div className="mt-4 md:mt-0">
-              <Link
-                to="/contact"
-                className="text-gray-500 hover:text-gray-400 text-sm mx-3"
-              >
-                Contact Us
-              </Link>
-              <Link
-                to="/about"
-                className="text-gray-500 hover:text-gray-400 text-sm mx-3"
-              >
-                About
-              </Link>
-            </div>
           </div>
         </div>
       </div>
