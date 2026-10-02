@@ -62,10 +62,14 @@ const ContactUs = () => {
     { platform: "WhatsApp",  handle: "Chat with us", href: churchInfo.socialLinks.whatsapp, color: "text-green-400" },
   ];
 
+  const mapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    `${churchInfo.name}, ${churchInfo.address}, Kitwe, Zambia`
+  )}`;
+
   const INFO = [
-    { num: "01", Icon: MapPinIcon,    label: "Address",      value: churchInfo.address, sub: "Kitwe, Zambia"          },
-    { num: "02", Icon: PhoneIcon,     label: "Phone",        value: churchInfo.phone,   sub: "Call us during office hours" },
-    { num: "03", Icon: EnvelopeIcon,  label: "Email",        value: churchInfo.email,   sub: "We reply within 24 hours"},
+    { num: "01", Icon: MapPinIcon,    label: "Address",      value: churchInfo.address, sub: "Kitwe, Zambia", href: mapsHref, external: true },
+    { num: "02", Icon: PhoneIcon,     label: "Phone",        value: churchInfo.phone,   sub: "Call us during office hours", href: `tel:${churchInfo.phone.replace(/[^\d+]/g, "")}` },
+    { num: "03", Icon: EnvelopeIcon,  label: "Email",        value: churchInfo.email,   sub: "We reply within 24 hours", href: `mailto:${churchInfo.email}` },
     { num: "04", Icon: ClockIcon,     label: "Office Hours", value: churchInfo.officeHours.days, sub: churchInfo.officeHours.time },
   ];
 
@@ -127,27 +131,48 @@ const ContactUs = () => {
       {/* ── Info strip ────────────────────────────────────────────── */}
       <div className="bg-vbc-dark">
         <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-white/5">
-          {INFO.map(({ num, Icon, label, value, sub }) => (
-            <div key={num} className="bg-vbc-dark px-8 py-10 relative overflow-hidden group">
-              {/* Ghost number */}
-              <p
-                className="absolute -top-4 -right-2 font-black text-white select-none leading-none pointer-events-none"
-                style={{ fontSize: "clamp(5rem, 8vw, 7rem)", opacity: 0.04 }}
+          {INFO.map(({ num, Icon, label, value, sub, href, external }) => {
+            const Tag = href ? "a" : "div";
+            const linkProps = href
+              ? { href, ...(external && { target: "_blank", rel: "noopener noreferrer" }) }
+              : {};
+            return (
+              // Compact tappable row on mobile, editorial card from sm up
+              <Tag
+                key={num}
+                {...linkProps}
+                className={`bg-vbc-dark relative overflow-hidden group flex items-center gap-4 px-6 py-4 sm:block sm:px-8 sm:py-10 ${
+                  href ? "active:bg-white/5 hover:bg-white/[0.03] transition-colors" : ""
+                }`}
               >
-                {num}
-              </p>
-              <div className="w-8 h-0.5 bg-brand-red mb-5 group-hover:w-12 transition-all duration-300" />
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-red mb-3">{label}</p>
-              <Icon className="h-5 w-5 text-white/30 mb-3" />
-              <p className="text-white font-semibold text-sm leading-snug">{value}</p>
-              <p className="text-white/40 text-xs mt-1">{sub}</p>
-            </div>
-          ))}
+                {/* Ghost number */}
+                <p
+                  className="hidden sm:block absolute -top-4 -right-2 font-black text-white select-none leading-none pointer-events-none"
+                  style={{ fontSize: "clamp(5rem, 8vw, 7rem)", opacity: 0.04 }}
+                >
+                  {num}
+                </p>
+                <div className="hidden sm:block w-8 h-0.5 bg-brand-red mb-5 group-hover:w-12 transition-all duration-300" />
+                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center bg-white/5 sm:h-auto sm:w-auto sm:justify-start sm:bg-transparent sm:mb-3">
+                  <Icon className="h-5 w-5 text-brand-red sm:text-white/30" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-brand-red mb-1 sm:mb-3">{label}</p>
+                  <p className="text-white font-semibold text-sm leading-snug [overflow-wrap:anywhere]">
+                    {/* Let long emails wrap after the @ rather than mid-word */}
+                    {value.includes("@") ? <>{value.split("@")[0]}@<wbr />{value.split("@")[1]}</> : value}
+                  </p>
+                  <p className="text-white/40 text-xs mt-0.5 sm:mt-1">{sub}</p>
+                </div>
+                {href && <ArrowRightIcon className="h-4 w-4 flex-shrink-0 text-white/30 sm:hidden" />}
+              </Tag>
+            );
+          })}
         </div>
       </div>
 
       {/* ── Form + Map ────────────────────────────────────────────── */}
-      <section className="bg-white py-24">
+      <section className="bg-white py-16 lg:py-24">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-0">
 
           {/* Form */}
@@ -216,7 +241,7 @@ const ContactUs = () => {
           </div>
 
           {/* Map */}
-          <div className="h-[500px] lg:h-auto min-h-[400px] bg-gray-100">
+          <div className="h-[320px] sm:h-[500px] lg:h-auto min-h-[320px] lg:min-h-[400px] bg-gray-100">
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3890.559565493077!2d28.22997607453223!3d-12.807075856521612!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x196ce7fb9948f75b%3A0xe20f6f1190003491!2sVictory%20Christian%20Center%20(Victory%20Bible%20Church)!5e0!3m2!1sen!2szm!4v1743212386447!5m2!1sen!2szm"
               className="w-full h-full border-0"
@@ -230,7 +255,7 @@ const ContactUs = () => {
       </section>
 
       {/* ── Service times ─────────────────────────────────────────── */}
-      <section className="bg-vbc-section py-24">
+      <section className="bg-vbc-section py-16 lg:py-24">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
 
           {/* Editorial statement */}
@@ -271,10 +296,10 @@ const ContactUs = () => {
       </section>
 
       {/* ── Social ────────────────────────────────────────────────── */}
-      <section className="bg-vbc-dark py-24">
+      <section className="bg-vbc-dark py-16 lg:py-24">
         <div className="max-w-7xl mx-auto px-6">
           <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-3">Find us online</p>
-          <h2 className="text-4xl font-black text-white mb-14">Stay connected.</h2>
+          <h2 className="text-4xl font-black text-white mb-8 sm:mb-14">Stay connected.</h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-white/5">
             {SOCIAL.map(({ platform, handle, href, color }) => (
@@ -283,11 +308,11 @@ const ContactUs = () => {
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-vbc-dark flex items-center justify-between gap-6 px-8 py-7 group hover:bg-white/5 transition-colors"
+                className="bg-vbc-dark flex items-center justify-between gap-4 sm:gap-6 px-0 sm:px-8 py-5 sm:py-7 group hover:bg-white/5 transition-colors"
               >
-                <div className="flex items-center gap-5">
+                <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-5">
                   <p className={`text-xs font-bold uppercase tracking-[0.2em] ${color}`}>{platform}</p>
-                  <p className="text-white/40 text-sm">{handle}</p>
+                  <p className="text-white/40 text-sm truncate">{handle}</p>
                 </div>
                 <ArrowRightIcon className="h-4 w-4 text-white/20 group-hover:text-brand-red group-hover:translate-x-1 transition-all duration-200 flex-shrink-0" />
               </a>
