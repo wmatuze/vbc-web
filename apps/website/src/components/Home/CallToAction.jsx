@@ -20,7 +20,7 @@ const CallToAction = () => (
           Come as you are. Meet our family, experience a service, and discover where your story can grow.
         </p>
 
-        <div className="mt-9 flex flex-wrap items-center gap-6">
+        <div className="mt-9 flex flex-wrap items-center gap-x-8 gap-y-7">
           <Link
             to="/first-timers"
             className="group inline-flex items-center gap-5 border border-white/60 px-8 py-4 text-[11px] font-bold uppercase tracking-[0.2em] transition-colors hover:bg-white hover:text-black"
@@ -28,8 +28,9 @@ const CallToAction = () => (
             I'm New Here
             <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Link>
-          <Link to="/cell-groups" className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45 hover:text-white">
+          <Link to="/cell-groups" className="group inline-flex items-center gap-3 border-b border-white/30 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70 transition-colors hover:border-white hover:text-white">
             Find your community
+            <ArrowRightIcon className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
       </motion.div>

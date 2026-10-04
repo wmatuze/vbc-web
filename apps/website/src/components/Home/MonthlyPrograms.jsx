@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRightIcon, MapPinIcon } from "@heroicons/react/24/outline";
 import { useRecurringEventsQuery } from "../../hooks/useRecurringEventsQuery";
+import { useChurchConfig } from "../../hooks/useChurchConfig";
+import { formatTimeLabel } from "../../utils/timeFormat";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -47,11 +49,12 @@ const getScheduleText = (event) => {
 const FALLBACK_PROGRAMS = [
   { title: "Anointing Service", schedule: "First Sunday", time: "9:30 AM" },
   { title: "Holy Communion Service", schedule: "Third Sunday", time: "9:30 AM" },
-  { title: "Prayer & Fasting Week", schedule: "Last week - Monday-Friday", time: "6 PM" },
+  { title: "Prayer & Fasting Week", schedule: "Last week - Monday-Friday", time: "6:00 PM" },
 ];
 
 const MonthlyPrograms = () => {
   const { data: recurringEvents = [], isLoading } = useRecurringEventsQuery();
+  const { data: churchInfo } = useChurchConfig();
 
   const programs = useMemo(() => {
     const featured = recurringEvents
@@ -62,7 +65,7 @@ const MonthlyPrograms = () => {
         id: event.id || event._id,
         title: event.title,
         schedule: getScheduleText(event),
-        time: event.time,
+        time: formatTimeLabel(event.time),
       }));
     return featured.length ? featured : FALLBACK_PROGRAMS;
   }, [recurringEvents]);
@@ -89,18 +92,18 @@ const MonthlyPrograms = () => {
           <div className="mt-14 grid grid-cols-2 gap-8 lg:mt-20">
             <div className="border-r border-black/15 pr-5">
               <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-black/45">Sunday</p>
-              <p className="mt-2 font-display text-5xl tracking-tight sm:text-6xl">09:30</p>
+              <p className="mt-2 font-display text-5xl tracking-tight sm:text-6xl">9:30<span className="ml-1.5 font-sans text-xs font-semibold tracking-[0.12em] text-black/45">AM</span></p>
             </div>
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-black/45">Wednesday</p>
-              <p className="mt-2 font-display text-5xl tracking-tight sm:text-6xl">18:00</p>
+              <p className="mt-2 font-display text-5xl tracking-tight sm:text-6xl">6:00<span className="ml-1.5 font-sans text-xs font-semibold tracking-[0.12em] text-black/45">PM</span></p>
             </div>
           </div>
 
           <div className="mt-14 border-t border-black/15 pt-5 text-sm text-black/55">
             <p className="flex items-start gap-3">
               <MapPinIcon className="mt-0.5 h-4 w-4 flex-none text-brand-red" />
-              <span>Victory Bible Church · Off Chiwala Road, CBU East Gate, Kitwe</span>
+              <span>{churchInfo.name} · {churchInfo.address}, Kitwe</span>
             </p>
             <Link to="/contact" className="group mt-4 inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-black/60 hover:text-black">
               Get directions
@@ -123,7 +126,7 @@ const MonthlyPrograms = () => {
             transition={{ duration: 0.8 }}
             className="relative z-10 ml-auto flex min-h-full w-full flex-col justify-end px-5 py-14 sm:px-10 lg:px-14 lg:py-20 2xl:px-20"
           >
-            <div className="bg-[#f3f0e8]/95 pt-8 backdrop-blur-sm lg:ml-12 lg:px-8 lg:pb-8">
+            <div className="bg-[#f3f0e8]/95 px-5 pb-6 pt-8 backdrop-blur-sm sm:px-6 lg:ml-12 lg:px-8 lg:pb-8">
               <div className="mb-5 flex items-end justify-between gap-4">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-brand-red">Monthly rhythm</p>
@@ -142,7 +145,7 @@ const MonthlyPrograms = () => {
                           <p className="font-semibold">{program.title}</p>
                           <p className="mt-1 text-xs text-black/45">{program.schedule}</p>
                         </div>
-                        <p className="text-right text-xs font-semibold text-primary-600">{program.time}</p>
+                        <p className="whitespace-nowrap text-right text-xs font-semibold text-primary-600">{program.time}</p>
                       </div>
                     ))}
               </div>

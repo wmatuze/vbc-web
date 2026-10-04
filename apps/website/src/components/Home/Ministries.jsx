@@ -129,7 +129,34 @@ const Ministries = () => {
             </Link>
           </div>
 
-          <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-end lg:justify-end lg:gap-0">
+          {/* Mobile / tablet: even grid with the name under each circle */}
+          <div className="grid grid-cols-2 gap-x-5 gap-y-9 sm:grid-cols-4 lg:hidden">
+            {MINISTRIES.map((ministry, index) => (
+              <Link key={ministry.number} to={ministry.path} className="group block text-center">
+                <div
+                  className={`relative aspect-square overflow-hidden rounded-full border ${
+                    index === MINISTRIES.length - 1 ? "border-brand-red/70" : "border-primary-400/55"
+                  }`}
+                >
+                  <img
+                    src={ministry.image}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover grayscale-[20%]"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#050b16]/70 via-transparent to-transparent" />
+                  <div className="absolute inset-[7%] rounded-full border border-white/10" />
+                </div>
+                <p className="mt-4 text-[9px] font-bold uppercase tracking-[0.18em] text-primary-300">
+                  {ministry.label}
+                </p>
+                <h3 className="mt-1.5 text-lg font-semibold leading-tight">{ministry.name}</h3>
+              </Link>
+            ))}
+          </div>
+
+          {/* Desktop: overlapping, scroll-animated circles */}
+          <div className="hidden lg:flex lg:flex-row lg:items-end lg:justify-end">
             {MINISTRIES.map((ministry, index) => (
               <Link
                 key={ministry.number}

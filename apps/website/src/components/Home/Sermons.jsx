@@ -42,6 +42,15 @@ const formatDate = (d) => {
   }
 };
 
+// Hide descriptions that only restate the speaker ("A teaching by …")
+const getDescription = (sermon) => {
+  const text = typeof sermon?.description === "string" ? sermon.description.trim() : "";
+  if (!text) return "";
+  const speaker = (sermon.speaker || "").trim().toLowerCase();
+  if (speaker && text.toLowerCase().includes(speaker) && text.length <= speaker.length + 25) return "";
+  return text;
+};
+
 // ── Video Modal ───────────────────────────────────────────────────────────────
 function VideoModal({ sermon, onClose }) {
   useEffect(() => {
@@ -93,7 +102,7 @@ const Sermons = () => {
 
   if (isLoading && !sermons?.length) {
     return (
-      <section className="py-24 px-6 bg-gray-50">
+      <section className="py-24 px-6 bg-[#f3f0e8]">
         <div className="max-w-6xl mx-auto flex justify-center min-h-[300px] items-center">
           <div className="w-10 h-10 rounded-full border-2 border-primary-500 border-t-transparent animate-spin" />
         </div>
@@ -126,7 +135,7 @@ const Sermons = () => {
         </motion.div>
         <Link
           to="/sermons"
-          className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors group"
+          className="hidden sm:inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-gray-500 hover:text-gray-900 transition-colors group"
         >
           View All Sermons
           <ArrowRightIcon className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -146,7 +155,7 @@ const Sermons = () => {
           <button
             type="button"
             onClick={() => setSelectedSermon(latest)}
-            className="sermon-orbit-media relative h-72 overflow-hidden text-left md:h-auto md:w-[58%] group"
+            className="sermon-orbit-media relative h-56 sm:h-72 overflow-hidden text-left md:h-auto md:w-[58%] group"
             aria-label={`Watch ${latest.title}`}
           >
             <img
@@ -171,7 +180,7 @@ const Sermons = () => {
           </button>
 
           {/* Info panel — charcoal dark */}
-          <div className="flex flex-col justify-center bg-[#f3f0e8] p-8 md:w-[42%] md:pl-16 md:pr-10">
+          <div className="flex flex-col justify-center bg-[#f3f0e8] px-0 py-7 sm:p-8 md:w-[42%] md:pl-16 md:pr-10">
             <p className="text-brand-red text-xs font-bold uppercase tracking-widest mb-3">
               {formatDate(latest.date)}
             </p>
@@ -186,12 +195,12 @@ const Sermons = () => {
                 {latest.series}
               </span>
             )}
-            {latest.description && typeof latest.description === "string" && (
-              <p className="text-gray-600 text-sm leading-relaxed mb-7 line-clamp-3">
-                {latest.description}
+            {getDescription(latest) && (
+              <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">
+                {getDescription(latest)}
               </p>
             )}
-            <div className="flex flex-wrap gap-3">
+            <div className="mt-7 flex flex-wrap gap-3">
               <button
                 onClick={() => setSelectedSermon(latest)}
                 className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-bold uppercase tracking-widest px-6 py-3 transition-colors"
@@ -213,7 +222,8 @@ const Sermons = () => {
       {/* ── Recent sermons — flat cards ── */}
       {rest.length > 0 && (
         <div className="max-w-7xl 3xl:max-w-screen-2xl mx-auto px-5 sm:px-10 pb-16 sm:pb-24">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-0 border-t border-l border-black/15">
+          {/* Swipeable row on mobile, grid from sm up */}
+          <div className="-mx-5 flex snap-x snap-mandatory scroll-pl-5 gap-4 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-0 sm:overflow-visible sm:border-l sm:border-t sm:border-black/15 sm:px-0 sm:pb-0 lg:grid-cols-3">
             {rest.map((sermon, i) => (
               <motion.div
                 key={sermon.id || i}
@@ -221,13 +231,13 @@ const Sermons = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 viewport={{ once: true }}
-                className="border-r border-b border-black/15 group"
+                className="group w-[78%] flex-none snap-start border border-black/15 sm:w-auto sm:border-0 sm:border-b sm:border-r"
               >
                 {/* Thumbnail */}
                 <button
                   type="button"
                   onClick={() => setSelectedSermon(sermon)}
-                  className="relative block w-full h-52 overflow-hidden text-left"
+                  className="relative block w-full h-40 sm:h-52 overflow-hidden text-left"
                 >
                   <img
                     src={getSermonImage(sermon)}
@@ -246,7 +256,7 @@ const Sermons = () => {
                 </button>
 
                 {/* Text */}
-                <div className="p-6 bg-transparent">
+                <div className="p-5 sm:p-6 bg-transparent">
                   <p className="text-brand-red text-xs font-bold uppercase tracking-widest mb-2">
                     {formatDate(sermon.date)}
                   </p>
@@ -256,15 +266,14 @@ const Sermons = () => {
                   <p className="text-primary-600 text-xs font-medium mb-3">
                     {sermon.speaker || "Guest Speaker"}
                   </p>
-                  {sermon.description &&
-                    typeof sermon.description === "string" && (
-                      <p className="text-gray-500 text-sm leading-relaxed mb-4 line-clamp-2">
-                        {sermon.description}
-                      </p>
-                    )}
+                  {getDescription(sermon) && (
+                    <p className="text-gray-500 text-sm leading-relaxed mb-4 line-clamp-2">
+                      {getDescription(sermon)}
+                    </p>
+                  )}
                   <button
                     onClick={() => setSelectedSermon(sermon)}
-                    className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors group/link"
+                    className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-gray-900 transition-colors group/link"
                   >
                     Watch Sermon
                     <ArrowRightIcon className="h-3.5 w-3.5 group-hover/link:translate-x-1 transition-transform" />

@@ -9,6 +9,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useEventsQuery } from "../../hooks/useEventsQuery";
 import { resolveImageUrl } from "../ChurchCalendar/EventsCard";
+import { formatTimeLabel } from "../../utils/timeFormat";
 
 const parseEventDate = (event) => {
   const raw = event?.startDate || event?.date;
@@ -22,6 +23,24 @@ const formatEventDate = (date) =>
     day: "2-digit",
     month: "short",
   });
+
+const getCountdownLabel = (date) => {
+  if (!date) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(date);
+  target.setHours(0, 0, 0, 0);
+  const days = Math.round((target - today) / 86400000);
+
+  if (days === 0) return "Today";
+  if (days === 1) return "Tomorrow";
+  if (days < 7) return `In ${days} days`;
+  if (days < 60) {
+    const weeks = Math.round(days / 7);
+    return `In ${weeks} week${weeks > 1 ? "s" : ""}`;
+  }
+  return null;
+};
 
 const HeroSection = forwardRef((props, forwardedRef) => {
   const sectionRef = useRef(null);
@@ -78,6 +97,7 @@ const HeroSection = forwardRef((props, forwardedRef) => {
     return () => context.revert();
   }, []);
 
+  const countdownLabel = getCountdownLabel(featuredEvent?._date);
   const eventId = featuredEvent?.id || featuredEvent?._id;
   const secondaryEventId = secondaryEvent?.id || secondaryEvent?._id;
 
@@ -144,25 +164,8 @@ const HeroSection = forwardRef((props, forwardedRef) => {
         </div>
 
         <div ref={eventRef} className="mt-10 min-w-0 lg:col-span-4 lg:col-start-9 lg:mt-0 lg:self-end lg:pb-4">
-          <div className="relative block overflow-hidden border-l border-brand-red bg-black/55 px-6 py-6 backdrop-blur-md sm:max-w-md lg:ml-auto">
-            {featuredEventImage && (
-              <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-                <img
-                  src={featuredEventImage}
-                  alt=""
-                  className="h-full w-full scale-110 object-cover opacity-30 blur-lg"
-                />
-                <img
-                  src={featuredEventImage}
-                  alt=""
-                  className="absolute inset-0 h-full w-full object-contain object-right opacity-70"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-black via-black/90 to-black/45" />
-              </div>
-            )}
-
-            <div className="relative z-10">
-            <div className="mb-5 flex items-center justify-between gap-4">
+          <div className="border-l border-brand-red bg-black/60 backdrop-blur-md sm:max-w-md lg:ml-auto">
+            <div className="flex items-center justify-between gap-4 px-5 pt-5">
               <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-brand-red">
                 Upcoming Events
               </p>
@@ -173,37 +176,74 @@ const HeroSection = forwardRef((props, forwardedRef) => {
             </div>
 
             {isLoading ? (
-              <div className="space-y-3 animate-pulse">
-                <div className="h-5 w-2/3 bg-white/10" />
-                <div className="h-12 w-1/2 bg-white/10" />
+              <div className="flex animate-pulse gap-4 p-5">
+                <div className="h-28 w-[5.5rem] flex-none bg-white/10" />
+                <div className="flex-1 space-y-3 py-1">
+                  <div className="h-3 w-1/2 bg-white/10" />
+                  <div className="h-6 w-5/6 bg-white/10" />
+                  <div className="h-3 w-2/3 bg-white/10" />
+                </div>
               </div>
             ) : featuredEvent ? (
-              <div>
-                <Link to={eventId ? `/events?event=${eventId}` : "/events"} className="group block">
-                <p className="font-display text-2xl text-white sm:text-3xl">
-                  {featuredEvent.title}
-                </p>
-                <p className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
-                  {featuredEvent.time || formatEventDate(featuredEvent._date)}
-                </p>
-                <div className="mt-5 flex flex-wrap gap-4 border-t border-white/15 pt-4 text-xs text-white/55">
-                  <span className="inline-flex items-center gap-2">
-                    <ClockIcon className="h-4 w-4 text-brand-red" />
-                    {formatEventDate(featuredEvent._date)}
-                  </span>
-                  {featuredEvent.location && (
-                    <span className="inline-flex items-center gap-2">
-                      <MapPinIcon className="h-4 w-4 text-brand-red" />
-                      {featuredEvent.location}
-                    </span>
+              <>
+                <Link
+                  to={eventId ? `/events?event=${eventId}` : "/events"}
+                  className="group flex gap-4 p-5"
+                >
+                  {featuredEventImage ? (
+                    <img
+                      src={featuredEventImage}
+                      alt=""
+                      className="h-28 w-[5.5rem] flex-none object-cover"
+                      onError={(e) => { e.currentTarget.style.display = "none"; }}
+                    />
+                  ) : (
+                    <div className="flex h-28 w-[5.5rem] flex-none flex-col items-center justify-center border border-white/15 text-center">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-red">
+                        {featuredEvent._date.toLocaleDateString("en-GB", { month: "short" })}
+                      </span>
+                      <span className="font-display text-4xl leading-none text-white">
+                        {featuredEvent._date.getDate()}
+                      </span>
+                      <span className="mt-1 text-[9px] uppercase tracking-[0.18em] text-white/40">
+                        {featuredEvent._date.toLocaleDateString("en-GB", { weekday: "short" })}
+                      </span>
+                    </div>
                   )}
-                </div>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-bold uppercase tracking-[0.18em] text-primary-300">
+                      {formatEventDate(featuredEvent._date)}
+                      {countdownLabel && (
+                        <span className="bg-brand-red px-1.5 py-0.5 text-[9px] tracking-[0.12em] text-white">
+                          {countdownLabel}
+                        </span>
+                      )}
+                    </p>
+                    <p className="mt-2 line-clamp-2 font-display text-xl leading-tight text-white sm:text-2xl">
+                      {featuredEvent.title}
+                    </p>
+                    <div className="mt-3 space-y-1.5 text-xs text-white/60">
+                      {featuredEvent.time && (
+                        <p className="flex items-center gap-2">
+                          <ClockIcon className="h-4 w-4 flex-none text-brand-red" />
+                          {formatTimeLabel(featuredEvent.time)}
+                        </p>
+                      )}
+                      {featuredEvent.location && (
+                        <p className="flex items-center gap-2">
+                          <MapPinIcon className="h-4 w-4 flex-none text-brand-red" />
+                          <span className="truncate">{featuredEvent.location}</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </Link>
 
                 {secondaryEvent && (
                   <Link
                     to={secondaryEventId ? `/events?event=${secondaryEventId}` : "/events"}
-                    className="group mt-5 grid grid-cols-[auto_1fr_auto] items-center gap-3 border-t border-white/15 pt-4"
+                    className="group grid grid-cols-[auto_1fr_auto] items-center gap-3 border-t border-white/10 px-5 py-4"
                   >
                     <span className="font-display text-2xl text-white/80">
                       {secondaryEvent._date.getDate().toString().padStart(2, "0")}
@@ -213,27 +253,26 @@ const HeroSection = forwardRef((props, forwardedRef) => {
                         {secondaryEvent.title}
                       </span>
                       <span className="mt-0.5 block text-[10px] uppercase tracking-[0.14em] text-white/35">
-                        {formatEventDate(secondaryEvent._date)}{secondaryEvent.time ? ` · ${secondaryEvent.time}` : ""}
+                        {formatEventDate(secondaryEvent._date)}{secondaryEvent.time ? ` · ${formatTimeLabel(secondaryEvent.time)}` : ""}
                       </span>
                     </span>
                     <ArrowRightIcon className="h-3.5 w-3.5 text-white/30 transition-transform group-hover:translate-x-1 group-hover:text-white" />
                   </Link>
                 )}
-              </div>
+              </>
             ) : (
-              <div className="flex min-h-36 items-center gap-4 border-t border-white/10 py-5">
+              <div className="flex items-center gap-4 p-5">
                 <CalendarDaysIcon className="h-9 w-9 shrink-0 text-white/20" aria-hidden="true" />
                 <div>
-                  <p className="font-display text-2xl text-white">
+                  <p className="font-display text-xl text-white">
                     No upcoming events scheduled.
                   </p>
-                  <p className="mt-2 text-xs leading-5 text-white/40">
+                  <p className="mt-1 text-xs leading-5 text-white/40">
                     New events will appear here as soon as they are posted.
                   </p>
                 </div>
               </div>
             )}
-            </div>
           </div>
         </div>
       </div>

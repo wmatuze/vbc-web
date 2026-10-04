@@ -219,13 +219,13 @@ const Footer = () => {
                 <div className="min-w-0">
                   <p className="font-medium">Sunday Services</p>
                   <time className="text-gray-400" dateTime="09:30">
-                    09:30 AM
+                    9:30 AM
                   </time>
                 </div>
                 <div className="min-w-0">
                   <p className="font-medium">Wednesday Service</p>
                   <time className="text-gray-400" dateTime="18:00">
-                    06:00 PM
+                    6:00 PM
                   </time>
                 </div>
                 <Link
