@@ -55,9 +55,9 @@ const TESTIMONIALS = [
 
 const FAQS = [
   { q: "What ages does L.I.T Nation serve?", a: "L.I.T Nation is a community of young adults ages 16–29, with a Students Ministry and Young Adults Groups to help you find your place." },
-  { q: "When and where do you meet?", a: "Every Friday at 6:30 PM in the Main Sanctuary for our main service. Sunday youth classes at 9:30 AM, and small discipleship groups on Wednesdays at 4:00 PM." },
+  { q: "When and where do you meet?", a: "Every Sunday from 13:00 to 15:00 in the Main Sanctuary, right after the main church service. CBU Fellowship meets every Tuesday from 18:00 to 20:00 at Victory Bible Church." },
   { q: "Do I need to be a church member?", a: "Not at all. Everyone is welcome at L.I.T Nation. Many attendees aren't formal members. Come as you are!" },
-  { q: "What happens at a Friday night service?", a: "Dynamic worship, relevant teaching, interactive activities, small group discussions, and time to build friendships. First-time visitors are welcomed but never put on the spot." },
+  { q: "What happens at a Sunday gathering?", a: "Dynamic worship, relevant teaching, interactive activities, small group discussions, and time to build friendships. First-time visitors are welcomed but never put on the spot." },
 ];
 
 const ANNUAL_CALENDAR = [
