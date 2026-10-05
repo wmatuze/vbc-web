@@ -67,7 +67,7 @@ const ACTIVITIES = [
 
 const TESTIMONIALS = [
   {
-    quote: "Coming to the Women's Ministry was the turning point in my walk with God. I found sisters who prayed with me, cried with me, and celebrated with me.",
+    quote: "Coming to Women of Grace was the turning point in my walk with God. I found sisters who prayed with me, cried with me, and celebrated with me.",
     author: "Sarah M.",
     role: "Member since 2021",
   },
@@ -77,7 +77,7 @@ const TESTIMONIALS = [
     role: "Member since 2019",
   },
   {
-    quote: "I was new to Kitwe and didn't know a single person. The Women's Ministry became my family. I will never forget that welcome.",
+    quote: "I was new to Kitwe and didn't know a single person. Women of Grace became my family. I will never forget that welcome.",
     author: "Chanda P.",
     role: "Member since 2023",
   },
@@ -90,16 +90,16 @@ const TESTIMONIALS = [
 
 const FAQS = [
   {
-    q: "Who can join the Women's Ministry?",
+    q: "Who can join Women of Grace?",
     a: "Every woman is welcome — married, single, young, or seasoned. You don't need to be a church member. If you are a woman and you walk through our doors, there is a place for you here.",
   },
   {
-    q: "When does the Women's Ministry meet?",
+    q: "When does Women of Grace meet?",
     a: "Our primary gathering is on Saturdays at 8:00 AM for Bible Study, with a dedicated prayer meeting on the first Saturday of each month at 9:00 AM. Check our events calendar for the most up-to-date schedule.",
   },
   {
     q: "How can I get involved or volunteer?",
-    a: "Reach out to our ministry leadership through the church office or speak to a Women's Ministry team member after service. There are many ways to serve — from hosting, to leading a small group, to supporting outreach efforts.",
+    a: "Reach out to our ministry leadership through the church office or speak to a Women of Grace team member after service. There are many ways to serve — from hosting, to leading a small group, to supporting outreach efforts.",
   },
   {
     q: "What is the Women's Annual Retreat?",
@@ -141,22 +141,22 @@ const WomensMinistry = () => {
   return (
     <div className="bg-white">
       <Helmet>
-        <title>Women's Ministry — Victory Bible Church</title>
+        <title>Women of Grace — Victory Bible Church</title>
         <meta
           name="description"
-          content="VBC Women's Ministry: Bible study, prayer, fellowship, mentorship, and annual retreat. A community for women at every stage of life."
+          content="Women of Grace, the women's ministry of Victory Bible Church: women helping women be Godly women."
         />
       </Helmet>
 
       {/* ── Hero ──────────────────────────────────────────────────── */}
       <HeroSection
-        title="Women's Ministry"
+        title="Women of Grace"
         description="A community where women encounter God, build lasting friendships, and grow into all He has called them to be."
         backgroundImage="/assets/hero-bg.jpg"
         breadcrumbs={[
           { label: "Home", path: "/" },
           { label: "Ministries", path: "/ministries" },
-          { label: "Women's Ministry" },
+          { label: "Women of Grace" },
         ]}
       />
 
@@ -164,34 +164,40 @@ const WomensMinistry = () => {
       <section className="bg-vbc-section py-28">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
-          {/* Left — typographic statement */}
           <div>
-            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-4">Our vision</p>
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-4">Mission statement</p>
             <h2
               className="font-black text-white leading-[0.88] mb-8"
               style={{ fontSize: "clamp(3rem, 7vw, 5.5rem)" }}
             >
               WOMEN<br />
               <span className="text-white/20">OF</span><br />
-              STRENGTH.
+              GRACE.
             </h2>
-            <p className="text-white/50 text-sm leading-relaxed max-w-sm">
-              We exist to see women rooted in the Word, restored by the Spirit, and rising into purpose. Whatever season of life you are in — you belong here.
-            </p>
+            <div className="space-y-4 text-sm leading-relaxed max-w-md">
+              <p className="text-white font-semibold">
+                Women helping women be Godly women.
+              </p>
+              <p className="text-white/50">
+                Our mission is to be a vehicle of transformation in our community, the marketplace and beyond as we embrace women from all walks of life. We live by a mandate of action to help women realize their value, purpose, and destiny in God's master plan.
+              </p>
+            </div>
           </div>
 
-          {/* Right — scripture */}
           <div className="border-l-2 border-brand-red pl-10">
-            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-6">Proverbs 31:25</p>
-            <div className="space-y-5">
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-6">Our core values</p>
+            <div className="space-y-4">
               <p className="text-white text-xl font-light leading-relaxed italic">
-                "She is clothed with strength and dignity,
+                Our message is hope and our language is love.
               </p>
-              <p className="text-brand-red text-xl font-semibold leading-relaxed">
-                and she laughs without fear of the future."
+              <p className="text-white/60 text-lg font-light leading-relaxed italic">
+                Our attitude is gratitude and our culture is service.
               </p>
-              <p className="text-white/50 text-sm leading-relaxed mt-4">
-                This is who we are called to be. This is what we pursue together.
+              <p className="text-white/60 text-lg font-light leading-relaxed italic">
+                Our spirit is inclusive and our actions are intentional.
+              </p>
+              <p className="text-brand-red text-lg font-semibold leading-relaxed">
+                We cross generations and cultures, we are relevant, and we bring restoration!
               </p>
             </div>
           </div>
@@ -230,7 +236,7 @@ const WomensMinistry = () => {
           <div className="relative min-h-[420px] lg:min-h-[560px] overflow-hidden">
             <img
               src="/assets/events/womens-sunday.jpg"
-              alt="Women's Ministry gathering"
+              alt="Women of Grace gathering"
               className="absolute inset-0 w-full h-full object-cover opacity-70"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-vbc-dark/60 to-transparent" />
@@ -367,7 +373,7 @@ const WomensMinistry = () => {
           {/* TODO: Replace placeholder names with real leaders */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/5">
             {[
-              { num: "01", role: "Ministry Leader",       name: "To be announced", note: "Overseeing the vision and direction of Women's Ministry" },
+              { num: "01", role: "Ministry Leader",       name: "To be announced", note: "Overseeing the vision and direction of Women of Grace" },
               { num: "02", role: "Deputy Leader",         name: "To be announced", note: "Supporting programmes and coordinating ministry teams" },
               { num: "03", role: "Prayer Coordinator",    name: "To be announced", note: "Leading monthly prayer gatherings and intercession teams" },
             ].map(({ num, role, name, note }) => (

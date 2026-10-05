@@ -79,7 +79,7 @@ const PROGRAMMES = [
 
 const TESTIMONIALS = [
   {
-    quote: "We came to the Couples Ministry on the verge of giving up. Three years later, we are mentors ourselves. This community didn't just save our marriage — it showed us what marriage was actually supposed to be.",
+    quote: "We came to the Marriage Ministry on the verge of giving up. Three years later, we are mentors ourselves. This community didn't just save our marriage — it showed us what marriage was actually supposed to be.",
     author: "Bwalya & Mutinta N.",
     role: "Members since 2021",
   },
@@ -102,7 +102,7 @@ const TESTIMONIALS = [
 
 const FAQS = [
   {
-    q: "Who can join the Couples Ministry?",
+    q: "Who can join the Marriage Ministry?",
     a: "The ministry is open to married couples at every stage — newlyweds, couples raising families, and those who have been married for decades. Engaged couples who want to prepare well are also welcome.",
   },
   {
@@ -157,23 +157,23 @@ const CouplesMinistry = () => {
   return (
     <div className="bg-white">
       <Helmet>
-        <title>Couples Ministry — Victory Bible Church</title>
+        <title>Marriage Ministry — Victory Bible Church</title>
         <meta
           name="description"
-          content="VBC Couples Ministry: building strong, Christ-centred marriages through enrichment workshops, fellowship, mentoring, and annual retreats."
+          content="Victory Marriage Ministry is committed to seeing healthy marriages become a reality for couples — whether you want to prepare, repair, or enrich your marriage."
         />
       </Helmet>
 
       {/* ── Hero ──────────────────────────────────────────────────── */}
       <HeroSection
-        subtitle="Couples Ministry"
-        title="Couples Ministry"
+        subtitle="Marriage Ministry"
+        title="Marriage Ministry"
         description="A community dedicated to building marriages that don't just last — but flourish. Rooted in Scripture, grounded in community, growing together."
         backgroundImage="/assets/hero-bg.jpg"
         breadcrumbs={[
           { label: "Home", path: "/" },
           { label: "Ministries", path: "/ministries" },
-          { label: "Couples Ministry" },
+          { label: "Marriage Ministry" },
         ]}
       />
 
@@ -182,39 +182,37 @@ const CouplesMinistry = () => {
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
           <div>
-            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-4">What we believe</p>
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-4">Our purpose</p>
             <h2
               className="font-black text-white leading-[0.88] mb-8"
               style={{ fontSize: "clamp(3rem, 7vw, 5.5rem)" }}
             >
-              NOT<br />
-              <span className="text-white/20">SURVIVE.</span><br />
-              THRIVE.
+              PREPARE.<br />
+              <span className="text-white/20">REPAIR.</span><br />
+              ENRICH.
             </h2>
-            <p className="text-white/50 text-sm leading-relaxed max-w-sm">
-              Most couples seek help when things are already breaking. We exist for <em className="text-white/70 not-italic">before</em> the crisis — for investment, enrichment, and intentional growth at every stage of marriage. Strong families start here.
+            <p className="text-white/50 text-sm leading-relaxed max-w-md">
+              Victory Marriage Ministry is committed to seeing healthy marriages become a reality for couples. Our purpose is to develop strong families that would be a godly testimony to others. We're here to offer encouragement to you regardless of whether you long for healing and restoration for your relationship or you desire to take your marriage to a greater level.
             </p>
           </div>
 
           <div className="border-l-2 border-brand-red pl-10">
-            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-6">Ecclesiastes 4:9–12</p>
-            <div className="space-y-4">
-              <p className="text-white text-xl font-light leading-relaxed italic">
-                "Two are better than one, because they have a good return for their labour.
-              </p>
-              <p className="text-white/60 text-lg font-light leading-relaxed italic">
-                If either of them falls down, one can help the other up.
-              </p>
-              <p className="text-white/60 text-lg font-light leading-relaxed italic">
-                But pity anyone who falls and has no one to help them up.
-              </p>
-              <p className="text-brand-red text-lg font-semibold leading-relaxed">
-                A cord of three strands is not quickly broken."
-              </p>
-            </div>
-            <p className="text-white/30 text-xs leading-relaxed mt-6 max-w-xs">
-              Two people. God in the centre. That is the cord of three strands — and that is what we build together.
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-6">How we help</p>
+            <p className="text-white/50 text-sm leading-relaxed mb-6 max-w-sm">
+              We offer various ways to strengthen relationships. This includes those interested in:
             </p>
+            <div className="divide-y divide-white/10">
+              {[
+                { track: "Prepare", body: "Building a solid foundation for engaged couples and newlyweds." },
+                { track: "Repair",  body: "Encouraging couples in distress or crisis." },
+                { track: "Enrich",  body: "Deepening and enriching stable marriages." },
+              ].map(({ track, body }) => (
+                <div key={track} className="py-5">
+                  <p className="text-white text-xl font-black uppercase tracking-wide">{track}</p>
+                  <p className="text-white/50 text-sm leading-relaxed mt-1">{body}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -412,7 +410,7 @@ const CouplesMinistry = () => {
           {/* TODO: Replace with real leader names when confirmed */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/5">
             {[
-              { num: "01", role: "Lead Couple",         name: "To be announced", note: "Overseeing the vision and spiritual direction of the Couples Ministry." },
+              { num: "01", role: "Lead Couple",         name: "To be announced", note: "Overseeing the vision and spiritual direction of the Marriage Ministry." },
               { num: "02", role: "Mentoring Coordinators", name: "To be announced", note: "Matching couples and supporting the mentoring programme across all seasons." },
               { num: "03", role: "Events & Fellowship",  name: "To be announced", note: "Planning workshops, fellowship nights, and the annual marriage retreat." },
             ].map(({ num, role, name, note }) => (

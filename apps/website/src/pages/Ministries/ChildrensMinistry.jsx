@@ -78,7 +78,7 @@ const TESTIMONIALS = [
   {
     quote: "I love it when we do drama for Bible stories. I was the shepherd with the lost sheep and I still remember what the story means.",
     author: "Tina, age 10",
-    role: "Children's Ministry Member",
+    role: "Victory Kids Konnect Member",
   },
   {
     quote: "The teachers actually remember my son's name every week. He's noticed, and so have I. These people genuinely care.",
@@ -89,7 +89,7 @@ const TESTIMONIALS = [
 
 const FAQS = [
   {
-    q: "What ages does the Children's Ministry serve?",
+    q: "What ages does Victory Kids Konnect serve?",
     a: "From newborns in the nursery all the way through to age 12 in our Primary class. Each age group has its own dedicated space, teacher, and programme designed for that developmental stage.",
   },
   {
@@ -144,23 +144,23 @@ const ChildrensMinistry = () => {
   return (
     <div className="bg-white">
       <Helmet>
-        <title>Children's Ministry — Victory Bible Church</title>
+        <title>Victory Kids Konnect — Victory Bible Church</title>
         <meta
           name="description"
-          content="VBC Children's Ministry: safe, creative, age-appropriate Bible teaching for children aged 0–12. A place where real faith begins."
+          content="Victory Kids Konnect, the children's ministry of Victory Bible Church: a safe, secure, and exciting environment where children can know and experience Jesus Christ."
         />
       </Helmet>
 
       {/* ── Hero ──────────────────────────────────────────────────── */}
       <HeroSection
         subtitle="Children's Ministry"
-        title="Children's Ministry"
+        title="Victory Kids Konnect"
         description="A safe, creative, and joyful space where children encounter God, make lifelong friends, and begin building a faith that will carry them through everything."
         backgroundImage="/assets/hero-bg.jpg"
         breadcrumbs={[
           { label: "Home", path: "/" },
           { label: "Ministries", path: "/ministries" },
-          { label: "Children's Ministry" },
+          { label: "Victory Kids Konnect" },
         ]}
       />
 
@@ -169,17 +169,17 @@ const ChildrensMinistry = () => {
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
           <div>
-            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-4">What we believe</p>
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-4">Who we are</p>
             <h2
               className="font-black text-white leading-[0.88] mb-8"
               style={{ fontSize: "clamp(3rem, 7vw, 5.5rem)" }}
             >
-              NOT THE<br />
-              <span className="text-white/20">FUTURE.</span><br />
-              THE CHURCH.
+              INSPIRING<br />
+              <span className="text-white/20">THE NEXT</span><br />
+              GENERATION.
             </h2>
-            <p className="text-white/50 text-sm leading-relaxed max-w-sm">
-              Children aren't sitting in a waiting room until they're old enough for "real" church. They worship, they pray, and they encounter God now — in ways that are genuine, lasting, and theirs. We take that seriously.
+            <p className="text-white/50 text-sm leading-relaxed max-w-md">
+              Legacy marks its place at Victory in the form of Children's Ministry. Victory Kids Konnect functions primarily to inspire the next generation to encounter and follow passionately after Christ. The utmost care goes into planning a safe, secure, and exciting environment where children can know and experience Jesus Christ.
             </p>
           </div>
 

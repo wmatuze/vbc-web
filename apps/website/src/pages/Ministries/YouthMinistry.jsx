@@ -22,7 +22,7 @@ import youthGallery3 from "../../assets/images/youth/gallery3.jpg";
 // ─── Static data ──────────────────────────────────────────────────────────────
 
 const TABS = [
-  { id: "main",    label: "About Lit Nation" },
+  { id: "main",    label: "About L.I.T Nation" },
   { id: "cbu",     label: "CBU Fellowship"   },
   { id: "gallery", label: "Photo Gallery"    },
   { id: "events",  label: "Upcoming Events"  },
@@ -36,22 +36,27 @@ const VALUES = [
   { num: "04", title: "Impact",    body: "Making a difference right where we are — in our schools, homes, and city." },
 ];
 
+const GROUPS = [
+  { num: "01", title: "Students Ministry",   body: "Services include dynamic prayer and worship, and powerful messages followed by hang out time for students to build the kingdom together. This is a time when students can have fun, make great friends, and grow in their relationship with God." },
+  { num: "02", title: "Young Adults Groups", body: "Young Adults is a family and we want everyone to belong! Groups is the best way to jump in and meet new people to do life with. When you come, we immediately help you find a suitable group you can fuse into." },
+];
+
 const SCHEDULE = [
-  { name: "Lit Nation",     time: "13:00 – 15:00", day: "Every Sunday",   venue: "Main Sanctuary",     note: "After main church service" },
+  { name: "L.I.T Nation",     time: "13:00 – 15:00", day: "Every Sunday",   venue: "Main Sanctuary",     note: "After main church service" },
   { name: "CBU Fellowship", time: "18:00 – 20:00", day: "Every Tuesday",  venue: "Victory Bible Church", note: "Bible study · Worship · Community" },
   { name: "CBU Prayer Marathon", time: "21:00 – 04:00", day: "Last Friday of the month", venue: "Victory Bible Church", note: "All-night prayer & intercession" },
 ];
 
 const TESTIMONIALS = [
-  { quote: "Lit Nation is my second family. The friends I've made and the spiritual growth I've experienced have changed my life.", author: "Alex J.", role: "Member since 2021 · Age 17" },
+  { quote: "L.I.T Nation is my second family. The friends I've made and the spiritual growth I've experienced have changed my life.", author: "Alex J.", role: "Member since 2021 · Age 17" },
   { quote: "I love how our youth group makes the Bible relevant to our everyday lives. The leaders really understand what we're going through.", author: "Sophia W.", role: "Member since 2022 · Age 16" },
   { quote: "The worship sessions and retreats have helped me build a personal relationship with God. I've never felt more connected to my faith.", author: "Nathan T.", role: "Member since 2020 · Age 19" },
 ];
 
 const FAQS = [
-  { q: "What ages does Lit Nation serve?", a: "Lit Nation welcomes youth ages 13–25. We have programmes tailored for middle school (13–14), high school (15–18), and young adults (19–25)." },
+  { q: "What ages does L.I.T Nation serve?", a: "L.I.T Nation is a community of young adults ages 16–29, with a Students Ministry and Young Adults Groups to help you find your place." },
   { q: "When and where do you meet?", a: "Every Friday at 6:30 PM in the Main Sanctuary for our main service. Sunday youth classes at 9:30 AM, and small discipleship groups on Wednesdays at 4:00 PM." },
-  { q: "Do I need to be a church member?", a: "Not at all. Everyone is welcome at Lit Nation. Many attendees aren't formal members. Come as you are!" },
+  { q: "Do I need to be a church member?", a: "Not at all. Everyone is welcome at L.I.T Nation. Many attendees aren't formal members. Come as you are!" },
   { q: "What happens at a Friday night service?", a: "Dynamic worship, relevant teaching, interactive activities, small group discussions, and time to build friendships. First-time visitors are welcomed but never put on the spot." },
 ];
 
@@ -104,8 +109,8 @@ const YouthMinistry = () => {
   return (
     <div className="bg-white">
       <Helmet>
-        <title>Lit Nation Youth Ministry — Victory Bible Church</title>
-        <meta name="description" content="Lit Nation — Victory Bible Church's dynamic youth ministry for ages 13–25. Meet every Friday at 6:30 PM." />
+        <title>L.I.T Nation Youth Ministry — Victory Bible Church</title>
+        <meta name="description" content="Living in Triumph (L.I.T Nation) — the youth ministry of Victory Bible Church, a community of young adults ages 16–29." />
       </Helmet>
 
       {/* ── HERO ────────────────────────────────────────────────── */}
@@ -120,18 +125,18 @@ const YouthMinistry = () => {
           {/* Eyebrow */}
           <span className="mb-4 block h-px w-12 bg-white/60" aria-hidden="true" />
           <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-white sm:text-xs">
-            Victory Bible Church
+            Living in Triumph
           </p>
 
           {/* Title */}
           <h1
             className="font-sans text-3xl font-semibold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl"
           >
-            Youth Ministry
+            L.I.T Nation Youth Ministry
           </h1>
 
           <p className="hidden">
-            A vibrant community where youth experience faith, friendship, and purpose — every Friday at 6:30 PM.
+            A community of young adults ages 16–29 — believing in Jesus, belonging to family, becoming followers, and building God's Kingdom.
           </p>
 
           <div className="hidden">
@@ -139,7 +144,7 @@ const YouthMinistry = () => {
               onClick={() => { setActiveTab("main"); document.getElementById("tab-content")?.scrollIntoView({ behavior: "smooth" }); }}
               className="bg-brand-red text-white text-sm font-semibold px-8 py-4 hover:bg-red-700 transition-colors"
             >
-              Join Lit Nation
+              Join L.I.T Nation
             </button>
             <Link to="/contact"
               className="border border-white/20 text-white text-sm font-semibold px-8 py-4 hover:bg-white/5 transition-colors">
@@ -149,7 +154,7 @@ const YouthMinistry = () => {
 
           {/* Quick facts strip */}
           <div className="hidden">
-            {[["Sunday", "13:00 – 15:00"], ["Tuesday", "CBU Fellowship"], ["Ages", "13 – 25"]].map(([top, bot]) => (
+            {[["Sunday", "13:00 – 15:00"], ["Tuesday", "CBU Fellowship"], ["Ages", "16 – 29"]].map(([top, bot]) => (
               <div key={top} className="bg-vbc-dark/60 py-5 px-4 text-center">
                 <p className="text-white font-black text-xl">{top}</p>
                 <p className="text-white/40 text-xs uppercase tracking-wider">{bot}</p>
@@ -184,7 +189,7 @@ const YouthMinistry = () => {
       <div id="tab-content">
 
         {/* ════════════════════════════════════════════════════════
-            TAB 1 — ABOUT LIT NATION
+            TAB 1 — ABOUT L.I.T NATION
         ════════════════════════════════════════════════════════ */}
         {activeTab === "main" && (
           <div>
@@ -197,12 +202,13 @@ const YouthMinistry = () => {
                     className="font-black text-white leading-[0.9] mb-6"
                     style={{ fontSize: "clamp(2.5rem, 6vw, 4.5rem)" }}
                   >
-                    More than<br />
-                    <span className="text-white/25">a youth</span><br />
-                    group.
+                    Believe.<br />
+                    <span className="text-white/25">Belong.</span><br />
+                    Become.<br />
+                    <span className="text-white/25">Build.</span>
                   </h2>
                   <p className="text-white/50 text-sm leading-relaxed max-w-sm">
-                    Lit Nation is where teenagers and young adults come alive in their faith. We create space to experience God's presence, build authentic friendships, and discover real purpose.
+                    We are a community of young adults ages 16–29. Our mission is to help young adults believe in Jesus, belong to family, become a follower, and build God's Kingdom.
                   </p>
                 </div>
 
@@ -219,6 +225,27 @@ const YouthMinistry = () => {
                         </div>
                       </div>
                       <p className="text-white font-black text-lg flex-shrink-0">{time}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* Students & Young Adults — dark */}
+            <section className="bg-vbc-dark py-24">
+              <div className="max-w-7xl mx-auto px-6">
+                <div className="mb-14">
+                  <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-3">Find your place</p>
+                  <h2 className="text-4xl font-black text-white">Two ways to belong.</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/5">
+                  {GROUPS.map(({ num, title, body }) => (
+                    <div key={num} className="bg-vbc-dark px-8 py-10 group">
+                      <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-3">{num}</p>
+                      <div className="w-8 h-0.5 bg-brand-red mb-5 group-hover:w-14 transition-all duration-300" />
+                      <h3 className="text-2xl font-black text-white mb-4">{title}</h3>
+                      <p className="text-white/50 text-sm leading-relaxed">{body}</p>
                     </div>
                   ))}
                 </div>
@@ -328,7 +355,7 @@ const YouthMinistry = () => {
                 {[
                   { Icon: CalendarDaysIcon, label: "When",  value: "Every Sunday",    sub: "13:00 – 15:00, after service" },
                   { Icon: MapPinIcon,        label: "Where", value: "Main Sanctuary",  sub: "Victory Bible Church" },
-                  { Icon: UsersIcon,         label: "Who",   value: "Ages 13 – 25",   sub: "All are welcome" },
+                  { Icon: UsersIcon,         label: "Who",   value: "Ages 16 – 29",   sub: "All are welcome" },
                 ].map(({ Icon, label, value, sub }) => (
                   <div key={label} className="bg-vbc-dark px-10 py-12 text-center">
                     <Icon className="h-6 w-6 text-brand-red mx-auto mb-4" />
@@ -548,7 +575,7 @@ const YouthMinistry = () => {
                 <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-3">Serve with us</p>
                 <h3 className="text-3xl font-black text-white mb-4">Get Involved</h3>
                 <p className="text-white/50 text-sm leading-relaxed mb-8">
-                  We're always looking for passionate adults who want to make a difference in the lives of young people. If you're interested in volunteering with Lit Nation, we'd love to hear from you.
+                  We're always looking for passionate adults who want to make a difference in the lives of young people. If you're interested in volunteering with L.I.T Nation, we'd love to hear from you.
                 </p>
                 <div className="flex flex-wrap gap-4">
                   <Link to="/contact"

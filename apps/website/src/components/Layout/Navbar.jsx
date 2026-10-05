@@ -66,15 +66,15 @@ const Navbar = ({
         icon: UserGroupIcon,
         children: [
           // Add children for dropdown
-          { path: "/ministries/mens", label: "Men's Ministry" },
-          { path: "/ministries/womens", label: "Women's Ministry" },
-          { path: "/ministries/youths", label: "Youth Ministry" },
+          { path: "/ministries/mens", label: "Men at the Gate" },
+          { path: "/ministries/womens", label: "Women of Grace" },
+          { path: "/ministries/youths", label: "L.I.T Nation Youth" },
           {
             path: "/ministries/children",
-            label: "Children's Ministry",
+            label: "Victory Kids Konnect",
           },
-          { path: "/ministries/praise", label: "Praise Ministry" },
-          { path: "/ministries/couples", label: "Couples Ministry" },
+          { path: "/ministries/praise", label: "Worship Ministry" },
+          { path: "/ministries/couples", label: "Marriage Ministry" },
         ],
       },
       {

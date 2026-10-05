@@ -10,7 +10,7 @@ const MINISTRIES = [
   {
     number: "01",
     label: "Youth Ministry",
-    name: "Lit Nation",
+    name: "L.I.T Nation",
     description: "A generation learning to live boldly in faith.",
     path: "/ministries/youths",
     image: "/images/youth-ministry.jpg",
@@ -19,7 +19,7 @@ const MINISTRIES = [
   {
     number: "02",
     label: "Men's Ministry",
-    name: "Men of Valour",
+    name: "Men at the Gate",
     description: "Men shaped by integrity, purpose, and service.",
     path: "/ministries/mens",
     image: "/images/mens-ministry.jpg",
@@ -28,7 +28,7 @@ const MINISTRIES = [
   {
     number: "03",
     label: "Women's Ministry",
-    name: "Daughters of Zion",
+    name: "Women of Grace",
     description: "Women growing together through faith and fellowship.",
     path: "/ministries/womens",
     image: "/images/andressa-voltolini-H7WdV-dNRZE-unsplash.jpg",
@@ -37,7 +37,7 @@ const MINISTRIES = [
   {
     number: "04",
     label: "Praise & Worship",
-    name: "Praise Ministry",
+    name: "Worship Ministry",
     description: "Leading people into God's presence through worship.",
     path: "/ministries/praise",
     image: "/images/praise-ministry.jpg",

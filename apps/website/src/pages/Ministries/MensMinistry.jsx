@@ -68,7 +68,7 @@ const EVENTS_GRID = [
 
 const TESTIMONIALS = [
   {
-    quote: "The Men's Ministry gave me brothers who could speak truth to my face and pray for me in the same breath. That kind of accountability changed how I lead my family.",
+    quote: "Men at the Gate gave me brothers who could speak truth to my face and pray for me in the same breath. That kind of accountability changed how I lead my family.",
     author: "Chanda M.",
     role: "Member since 2020",
   },
@@ -78,7 +78,7 @@ const TESTIMONIALS = [
     role: "Member since 2022",
   },
   {
-    quote: "Serving through the Men's Ministry in outreach reminded me that faith is never passive. We are called to go — and this ministry gave me somewhere to go.",
+    quote: "Serving through Men at the Gate in outreach reminded me that faith is never passive. We are called to go — and this ministry gave me somewhere to go.",
     author: "Isaac B.",
     role: "Member since 2019",
   },
@@ -91,7 +91,7 @@ const TESTIMONIALS = [
 
 const FAQS = [
   {
-    q: "Who can join the Men's Ministry?",
+    q: "Who can join Men at the Gate?",
     a: "Membership is open to all men — those who are members of Victory Bible Church and those from the wider community who share the church's vision. Whether your faith is deep-rooted or still taking shape, you are welcome.",
   },
   {
@@ -100,7 +100,7 @@ const FAQS = [
   },
   {
     q: "What are small groups and how do I join one?",
-    a: "Small groups are the heartbeat of the Men's Ministry — smaller, more intimate gatherings built around discipleship, relationship, and accountability. Speak to one of our leaders after a meeting to be placed in a group.",
+    a: "Small groups are the heartbeat of Men at the Gate — smaller, more intimate gatherings built around discipleship, relationship, and accountability. Speak to one of our leaders after a meeting to be placed in a group.",
   },
   {
     q: "What if I cannot attend in person?",
@@ -146,17 +146,17 @@ const MensMinistry = () => {
   return (
     <div className="bg-white">
       <Helmet>
-        <title>Men's Ministry — Victory Bible Church</title>
+        <title>Men at the Gate — Victory Bible Church</title>
         <meta
           name="description"
-          content="VBC Men's Ministry: discipleship, brotherhood, and service. Monthly gatherings, small groups, and annual events for men of all ages."
+          content="Men at the Gate, the men's ministry of Victory Bible Church: helping men discover their strengths as husbands, fathers, businessmen, and leaders."
         />
       </Helmet>
 
       {/* ── Hero ──────────────────────────────────────────────────── */}
       <HeroSection
         subtitle="Victory Bible Church"
-        title="Men's Ministry"
+        title="Men at the Gate"
         backgroundImage="/assets/hero-bg.jpg"
       />
 
@@ -165,31 +165,36 @@ const MensMinistry = () => {
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
           <div>
-            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-4">Our purpose</p>
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-4">Who we are</p>
             <h2
               className="font-black text-white leading-[0.88] mb-8"
               style={{ fontSize: "clamp(3rem, 7vw, 5.5rem)" }}
             >
-              DISCOVER.<br />
-              <span className="text-white/20">PREPARE.</span><br />
-              SERVE.
+              MIGHTY<br />
+              <span className="text-white/20">MEN OF</span><br />
+              GOD.
             </h2>
-            <p className="text-white/50 text-sm leading-relaxed max-w-sm">
-              We exist to motivate men to discover their God-given ministry, prepare them for it, and provide every opportunity to live it out — for the church, the family, and the world around us.
-            </p>
+            <div className="space-y-4 text-white/50 text-sm leading-relaxed max-w-md">
+              <p>
+                Here at Victory, we seek God first. We're here to help you discover your strengths as a husband, father, businessman, and leader. We recognize that every man has an innate desire to be a part of something bigger than himself.
+              </p>
+              <p>
+                We accomplish this through the Men at the Gate Summit, men's small groups, and other special events. We want to empower men to impact their workplace, communities — and most importantly — their families for the kingdom of God.
+              </p>
+            </div>
           </div>
 
           <div className="border-l-2 border-brand-red pl-10">
-            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-6">Hebrews 10:24–25</p>
+            <p className="text-brand-red text-xs font-semibold uppercase tracking-[0.2em] mb-6">Our purpose · 1 Chronicles 11:10</p>
             <div className="space-y-5">
               <p className="text-white text-xl font-light leading-relaxed italic">
-                "And let us consider how to stir up one another to love and good works,
+                For the men of Victory Bible Church to be mighty men of God
               </p>
               <p className="text-white/60 text-lg font-light leading-relaxed italic">
-                not neglecting to meet together, as is the habit of some, but encouraging one another,
+                and give the Kingdom of God strong support
               </p>
               <p className="text-brand-red text-lg font-semibold leading-relaxed">
-                and all the more as you see the Day drawing near."
+                and extend it over the land.
               </p>
             </div>
           </div>

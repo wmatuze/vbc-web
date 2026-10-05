@@ -53,11 +53,15 @@ const fetchChurchConfig = async () => {
   return normalizeChurchConfig(await response.json());
 };
 
-export const useChurchConfig = () =>
-  useQuery({
+export const useChurchConfig = () => {
+  const query = useQuery({
     queryKey: CHURCH_CONFIG_QUERY_KEY,
     queryFn: fetchChurchConfig,
     placeholderData: DEFAULT_CHURCH_CONFIG,
     staleTime: 60 * 1000,
     refetchOnMount: true,
   });
+
+  // If the request fails, data is undefined — fall back to the defaults so pages never crash.
+  return { ...query, data: query.data ?? DEFAULT_CHURCH_CONFIG };
+};

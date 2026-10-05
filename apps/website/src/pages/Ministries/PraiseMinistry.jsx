@@ -103,7 +103,7 @@ const FAQS = [
     a: "Weekly Thursday rehearsal from 6:30 PM, plus Sunday morning from 7:30 AM for sound check and service. Team members are rostered so you won't always be leading every week, but the rehearsal is a commitment for everyone.",
   },
   {
-    q: "I'm not a musician — can I still serve in the Praise Ministry?",
+    q: "I'm not a musician — can I still serve in the Worship Ministry?",
     a: "Absolutely. Our production team — sound engineers, projection operators, lighting — are vital to what happens on Sunday. If you have technical skills or are willing to learn, there is a place for you here.",
   },
   {
@@ -146,23 +146,23 @@ const PraiseMinistry = () => {
   return (
     <div className="bg-white">
       <Helmet>
-        <title>Praise Ministry — Victory Bible Church</title>
+        <title>Worship Ministry — Victory Bible Church</title>
         <meta
           name="description"
-          content="VBC Praise Ministry: vocalists, musicians, and production team leading the church in worship every Sunday. Discover how to join."
+          content="VBC Worship Ministry: vocalists, musicians, and production team leading the church in worship every Sunday. Discover how to join."
         />
       </Helmet>
 
       {/* ── Hero ──────────────────────────────────────────────────── */}
       <HeroSection
-        subtitle="Praise Ministry"
-        title="Praise Ministry"
+        subtitle="Worship Ministry"
+        title="Worship Ministry"
         description="Musicians, vocalists, and technicians — one team, one purpose. To create the space where every person in the room can encounter God."
         backgroundImage="/assets/hero-bg.jpg"
         breadcrumbs={[
           { label: "Home", path: "/" },
           { label: "Ministries", path: "/ministries" },
-          { label: "Praise Ministry" },
+          { label: "Worship Ministry" },
         ]}
       />
 
@@ -176,13 +176,21 @@ const PraiseMinistry = () => {
               className="font-black text-white leading-[0.88] mb-8"
               style={{ fontSize: "clamp(3rem, 7vw, 5.5rem)" }}
             >
-              NOT<br />
-              <span className="text-white/20">PERFORM.</span><br />
-              WORSHIP.
+              HEART<br />
+              <span className="text-white/20">BEFORE</span><br />
+              SKILL.
             </h2>
-            <p className="text-white/50 text-sm leading-relaxed max-w-sm">
-              The moment the congregation forgets the team exists and simply worships freely — that is when we have done our job. We are not performers. We are servants with instruments, leading the church to the throne.
-            </p>
+            <div className="space-y-4 text-white/50 text-sm leading-relaxed max-w-md">
+              <p>
+                Worship at Victory Bible Church is an integral part of every member. We believe that through it God draws close to all those who engage in worship with Him in Truth and Spirit.
+              </p>
+              <p>
+                Being a metropolitan church, our music has a landscape of local and modern worship songs, and hymns with a contemporary touch.
+              </p>
+              <p>
+                We believe the heart of a person is the first phase of our worship to God, before the talent and skill of the singer or musician. All our worship is seamless and goes on for as long as the Spirit leads us to worship the Lamb and our Father.
+              </p>
+            </div>
           </div>
 
           {/* Psalm 150 — the ministry's own charter */}

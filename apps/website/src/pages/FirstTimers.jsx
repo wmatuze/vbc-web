@@ -61,7 +61,7 @@ const WHAT_TO_EXPECT = [
   { num: "01", title: "Arrival",        body: "Arrive a few minutes before 9:30 AM. Our ushers will welcome you at the door, help you find a seat, and answer any questions." },
   { num: "02", title: "Worship",        body: "We begin with Spirit-led praise and worship — vibrant, authentic, and open to everyone. Come as you are." },
   { num: "03", title: "The Word",       body: "Our services feature Scripture-driven preaching from Bishop Cyrus or a member of the leadership team. Bring a Bible and notebook." },
-  { num: "04", title: "Children",       body: "Children's Ministry runs alongside the adult service. Your children will be welcomed, safe, and learning at their own level." },
+  { num: "04", title: "Children",       body: "Victory Kids Konnect, our children's ministry, runs alongside the adult service. Your children will be welcomed, safe, and learning at their own level." },
   { num: "05", title: "After Service",  body: "First-timers are invited to meet the team after the service. Look out for the First-Timers area near the front." },
 ];
 
